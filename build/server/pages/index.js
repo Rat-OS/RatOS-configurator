@@ -807,6 +807,7 @@ const WifiSetup = (props)=>{
     }) : selectedNetwork && wifiMutation.isSuccess ? /*#__PURE__*/ jsx_runtime_.jsx(TextInput, {
         label: "Printer hostname",
         type: "text",
+        defaultValue: "RatOS",
         error: hostnameMutation.isError ? hostnameMutation.error : undefined,
         onChange: setHostname,
         help: "Only use characters from a-Z and dashes. For example, entering \"RatOS\" will make your printer available at http://RatOS.local/"
