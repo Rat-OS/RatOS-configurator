@@ -391,6 +391,11 @@ const TextInput = (props)=>{
         id: fieldId.current + '-error',
         children: props.error
     }) : null;
+    const help = props.help ? /*#__PURE__*/ jsx_runtime_.jsx("p", {
+        className: "mt-2 text-sm text-gray-500",
+        id: "email-description",
+        children: props.help
+    }) : null;
     const onChange = (0,external_react_.useCallback)((e)=>{
         _onChange === null || _onChange === void 0 ? void 0 : _onChange(e.currentTarget.value);
     }, [
@@ -402,7 +407,7 @@ const TextInput = (props)=>{
     }, []);
     const visibility = props.type === 'password' ? /*#__PURE__*/ jsx_runtime_.jsx("div", {
         onClick: togglePasswordVisibility,
-        className: "absolute inset-y-0 right-0 pr-3 flex items-center",
+        className: "absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer",
         children: isPasswordVisible ? /*#__PURE__*/ jsx_runtime_.jsx(outline_.EyeOffIcon, {
             className: "h-5 w-5 text-gray-400"
         }) : /*#__PURE__*/ jsx_runtime_.jsx(outline_.EyeIcon, {
@@ -420,7 +425,7 @@ const TextInput = (props)=>{
                 className: "mt-1 relative rounded-md shadow-sm",
                 children: [
                     /*#__PURE__*/ jsx_runtime_.jsx("input", {
-                        type: props.type,
+                        type: isPasswordVisible ? 'text' : props.type,
                         className: inputClass,
                         placeholder: props.placeholder,
                         defaultValue: props.defaultValue,
@@ -432,7 +437,7 @@ const TextInput = (props)=>{
                     visibility
                 ]
             }),
-            error
+            error ?? help
         ]
     }));
 };
@@ -796,20 +801,21 @@ const WifiSetup = (props)=>{
     ]);
     const content = selectedNetwork && wifiMutation.isSuccess && hostnameCompleted ? /*#__PURE__*/ jsx_runtime_.jsx(Modal, {
         title: "Settings saved!",
-        body: `RatOS is now setup to connect to ${selectedNetwork.ssid}! Your raspberry pi will now reboot, and join your local wifi network. Click the button below to reboot the pi and close this window. You can then reconnect to your local network where http://RatOS.local/ should be available in a few minutes. If RatOS fails to join ${selectedNetwork.ssid}, it will recreate the "ratos" hotspot and you'll have to try again.`,
+        body: `RatOS is now setup to connect to ${selectedNetwork.ssid}! Your raspberry pi will now reboot, and join your local wifi network. Click the button below to reboot the pi and close this window. You can then reconnect to your local network where http://${hostname}.local/ should be available in a few minutes. If RatOS fails to join ${selectedNetwork.ssid}, it will recreate the "ratos" hotspot and you'll have to try again.`,
         buttonLabel: "Got it!",
         onClick: rebootAndClose
     }) : selectedNetwork && wifiMutation.isSuccess ? /*#__PURE__*/ jsx_runtime_.jsx(TextInput, {
         label: "Printer hostname",
         type: "text",
         error: hostnameMutation.isError ? hostnameMutation.error : undefined,
-        onChange: setHostname
-    }) : selectedNetwork ? /*#__PURE__*/ jsx_runtime_.jsx(TextInput, {
+        onChange: setHostname,
+        help: "Only use characters from a-Z and dashes. For example, entering \"RatOS\" will make your printer available at http://RatOS.local/"
+    }, "hostname") : selectedNetwork ? /*#__PURE__*/ jsx_runtime_.jsx(TextInput, {
         label: selectedNetwork.security.toLocaleUpperCase() + ' Password',
         type: "password",
         error: wifiMutation.isError ? wifiMutation.error : undefined,
         onChange: setPassword
-    }) : isError ? /*#__PURE__*/ jsx_runtime_.jsx("div", {
+    }, "password") : isError ? /*#__PURE__*/ jsx_runtime_.jsx("div", {
         className: "mb-4 h-48",
         children: /*#__PURE__*/ jsx_runtime_.jsx(ErrorMessage, {
             children: error === null || error === void 0 ? void 0 : error.message

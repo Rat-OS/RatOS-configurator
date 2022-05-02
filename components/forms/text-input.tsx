@@ -9,6 +9,7 @@ interface TextInputProps {
 	placeholder?: string;
 	defaultValue?: string;
 	label: string;
+	help?: string;
 	onChange?: (val: string) => void;
 }
 
@@ -40,6 +41,12 @@ export const TextInput: React.FC<TextInputProps> = (props) => {
 		</p>
 	) : null;
 
+	const help = props.help ? (
+		<p className='mt-2 text-sm text-gray-500' id='email-description'>
+			{props.help}
+		</p>
+	) : null;
+
 	const onChange = useCallback(
 		(e: ChangeEvent<HTMLInputElement>) => {
 			_onChange?.(e.currentTarget.value);
@@ -53,7 +60,10 @@ export const TextInput: React.FC<TextInputProps> = (props) => {
 
 	const visibility =
 		props.type === 'password' ? (
-			<div onClick={togglePasswordVisibility} className='absolute inset-y-0 right-0 pr-3 flex items-center'>
+			<div
+				onClick={togglePasswordVisibility}
+				className='absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer'
+			>
 				{isPasswordVisible ? (
 					<EyeOffIcon className='h-5 w-5 text-gray-400' />
 				) : (
@@ -69,7 +79,7 @@ export const TextInput: React.FC<TextInputProps> = (props) => {
 			</label>
 			<div className='mt-1 relative rounded-md shadow-sm'>
 				<input
-					type={props.type}
+					type={isPasswordVisible ? 'text' : props.type}
 					className={inputClass}
 					placeholder={props.placeholder}
 					defaultValue={props.defaultValue}
@@ -80,7 +90,7 @@ export const TextInput: React.FC<TextInputProps> = (props) => {
 				{icon}
 				{visibility}
 			</div>
-			{error}
+			{error ?? help}
 		</div>
 	);
 };

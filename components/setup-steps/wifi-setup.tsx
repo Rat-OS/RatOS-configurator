@@ -156,7 +156,7 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 		selectedNetwork && wifiMutation.isSuccess && hostnameCompleted ? (
 			<Modal
 				title='Settings saved!'
-				body={`RatOS is now setup to connect to ${selectedNetwork.ssid}! Your raspberry pi will now reboot, and join your local wifi network. Click the button below to reboot the pi and close this window. You can then reconnect to your local network where http://RatOS.local/ should be available in a few minutes. If RatOS fails to join ${selectedNetwork.ssid}, it will recreate the "ratos" hotspot and you'll have to try again.`}
+				body={`RatOS is now setup to connect to ${selectedNetwork.ssid}! Your raspberry pi will now reboot, and join your local wifi network. Click the button below to reboot the pi and close this window. You can then reconnect to your local network where http://${hostname}.local/ should be available in a few minutes. If RatOS fails to join ${selectedNetwork.ssid}, it will recreate the "ratos" hotspot and you'll have to try again.`}
 				buttonLabel='Got it!'
 				onClick={rebootAndClose}
 			/>
@@ -164,13 +164,16 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 			<TextInput
 				label='Printer hostname'
 				type='text'
+				key='hostname'
 				error={hostnameMutation.isError ? hostnameMutation.error : undefined}
 				onChange={setHostname}
+				help='Only use characters from a-Z and dashes. For example, entering "RatOS" will make your printer available at http://RatOS.local/'
 			/>
 		) : selectedNetwork ? (
 			<TextInput
 				label={selectedNetwork.security.toLocaleUpperCase() + ' Password'}
 				type='password'
+				key='password'
 				error={wifiMutation.isError ? wifiMutation.error : undefined}
 				onChange={setPassword}
 			/>
