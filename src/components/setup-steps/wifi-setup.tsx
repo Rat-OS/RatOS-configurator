@@ -165,6 +165,7 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 				label='Printer hostname'
 				type='text'
 				key='hostname'
+				defaultValue='RatOS'
 				error={hostnameMutation.isError ? hostnameMutation.error : undefined}
 				onChange={setHostname}
 				help='Only use characters from a-Z and dashes. For example, entering "RatOS" will make your printer available at http://RatOS.local/'
