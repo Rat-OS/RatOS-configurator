@@ -1,0 +1,12 @@
+{
+  "/_app": "pages/_app.js",
+  "/_document": "pages/_document.js",
+  "/api/mcu/boards": "pages/api/mcu/boards.js",
+  "/api/types.d": "pages/api/types.d.js",
+  "/api/wifi/hostname": "pages/api/wifi/hostname.js",
+  "/api/wifi/join": "pages/api/wifi/join.js",
+  "/api/wifi/scan": "pages/api/wifi/scan.js",
+  "/": "pages/index.js",
+  "/_error": "pages/_error.js",
+  "/404": "pages/404.html"
+}
