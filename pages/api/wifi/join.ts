@@ -31,9 +31,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 	const body = req.body as WifiCredentials;
 	return new Promise((resolve, reject) => {
 		exec(
-			`sudo ${path.join(scriptRoot, 'scripts/add-wifi-network.sh')} ${body.ssid} ${body.passphrase} ${
+			`sudo ${path.join(scriptRoot, 'scripts/add-wifi-network.sh')} "${body.ssid}" "${body.passphrase}" "${
 				body.country ?? 'GB'
-			}`,
+			}"`,
 			(err, stdout) => {
 				if (err) {
 					console.log(err);

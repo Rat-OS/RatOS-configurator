@@ -41,7 +41,7 @@ async function handler(req, res) {
     const scriptRoot = __dirname.split('configurator/')[0] + 'configurator/';
     const body = req.body;
     return new Promise((resolve, reject)=>{
-        (0,child_process__WEBPACK_IMPORTED_MODULE_0__.exec)(`sudo ${path__WEBPACK_IMPORTED_MODULE_1___default().join(scriptRoot, 'scripts/add-wifi-network.sh')} ${body.ssid} ${body.passphrase} ${body.country ?? 'GB'}`, (err, stdout)=>{
+        (0,child_process__WEBPACK_IMPORTED_MODULE_0__.exec)(`sudo ${path__WEBPACK_IMPORTED_MODULE_1___default().join(scriptRoot, 'scripts/add-wifi-network.sh')} "${body.ssid}" "${body.passphrase}" "${body.country ?? 'GB'}"`, (err, stdout)=>{
             if (err) {
                 console.log(err);
                 return reject(res.status(200).json({
