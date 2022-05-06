@@ -27,18 +27,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 	}
 
 	// This is ... not great.. come up with something better
-	const scriptRoot = __dirname.split('configurator/')[0] + 'configurator/';
+	console.log(process.env);
+	const scriptRoot = process.env.RATOS_SCRIPT_DIR ?? __dirname.split('configurator/')[0] + 'configurator/scripts/';
 	const body = req.body as WifiCredentials;
+	console.log(scriptRoot);
 	return new Promise((resolve, reject) => {
 		exec(
-			`sudo ${path.join(scriptRoot, 'scripts/add-wifi-network.sh')} "${body.ssid}" "${body.passphrase}" "${
+			`sudo ${path.join(scriptRoot, 'add-wifi-network.sh')} "${body.ssid}" "${body.passphrase}" "${
 				body.country ?? 'GB'
 			}"`,
 			(err, stdout) => {
 				if (err) {
 					console.log(err);
 					return reject(
-						res.status(200).json({ result: 'error', type: 'UnknownError', data: { message: 'failed to add network' } }),
+						res
+							.status(200)
+							.json({ result: 'error', type: 'UnknownError', data: { message: 'Invalid wifi credentials' } }),
 					);
 				}
 				resolve(res.status(200).json({ result: 'success' }));

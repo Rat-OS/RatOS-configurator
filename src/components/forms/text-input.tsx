@@ -58,11 +58,12 @@ export const TextInput: React.FC<TextInputProps> = (props) => {
 		setIsPasswordVisible((b) => !b);
 	}, []);
 
+	const iconRight = icon != null ? 'right-6' : 'right-0';
 	const visibility =
 		props.type === 'password' ? (
 			<div
 				onClick={togglePasswordVisibility}
-				className='absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer'
+				className={`absolute inset-y-0 ${iconRight} pr-3 flex items-center cursor-pointer`}
 			>
 				{isPasswordVisible ? (
 					<EyeOffIcon className='h-5 w-5 text-gray-400' />
