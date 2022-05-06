@@ -74,6 +74,23 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 		});
 	}, [data]);
 
+	const hostnameValidationError = useMemo(() => {
+		if (hostname.length === 0) {
+			return 'Hostname must be longer than 0 characters';
+		}
+		if (hostname.match(/^([a-zA-Z0-9]|-)+$/) == null) {
+			return 'Hostname must only contain alpha numeric characters and dashes (0-9, a-Z and -)';
+		}
+		return null;
+	}, [hostname]);
+
+	const passwordValidationError = useMemo(() => {
+		if (password.length < 8 || password.length > 63) {
+			return 'Password must be between 8 and 63 characters long';
+		}
+		return null;
+	}, [password]);
+
 	const cards: SelectableNetwork[] = useMemo(() => {
 		if (isError) return [];
 		return Object.keys(apList).map((ap) => ({
@@ -100,33 +117,29 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 		[apList],
 	);
 
-	const hostnameMutation = useMutation<
-		ChangeHostnameSuccessResponse,
-		ChangeHostnameErrorResponse['data']['message'],
-		HostnameInput
-	>((hostnameInput: HostnameInput) => {
-		return axios
-			.post<ChangeHostnameResponse>(getConfig().publicRuntimeConfig.basePath + '/api/wifi/hostname', hostnameInput)
-			.then((val) => {
-				if (val.data.result === 'error') {
-					throw new Error(val.data.data.message);
-				}
-				return true;
-			}) as Promise<ChangeHostnameSuccessResponse>;
-	});
-
-	const wifiMutation = useMutation<JoinSuccessResponse, JoinErrorResponse['data']['message'], WifiCredentials>(
-		(wifiCredentials: WifiCredentials) => {
+	const hostnameMutation = useMutation<ChangeHostnameSuccessResponse, Error, HostnameInput>(
+		(hostnameInput: HostnameInput) => {
 			return axios
-				.post<JoinResponse>(getConfig().publicRuntimeConfig.basePath + '/api/wifi/join', wifiCredentials)
+				.post<ChangeHostnameResponse>(getConfig().publicRuntimeConfig.basePath + '/api/wifi/hostname', hostnameInput)
 				.then((val) => {
 					if (val.data.result === 'error') {
 						throw new Error(val.data.data.message);
 					}
 					return true;
-				}) as Promise<JoinSuccessResponse>;
+				}) as Promise<ChangeHostnameSuccessResponse>;
 		},
 	);
+
+	const wifiMutation = useMutation<JoinSuccessResponse, Error, WifiCredentials>((wifiCredentials: WifiCredentials) => {
+		return axios
+			.post<JoinResponse>(getConfig().publicRuntimeConfig.basePath + '/api/wifi/join', wifiCredentials)
+			.then((val) => {
+				if (val.data.result === 'error') {
+					throw new Error(val.data.data.message);
+				}
+				return true;
+			}) as Promise<JoinSuccessResponse>;
+	});
 
 	const connectToWifi = useCallback(() => {
 		if (selectedNetwork == null || selectedNetwork.ssid == null) {
@@ -166,7 +179,13 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 				type='text'
 				key='hostname'
 				defaultValue='RatOS'
-				error={hostnameMutation.isError ? hostnameMutation.error : undefined}
+				error={
+					hostnameMutation.isError
+						? hostnameMutation.error.message
+						: hostnameValidationError
+						? hostnameValidationError
+						: undefined
+				}
 				onChange={setHostname}
 				help='Only use characters from a-Z and dashes. For example, entering "RatOS" will make your printer available at http://RatOS.local/'
 			/>
@@ -175,7 +194,13 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 				label={selectedNetwork.security.toLocaleUpperCase() + ' Password'}
 				type='password'
 				key='password'
-				error={wifiMutation.isError ? wifiMutation.error : undefined}
+				error={
+					wifiMutation.isError
+						? wifiMutation.error.message
+						: passwordValidationError
+						? passwordValidationError
+						: undefined
+				}
 				onChange={setPassword}
 			/>
 		) : isError ? (
@@ -209,10 +234,12 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 		onClick: props.previousScreen,
 	};
 
+	let subtext = 'Pick an access point to join';
+
 	if (selectedNetwork) {
 		rightButton = {
 			label: 'Save Wifi Credentials',
-			disabled: password.trim().length === 0 || wifiMutation.isLoading,
+			disabled: !!passwordValidationError || wifiMutation.isLoading,
 			isLoading: wifiMutation.isLoading,
 			onClick: connectToWifi,
 		};
@@ -221,10 +248,11 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 			label: 'Back',
 			disabled: wifiMutation.isLoading,
 		};
+		subtext = 'Enter password for ' + selectedNetwork.ssid;
 		if (wifiMutation.isSuccess) {
 			rightButton = {
 				label: 'Save and Connect',
-				disabled: hostname.trim().length === 0 || hostnameMutation.isLoading,
+				disabled: !!hostnameValidationError || hostnameMutation.isLoading,
 				onClick: confirmHostname,
 			};
 			leftButton = {
@@ -232,16 +260,15 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 				label: 'Back',
 				disabled: wifiMutation.isLoading,
 			};
+			subtext = 'Enter the hostname you want to use for the printer';
 			if (hostnameCompleted) {
 				rightButton = {
 					onClick: props.nextScreen,
 				};
 				leftButton = {};
+				subtext = 'Proceed to next step';
 			}
 		}
-	}
-
-	if (selectedNetwork && wifiMutation.isSuccess) {
 	}
 
 	return (
@@ -250,7 +277,7 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 				{' '}
 				<div className='pb-5 mb-5 border-b border-gray-200'>
 					<h3 className='text-lg leading-6 font-medium text-gray-900'>Configure Wifi Setup</h3>
-					<p className='mt-2 max-w-4xl text-sm text-gray-500'>Pick an access point to join</p>
+					<p className='mt-2 max-w-4xl text-sm text-gray-500'>{subtext}</p>
 				</div>
 				{content}
 			</div>

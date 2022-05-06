@@ -405,9 +405,10 @@ const TextInput = (props)=>{
         setIsPasswordVisible((b)=>!b
         );
     }, []);
+    const iconRight = icon != null ? 'right-6' : 'right-0';
     const visibility = props.type === 'password' ? /*#__PURE__*/ jsx_runtime_.jsx("div", {
         onClick: togglePasswordVisibility,
-        className: "absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer",
+        className: `absolute inset-y-0 ${iconRight} pr-3 flex items-center cursor-pointer`,
         children: isPasswordVisible ? /*#__PURE__*/ jsx_runtime_.jsx(outline_.EyeOffIcon, {
             className: "h-5 w-5 text-gray-400"
         }) : /*#__PURE__*/ jsx_runtime_.jsx(outline_.EyeIcon, {
@@ -703,6 +704,25 @@ const WifiSetup = (props)=>{
     }, [
         data1
     ]);
+    const hostnameValidationError = (0,external_react_.useMemo)(()=>{
+        if (hostname.length === 0) {
+            return 'Hostname must be longer than 0 characters';
+        }
+        if (hostname.match(/^([a-zA-Z0-9]|-)+$/) == null) {
+            return 'Hostname must only contain alpha numeric characters and dashes (0-9, a-Z and -)';
+        }
+        return null;
+    }, [
+        hostname
+    ]);
+    const passwordValidationError = (0,external_react_.useMemo)(()=>{
+        if (password.length < 8 || password.length > 63) {
+            return 'Password must be between 8 and 63 characters long';
+        }
+        return null;
+    }, [
+        password
+    ]);
     const cards = (0,external_react_.useMemo)(()=>{
         if (isError) return [];
         return Object.keys(apList1).map((ap)=>({
@@ -808,13 +828,13 @@ const WifiSetup = (props)=>{
         label: "Printer hostname",
         type: "text",
         defaultValue: "RatOS",
-        error: hostnameMutation.isError ? hostnameMutation.error : undefined,
+        error: hostnameMutation.isError ? hostnameMutation.error.message : hostnameValidationError ? hostnameValidationError : undefined,
         onChange: setHostname,
         help: "Only use characters from a-Z and dashes. For example, entering \"RatOS\" will make your printer available at http://RatOS.local/"
     }, "hostname") : selectedNetwork ? /*#__PURE__*/ jsx_runtime_.jsx(TextInput, {
         label: selectedNetwork.security.toLocaleUpperCase() + ' Password',
         type: "password",
-        error: wifiMutation.isError ? wifiMutation.error : undefined,
+        error: wifiMutation.isError ? wifiMutation.error.message : passwordValidationError ? passwordValidationError : undefined,
         onChange: setPassword
     }, "password") : isError ? /*#__PURE__*/ jsx_runtime_.jsx("div", {
         className: "mb-4 h-48",
@@ -854,10 +874,11 @@ const WifiSetup = (props)=>{
     let leftButton = {
         onClick: props.previousScreen
     };
+    let subtext = 'Pick an access point to join';
     if (selectedNetwork) {
         rightButton = {
             label: 'Save Wifi Credentials',
-            disabled: password.trim().length === 0 || wifiMutation.isLoading,
+            disabled: !!passwordValidationError || wifiMutation.isLoading,
             isLoading: wifiMutation.isLoading,
             onClick: connectToWifi
         };
@@ -867,10 +888,11 @@ const WifiSetup = (props)=>{
             label: 'Back',
             disabled: wifiMutation.isLoading
         };
+        subtext = 'Enter password for ' + selectedNetwork.ssid;
         if (wifiMutation.isSuccess) {
             rightButton = {
                 label: 'Save and Connect',
-                disabled: hostname.trim().length === 0 || hostnameMutation.isLoading,
+                disabled: !!hostnameValidationError || hostnameMutation.isLoading,
                 onClick: confirmHostname
             };
             leftButton = {
@@ -879,16 +901,16 @@ const WifiSetup = (props)=>{
                 label: 'Back',
                 disabled: wifiMutation.isLoading
             };
+            subtext = 'Enter the hostname you want to use for the printer';
             if (hostnameCompleted) {
                 rightButton = {
                     onClick: props.nextScreen
                 };
                 leftButton = {
                 };
+                subtext = 'Proceed to next step';
             }
         }
-    }
-    if (selectedNetwork && wifiMutation.isSuccess) {
     }
     return(/*#__PURE__*/ (0,jsx_runtime_.jsxs)(external_react_.Fragment, {
         children: [
@@ -905,7 +927,7 @@ const WifiSetup = (props)=>{
                             }),
                             /*#__PURE__*/ jsx_runtime_.jsx("p", {
                                 className: "mt-2 max-w-4xl text-sm text-gray-500",
-                                children: "Pick an access point to join"
+                                children: subtext
                             })
                         ]
                     }),
