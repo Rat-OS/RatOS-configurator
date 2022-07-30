@@ -40,8 +40,11 @@ async function handler(req, res) {
     // This is ... not great.. come up with something better
     const scriptRoot = process.env.RATOS_SCRIPT_DIR ?? __dirname.split('configurator/')[0] + 'configurator/scripts/';
     const body = req.body;
+    const ssid = body.ssid.replace(/(["\s'$`\\])/g, '\\$1');
+    const passphrase = body.passphrase.replace(/(["\s'$`\\])/g, '\\$1');
+    const country = body.country ? body.country.replace(/(["\s'$`\\])/g, '\\$1') : 'GB';
     return new Promise((resolve, reject)=>{
-        (0,child_process__WEBPACK_IMPORTED_MODULE_0__.exec)(`sudo ${path__WEBPACK_IMPORTED_MODULE_1___default().join(scriptRoot, 'add-wifi-network.sh')} "${body.ssid}" "${body.passphrase}" "${body.country ?? 'GB'}"`, (err, stdout)=>{
+        (0,child_process__WEBPACK_IMPORTED_MODULE_0__.exec)(`sudo ${path__WEBPACK_IMPORTED_MODULE_1___default().join(scriptRoot, 'add-wifi-network.sh')} "${ssid}" "${passphrase}" "${country}"`, (err, stdout)=>{
             if (err) {
                 console.log(err);
                 return reject(res.status(200).json({
