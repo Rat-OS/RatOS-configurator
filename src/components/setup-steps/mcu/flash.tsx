@@ -1,122 +1,129 @@
-/**
- * 1) Check if board is already flashed and connected, if yes proceed to ?.
- * 2) Compile firmware for board and start download (if flash via sd card)
- * 3) Tell the user to follow the flashing instructions at os.ratrig.com. Poll board serial path in the background. Show tips about flashing.
- * 4) Once board presence is confirmed, verify automatic flashing if supported. (allow skipping)
- * 5) Printer configuration!
- */
-
-import { DownloadIcon } from '@heroicons/react/solid';
-import Link from 'next/link';
-import React, { useState } from 'react';
-import { Board } from '../../../pages/api/mcu/boards';
+import { CheckCircleIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { Fragment, useCallback, useState } from 'react';
+import { trpc } from '../../../helpers/trpc';
 import { Button } from '../../button';
-import { Modal } from '../../modal';
-import { Spinner } from '../../spinner';
+import { MutationStatus } from '../../common/mutation-status';
+import { InfoMessage } from '../../info-message';
+import { StepNavButton, StepNavButtons } from '../../step-nav-buttons';
+import { MCUStepScreenProps } from '../mcu-preparation';
+import { DFUFlash } from './dfu-flash';
+import { SDCardFlashing } from './sd-card-flash';
 
-interface CompileFirmwareProps {
-	board: Board;
-}
+export const MCUFlashing = (props: MCUStepScreenProps) => {
+	const { data: isBoardDetected } = trpc.useQuery(['mcu.detect', { boardPath: props.selectedBoards[0].board.path }], {
+		refetchInterval: 1000,
+	});
+	const [forceReflash, setForceReflash] = useState(false);
+	const [flashStrategy, setFlashStrategy] = useState<null | 'dfu' | 'sdcard' | 'path'>(null);
+	const flashViaPath = trpc.useMutation('mcu.flash-via-path', { onSuccess: () => setForceReflash(false) });
 
-export const CompileFirmware: React.FC<CompileFirmwareProps> = (props) => {
-	return (
-		<div className='space-y-4'>
-			<h3 className='text-xl font-medium text-gray-900'>Compiling {props.board.name} firmware, please wait</h3>
-			<div className='flex justify-center items-center mb-4 h-24'>
-				<Spinner />
-			</div>
-		</div>
-	);
-};
+	const reflash = useCallback(() => {
+		console.log('reflash!');
+		setFlashStrategy(null);
+		setForceReflash(true);
+	}, []);
 
-interface BoardNotDetectedProps {
-	board: Board;
-}
+	let rightButton: StepNavButton = {
+		onClick: props.nextScreen,
+		label: 'Next',
+		disabled: !isBoardDetected || forceReflash,
+	};
+	let leftButton: StepNavButton = {
+		onClick: props.previousScreen,
+	};
 
-export const BoardNotDetected: React.FC<BoardNotDetectedProps> = (props) => {
-	const [shutdownModalVisible, setShutdownModalVisible] = useState(false);
+	const firstBoard = props.selectedBoards[0].board;
 
-	const shutdown = () => {};
+	const onFlashViaPath = useCallback(() => {
+		setFlashStrategy('path');
+		flashViaPath.mutate({ boardPath: firstBoard.path });
+	}, [flashViaPath, firstBoard.path]);
 
-	const onShutdown = () => {};
+	let content = null;
 
-	return (
-		<div className='space-y-4'>
-			<h3 className='text-xl font-medium text-gray-900'>
-				{props.board.manufacturer} {props.board.name} was not detected
-			</h3>
-			<p className='mt-4 prose text-base text-gray-500'>
-				<ul>
-					<li>Disconnect all wires except Power and USB, and make sure your jumpers are set correctly.</li>
-					<li>Use a small capacity SD card, formatted as FAT16 or FAT32 with the lowest available block size</li>
-					<li>
-						Format the sd card for your board to FAT16 (sometimes just called FAT), or FAT32 with a clustersize of 8kb
-						or 4kb.
-					</li>
-					<li>
-						<Link href={`/api/mcu/download_firmware?mcuPath=${props.board.serialPath}`}>
-							<DownloadIcon /> Download firmware
-						</Link>{' '}
-						and put it onto the sd card for your board
-					</li>
-					<li>
-						Make sure the firmware file is called firmware.bin on the sd card (enable "display file extensions" in your
-						file explorer).
-					</li>
-					<li>Safely eject the SD card through your operating system.</li>
-					<li>Physically take out the sd card and insert it into your control board.</li>
-					<li>
-						Power cycle the control board, or click the reset button on the board. NOTE: if the Raspberry Pi running
-						RatOS is currently powered from your control board, please shut it down safely first by using the button
-						below.
-					</li>
-				</ul>
-				<Button color='brand' onClick={onShutdown}>
-					Shutdown RatOS
+	if (isBoardDetected && !forceReflash) {
+		const jumperReminder =
+			flashStrategy === 'dfu' && firstBoard.dfu?.reminder ? (
+				<InfoMessage title="Reminder">{firstBoard.dfu?.reminder}</InfoMessage>
+			) : null;
+		content = (
+			<Fragment>
+				<h3 className="text-xl font-medium text-gray-900">
+					<CheckCircleIcon className="text-brand-700 h-7 w-7 inline" /> {firstBoard.name} detected
+				</h3>
+				{jumperReminder}
+				<p>
+					Proceed to the next step or{' '}
+					<button color="gray" className="text-brand-700 hover:text-brand-600" onClick={reflash}>
+						flash again <ArrowPathIcon className="h-5 w-5 inline" />
+					</button>
+				</p>
+			</Fragment>
+		);
+	} else if (flashStrategy == null) {
+		let dfu = null;
+		let sdCard = null;
+		let path = null;
+		if (firstBoard.dfu != null) {
+			dfu = (
+				<Button color="gray" onClick={() => setFlashStrategy('dfu')} className="justify-center">
+					Flash manually via DFU
 				</Button>
-			</p>
-			{shutdownModalVisible ? (
-				<Modal
-					title='Shutdown RatOS?'
-					body={`You raspberry pi will shutdown. Do not remove power before the green light on the Rasperry Pi has stopped blinking.`}
-					buttonLabel='Shutdown'
-					onClick={shutdown}
-				/>
-			) : null}
-		</div>
-	);
-};
-
-export const BoardDetected = () => {
+			);
+		}
+		if (!firstBoard.isToolboard) {
+			sdCard = (
+				<Button color="gray" onClick={() => setFlashStrategy('sdcard')} className="justify-center">
+					Flash manually via SD card
+				</Button>
+			);
+		}
+		if (isBoardDetected && firstBoard.flashScript != null) {
+			path = (
+				<Button color="gray" onClick={onFlashViaPath} className="justify-center">
+					Flash automatically
+				</Button>
+			);
+		}
+		content = (
+			<Fragment>
+				<h3 className="text-xl font-medium text-gray-900">How do you want to flash your {firstBoard.name}?</h3>
+				<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+					{path}
+					{dfu}
+					{sdCard}
+				</div>
+			</Fragment>
+		);
+	} else {
+		switch (flashStrategy) {
+			case 'dfu':
+				content = <DFUFlash board={firstBoard} onSuccess={() => setForceReflash(false)} />;
+				break;
+			case 'sdcard':
+				content = <SDCardFlashing board={firstBoard} onSuccess={() => setForceReflash(false)} />;
+				break;
+			case 'path':
+				content = (
+					<div>
+						<h3 className="text-xl font-medium text-gray-900">Flashing {firstBoard.name}...</h3>
+						<div className="mt-4 prose text-base text-gray-500">Please wait while RatOS flashes your board.</div>
+						<MutationStatus {...flashViaPath} />
+					</div>
+				);
+		}
+	}
 	return (
-		<div className='space-y-4'>
-			<h3 className='text-xl font-medium text-gray-900'>Your control board was not detected</h3>
-			<p className='mt-4 prose text-base text-gray-500'>
-				<ul>
-					<li>Disconnect all wires except Power and USB, and make sure your jumpers are set correctly.</li>
-					<li>Use a small capacity SD card, formatted as FAT16 or FAT32 with the lowest available block size</li>
-					<li>
-						Make sure the firmware file is called firmware.bin (enable "display extensions" in your file explorer)
-					</li>
-				</ul>
-			</p>
-		</div>
-	);
-};
-
-export const MCUFlashStep = () => {
-	return (
-		<div className='space-y-4'>
-			<h3 className='text-xl font-medium text-gray-900'>Your control board was not detected</h3>
-			<p className='mt-4 prose text-base text-gray-500'>
-				<ul>
-					<li>Disconnect all wires except Power and USB, and make sure your jumpers are set correctly.</li>
-					<li>Use a small capacity SD card, formatted as FAT16 or FAT32 with the lowest available block size</li>
-					<li>
-						Make sure the firmware file is called firmware.bin (enable "display extensions" in your file explorer)
-					</li>
-				</ul>
-			</p>
-		</div>
+		<Fragment>
+			<div className="p-8">
+				{' '}
+				<div className="pb-5 mb-5 border-b border-gray-200">
+					<h3 className="text-lg leading-6 font-medium text-gray-900">{props.name}</h3>
+					<p className="mt-2 max-w-4xl text-sm text-gray-500">{props.description}</p>
+				</div>
+				<div className="space-y-4">{content}</div>
+			</div>
+			<StepNavButtons right={rightButton} left={leftButton} />
+		</Fragment>
 	);
 };

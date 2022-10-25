@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-SRC_DIR=$(realpath "$SCRIPT_DIR/..")
+GIT_DIR=$SCRIPT_DIR/../.git
+echo $SCRIPT_DIR | grep "/src/" > /dev/null
+if [ $? -eq 0 ]; then
+	GIT_DIR=$SCRIPT_DIR/../../.git
+fi
+GIT_DIR=$(realpath $GIT_DIR)
 report_status()
 {
     echo -e "\n\n###### $1"
@@ -21,9 +26,8 @@ build() {
 install_hooks()
 {
     report_status "Installing git hooks"
-	if [[ ! -e $SCRIPT_DIR/../.git/hooks/post-merge ]]
-	then
- 	   ln -s $SCRIPT_DIR/post-merge.sh $SCRIPT_DIR/../.git/hooks/post-merge
+	if [ ! -L $GIT_DIR/hooks/post-merge ]; then
+ 	   ln -s $SCRIPT_DIR/post-merge.sh $GIT_DIR/hooks/post-merge
 	fi
 }
 
@@ -66,6 +70,8 @@ __EOF
 	cat << __EOF > /tmp/031-ratos-configurator-scripts
 pi  ALL=(ALL) NOPASSWD: $SCRIPT_DIR/add-wifi-network.sh
 pi  ALL=(ALL) NOPASSWD: $SCRIPT_DIR/change-hostname.sh
+pi  ALL=(ALL) NOPASSWD: $SCRIPT_DIR/dfu-flash.sh
+pi  ALL=(ALL) NOPASSWD: $SCRIPT_DIR/board-script.sh
 __EOF
 
 	$sudo chown root:root /tmp/031-ratos-configurator-scripts

@@ -1,5 +1,5 @@
-import { EyeIcon, EyeOffIcon } from '@heroicons/react/outline';
-import { ExclamationCircleIcon } from '@heroicons/react/solid';
+import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import { ExclamationCircleIcon } from '@heroicons/react/24/solid';
 import React, { ChangeEvent, useCallback, useRef, useState } from 'react';
 import { classNames } from '../../helpers/classNames';
 
@@ -23,8 +23,8 @@ export const TextInput: React.FC<TextInputProps> = (props) => {
 	let iconClass = classNames('h-5 w-5', props.error ? 'text-red-500' : 'text-red-500');
 
 	const icon = props.error ? (
-		<div className='absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none'>
-			<ExclamationCircleIcon className='h-5 w-5 text-red-500' aria-hidden='true' />
+		<div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+			<ExclamationCircleIcon className="h-5 w-5 text-red-500" aria-hidden="true" />
 		</div>
 	) : null;
 
@@ -36,13 +36,13 @@ export const TextInput: React.FC<TextInputProps> = (props) => {
 	);
 
 	const error = props.error ? (
-		<p className='mt-2 text-sm text-red-600' id={fieldId.current + '-error'}>
+		<p className="mt-2 text-sm text-red-600" id={fieldId.current + '-error'}>
 			{props.error}
 		</p>
 	) : null;
 
 	const help = props.help ? (
-		<p className='mt-2 text-sm text-gray-500' id='email-description'>
+		<p className="mt-2 text-sm text-gray-500" id="email-description">
 			{props.help}
 		</p>
 	) : null;
@@ -66,19 +66,19 @@ export const TextInput: React.FC<TextInputProps> = (props) => {
 				className={`absolute inset-y-0 ${iconRight} pr-3 flex items-center cursor-pointer`}
 			>
 				{isPasswordVisible ? (
-					<EyeOffIcon className='h-5 w-5 text-gray-400' />
+					<EyeSlashIcon className="h-5 w-5 text-gray-400" />
 				) : (
-					<EyeIcon className='h-5 w-5 text-gray-400' />
+					<EyeIcon className="h-5 w-5 text-gray-400" />
 				)}
 			</div>
 		) : null;
 
 	return (
 		<div>
-			<label htmlFor='email' className='block text-sm font-medium text-gray-700'>
+			<label htmlFor="email" className="block text-sm font-medium text-gray-700">
 				{props.label}
 			</label>
-			<div className='mt-1 relative rounded-md shadow-sm'>
+			<div className="mt-1 relative rounded-md shadow-sm">
 				<input
 					type={isPasswordVisible ? 'text' : props.type}
 					className={inputClass}

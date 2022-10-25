@@ -3,6 +3,9 @@ import { promisify } from 'util';
 import { getWirelessInterface } from './iw';
 
 export const isConnectedToWifi = async () => {
+	if (process.env.NODE_ENV === 'development') {
+		return true;
+	}
 	const wirelessInterface = await getWirelessInterface();
 	try {
 		const res = await promisify(exec)(`sudo wpa_cli -i "${wirelessInterface}" status | grep 'ip_address'`);

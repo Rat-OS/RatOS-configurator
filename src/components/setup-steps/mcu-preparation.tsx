@@ -1,77 +1,89 @@
-import { ChipIcon } from '@heroicons/react/outline';
-import getConfig from 'next/config';
-import React, { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
-import { useMutation, useQuery, UseQueryResult } from 'react-query';
+import { CpuChipIcon } from '@heroicons/react/24/outline';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMutation, useQuery } from 'react-query';
 import { useRecoilValue } from 'recoil';
+import { trpc } from '../../helpers/trpc';
 import { MoonrakerDBGetItemResponse, MoonrakerQueryState } from '../../hooks/useMoonraker';
-import { StepScreenProps } from '../../pages';
-import { Board, BoardsResponseData, getBoards } from '../../pages/api/mcu/boards';
-import { CardSelector, SelectableCard } from '../card-selector';
-import { ErrorMessage } from '../error-message';
-import { Spinner } from '../spinner';
-import { StepNavButton, StepNavButtons } from '../step-nav-buttons';
+import { StepScreen, StepScreenProps, useSteps } from '../../hooks/useSteps';
+import { Board } from '../../server/router/mcu';
+import { SelectableCard } from '../card-selector';
+import { QueryStatus } from '../common/query-status';
+import { MCUFlashing } from './mcu/flash';
+import { MCUPicker } from './mcu/pick';
 
-interface SelectableBoard extends SelectableCard {
+export interface SelectableBoard extends SelectableCard {
 	board: Board;
 }
 
-export const MCUPreparation: React.FC<StepScreenProps> = (props) => {
-	const [selectedBoard, _setSelectedBoard] = useState<SelectableBoard | null>(null);
+interface ExtraStepProps {
+	selectedBoards: SelectableBoard[];
+	cards: SelectableBoard[];
+	setSelectedBoard: (boards: SelectableBoard) => void;
+	toolboards?: boolean;
+}
+
+interface ExtraProps {
+	toolboards?: boolean;
+}
+
+export type MCUStepScreenProps = StepScreenProps & ExtraStepProps;
+
+const MCUSteps: StepScreen<ExtraStepProps>[] = [
+	{
+		id: '01',
+		name: (screenProps) => (screenProps.toolboards ? 'Toolboard' : 'Control board'),
+		description: (screenProps) =>
+			`Pick your ${
+				screenProps.toolboards ? 'toolboard' : 'control board. If you also use a toolboard, you can add that later.'
+			}`,
+		href: '#',
+		renderScreen: (screenProps) => <MCUPicker {...screenProps} />,
+	},
+	{
+		id: '02',
+		name: (screenProps) => `${screenProps.toolboards ? 'Toolboard' : 'Control board'} flashing`,
+		description: (screenProps) =>
+			`Make sure your ${screenProps.toolboards ? 'toolboard' : 'control board'} is flashed and up to date`,
+		href: '#',
+		renderScreen: (screenProps) => <MCUFlashing {...screenProps} />,
+	},
+];
+
+export const MCUPreparation: React.FC<StepScreenProps & ExtraProps> = (props) => {
+	const [selectedBoards, _setSelectedBoards] = useState<SelectableBoard[]>([]);
 	const moonrakerQuery = useRecoilValue(MoonrakerQueryState);
 
-	const boardsQuery = useQuery<Board[], Error>('boards', async () => {
-		const response = await fetch(getConfig().publicRuntimeConfig.basePath + '/api/mcu/boards');
-		if (!response.ok) {
-			throw new Error('Error while retrieving board definitions');
-		}
-		const data: BoardsResponseData = await response.json();
-		if (data?.result === 'error') {
-			throw new Error(data.data.message);
-		}
-		return data.data.boards;
-	});
+	const boardsQuery = trpc.useQuery(['mcu.boards']);
 
-	const setBoardMutation = useMutation<void, void, Board>(async (selectedBoard: Board) => {
+	const setBoardMutation = useMutation<void, void, Board[]>(async (selectedBoards: Board[]) => {
 		if (moonrakerQuery == null) {
 			throw new Error('Moonraker not connected');
 		}
 		const response = await moonrakerQuery('server.database.post_item', {
 			namespace: 'RatOS',
-			key: 'selectedBoard',
-			value: selectedBoard,
+			key: props.toolboards ? 'toolboards' : 'boards',
+			value: JSON.stringify(selectedBoards),
 		});
 		return response;
 	});
 
-	const selectedBoardQuery = useQuery<MoonrakerDBGetItemResponse<Board>, Error>('selectedBoard', async () => {
+	const selectedBoardQuery = useQuery<Board[], Error>('selectedBoard', async () => {
 		if (moonrakerQuery == null) {
 			throw new Error('Moonraker not connected');
 		}
-		const response = await moonrakerQuery('server.database.get_item', { namespace: 'RatOS', key: 'selectedBoard' });
-		return response;
+		const response = (await moonrakerQuery('server.database.get_item', {
+			namespace: 'RatOS',
+			key: props.toolboards ? 'toolboards' : 'boards',
+		})) as MoonrakerDBGetItemResponse<string>;
+		return JSON.parse(response.value);
 	});
 	const setSelectedBoard = useCallback(
 		(selectedBoard: SelectableBoard) => {
-			setBoardMutation.mutate(selectedBoard.board);
-			_setSelectedBoard(selectedBoard);
+			setBoardMutation.mutate([selectedBoard.board]);
+			_setSelectedBoards([selectedBoard]);
 		},
 		[setBoardMutation],
 	);
-
-	let rightButton: StepNavButton = {
-		onClick: props.nextScreen,
-		label: 'Next',
-		disabled: true,
-	};
-	let leftButton: StepNavButton = {
-		onClick: props.previousScreen,
-	};
-	if (selectedBoard) {
-		rightButton = {
-			onClick: props.nextScreen,
-			label: 'Next',
-		};
-	}
 
 	const cards: SelectableBoard[] = useMemo(() => {
 		if (boardsQuery.isError || boardsQuery.data == null) return [];
@@ -80,52 +92,33 @@ export const MCUPreparation: React.FC<StepScreenProps> = (props) => {
 			name: b.manufacturer + ' ' + b.name,
 			details: (
 				<span>
-					<span className='font-semibold'>Automatic flashing:</span> {b.flashScript ? 'Yes' : 'No'}
+					<span className="font-semibold">Automatic flashing:</span> {b.flashScript ? 'Yes' : 'No'}
 				</span>
 			),
-			right: <ChipIcon className='h-8 w-8 text-slate-500' />,
+			right: <CpuChipIcon className="h-8 w-8 text-slate-500" />,
 		}));
 	}, [boardsQuery.isError, boardsQuery.data]);
 
 	useEffect(() => {
-		const board = cards.find((c) => c.board.serialPath === selectedBoardQuery.data?.value.serialPath);
-		_setSelectedBoard(board ?? null);
+		// Only handle single board selection for now
+		const board = cards.find((c) => c.board.serialPath === selectedBoardQuery.data?.[0].serialPath);
+		_setSelectedBoards(board ? [board] : []);
 	}, [selectedBoardQuery.data, cards]);
 
-	let content =
-		renderStatus(boardsQuery) ?? selectedBoard ? null : (
-			<CardSelector<SelectableBoard> cards={cards} value={selectedBoard} onSelect={setSelectedBoard} />
-		);
+	const extraScreenProps: ExtraStepProps = { selectedBoards, cards, setSelectedBoard, toolboards: props.toolboards };
+	const { currentStep, screenProps } = useSteps<ExtraStepProps>({
+		steps: MCUSteps,
+		parentScreenProps: props,
+		extraScreenProps: extraScreenProps,
+	});
 
 	return (
-		<Fragment>
-			<div className='p-8'>
-				{' '}
-				<div className='pb-5 mb-5 border-b border-gray-200'>
-					<h3 className='text-lg leading-6 font-medium text-gray-900'>Control board preparation</h3>
-					<p className='mt-2 max-w-4xl text-sm text-gray-500'>Pick your control board</p>
-				</div>
-				{content}
-			</div>
-			<StepNavButtons right={rightButton} left={leftButton} />
-		</Fragment>
+		<>
+			{currentStep.renderScreen({
+				...screenProps,
+				...extraScreenProps,
+			})}
+			<QueryStatus {...boardsQuery} />
+		</>
 	);
-};
-
-const renderStatus = (query: UseQueryResult<any, Error>) => {
-	if (query.isError) {
-		return (
-			<div className='mb-4 h-48'>
-				<ErrorMessage>{query.error?.message}</ErrorMessage>
-			</div>
-		);
-	}
-	if (query.isFetching) {
-		return (
-			<div className='flex justify-center items-center mb-4 h-48'>
-				<Spinner />
-			</div>
-		);
-	}
-	return null;
 };

@@ -1,10 +1,11 @@
 {
-  "extends": "next/core-web-vitals",
+  "extends": ["next/core-web-vitals"],
   "overrides": [
     {
       "files": ["*.tsx"],
       "rules": {
-        "react/no-unescaped-entities": "off"
+        "react/no-unescaped-entities": "off",
+        "jsx-quotes": 1
       }
     }
   ]

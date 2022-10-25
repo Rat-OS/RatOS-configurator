@@ -4,9 +4,12 @@ import { RecoilRoot } from 'recoil';
 import { Moonraker } from '../components/moonraker';
 
 import { Disclosure } from '@headlessui/react';
-import { MenuIcon, XIcon } from '@heroicons/react/outline';
+import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import Image from 'next/image';
 import getConfig from 'next/config';
+import { withTRPC } from '@trpc/next';
+import { AppRouter } from './api/trpc/[trpc]';
+import superjson from 'superjson';
 
 function classNames(...classes: string[]) {
 	return classes.filter(Boolean).join(' ');
@@ -27,25 +30,25 @@ function MyApp(props: AppProps<Props>) {
 	return (
 		<RecoilRoot>
 			{moonraker}
-			<div className='min-h-full'>
-				<div className='bg-zinc-300'>
-					<Disclosure as='nav' className='bg-zinc-800'>
+			<div className="min-h-full">
+				<div className="bg-zinc-300">
+					<Disclosure as="nav" className="bg-zinc-800">
 						{({ open }) => (
 							<>
-								<div className='max-w-7xl mx-auto sm:px-6'>
-									<div className='border-b border-zinc-700'>
-										<div className='flex items-center justify-between h-16 px-4 sm:px-0'>
-											<div className='flex items-center'>
-												<div className='flex-shrink-0'>
+								<div className="max-w-7xl mx-auto sm:px-6">
+									<div className="border-b border-zinc-700">
+										<div className="flex items-center justify-between h-16 px-4 sm:px-0">
+											<div className="flex items-center">
+												<div className="flex-shrink-0">
 													<Image
 														width={160}
 														height={40}
 														src={getConfig().publicRuntimeConfig.basePath + '/logo-white.svg'}
-														alt='Workflow'
+														alt="Workflow"
 													/>
 												</div>
-												<div className='hidden md:block'>
-													<div className='ml-4 flex items-baseline space-x-4'>
+												<div className="hidden md:block">
+													<div className="ml-4 flex items-baseline space-x-4">
 														{navigation.map((item) => (
 															<a
 																key={item.name}
@@ -64,32 +67,32 @@ function MyApp(props: AppProps<Props>) {
 													</div>
 												</div>
 											</div>
-											<div className='hidden md:flex justify-between items-center'>
+											<div className="hidden md:flex justify-between items-center">
 												<a
-													href='https://github.com/sponsors/miklschmidt'
-													target='_blank'
-													rel='noreferrer'
-													className='inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-black bg-zinc-300 hover:bg-zinc-400 focus:outline-none'
+													href="https://github.com/sponsors/miklschmidt"
+													target="_blank"
+													rel="noreferrer"
+													className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-black bg-zinc-300 hover:bg-zinc-400 focus:outline-none"
 												>
 													Donate
 												</a>
 												<a
-													href='https://os.ratrig.com/docs/introduction'
-													target='_blank'
-													rel='noreferrer'
-													className='inline-flex items-center justify-center ml-2 px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-zinc-300 bg-transparent hover:bg-zinc-700 hover:text-white focus:outline-none'
+													href="https://os.ratrig.com/docs/introduction"
+													target="_blank"
+													rel="noreferrer"
+													className="inline-flex items-center justify-center ml-2 px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-zinc-300 bg-transparent hover:bg-zinc-700 hover:text-white focus:outline-none"
 												>
 													Documentation
 												</a>
 											</div>
-											<div className='-mr-2 flex md:hidden'>
+											<div className="-mr-2 flex md:hidden">
 												{/* Mobile menu button */}
-												<Disclosure.Button className='bg-zinc-800 inline-flex items-center justify-center p-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-zinc-800 focus:ring-white'>
-													<span className='sr-only'>Open main menu</span>
+												<Disclosure.Button className="bg-zinc-800 inline-flex items-center justify-center p-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-zinc-800 focus:ring-white">
+													<span className="sr-only">Open main menu</span>
 													{open ? (
-														<XIcon className='block h-6 w-6' aria-hidden='true' />
+														<XMarkIcon className="block h-6 w-6" aria-hidden="true" />
 													) : (
-														<MenuIcon className='block h-6 w-6' aria-hidden='true' />
+														<Bars3Icon className="block h-6 w-6" aria-hidden="true" />
 													)}
 												</Disclosure.Button>
 											</div>
@@ -101,8 +104,8 @@ function MyApp(props: AppProps<Props>) {
 					</Disclosure>
 				</div>
 
-				<main className='py-10'>
-					<div className='max-w-7xl mx-auto pb-12'>
+				<main className="py-10">
+					<div className="max-w-7xl mx-auto pb-12">
 						<Component {...pageProps} />
 					</div>
 				</main>
@@ -111,4 +114,37 @@ function MyApp(props: AppProps<Props>) {
 	);
 }
 
-export default MyApp;
+export default withTRPC<AppRouter>({
+	config({ ctx }) {
+		if (typeof window !== 'undefined') {
+			// during client requests
+			return {
+				transformer: superjson,
+				url: '/configure/api/trpc',
+			};
+		}
+		/**
+		 * SSR
+		 * @link https://trpc.io/docs/ssr
+		 */
+		const url =
+			process.env.NODE_ENV === 'development'
+				? `http://localhost:3000/configure/api/trpc`
+				: 'http://localhost/configure/api/trpc';
+
+		return {
+			transformer: superjson,
+			url,
+			headers: {
+				'x-ssr': '1',
+			},
+			/**
+			 * @link https://react-query-v3.tanstack.com/reference/QueryClient
+			 */
+		};
+	},
+	/**
+	 * @link https://trpc.io/docs/ssr
+	 */
+	ssr: false,
+})(MyApp);

@@ -1,4 +1,4 @@
-import { ArrowNarrowLeftIcon, ArrowNarrowRightIcon } from '@heroicons/react/solid';
+import { ArrowLongLeftIcon, ArrowLongRightIcon } from '@heroicons/react/24/solid';
 import React from 'react';
 import { classNames } from '../helpers/classNames';
 import { Button } from './button';
@@ -20,13 +20,13 @@ export const StepNavButtons: React.FC<StepNavButtonsProps> = (props) => {
 	const leftIcon = props.left.isLoading ? (
 		<Spinner />
 	) : (
-		<ArrowNarrowLeftIcon className='mr-3 h-5 w-5 text-black' aria-hidden='true' />
+		<ArrowLongLeftIcon className="mr-3 h-5 w-5 text-black" aria-hidden="true" />
 	);
 	const left = props.left.onClick ? (
-		<div className='flex-1 flex justify-start'>
-			<Button color='gray' disabled={props.left.disabled} onClick={props.left.onClick}>
+		<div className="flex-1 flex justify-start">
+			<Button color="gray" disabled={props.left.disabled} onClick={props.left.onClick}>
 				{leftIcon}
-				{props.left.label ?? 'Previous'}
+				{props.left.label ?? 'Back'}
 			</Button>
 		</div>
 	) : null;
@@ -34,12 +34,12 @@ export const StepNavButtons: React.FC<StepNavButtonsProps> = (props) => {
 	const rightIcon = props.right.isLoading ? (
 		<Spinner />
 	) : (
-		<ArrowNarrowRightIcon className='ml-3 h-5 w-5 text-black-400' aria-hidden='true' />
+		<ArrowLongRightIcon className="ml-3 h-5 w-5 text-black-400" aria-hidden="true" />
 	);
 
 	const right = props.right.onClick ? (
-		<div className='flex-1 flex justify-end'>
-			<Button color='brand' disabled={props.right.disabled} onClick={props.right.onClick}>
+		<div className="flex-1 flex justify-end">
+			<Button color="brand" disabled={props.right.disabled} onClick={props.right.onClick}>
 				{props.right.label ?? 'Next'}
 				{rightIcon}
 			</Button>
@@ -47,11 +47,11 @@ export const StepNavButtons: React.FC<StepNavButtonsProps> = (props) => {
 	) : null;
 
 	return (
-		<div className='px-8 pb-5'>
+		<div className="px-8 pb-5">
 			<nav
-				className='bg-white py-3 flex items-center 
-		justify-between border-t border-gray-200'
-				aria-label='Pagination'
+				className="bg-white py-3 flex items-center 
+		justify-between border-t border-gray-200"
+				aria-label="Pagination"
 			>
 				{left}
 				{right}
