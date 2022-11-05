@@ -29,9 +29,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 	// This is ... not great.. come up with something better
 	const scriptRoot = process.env.RATOS_SCRIPT_DIR ?? __dirname.split('configurator/')[0] + 'configurator/scripts/';
 	const body = req.body as WifiCredentials;
-	const ssid = body.ssid.replace(/(["\s'$`\\])/g, '\\$1');
-	const passphrase = body.passphrase.replace(/(["\s'$`\\])/g, '\\$1');
-	const country = body.country ? body.country.replace(/(["\s'$`\\])/g, '\\$1') : 'GB';
+	const ssid = body.ssid.replace(/(["'$`\\])/g, '\\$1');
+	const passphrase = body.passphrase.replace(/(["'$`\\])/g, '\\$1');
+	const country = body.country ? body.country.replace(/(["'$`\\])/g, '\\$1') : 'GB';
 	return new Promise((resolve, reject) => {
 		exec(
 			`sudo ${path.join(scriptRoot, 'add-wifi-network.sh')} "${ssid}" "${passphrase}" "${country}"`,
