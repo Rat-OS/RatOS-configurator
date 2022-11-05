@@ -12,6 +12,7 @@ import path from 'path';
 export const Board = z.object({
 	serialPath: z.string(),
 	isToolboard: z.boolean().optional(),
+	isHost: z.boolean().optional(),
 	name: z.string(),
 	manufacturer: z.string(),
 	firmwareBinaryName: z.string(),
@@ -29,7 +30,17 @@ export const Board = z.object({
 		.optional(),
 	path: z.string(),
 });
+
+export const AutoFlashableBoard = z.object({
+	serialPath: z.string(),
+	isToolboard: z.boolean().optional(),
+	compileScript: z.string(),
+	flashScript: z.string(),
+	path: z.string(),
+});
+
 export type Board = z.infer<typeof Board>;
+export type AutoFlashableBoard = z.infer<typeof AutoFlashableBoard>;
 
 const inputSchema = z.object({
 	boardPath: z.string(),
@@ -49,11 +60,18 @@ export const getBoards = async () => {
 	);
 };
 
-export const mcuRouter = createRouter<{ boardRequired: boolean }>()
+export const getBoardsWithoutHost = (boards: Board[]) => {
+	return boards.filter((b) => !b.isHost);
+};
+
+export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: boolean }>()
 	.middleware(async ({ ctx, next, meta, rawInput }) => {
 		let boards = null;
 		try {
 			boards = await getBoards();
+			if (meta?.includeHost !== true) {
+				boards = getBoardsWithoutHost(boards);
+			}
 		} catch (e) {
 			throw new trpc.TRPCError({
 				code: 'INTERNAL_SERVER_ERROR',
@@ -115,7 +133,7 @@ export const mcuRouter = createRouter<{ boardRequired: boolean }>()
 			boardRequired: true,
 		},
 		input: z.object({
-			boardPath: z.string()
+			boardPath: z.string(),
 		}),
 		resolve: async ({ ctx, input }) => {
 			if (ctx.board == null) {
@@ -130,7 +148,10 @@ export const mcuRouter = createRouter<{ boardRequired: boolean }>()
 				if (fs.existsSync(firmwareBinary)) {
 					fs.rmSync(firmwareBinary);
 				}
-				const compileScript = path.join(ctx.board.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''), ctx.board.compileScript);
+				const compileScript = path.join(
+					ctx.board.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''),
+					ctx.board.compileScript,
+				);
 				console.log(`${getScriptRoot()}/board-script.sh ${compileScript}`);
 				compileResult = await promisify(exec)(`sudo ${getScriptRoot()}/board-script.sh ${compileScript}`);
 			} catch (e) {
@@ -148,14 +169,63 @@ export const mcuRouter = createRouter<{ boardRequired: boolean }>()
 				});
 			}
 			return 'success';
-		}
+		},
+	})
+	.mutation('flash-all-connected', {
+		meta: {
+			boardRequired: false,
+			includeHost: true,
+		},
+		resolve: async ({ ctx }) => {
+			const connectedBoards = ctx.boards.filter((b) => existsSync(b.serialPath) && b.flashScript && b.compileScript);
+			const flashResults = await Promise.all(
+				connectedBoards.map(async (b) => {
+					try {
+						const current = AutoFlashableBoard.parse(b);
+						await promisify(exec)(
+							`sudo ${getScriptRoot()}/board-script.sh ${path.join(
+								current.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''),
+								current.compileScript,
+							)}`,
+						);
+						await promisify(exec)(
+							`sudo ${getScriptRoot()}/board-script.sh ${path.join(
+								current.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''),
+								current.flashScript,
+							)}`,
+						);
+					} catch (e) {
+						const message = e instanceof Error ? e.message : e;
+						return {
+							board: b,
+							result: 'error',
+							message: message,
+						};
+					}
+					return {
+						board: b,
+						result: 'success',
+					};
+				}),
+			);
+			const successCount = flashResults.filter((r) => r.result === 'success').length;
+			let report = `${successCount}/${connectedBoards.length} connected board(s) flashed successfully.\n`;
+			flashResults.map((r) => {
+				if (r.result === 'error') {
+					report += `${r.board.manufacturer} ${r.board.name} failed to flash: ${r.message}\n`;
+				} else {
+					report += `${r.board.manufacturer} ${r.board.name} was successfully flashed.\n`;
+				}
+			});
+			return report;
+		},
 	})
 	.mutation('flash-via-path', {
 		meta: {
 			boardRequired: true,
 		},
 		input: z.object({
-			boardPath: z.string()
+			boardPath: z.string(),
 		}),
 		resolve: async ({ ctx, input }) => {
 			if (ctx.board == null) {
@@ -176,7 +246,10 @@ export const mcuRouter = createRouter<{ boardRequired: boolean }>()
 				if (fs.existsSync(firmwareBinary)) {
 					fs.rmSync(firmwareBinary);
 				}
-				const compileScript = path.join(ctx.board.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''), ctx.board.compileScript);
+				const compileScript = path.join(
+					ctx.board.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''),
+					ctx.board.compileScript,
+				);
 				console.log(`${getScriptRoot()}/board-script.sh ${compileScript}`);
 				compileResult = await promisify(exec)(`sudo ${getScriptRoot()}/board-script.sh ${compileScript}`);
 			} catch (e) {
@@ -195,7 +268,10 @@ export const mcuRouter = createRouter<{ boardRequired: boolean }>()
 			}
 			let flashResult = null;
 			try {
-				const flashScript = path.join(ctx.board.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''), ctx.board.flashScript);
+				const flashScript = path.join(
+					ctx.board.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''),
+					ctx.board.flashScript,
+				);
 				console.log(`${getScriptRoot()}/board-script.sh ${flashScript}`);
 				flashResult = await promisify(exec)(`sudo ${getScriptRoot()}/board-script.sh ${flashScript}`);
 			} catch (e) {
@@ -213,7 +289,7 @@ export const mcuRouter = createRouter<{ boardRequired: boolean }>()
 				});
 			}
 			return 'success';
-		}
+		},
 	})
 	.query('dfu-detect', {
 		meta: {
@@ -253,7 +329,10 @@ export const mcuRouter = createRouter<{ boardRequired: boolean }>()
 				if (fs.existsSync(firmwareBinary)) {
 					fs.rmSync(firmwareBinary);
 				}
-				const compileScript = path.join(ctx.board.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''), ctx.board.compileScript);
+				const compileScript = path.join(
+					ctx.board.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''),
+					ctx.board.compileScript,
+				);
 				compileResult = await promisify(exec)(`sudo ${getScriptRoot()}/board-script.sh ${compileScript}`);
 			} catch (e) {
 				const message = e instanceof Error ? e.message : e;
