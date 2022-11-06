@@ -9,7 +9,7 @@ import pino from 'pino';
 import { getLogger } from '../../helpers/logger';
 
 const sanitizeForBash = (str: string) => {
-	return str.replace(/(["\s'$`\\])/g, '\\$1');
+	return str.replace(/(["'$`\\])/g, '\\$1');
 };
 export const wifiRouter = trpc
 	.router()
