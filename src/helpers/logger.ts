@@ -5,6 +5,9 @@ export const getLogger = () => {
 	if (logger != null) {
 		return logger;
 	}
+	if (process.env.LOG_FILE == null) {
+		throw new Error('No LOG_FILE specified in environment');
+	}
 	const transportOption =
 		process.env.NODE_ENV === 'development'
 			? {
@@ -12,7 +15,7 @@ export const getLogger = () => {
 			  }
 			: {
 					target: 'pino/file',
-					options: { destination: '/path/to/file', append: false }, // Truncate the log when service is restarted. In case of a crash this might not be great.
+					options: { destination: process.env.LOG_FILE, append: false }, // Truncate the log when service is restarted. In case of a crash this might not be great.
 			  };
 	logger = pino(pino.transport(transportOption));
 	return logger;

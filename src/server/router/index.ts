@@ -6,9 +6,8 @@ import { wifiRouter } from './wifi';
 import { mcuRouter } from './mcu';
 import { promisify } from 'util';
 import { exec } from 'child_process';
-import { getScriptRoot } from '../../helpers/util';
-import path from 'path';
 import { getWirelessInterface } from '../../helpers/iw';
+import { klippyExtensionsRouter } from './klippy-extensions';
 
 export const appRouter = createRouter()
 	.transformer(superjson)
@@ -39,7 +38,8 @@ export const appRouter = createRouter()
 		},
 	})
 	.merge('mcu.', mcuRouter)
-	.merge('wifi.', wifiRouter);
+	.merge('wifi.', wifiRouter)
+	.merge('klippy-extensions.', klippyExtensionsRouter);
 
 // export type definition of API
 export type AppRouter = typeof appRouter;
