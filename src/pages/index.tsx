@@ -15,6 +15,7 @@ import { useRouter } from 'next/router';
 import { StepScreen, useSteps } from '../hooks/useSteps';
 import { trpc } from '../helpers/trpc';
 import { WizardComplete } from '../components/setup-steps/wizard-complete';
+import { ActionsDropdown } from '../components/common/actions-dropdown';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -123,9 +124,14 @@ const Home: NextPage<IndexProps> = (props) => {
 							</p>
 						</div>
 					</div>
-					<div className="mt-6 flex space-x-1 sm:flex-row-reverse sm:justify-end sm:space-x-reverse sm:space-y-0 sm:space-x-3 md:mt-0 md:flex-row md:space-x-3">
-						<KlippyStateBadge />
-						<MoonrakerStateBadge />
+					<div className="mt-6 md:mt-0">
+						<div className="flex space-x-1 sm:flex-row-reverse sm:justify-end sm:space-x-reverse sm:space-y-0 sm:space-x-3 md:flex-row md:space-x-3">
+							<KlippyStateBadge />
+							<MoonrakerStateBadge />
+						</div>
+						<div className="flex justify-end mt-2">
+							<ActionsDropdown />
+						</div>
 					</div>
 				</div>
 				{/* Page body */}
