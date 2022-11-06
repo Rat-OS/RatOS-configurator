@@ -365,9 +365,11 @@ __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __we
 /* harmony import */ var child_process__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(child_process__WEBPACK_IMPORTED_MODULE_5__);
 /* harmony import */ var _helpers_iw__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(2494);
 /* harmony import */ var _klippy_extensions__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(8970);
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_wifi__WEBPACK_IMPORTED_MODULE_2__, _mcu__WEBPACK_IMPORTED_MODULE_3__, _klippy_extensions__WEBPACK_IMPORTED_MODULE_7__]);
-([_wifi__WEBPACK_IMPORTED_MODULE_2__, _mcu__WEBPACK_IMPORTED_MODULE_3__, _klippy_extensions__WEBPACK_IMPORTED_MODULE_7__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+/* harmony import */ var _moonraker_extensions__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(1978);
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_wifi__WEBPACK_IMPORTED_MODULE_2__, _mcu__WEBPACK_IMPORTED_MODULE_3__, _klippy_extensions__WEBPACK_IMPORTED_MODULE_7__, _moonraker_extensions__WEBPACK_IMPORTED_MODULE_8__]);
+([_wifi__WEBPACK_IMPORTED_MODULE_2__, _mcu__WEBPACK_IMPORTED_MODULE_3__, _klippy_extensions__WEBPACK_IMPORTED_MODULE_7__, _moonraker_extensions__WEBPACK_IMPORTED_MODULE_8__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
 // src/server/router/index.ts
+
 
 
 
@@ -404,7 +406,7 @@ const appRouter = (0,_context__WEBPACK_IMPORTED_MODULE_0__/* .createRouter */ .p
       return (_stdout$match = stdout.match(/inet\s(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/)) === null || _stdout$match === void 0 ? void 0 : _stdout$match[1];
     })) ?? 'Unknown IP';
   }
-}).merge('mcu.', _mcu__WEBPACK_IMPORTED_MODULE_3__/* .mcuRouter */ .px).merge('wifi.', _wifi__WEBPACK_IMPORTED_MODULE_2__/* .wifiRouter */ .X).merge('klippy-extensions.', _klippy_extensions__WEBPACK_IMPORTED_MODULE_7__/* .klippyExtensionsRouter */ ._); // export type definition of API
+}).merge('mcu.', _mcu__WEBPACK_IMPORTED_MODULE_3__/* .mcuRouter */ .px).merge('wifi.', _wifi__WEBPACK_IMPORTED_MODULE_2__/* .wifiRouter */ .X).merge('klippy-extensions.', _klippy_extensions__WEBPACK_IMPORTED_MODULE_7__/* .klippyExtensionsRouter */ ._).merge('moonraker-extensions.', _moonraker_extensions__WEBPACK_IMPORTED_MODULE_8__/* .moonrakerExtensionsRouter */ .J); // export type definition of API
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } });
 
@@ -627,6 +629,235 @@ const klippyExtensionsRouter = _trpc_server__WEBPACK_IMPORTED_MODULE_1__.router(
       (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__/* .getLogger */ .j)().error(currentExtensionsResult, 'Failed to get klippy extensions');
       throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
         message: `Failed to get klippy extensions`,
+        code: 'INTERNAL_SERVER_ERROR'
+      });
+    }
+
+    return currentExtensions;
+  }
+});
+__webpack_async_result__();
+} catch(e) { __webpack_async_result__(e); } });
+
+/***/ }),
+
+/***/ 1978:
+/***/ ((module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "J": () => (/* binding */ moonrakerExtensionsRouter)
+/* harmony export */ });
+/* harmony import */ var zod__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9926);
+/* harmony import */ var _trpc_server__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2756);
+/* harmony import */ var _trpc_server__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_trpc_server__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(7147);
+/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(fs__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _helpers_logger__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(924);
+/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(1017);
+/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_4__);
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([zod__WEBPACK_IMPORTED_MODULE_0__]);
+zod__WEBPACK_IMPORTED_MODULE_0__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__)[0];
+
+
+
+
+
+
+const moonrakerExtension = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
+  fileName: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+  path: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+  extensionName: zod__WEBPACK_IMPORTED_MODULE_0__.z.string()
+});
+const moonrakerExtensions = zod__WEBPACK_IMPORTED_MODULE_0__.z.array(moonrakerExtension);
+const moonrakerExtensionsRouter = _trpc_server__WEBPACK_IMPORTED_MODULE_1__.router().mutation('register', {
+  input: moonrakerExtension,
+  resolve: async ({
+    input
+  }) => {
+    const moonrakerGetURL = 'http://localhost:7125/server/database/item?namespace=RatOS&key=moonraker_extensions';
+    const currentExtensionsRequest = await fetch(moonrakerGetURL);
+
+    if (currentExtensionsRequest.status !== 200) {
+      (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__/* .getLogger */ .j)().error(currentExtensionsRequest, `Failed to get moonraker extensions`);
+      throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
+        message: `Failed to get moonraker extensions`,
+        code: 'INTERNAL_SERVER_ERROR'
+      });
+    }
+
+    const currentExtensionsResult = await currentExtensionsRequest.json();
+    let currentExtensions = [];
+
+    if (currentExtensionsResult.error == null && currentExtensionsResult.result != null) {
+      currentExtensions = moonrakerExtensions.parse(JSON.parse(currentExtensionsResult.result.value));
+    } else {
+      (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__/* .getLogger */ .j)().error(currentExtensionsResult, `Failed to get moonraker extensions`);
+      throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
+        message: `Failed to get moonraker extensions`,
+        code: 'INTERNAL_SERVER_ERROR'
+      });
+    }
+
+    const extensionPath = path__WEBPACK_IMPORTED_MODULE_4___default().join(input.path, input.fileName);
+
+    if (!(0,fs__WEBPACK_IMPORTED_MODULE_2__.existsSync)(extensionPath)) {
+      (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__/* .getLogger */ .j)().error(`File "${extensionPath}" does not exist`);
+      throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
+        message: `File "${extensionPath}" does not exist`,
+        code: 'PRECONDITION_FAILED'
+      });
+    }
+
+    if (currentExtensions.find(ext => ext.fileName === input.fileName)) {
+      (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__/* .getLogger */ .j)().error(`An extension with the fileName "${input.fileName}" is already registered`);
+      throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
+        message: `An extension with the fileName "${input.fileName}" is already registered`,
+        code: 'PRECONDITION_FAILED'
+      });
+    }
+
+    currentExtensions.push(input);
+    const moonrakerPostURL = 'http://localhost:7125/server/database/item';
+    const result = await fetch(moonrakerPostURL, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        namespace: 'RatOS',
+        key: 'moonraker_extensions',
+        value: JSON.stringify(currentExtensions)
+      })
+    });
+
+    if (result.status !== 200) {
+      (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__/* .getLogger */ .j)().error(result, 'Failed to register moonraker extensions');
+      throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
+        message: `Failed to register extension "${extensionPath}"`,
+        code: 'INTERNAL_SERVER_ERROR'
+      });
+    }
+
+    return true;
+  }
+}).mutation('symlink', {
+  resolve: async () => {
+    const moonrakerGetURL = 'http://localhost:7125/server/database/item?namespace=RatOS&key=moonraker_extensions';
+    const currentExtensionsRequest = await fetch(moonrakerGetURL);
+
+    if (currentExtensionsRequest.status !== 200) {
+      (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__/* .getLogger */ .j)().error(currentExtensionsRequest, 'Failed to get moonraker extensions');
+      throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
+        message: `Failed to get moonraker extensions`,
+        code: 'INTERNAL_SERVER_ERROR'
+      });
+    }
+
+    const currentExtensionsResult = await currentExtensionsRequest.json();
+    let currentExtensions = [];
+
+    if (currentExtensionsResult.error == null && currentExtensionsResult.result != null) {
+      currentExtensions = moonrakerExtensions.parse(JSON.parse(currentExtensionsResult.result.value));
+    } else {
+      (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__/* .getLogger */ .j)().error(currentExtensionsResult, 'Failed to get moonraker extensions');
+      throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
+        message: `Failed to get moonraker extensions`,
+        code: 'INTERNAL_SERVER_ERROR'
+      });
+    }
+
+    if (currentExtensions.length === 0) {
+      return 'No extensions registered, nothing to do.';
+    }
+
+    let cleanedUpExtensions = [];
+    const symlinkResults = currentExtensions.map(ext => {
+      if ((0,fs__WEBPACK_IMPORTED_MODULE_2__.existsSync)(path__WEBPACK_IMPORTED_MODULE_4___default().resolve(path__WEBPACK_IMPORTED_MODULE_4___default().join(ext.path, ext.fileName)))) {
+        cleanedUpExtensions.push(ext);
+
+        if ((0,fs__WEBPACK_IMPORTED_MODULE_2__.existsSync)(path__WEBPACK_IMPORTED_MODULE_4___default().resolve(path__WEBPACK_IMPORTED_MODULE_4___default().join(process.env.MOONRAKER_DIR ?? '/home/pi/moonraker', 'moonraker/components', ext.fileName)))) {
+          return {
+            result: 'success',
+            message: `Symlink for "${ext.fileName}" already exists`
+          };
+        }
+
+        try {
+          (0,fs__WEBPACK_IMPORTED_MODULE_2__.symlinkSync)(path__WEBPACK_IMPORTED_MODULE_4___default().resolve(path__WEBPACK_IMPORTED_MODULE_4___default().join(ext.path, ext.fileName)), path__WEBPACK_IMPORTED_MODULE_4___default().resolve(path__WEBPACK_IMPORTED_MODULE_4___default().join(process.env.MOONRAKER_DIR ?? '/home/pi/moonraker', 'moonraker/components', ext.fileName)));
+          return {
+            result: 'success',
+            message: `Symlink for "${ext.fileName}" created`
+          };
+        } catch (e) {
+          return {
+            result: 'error',
+            message: `Failed to create symlink for "${ext.fileName}"`
+          };
+        }
+      } else {
+        return {
+          result: 'error',
+          message: `Extension file "${ext.fileName}" does not exist in ${ext.path} and has been removed from the list of registered extensions`
+        };
+      }
+    });
+
+    if (cleanedUpExtensions.length !== currentExtensions.length) {
+      const moonrakerPostURL = 'http://localhost:7125/server/database/item';
+      const result = await fetch(moonrakerPostURL, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          namespace: 'RatOS',
+          key: 'moonraker_extensions',
+          value: JSON.stringify(cleanedUpExtensions)
+        })
+      });
+
+      if (result.status !== 200) {
+        (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__/* .getLogger */ .j)().error(result, 'Extensions have been symlinked, but nonexistent extensions were found and we failed to clean up those extensions.');
+        throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
+          message: `Extensions have been symlinked, but nonexistent extensions were found and we failed to clean up those extensions.`,
+          code: 'INTERNAL_SERVER_ERROR'
+        });
+      }
+    }
+
+    const successCount = symlinkResults.filter(r => r.result === 'success').length;
+    let report = `Symlinked ${successCount}/${symlinkResults.length} extension(s): \n`;
+    symlinkResults.forEach(r => {
+      report += `${r.message} \n`;
+    });
+    return report;
+  }
+}).query('list', {
+  output: moonrakerExtensions,
+  resolve: async () => {
+    const moonrakerGetURL = 'http://localhost:7125/server/database/item?namespace=RatOS&key=moonraker_extensions';
+    const currentExtensionsRequest = await fetch(moonrakerGetURL);
+
+    if (currentExtensionsRequest.status !== 200) {
+      (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__/* .getLogger */ .j)().error(currentExtensionsRequest, 'Failed to get moonraker extensions');
+      throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
+        message: `Failed to get moonraker extensions`,
+        code: 'INTERNAL_SERVER_ERROR'
+      });
+    }
+
+    const currentExtensionsResult = await currentExtensionsRequest.json();
+    let currentExtensions = [];
+
+    if (currentExtensionsResult.error == null && currentExtensionsResult.result != null) {
+      currentExtensions = JSON.parse(currentExtensionsResult.result.value);
+    } else {
+      (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__/* .getLogger */ .j)().error(currentExtensionsResult, 'Failed to get moonraker extensions');
+      throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
+        message: `Failed to get moonraker extensions`,
         code: 'INTERNAL_SERVER_ERROR'
       });
     }
