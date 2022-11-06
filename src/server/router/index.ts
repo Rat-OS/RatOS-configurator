@@ -8,6 +8,7 @@ import { promisify } from 'util';
 import { exec } from 'child_process';
 import { getWirelessInterface } from '../../helpers/iw';
 import { klippyExtensionsRouter } from './klippy-extensions';
+import { moonrakerExtensionsRouter } from './moonraker-extensions';
 
 export const appRouter = createRouter()
 	.transformer(superjson)
@@ -39,7 +40,8 @@ export const appRouter = createRouter()
 	})
 	.merge('mcu.', mcuRouter)
 	.merge('wifi.', wifiRouter)
-	.merge('klippy-extensions.', klippyExtensionsRouter);
+	.merge('klippy-extensions.', klippyExtensionsRouter)
+	.merge('moonraker-extensions.', moonrakerExtensionsRouter);
 
 // export type definition of API
 export type AppRouter = typeof appRouter;
