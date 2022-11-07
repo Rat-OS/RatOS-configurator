@@ -40,8 +40,8 @@ export const CardSelector = <Selectable extends SelectableCard = SelectableCard>
 
 	return (
 		<RadioGroup value={selected} onChange={onSelect}>
-			<RadioGroup.Label className='sr-only'>Server size</RadioGroup.Label>
-			<div className='space-y-4'>
+			<RadioGroup.Label className="sr-only">Server size</RadioGroup.Label>
+			<div className="space-y-4">
 				{props.cards.map((card, i) => (
 					<RadioGroup.Option
 						key={card.name + i}
@@ -56,17 +56,17 @@ export const CardSelector = <Selectable extends SelectableCard = SelectableCard>
 					>
 						{({ active, checked }) => (
 							<>
-								<div className='flex items-center'>
+								<div className="flex items-center">
 									<div>
-										<RadioGroup.Label as='p' className='font-bold text-gray-900 text-sm'>
+										<RadioGroup.Label as="p" className="font-bold text-gray-900 text-sm">
 											{card.name}
 										</RadioGroup.Label>
-										<RadioGroup.Description as='div' className='text-gray-500 text-xs'>
-											<p className='sm:inline'>{card.details}</p>
+										<RadioGroup.Description as="div" className="text-gray-500 text-xs">
+											<p className="sm:inline">{card.details}</p>
 										</RadioGroup.Description>
 									</div>
 								</div>
-								<RadioGroup.Description as='div' className='mt-2 flex text-sm sm:mt-0 sm:block sm:ml-4 sm:text-right'>
+								<RadioGroup.Description as="div" className="mt-2 flex text-sm sm:mt-0 sm:block sm:ml-4 sm:text-right">
 									{card.right}
 								</RadioGroup.Description>
 								<div
@@ -75,7 +75,7 @@ export const CardSelector = <Selectable extends SelectableCard = SelectableCard>
 										checked ? 'border-brand-600' : 'border-transparent',
 										'absolute -inset-px rounded-lg pointer-events-none',
 									)}
-									aria-hidden='true'
+									aria-hidden="true"
 								/>
 							</>
 						)}

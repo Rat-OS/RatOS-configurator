@@ -24,6 +24,13 @@ export const MCUPicker: React.FC<MCUPickProps> = (props) => {
 	let leftButton: StepNavButton = {
 		onClick: props.previousScreen,
 	};
+	let skipButton: StepNavButton | undefined =
+		props.toolboards && props.skipSteps
+			? {
+					onClick: props.skipSteps,
+					label: 'Skip',
+			  }
+			: undefined;
 
 	if (props.selectedBoards.length > 0) {
 		rightButton = {
@@ -42,7 +49,7 @@ export const MCUPicker: React.FC<MCUPickProps> = (props) => {
 				</div>
 				{content}
 			</div>
-			<StepNavButtons right={rightButton} left={leftButton} />
+			<StepNavButtons right={rightButton} left={leftButton} skip={skipButton} />
 		</Fragment>
 	);
 };
