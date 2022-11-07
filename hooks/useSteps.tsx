@@ -5,13 +5,16 @@ export interface StepScreenProps {
 	previousScreen?: () => void;
 	hasNextScreen: boolean;
 	hasPreviousScreen: boolean;
+	skipSteps?: () => void;
 	description: string;
 	name: string;
 	key: string;
 }
 
-type NoExtraProps = '__noExtraProps'
-type ExtraStepProps<P extends NoExtraProps | Object = NoExtraProps> = P extends NoExtraProps ? {} : { extraScreenProps: P };
+type NoExtraProps = '__noExtraProps';
+type ExtraStepProps<P extends NoExtraProps | Object = NoExtraProps> = P extends NoExtraProps
+	? {}
+	: { extraScreenProps: P };
 type NormalizedGeneric<P extends NoExtraProps | Object = NoExtraProps> = P extends NoExtraProps ? {} : P;
 
 export interface StepScreen<P extends NoExtraProps | Object = NoExtraProps> {
@@ -30,7 +33,7 @@ type UseStepProps<P extends NoExtraProps | Object = NoExtraProps> = {
 	parentScreenProps?: StepScreenProps;
 } & ExtraStepProps<P>;
 
-export const useSteps = <P extends NoExtraProps | Object,>(props: UseStepProps<P>) => {
+export const useSteps = <P extends NoExtraProps | Object>(props: UseStepProps<P>) => {
 	const { onIncrementStep, onDecrementStep } = props;
 	const [currentStepIndex, setCurrentStepIndex] = useState(props.step != null && !isNaN(props.step) ? props.step : 0);
 	const currentStep = props.steps[currentStepIndex];
@@ -56,7 +59,7 @@ export const useSteps = <P extends NoExtraProps | Object,>(props: UseStepProps<P
 		});
 	}, [onDecrementStep]);
 	const partialScreenProps: Omit<StepScreenProps, 'name' | 'description'> & NormalizedGeneric<P> = {
-		...('extraScreenProps' in props ? props.extraScreenProps : {} ) as NormalizedGeneric<P>,
+		...(('extraScreenProps' in props ? props.extraScreenProps : {}) as NormalizedGeneric<P>),
 		key: 'step-' + currentStepIndex,
 		hasNextScreen: hasNextScreen || (props.parentScreenProps?.hasNextScreen ?? false),
 		hasPreviousScreen: hasPreviousScreen || (props.parentScreenProps?.hasNextScreen ?? false),
@@ -70,13 +73,18 @@ export const useSteps = <P extends NoExtraProps | Object,>(props: UseStepProps<P
 			: props.parentScreenProps?.hasPreviousScreen
 			? props.parentScreenProps.previousScreen
 			: undefined,
-	}
+		skipSteps:
+			props.parentScreenProps && props.parentScreenProps.hasNextScreen ? props.parentScreenProps.nextScreen : undefined,
+	};
 	const name = typeof currentStep.name === 'function' ? currentStep.name(partialScreenProps) : currentStep.name;
-	const description = typeof currentStep.description === 'function' ? currentStep.description(partialScreenProps) : currentStep.description;
+	const description =
+		typeof currentStep.description === 'function'
+			? currentStep.description(partialScreenProps)
+			: currentStep.description;
 	const screenProps: StepScreenProps = {
 		...partialScreenProps,
 		name,
-		description
+		description,
 	};
 	return {
 		screenProps,

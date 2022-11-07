@@ -1372,6 +1372,10 @@ const MCUPicker = props => {
   let leftButton = {
     onClick: props.previousScreen
   };
+  let skipButton = props.toolboards && props.skipSteps ? {
+    onClick: props.skipSteps,
+    label: 'Skip'
+  } : undefined;
 
   if (props.selectedBoards.length > 0) {
     rightButton = {
@@ -1395,7 +1399,8 @@ const MCUPicker = props => {
       }), content]
     }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx(_step_nav_buttons__WEBPACK_IMPORTED_MODULE_2__/* .StepNavButtons */ .Q, {
       right: rightButton,
-      left: leftButton
+      left: leftButton,
+      skip: skipButton
     })]
   });
 };
@@ -1915,8 +1920,8 @@ const Spinner = props => {
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "Q": () => (/* binding */ StepNavButtons)
 /* harmony export */ });
-/* harmony import */ var _heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8802);
-/* harmony import */ var _heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _heroicons_react_24_outline__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(2135);
+/* harmony import */ var _heroicons_react_24_outline__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_heroicons_react_24_outline__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(6689);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _button__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(5588);
@@ -1930,8 +1935,8 @@ const Spinner = props => {
 
 
 const StepNavButtons = props => {
-  const leftIcon = props.left.isLoading ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx(_spinner__WEBPACK_IMPORTED_MODULE_3__/* .Spinner */ .$, {}) : /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_0__.ArrowLongLeftIcon, {
-    className: "mr-3 h-5 w-5 text-black",
+  const leftIcon = props.left.isLoading ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx(_spinner__WEBPACK_IMPORTED_MODULE_3__/* .Spinner */ .$, {}) : /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx(_heroicons_react_24_outline__WEBPACK_IMPORTED_MODULE_0__.PlayIcon, {
+    className: "mr-3 h-5 w-5 text-black rotate-180",
     "aria-hidden": "true"
   });
   const left = props.left.onClick ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx("div", {
@@ -1943,18 +1948,26 @@ const StepNavButtons = props => {
       children: [leftIcon, props.left.label ?? 'Back']
     })
   }) : null;
-  const rightIcon = props.right.isLoading ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx(_spinner__WEBPACK_IMPORTED_MODULE_3__/* .Spinner */ .$, {}) : /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_0__.ArrowLongRightIcon, {
+  const rightIcon = props.right.isLoading ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx(_spinner__WEBPACK_IMPORTED_MODULE_3__/* .Spinner */ .$, {}) : /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx(_heroicons_react_24_outline__WEBPACK_IMPORTED_MODULE_0__.PlayIcon, {
     className: "ml-3 h-5 w-5 text-black-400",
     "aria-hidden": "true"
   });
-  const right = props.right.onClick ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx("div", {
-    className: "flex-1 flex justify-end",
-    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)(_button__WEBPACK_IMPORTED_MODULE_2__/* .Button */ .z, {
+  const right = props.right.onClick ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)("div", {
+    className: "flex-1 flex justify-end space-x-4",
+    children: [props.skip && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)(_button__WEBPACK_IMPORTED_MODULE_2__/* .Button */ .z, {
+      color: "gray",
+      onClick: props.skip.onClick,
+      disabled: props.skip.disabled,
+      children: [props.skip.label ?? 'Skip', /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx(_heroicons_react_24_outline__WEBPACK_IMPORTED_MODULE_0__.ForwardIcon, {
+        className: "ml-3 h-5 w-5 text-black",
+        "aria-hidden": "true"
+      })]
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)(_button__WEBPACK_IMPORTED_MODULE_2__/* .Button */ .z, {
       color: "brand",
       disabled: props.right.disabled,
       onClick: props.right.onClick,
       children: [props.right.label ?? 'Next', rightIcon]
-    })
+    })]
   }) : null;
   return /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx("div", {
     className: "px-8 pb-5",
@@ -2002,8 +2015,7 @@ const VerticalSteps = props => {
             children: [stepIdx !== props.steps.length - 1 ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx("div", {
               className: "-ml-px absolute mt-0.5 top-4 left-4 w-0.5 h-full bg-brand-600",
               "aria-hidden": "true"
-            }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("a", {
-              href: step.href,
+            }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("span", {
               className: "relative flex items-start group",
               children: [/*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx("span", {
                 className: "h-9 flex items-center",
@@ -2029,8 +2041,7 @@ const VerticalSteps = props => {
             children: [stepIdx !== props.steps.length - 1 ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx("div", {
               className: "-ml-px absolute mt-0.5 top-4 left-4 w-0.5 h-full bg-gray-300",
               "aria-hidden": "true"
-            }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("a", {
-              href: step.href,
+            }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("span", {
               className: "relative flex items-start group",
               "aria-current": "step",
               children: [/*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx("span", {
@@ -2057,8 +2068,7 @@ const VerticalSteps = props => {
             children: [stepIdx !== props.steps.length - 1 ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx("div", {
               className: "-ml-px absolute mt-0.5 top-4 left-4 w-0.5 h-full bg-gray-300",
               "aria-hidden": "true"
-            }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("a", {
-              href: step.href,
+            }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("span", {
               className: "relative flex items-start group",
               children: [/*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx("span", {
                 className: "h-9 flex items-center",
@@ -2460,7 +2470,8 @@ const useSteps = props => {
     hasNextScreen: hasNextScreen || (((_props$parentScreenPr = props.parentScreenProps) === null || _props$parentScreenPr === void 0 ? void 0 : _props$parentScreenPr.hasNextScreen) ?? false),
     hasPreviousScreen: hasPreviousScreen || (((_props$parentScreenPr2 = props.parentScreenProps) === null || _props$parentScreenPr2 === void 0 ? void 0 : _props$parentScreenPr2.hasNextScreen) ?? false),
     nextScreen: hasNextScreen ? incrementStep : (_props$parentScreenPr3 = props.parentScreenProps) !== null && _props$parentScreenPr3 !== void 0 && _props$parentScreenPr3.hasNextScreen ? props.parentScreenProps.nextScreen : undefined,
-    previousScreen: hasPreviousScreen ? decrementStep : (_props$parentScreenPr4 = props.parentScreenProps) !== null && _props$parentScreenPr4 !== void 0 && _props$parentScreenPr4.hasPreviousScreen ? props.parentScreenProps.previousScreen : undefined
+    previousScreen: hasPreviousScreen ? decrementStep : (_props$parentScreenPr4 = props.parentScreenProps) !== null && _props$parentScreenPr4 !== void 0 && _props$parentScreenPr4.hasPreviousScreen ? props.parentScreenProps.previousScreen : undefined,
+    skipSteps: props.parentScreenProps && props.parentScreenProps.hasNextScreen ? props.parentScreenProps.nextScreen : undefined
   });
 
   const name = typeof currentStep.name === 'function' ? currentStep.name(partialScreenProps) : currentStep.name;
