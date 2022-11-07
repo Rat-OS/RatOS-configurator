@@ -3,9 +3,12 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 GIT_DIR=$SCRIPT_DIR/../.git
 echo $SCRIPT_DIR | grep "/src/" > /dev/null
 if [ $? -eq 0 ]; then
+	# in the deployment branch src is the root. In main src is a subdirectory.
 	GIT_DIR=$SCRIPT_DIR/../../.git
 fi
+SRC_DIR=$(realpath "$SCRIPT_DIR/..")
 GIT_DIR=$(realpath $GIT_DIR)
+
 report_status()
 {
     echo -e "\n\n###### $1"
