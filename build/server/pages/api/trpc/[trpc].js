@@ -406,6 +406,10 @@ const appRouter = (0,_context__WEBPACK_IMPORTED_MODULE_0__/* .createRouter */ .p
       return (_stdout$match = stdout.match(/inet\s(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/)) === null || _stdout$match === void 0 ? void 0 : _stdout$match[1];
     })) ?? 'Unknown IP';
   }
+}).query('kill', {
+  resolve: async () => {
+    process.exit();
+  }
 }).merge('mcu.', _mcu__WEBPACK_IMPORTED_MODULE_3__/* .mcuRouter */ .px).merge('wifi.', _wifi__WEBPACK_IMPORTED_MODULE_2__/* .wifiRouter */ .X).merge('klippy-extensions.', _klippy_extensions__WEBPACK_IMPORTED_MODULE_7__/* .klippyExtensionsRouter */ ._).merge('moonraker-extensions.', _moonraker_extensions__WEBPACK_IMPORTED_MODULE_8__/* .moonrakerExtensionsRouter */ .J); // export type definition of API
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } });

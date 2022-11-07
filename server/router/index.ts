@@ -38,6 +38,11 @@ export const appRouter = createRouter()
 			);
 		},
 	})
+	.query('kill', {
+		resolve: async () => {
+			process.exit();
+		},
+	})
 	.merge('mcu.', mcuRouter)
 	.merge('wifi.', wifiRouter)
 	.merge('klippy-extensions.', klippyExtensionsRouter)
