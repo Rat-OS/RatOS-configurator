@@ -441,35 +441,46 @@ const klippyExtension = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
   extensionName: zod__WEBPACK_IMPORTED_MODULE_0__.z.string()
 });
 const klippyExtensions = zod__WEBPACK_IMPORTED_MODULE_0__.z.array(klippyExtension);
+
+const getExtensions = () => {
+  if (process.env.KLIPPY_EXTENSIONS == null) {
+    throw new Error('No KLIPPY_EXTENSIONS specified in environment');
+  }
+
+  const extensionDir = process.env.KLIPPY_EXTENSIONS.split('/').slice(0, -1).join('/');
+
+  if (!(0,fs__WEBPACK_IMPORTED_MODULE_2__.existsSync)(extensionDir)) {
+    (0,fs__WEBPACK_IMPORTED_MODULE_2__.mkdirSync)(extensionDir);
+  }
+
+  if (!(0,fs__WEBPACK_IMPORTED_MODULE_2__.existsSync)(process.env.KLIPPY_EXTENSIONS)) {
+    (0,fs__WEBPACK_IMPORTED_MODULE_2__.writeFileSync)(process.env.KLIPPY_EXTENSIONS, '[]');
+  }
+
+  const currentExtensions = klippyExtensions.parse(JSON.parse((0,fs__WEBPACK_IMPORTED_MODULE_2__.readFileSync)(process.env.KLIPPY_EXTENSIONS).toString()));
+  return currentExtensions;
+};
+
+const saveExtensions = extensions => {
+  if (process.env.KLIPPY_EXTENSIONS == null) {
+    throw new Error('No KLIPPY_EXTENSIONS specified in environment');
+  }
+
+  const extensionDir = process.env.KLIPPY_EXTENSIONS.split('/').slice(0, -1).join('/');
+
+  if (!(0,fs__WEBPACK_IMPORTED_MODULE_2__.existsSync)(extensionDir)) {
+    (0,fs__WEBPACK_IMPORTED_MODULE_2__.mkdirSync)(extensionDir);
+  }
+
+  (0,fs__WEBPACK_IMPORTED_MODULE_2__.writeFileSync)(process.env.KLIPPY_EXTENSIONS, JSON.stringify(extensions));
+};
+
 const klippyExtensionsRouter = _trpc_server__WEBPACK_IMPORTED_MODULE_1__.router().mutation('register', {
   input: klippyExtension,
   resolve: async ({
     input
   }) => {
-    const moonrakerGetURL = 'http://localhost:7125/server/database/item?namespace=RatOS&key=klippy_extensions';
-    const currentExtensionsRequest = await fetch(moonrakerGetURL);
-
-    if (currentExtensionsRequest.status !== 200) {
-      (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__/* .getLogger */ .j)().error(currentExtensionsRequest, `Failed to get klippy extensions`);
-      throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
-        message: `Failed to get klippy extensions`,
-        code: 'INTERNAL_SERVER_ERROR'
-      });
-    }
-
-    const currentExtensionsResult = await currentExtensionsRequest.json();
-    let currentExtensions = [];
-
-    if (currentExtensionsResult.error == null && currentExtensionsResult.result != null) {
-      currentExtensions = klippyExtensions.parse(JSON.parse(currentExtensionsResult.result.value));
-    } else {
-      (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__/* .getLogger */ .j)().error(currentExtensionsResult, `Failed to get klippy extensions`);
-      throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
-        message: `Failed to get klippy extensions`,
-        code: 'INTERNAL_SERVER_ERROR'
-      });
-    }
-
+    const currentExtensions = getExtensions();
     const extensionPath = path__WEBPACK_IMPORTED_MODULE_4___default().join(input.path, input.fileName);
 
     if (!(0,fs__WEBPACK_IMPORTED_MODULE_2__.existsSync)(extensionPath)) {
@@ -489,55 +500,12 @@ const klippyExtensionsRouter = _trpc_server__WEBPACK_IMPORTED_MODULE_1__.router(
     }
 
     currentExtensions.push(input);
-    const moonrakerPostURL = 'http://localhost:7125/server/database/item';
-    const result = await fetch(moonrakerPostURL, {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        namespace: 'RatOS',
-        key: 'klippy_extensions',
-        value: JSON.stringify(currentExtensions)
-      })
-    });
-
-    if (result.status !== 200) {
-      (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__/* .getLogger */ .j)().error(result, 'Failed to register klippy extensions');
-      throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
-        message: `Failed to register extension "${extensionPath}"`,
-        code: 'INTERNAL_SERVER_ERROR'
-      });
-    }
-
+    saveExtensions(currentExtensions);
     return true;
   }
 }).mutation('symlink', {
   resolve: async () => {
-    const moonrakerGetURL = 'http://localhost:7125/server/database/item?namespace=RatOS&key=klippy_extensions';
-    const currentExtensionsRequest = await fetch(moonrakerGetURL);
-
-    if (currentExtensionsRequest.status !== 200) {
-      (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__/* .getLogger */ .j)().error(currentExtensionsRequest, 'Failed to get klippy extensions');
-      throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
-        message: `Failed to get klippy extensions`,
-        code: 'INTERNAL_SERVER_ERROR'
-      });
-    }
-
-    const currentExtensionsResult = await currentExtensionsRequest.json();
-    let currentExtensions = [];
-
-    if (currentExtensionsResult.error == null && currentExtensionsResult.result != null) {
-      currentExtensions = klippyExtensions.parse(JSON.parse(currentExtensionsResult.result.value));
-    } else {
-      (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__/* .getLogger */ .j)().error(currentExtensionsResult, 'Failed to get klippy extensions');
-      throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
-        message: `Failed to get klippy extensions`,
-        code: 'INTERNAL_SERVER_ERROR'
-      });
-    }
+    const currentExtensions = getExtensions();
 
     if (currentExtensions.length === 0) {
       return 'No extensions registered, nothing to do.';
@@ -576,27 +544,7 @@ const klippyExtensionsRouter = _trpc_server__WEBPACK_IMPORTED_MODULE_1__.router(
     });
 
     if (cleanedUpExtensions.length !== currentExtensions.length) {
-      const moonrakerPostURL = 'http://localhost:7125/server/database/item';
-      const result = await fetch(moonrakerPostURL, {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          namespace: 'RatOS',
-          key: 'klippy_extensions',
-          value: JSON.stringify(cleanedUpExtensions)
-        })
-      });
-
-      if (result.status !== 200) {
-        (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__/* .getLogger */ .j)().error(result, 'Extensions have been symlinked, but nonexistent extensions were found and we failed to clean up those extensions.');
-        throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
-          message: `Extensions have been symlinked, but nonexistent extensions were found and we failed to clean up those extensions.`,
-          code: 'INTERNAL_SERVER_ERROR'
-        });
-      }
+      saveExtensions(cleanedUpExtensions);
     }
 
     const successCount = symlinkResults.filter(r => r.result === 'success').length;
@@ -609,31 +557,7 @@ const klippyExtensionsRouter = _trpc_server__WEBPACK_IMPORTED_MODULE_1__.router(
 }).query('list', {
   output: klippyExtensions,
   resolve: async () => {
-    const moonrakerGetURL = 'http://localhost:7125/server/database/item?namespace=RatOS&key=klippy_extensions';
-    const currentExtensionsRequest = await fetch(moonrakerGetURL);
-
-    if (currentExtensionsRequest.status !== 200) {
-      (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__/* .getLogger */ .j)().error(currentExtensionsRequest, 'Failed to get klippy extensions');
-      throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
-        message: `Failed to get klippy extensions`,
-        code: 'INTERNAL_SERVER_ERROR'
-      });
-    }
-
-    const currentExtensionsResult = await currentExtensionsRequest.json();
-    let currentExtensions = [];
-
-    if (currentExtensionsResult.error == null && currentExtensionsResult.result != null) {
-      currentExtensions = JSON.parse(currentExtensionsResult.result.value);
-    } else {
-      (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__/* .getLogger */ .j)().error(currentExtensionsResult, 'Failed to get klippy extensions');
-      throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
-        message: `Failed to get klippy extensions`,
-        code: 'INTERNAL_SERVER_ERROR'
-      });
-    }
-
-    return currentExtensions;
+    return getExtensions();
   }
 });
 __webpack_async_result__();
@@ -670,35 +594,46 @@ const moonrakerExtension = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
   extensionName: zod__WEBPACK_IMPORTED_MODULE_0__.z.string()
 });
 const moonrakerExtensions = zod__WEBPACK_IMPORTED_MODULE_0__.z.array(moonrakerExtension);
+
+const getExtensions = () => {
+  if (process.env.MOONRAKER_EXTENSIONS == null) {
+    throw new Error('No MOONRAKER_EXTENSIONS specified in environment');
+  }
+
+  const extensionDir = process.env.MOONRAKER_EXTENSIONS.split('/').slice(0, -1).join('/');
+
+  if (!(0,fs__WEBPACK_IMPORTED_MODULE_2__.existsSync)(extensionDir)) {
+    (0,fs__WEBPACK_IMPORTED_MODULE_2__.mkdirSync)(extensionDir);
+  }
+
+  if (!(0,fs__WEBPACK_IMPORTED_MODULE_2__.existsSync)(process.env.MOONRAKER_EXTENSIONS)) {
+    (0,fs__WEBPACK_IMPORTED_MODULE_2__.writeFileSync)(process.env.MOONRAKER_EXTENSIONS, '[]');
+  }
+
+  const currentExtensions = moonrakerExtensions.parse(JSON.parse((0,fs__WEBPACK_IMPORTED_MODULE_2__.readFileSync)(process.env.MOONRAKER_EXTENSIONS).toString()));
+  return currentExtensions;
+};
+
+const saveExtensions = extensions => {
+  if (process.env.MOONRAKER_EXTENSIONS == null) {
+    throw new Error('No MOONRAKER_EXTENSIONS specified in environment');
+  }
+
+  const extensionDir = process.env.MOONRAKER_EXTENSIONS.split('/').slice(0, -1).join('/');
+
+  if (!(0,fs__WEBPACK_IMPORTED_MODULE_2__.existsSync)(extensionDir)) {
+    (0,fs__WEBPACK_IMPORTED_MODULE_2__.mkdirSync)(extensionDir);
+  }
+
+  (0,fs__WEBPACK_IMPORTED_MODULE_2__.writeFileSync)(process.env.MOONRAKER_EXTENSIONS, JSON.stringify(extensions));
+};
+
 const moonrakerExtensionsRouter = _trpc_server__WEBPACK_IMPORTED_MODULE_1__.router().mutation('register', {
   input: moonrakerExtension,
   resolve: async ({
     input
   }) => {
-    const moonrakerGetURL = 'http://localhost:7125/server/database/item?namespace=RatOS&key=moonraker_extensions';
-    const currentExtensionsRequest = await fetch(moonrakerGetURL);
-
-    if (currentExtensionsRequest.status !== 200) {
-      (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__/* .getLogger */ .j)().error(currentExtensionsRequest, `Failed to get moonraker extensions`);
-      throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
-        message: `Failed to get moonraker extensions`,
-        code: 'INTERNAL_SERVER_ERROR'
-      });
-    }
-
-    const currentExtensionsResult = await currentExtensionsRequest.json();
-    let currentExtensions = [];
-
-    if (currentExtensionsResult.error == null && currentExtensionsResult.result != null) {
-      currentExtensions = moonrakerExtensions.parse(JSON.parse(currentExtensionsResult.result.value));
-    } else {
-      (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__/* .getLogger */ .j)().error(currentExtensionsResult, `Failed to get moonraker extensions`);
-      throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
-        message: `Failed to get moonraker extensions`,
-        code: 'INTERNAL_SERVER_ERROR'
-      });
-    }
-
+    const currentExtensions = getExtensions();
     const extensionPath = path__WEBPACK_IMPORTED_MODULE_4___default().join(input.path, input.fileName);
 
     if (!(0,fs__WEBPACK_IMPORTED_MODULE_2__.existsSync)(extensionPath)) {
@@ -718,55 +653,12 @@ const moonrakerExtensionsRouter = _trpc_server__WEBPACK_IMPORTED_MODULE_1__.rout
     }
 
     currentExtensions.push(input);
-    const moonrakerPostURL = 'http://localhost:7125/server/database/item';
-    const result = await fetch(moonrakerPostURL, {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        namespace: 'RatOS',
-        key: 'moonraker_extensions',
-        value: JSON.stringify(currentExtensions)
-      })
-    });
-
-    if (result.status !== 200) {
-      (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__/* .getLogger */ .j)().error(result, 'Failed to register moonraker extensions');
-      throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
-        message: `Failed to register extension "${extensionPath}"`,
-        code: 'INTERNAL_SERVER_ERROR'
-      });
-    }
-
+    saveExtensions(currentExtensions);
     return true;
   }
 }).mutation('symlink', {
   resolve: async () => {
-    const moonrakerGetURL = 'http://localhost:7125/server/database/item?namespace=RatOS&key=moonraker_extensions';
-    const currentExtensionsRequest = await fetch(moonrakerGetURL);
-
-    if (currentExtensionsRequest.status !== 200) {
-      (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__/* .getLogger */ .j)().error(currentExtensionsRequest, 'Failed to get moonraker extensions');
-      throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
-        message: `Failed to get moonraker extensions`,
-        code: 'INTERNAL_SERVER_ERROR'
-      });
-    }
-
-    const currentExtensionsResult = await currentExtensionsRequest.json();
-    let currentExtensions = [];
-
-    if (currentExtensionsResult.error == null && currentExtensionsResult.result != null) {
-      currentExtensions = moonrakerExtensions.parse(JSON.parse(currentExtensionsResult.result.value));
-    } else {
-      (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__/* .getLogger */ .j)().error(currentExtensionsResult, 'Failed to get moonraker extensions');
-      throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
-        message: `Failed to get moonraker extensions`,
-        code: 'INTERNAL_SERVER_ERROR'
-      });
-    }
+    const currentExtensions = getExtensions();
 
     if (currentExtensions.length === 0) {
       return 'No extensions registered, nothing to do.';
@@ -805,27 +697,7 @@ const moonrakerExtensionsRouter = _trpc_server__WEBPACK_IMPORTED_MODULE_1__.rout
     });
 
     if (cleanedUpExtensions.length !== currentExtensions.length) {
-      const moonrakerPostURL = 'http://localhost:7125/server/database/item';
-      const result = await fetch(moonrakerPostURL, {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          namespace: 'RatOS',
-          key: 'moonraker_extensions',
-          value: JSON.stringify(cleanedUpExtensions)
-        })
-      });
-
-      if (result.status !== 200) {
-        (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__/* .getLogger */ .j)().error(result, 'Extensions have been symlinked, but nonexistent extensions were found and we failed to clean up those extensions.');
-        throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
-          message: `Extensions have been symlinked, but nonexistent extensions were found and we failed to clean up those extensions.`,
-          code: 'INTERNAL_SERVER_ERROR'
-        });
-      }
+      saveExtensions(cleanedUpExtensions);
     }
 
     const successCount = symlinkResults.filter(r => r.result === 'success').length;
@@ -838,31 +710,7 @@ const moonrakerExtensionsRouter = _trpc_server__WEBPACK_IMPORTED_MODULE_1__.rout
 }).query('list', {
   output: moonrakerExtensions,
   resolve: async () => {
-    const moonrakerGetURL = 'http://localhost:7125/server/database/item?namespace=RatOS&key=moonraker_extensions';
-    const currentExtensionsRequest = await fetch(moonrakerGetURL);
-
-    if (currentExtensionsRequest.status !== 200) {
-      (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__/* .getLogger */ .j)().error(currentExtensionsRequest, 'Failed to get moonraker extensions');
-      throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
-        message: `Failed to get moonraker extensions`,
-        code: 'INTERNAL_SERVER_ERROR'
-      });
-    }
-
-    const currentExtensionsResult = await currentExtensionsRequest.json();
-    let currentExtensions = [];
-
-    if (currentExtensionsResult.error == null && currentExtensionsResult.result != null) {
-      currentExtensions = JSON.parse(currentExtensionsResult.result.value);
-    } else {
-      (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__/* .getLogger */ .j)().error(currentExtensionsResult, 'Failed to get moonraker extensions');
-      throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
-        message: `Failed to get moonraker extensions`,
-        code: 'INTERNAL_SERVER_ERROR'
-      });
-    }
-
-    return currentExtensions;
+    return getExtensions();
   }
 });
 __webpack_async_result__();

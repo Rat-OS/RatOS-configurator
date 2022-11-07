@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { existsSync, symlinkSync } from 'fs';
+import { existsSync, mkdirSync, symlinkSync, writeFileSync, readFileSync } from 'fs';
 import { getLogger } from '../../helpers/logger';
 import path from 'path';
 import * as trpc from '@trpc/server';
@@ -11,31 +11,39 @@ const klippyExtension = z.object({
 	extensionName: z.string(),
 });
 const klippyExtensions = z.array(klippyExtension);
+
+const getExtensions = () => {
+	if (process.env.KLIPPY_EXTENSIONS == null) {
+		throw new Error('No KLIPPY_EXTENSIONS specified in environment');
+	}
+	const extensionDir = process.env.KLIPPY_EXTENSIONS.split('/').slice(0, -1).join('/');
+	if (!existsSync(extensionDir)) {
+		mkdirSync(extensionDir);
+	}
+	if (!existsSync(process.env.KLIPPY_EXTENSIONS)) {
+		writeFileSync(process.env.KLIPPY_EXTENSIONS, '[]');
+	}
+	const currentExtensions = klippyExtensions.parse(JSON.parse(readFileSync(process.env.KLIPPY_EXTENSIONS).toString()));
+	return currentExtensions;
+};
+
+const saveExtensions = (extensions: z.infer<typeof klippyExtensions>) => {
+	if (process.env.KLIPPY_EXTENSIONS == null) {
+		throw new Error('No KLIPPY_EXTENSIONS specified in environment');
+	}
+	const extensionDir = process.env.KLIPPY_EXTENSIONS.split('/').slice(0, -1).join('/');
+	if (!existsSync(extensionDir)) {
+		mkdirSync(extensionDir);
+	}
+	writeFileSync(process.env.KLIPPY_EXTENSIONS, JSON.stringify(extensions));
+};
+
 export const klippyExtensionsRouter = trpc
 	.router()
 	.mutation('register', {
 		input: klippyExtension,
 		resolve: async ({ input }) => {
-			const moonrakerGetURL = 'http://localhost:7125/server/database/item?namespace=RatOS&key=klippy_extensions';
-			const currentExtensionsRequest = await fetch(moonrakerGetURL);
-			if (currentExtensionsRequest.status !== 200) {
-				getLogger().error(currentExtensionsRequest, `Failed to get klippy extensions`);
-				throw new TRPCError({
-					message: `Failed to get klippy extensions`,
-					code: 'INTERNAL_SERVER_ERROR',
-				});
-			}
-			const currentExtensionsResult = await currentExtensionsRequest.json();
-			let currentExtensions = [];
-			if (currentExtensionsResult.error == null && currentExtensionsResult.result != null) {
-				currentExtensions = klippyExtensions.parse(JSON.parse(currentExtensionsResult.result.value));
-			} else {
-				getLogger().error(currentExtensionsResult, `Failed to get klippy extensions`);
-				throw new TRPCError({
-					message: `Failed to get klippy extensions`,
-					code: 'INTERNAL_SERVER_ERROR',
-				});
-			}
+			const currentExtensions = getExtensions();
 			const extensionPath = path.join(input.path, input.fileName);
 			if (!existsSync(extensionPath)) {
 				getLogger().error(`File "${extensionPath}" does not exist`);
@@ -52,51 +60,13 @@ export const klippyExtensionsRouter = trpc
 				});
 			}
 			currentExtensions.push(input);
-			const moonrakerPostURL = 'http://localhost:7125/server/database/item';
-			const result = await fetch(moonrakerPostURL, {
-				method: 'POST',
-				headers: {
-					Accept: 'application/json',
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({
-					namespace: 'RatOS',
-					key: 'klippy_extensions',
-					value: JSON.stringify(currentExtensions),
-				}),
-			});
-			if (result.status !== 200) {
-				getLogger().error(result, 'Failed to register klippy extensions');
-				throw new TRPCError({
-					message: `Failed to register extension "${extensionPath}"`,
-					code: 'INTERNAL_SERVER_ERROR',
-				});
-			}
+			saveExtensions(currentExtensions);
 			return true;
 		},
 	})
 	.mutation('symlink', {
 		resolve: async () => {
-			const moonrakerGetURL = 'http://localhost:7125/server/database/item?namespace=RatOS&key=klippy_extensions';
-			const currentExtensionsRequest = await fetch(moonrakerGetURL);
-			if (currentExtensionsRequest.status !== 200) {
-				getLogger().error(currentExtensionsRequest, 'Failed to get klippy extensions');
-				throw new TRPCError({
-					message: `Failed to get klippy extensions`,
-					code: 'INTERNAL_SERVER_ERROR',
-				});
-			}
-			const currentExtensionsResult = await currentExtensionsRequest.json();
-			let currentExtensions = [];
-			if (currentExtensionsResult.error == null && currentExtensionsResult.result != null) {
-				currentExtensions = klippyExtensions.parse(JSON.parse(currentExtensionsResult.result.value));
-			} else {
-				getLogger().error(currentExtensionsResult, 'Failed to get klippy extensions');
-				throw new TRPCError({
-					message: `Failed to get klippy extensions`,
-					code: 'INTERNAL_SERVER_ERROR',
-				});
-			}
+			const currentExtensions = getExtensions();
 			if (currentExtensions.length === 0) {
 				return 'No extensions registered, nothing to do.';
 			}
@@ -137,29 +107,7 @@ export const klippyExtensionsRouter = trpc
 				}
 			});
 			if (cleanedUpExtensions.length !== currentExtensions.length) {
-				const moonrakerPostURL = 'http://localhost:7125/server/database/item';
-				const result = await fetch(moonrakerPostURL, {
-					method: 'POST',
-					headers: {
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({
-						namespace: 'RatOS',
-						key: 'klippy_extensions',
-						value: JSON.stringify(cleanedUpExtensions),
-					}),
-				});
-				if (result.status !== 200) {
-					getLogger().error(
-						result,
-						'Extensions have been symlinked, but nonexistent extensions were found and we failed to clean up those extensions.',
-					);
-					throw new TRPCError({
-						message: `Extensions have been symlinked, but nonexistent extensions were found and we failed to clean up those extensions.`,
-						code: 'INTERNAL_SERVER_ERROR',
-					});
-				}
+				saveExtensions(cleanedUpExtensions);
 			}
 			const successCount = symlinkResults.filter((r) => r.result === 'success').length;
 			let report = `Symlinked ${successCount}/${symlinkResults.length} extension(s): \n`;
@@ -172,26 +120,6 @@ export const klippyExtensionsRouter = trpc
 	.query('list', {
 		output: klippyExtensions,
 		resolve: async () => {
-			const moonrakerGetURL = 'http://localhost:7125/server/database/item?namespace=RatOS&key=klippy_extensions';
-			const currentExtensionsRequest = await fetch(moonrakerGetURL);
-			if (currentExtensionsRequest.status !== 200) {
-				getLogger().error(currentExtensionsRequest, 'Failed to get klippy extensions');
-				throw new TRPCError({
-					message: `Failed to get klippy extensions`,
-					code: 'INTERNAL_SERVER_ERROR',
-				});
-			}
-			const currentExtensionsResult = await currentExtensionsRequest.json();
-			let currentExtensions = [];
-			if (currentExtensionsResult.error == null && currentExtensionsResult.result != null) {
-				currentExtensions = JSON.parse(currentExtensionsResult.result.value);
-			} else {
-				getLogger().error(currentExtensionsResult, 'Failed to get klippy extensions');
-				throw new TRPCError({
-					message: `Failed to get klippy extensions`,
-					code: 'INTERNAL_SERVER_ERROR',
-				});
-			}
-			return currentExtensions;
+			return getExtensions();
 		},
 	});
