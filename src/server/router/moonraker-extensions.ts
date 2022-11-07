@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { existsSync, symlinkSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, symlinkSync, writeFileSync } from 'fs';
 import { getLogger } from '../../helpers/logger';
 import path from 'path';
 import * as trpc from '@trpc/server';
@@ -11,31 +11,41 @@ const moonrakerExtension = z.object({
 	extensionName: z.string(),
 });
 const moonrakerExtensions = z.array(moonrakerExtension);
+
+const getExtensions = () => {
+	if (process.env.MOONRAKER_EXTENSIONS == null) {
+		throw new Error('No MOONRAKER_EXTENSIONS specified in environment');
+	}
+	const extensionDir = process.env.MOONRAKER_EXTENSIONS.split('/').slice(0, -1).join('/');
+	if (!existsSync(extensionDir)) {
+		mkdirSync(extensionDir);
+	}
+	if (!existsSync(process.env.MOONRAKER_EXTENSIONS)) {
+		writeFileSync(process.env.MOONRAKER_EXTENSIONS, '[]');
+	}
+	const currentExtensions = moonrakerExtensions.parse(
+		JSON.parse(readFileSync(process.env.MOONRAKER_EXTENSIONS).toString()),
+	);
+	return currentExtensions;
+};
+
+const saveExtensions = (extensions: z.infer<typeof moonrakerExtensions>) => {
+	if (process.env.MOONRAKER_EXTENSIONS == null) {
+		throw new Error('No MOONRAKER_EXTENSIONS specified in environment');
+	}
+	const extensionDir = process.env.MOONRAKER_EXTENSIONS.split('/').slice(0, -1).join('/');
+	if (!existsSync(extensionDir)) {
+		mkdirSync(extensionDir);
+	}
+	writeFileSync(process.env.MOONRAKER_EXTENSIONS, JSON.stringify(extensions));
+};
+
 export const moonrakerExtensionsRouter = trpc
 	.router()
 	.mutation('register', {
 		input: moonrakerExtension,
 		resolve: async ({ input }) => {
-			const moonrakerGetURL = 'http://localhost:7125/server/database/item?namespace=RatOS&key=moonraker_extensions';
-			const currentExtensionsRequest = await fetch(moonrakerGetURL);
-			if (currentExtensionsRequest.status !== 200) {
-				getLogger().error(currentExtensionsRequest, `Failed to get moonraker extensions`);
-				throw new TRPCError({
-					message: `Failed to get moonraker extensions`,
-					code: 'INTERNAL_SERVER_ERROR',
-				});
-			}
-			const currentExtensionsResult = await currentExtensionsRequest.json();
-			let currentExtensions = [];
-			if (currentExtensionsResult.error == null && currentExtensionsResult.result != null) {
-				currentExtensions = moonrakerExtensions.parse(JSON.parse(currentExtensionsResult.result.value));
-			} else {
-				getLogger().error(currentExtensionsResult, `Failed to get moonraker extensions`);
-				throw new TRPCError({
-					message: `Failed to get moonraker extensions`,
-					code: 'INTERNAL_SERVER_ERROR',
-				});
-			}
+			const currentExtensions = getExtensions();
 			const extensionPath = path.join(input.path, input.fileName);
 			if (!existsSync(extensionPath)) {
 				getLogger().error(`File "${extensionPath}" does not exist`);
@@ -52,51 +62,13 @@ export const moonrakerExtensionsRouter = trpc
 				});
 			}
 			currentExtensions.push(input);
-			const moonrakerPostURL = 'http://localhost:7125/server/database/item';
-			const result = await fetch(moonrakerPostURL, {
-				method: 'POST',
-				headers: {
-					Accept: 'application/json',
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({
-					namespace: 'RatOS',
-					key: 'moonraker_extensions',
-					value: JSON.stringify(currentExtensions),
-				}),
-			});
-			if (result.status !== 200) {
-				getLogger().error(result, 'Failed to register moonraker extensions');
-				throw new TRPCError({
-					message: `Failed to register extension "${extensionPath}"`,
-					code: 'INTERNAL_SERVER_ERROR',
-				});
-			}
+			saveExtensions(currentExtensions);
 			return true;
 		},
 	})
 	.mutation('symlink', {
 		resolve: async () => {
-			const moonrakerGetURL = 'http://localhost:7125/server/database/item?namespace=RatOS&key=moonraker_extensions';
-			const currentExtensionsRequest = await fetch(moonrakerGetURL);
-			if (currentExtensionsRequest.status !== 200) {
-				getLogger().error(currentExtensionsRequest, 'Failed to get moonraker extensions');
-				throw new TRPCError({
-					message: `Failed to get moonraker extensions`,
-					code: 'INTERNAL_SERVER_ERROR',
-				});
-			}
-			const currentExtensionsResult = await currentExtensionsRequest.json();
-			let currentExtensions = [];
-			if (currentExtensionsResult.error == null && currentExtensionsResult.result != null) {
-				currentExtensions = moonrakerExtensions.parse(JSON.parse(currentExtensionsResult.result.value));
-			} else {
-				getLogger().error(currentExtensionsResult, 'Failed to get moonraker extensions');
-				throw new TRPCError({
-					message: `Failed to get moonraker extensions`,
-					code: 'INTERNAL_SERVER_ERROR',
-				});
-			}
+			const currentExtensions = getExtensions();
 			if (currentExtensions.length === 0) {
 				return 'No extensions registered, nothing to do.';
 			}
@@ -141,29 +113,7 @@ export const moonrakerExtensionsRouter = trpc
 				}
 			});
 			if (cleanedUpExtensions.length !== currentExtensions.length) {
-				const moonrakerPostURL = 'http://localhost:7125/server/database/item';
-				const result = await fetch(moonrakerPostURL, {
-					method: 'POST',
-					headers: {
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({
-						namespace: 'RatOS',
-						key: 'moonraker_extensions',
-						value: JSON.stringify(cleanedUpExtensions),
-					}),
-				});
-				if (result.status !== 200) {
-					getLogger().error(
-						result,
-						'Extensions have been symlinked, but nonexistent extensions were found and we failed to clean up those extensions.',
-					);
-					throw new TRPCError({
-						message: `Extensions have been symlinked, but nonexistent extensions were found and we failed to clean up those extensions.`,
-						code: 'INTERNAL_SERVER_ERROR',
-					});
-				}
+				saveExtensions(cleanedUpExtensions);
 			}
 			const successCount = symlinkResults.filter((r) => r.result === 'success').length;
 			let report = `Symlinked ${successCount}/${symlinkResults.length} extension(s): \n`;
@@ -176,26 +126,6 @@ export const moonrakerExtensionsRouter = trpc
 	.query('list', {
 		output: moonrakerExtensions,
 		resolve: async () => {
-			const moonrakerGetURL = 'http://localhost:7125/server/database/item?namespace=RatOS&key=moonraker_extensions';
-			const currentExtensionsRequest = await fetch(moonrakerGetURL);
-			if (currentExtensionsRequest.status !== 200) {
-				getLogger().error(currentExtensionsRequest, 'Failed to get moonraker extensions');
-				throw new TRPCError({
-					message: `Failed to get moonraker extensions`,
-					code: 'INTERNAL_SERVER_ERROR',
-				});
-			}
-			const currentExtensionsResult = await currentExtensionsRequest.json();
-			let currentExtensions = [];
-			if (currentExtensionsResult.error == null && currentExtensionsResult.result != null) {
-				currentExtensions = JSON.parse(currentExtensionsResult.result.value);
-			} else {
-				getLogger().error(currentExtensionsResult, 'Failed to get moonraker extensions');
-				throw new TRPCError({
-					message: `Failed to get moonraker extensions`,
-					code: 'INTERNAL_SERVER_ERROR',
-				});
-			}
-			return currentExtensions;
+			return getExtensions();
 		},
 	});
