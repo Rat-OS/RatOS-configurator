@@ -769,7 +769,7 @@ const wifiRouter = _trpc_server__WEBPACK_IMPORTED_MODULE_0__.router().mutation('
     const scriptRoot = (0,_helpers_util__WEBPACK_IMPORTED_MODULE_7__/* .getScriptRoot */ .x)();
 
     try {
-      const result = await (0,util__WEBPACK_IMPORTED_MODULE_1__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_2__.exec)(`sudo ${path__WEBPACK_IMPORTED_MODULE_3___default().join(scriptRoot, 'scripts/change-hostname.sh')} ${input.hostname}`);
+      const result = await (0,util__WEBPACK_IMPORTED_MODULE_1__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_2__.exec)(`sudo ${path__WEBPACK_IMPORTED_MODULE_3___default().join(scriptRoot, 'change-hostname.sh')} ${input.hostname}`);
 
       if (result.stderr) {
         throw new Error(result.stderr);

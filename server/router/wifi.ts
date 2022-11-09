@@ -17,9 +17,7 @@ export const wifiRouter = trpc
 		resolve: async ({ input }) => {
 			const scriptRoot = getScriptRoot();
 			try {
-				const result = await promisify(exec)(
-					`sudo ${path.join(scriptRoot, 'scripts/change-hostname.sh')} ${input.hostname}`,
-				);
+				const result = await promisify(exec)(`sudo ${path.join(scriptRoot, 'change-hostname.sh')} ${input.hostname}`);
 				if (result.stderr) {
 					throw new Error(result.stderr);
 				}
