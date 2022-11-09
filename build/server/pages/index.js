@@ -1650,7 +1650,7 @@ const WifiSetup = props => {
     hostname
   });
   const passwordValidation = _helpers_validators_wifi__WEBPACK_IMPORTED_MODULE_13__/* .joinInput.safeParse */ .K.safeParse({
-    password,
+    passphrase: password,
     ssid: selectedNetwork === null || selectedNetwork === void 0 ? void 0 : selectedNetwork.ssid
   });
   const cards = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => {
@@ -1717,13 +1717,13 @@ const WifiSetup = props => {
     label: "Printer hostname",
     type: "text",
     defaultValue: "RatOS",
-    error: hostnameMutation.isError ? hostnameMutation.error.message : hostnameValidation.success ? undefined : hostnameValidation.error.message,
+    error: hostnameMutation.isError ? hostnameMutation.error.message : hostnameValidation.success ? undefined : hostnameValidation.error.issues[0].message,
     onChange: setHostname,
     help: "Only use characters from a-Z and dashes. For example, entering \"RatOS\" will make your printer available at http://RatOS.local/"
   }, "hostname") : selectedNetwork ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx(_forms_text_input__WEBPACK_IMPORTED_MODULE_6__/* .TextInput */ .o, {
     label: selectedNetwork.security.toLocaleUpperCase() + ' Password',
     type: "password",
-    error: wifiMutation.isError ? wifiMutation.error.message : passwordValidation.success ? undefined : passwordValidation.error.message,
+    error: wifiMutation.isError ? wifiMutation.error.message : passwordValidation.success ? undefined : passwordValidation.error.issues[0].message,
     onChange: setPassword
   }, "password") : isError ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx("div", {
     className: "mb-4 h-48",

@@ -55,7 +55,7 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 	}, [data]);
 
 	const hostnameValidation = hostnameInput.safeParse({ hostname });
-	const passwordValidation = joinInput.safeParse({ password, ssid: selectedNetwork?.ssid });
+	const passwordValidation = joinInput.safeParse({ passphrase: password, ssid: selectedNetwork?.ssid });
 
 	const cards: SelectableNetwork[] = useMemo(() => {
 		if (isError) return [];
@@ -126,7 +126,7 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 						? hostnameMutation.error.message
 						: hostnameValidation.success
 						? undefined
-						: hostnameValidation.error.message
+						: hostnameValidation.error.issues[0].message
 				}
 				onChange={setHostname}
 				help='Only use characters from a-Z and dashes. For example, entering "RatOS" will make your printer available at http://RatOS.local/'
@@ -141,7 +141,7 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 						? wifiMutation.error.message
 						: passwordValidation.success
 						? undefined
-						: passwordValidation.error.message
+						: passwordValidation.error.issues[0].message
 				}
 				onChange={setPassword}
 			/>
