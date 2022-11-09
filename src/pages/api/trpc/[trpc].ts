@@ -1,5 +1,5 @@
 import * as trpcNext from '@trpc/server/adapters/next';
-import { getLogger } from 'react-query/types/core/logger';
+import { getLogger } from '../../../helpers/logger';
 import { createContext } from '../../../server/router/context';
 import { appRouter } from '../../../server/router/index';
 

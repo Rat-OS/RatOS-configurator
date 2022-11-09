@@ -5,7 +5,6 @@ import path from 'path';
 import { getScriptRoot } from '../../helpers/util';
 import { getWirelessInterface, scan } from '../../helpers/iw';
 import { hostnameInput, joinInput } from '../../helpers/validators/wifi';
-import pino from 'pino';
 import { getLogger } from '../../helpers/logger';
 
 const sanitizeForBash = (str: string) => {
