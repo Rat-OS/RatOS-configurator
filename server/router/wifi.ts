@@ -5,7 +5,6 @@ import path from 'path';
 import { getScriptRoot } from '../../helpers/util';
 import { getWirelessInterface, scan } from '../../helpers/iw';
 import { hostnameInput, joinInput } from '../../helpers/validators/wifi';
-import pino from 'pino';
 import { getLogger } from '../../helpers/logger';
 
 const sanitizeForBash = (str: string) => {
@@ -25,6 +24,9 @@ export const wifiRouter = trpc
 					throw new Error(result.stderr);
 				}
 			} catch (e) {
+				if (e instanceof Error) {
+					getLogger().error(e.message);
+				}
 				throw new trpc.TRPCError({
 					message: 'An error occured while attempting to change the hostname',
 					code: 'INTERNAL_SERVER_ERROR',
@@ -49,6 +51,9 @@ export const wifiRouter = trpc
 					throw new Error(result.stderr);
 				}
 			} catch (e) {
+				if (e instanceof Error) {
+					getLogger().error(e.message);
+				}
 				throw new trpc.TRPCError({
 					message: 'Invalid wifi credentials',
 					code: 'PRECONDITION_FAILED',
@@ -75,6 +80,9 @@ export const wifiRouter = trpc
 				// }
 				return await scan(wirelessInterface, { apForce: true });
 			} catch (e) {
+				if (e instanceof Error) {
+					getLogger().error(e.message);
+				}
 				throw new trpc.TRPCError({
 					message: 'Failed to scan wifi networks',
 					code: 'INTERNAL_SERVER_ERROR',

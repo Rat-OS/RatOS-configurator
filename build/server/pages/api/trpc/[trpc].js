@@ -329,18 +329,23 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
 /* harmony import */ var _trpc_server_adapters_next__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(5445);
-/* harmony import */ var _server_router_context__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(296);
-/* harmony import */ var _server_router_index__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(2041);
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_server_router_index__WEBPACK_IMPORTED_MODULE_2__]);
-_server_router_index__WEBPACK_IMPORTED_MODULE_2__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__)[0];
+/* harmony import */ var _helpers_logger__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(924);
+/* harmony import */ var _server_router_context__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(296);
+/* harmony import */ var _server_router_index__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(2041);
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_server_router_index__WEBPACK_IMPORTED_MODULE_3__]);
+_server_router_index__WEBPACK_IMPORTED_MODULE_3__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__)[0];
+
 
 
  // export type definition of API
 
 // export API handler
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (_trpc_server_adapters_next__WEBPACK_IMPORTED_MODULE_0__.createNextApiHandler({
-  router: _server_router_index__WEBPACK_IMPORTED_MODULE_2__/* .appRouter */ .q,
-  createContext: _server_router_context__WEBPACK_IMPORTED_MODULE_1__/* .createContext */ .k
+  router: _server_router_index__WEBPACK_IMPORTED_MODULE_3__/* .appRouter */ .q,
+  createContext: _server_router_context__WEBPACK_IMPORTED_MODULE_2__/* .createContext */ .k,
+  onError: ctx => {
+    (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_1__/* .getLogger */ .j)().error(ctx.error);
+  }
 }));
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } });
@@ -737,11 +742,13 @@ __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __we
 /* harmony import */ var child_process__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(child_process__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(1017);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var _helpers_util__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(9737);
+/* harmony import */ var _helpers_util__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(9737);
 /* harmony import */ var _helpers_iw__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(2494);
 /* harmony import */ var _helpers_validators_wifi__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(4756);
+/* harmony import */ var _helpers_logger__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(924);
 var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_helpers_validators_wifi__WEBPACK_IMPORTED_MODULE_5__]);
 _helpers_validators_wifi__WEBPACK_IMPORTED_MODULE_5__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__)[0];
+
 
 
 
@@ -759,7 +766,7 @@ const wifiRouter = _trpc_server__WEBPACK_IMPORTED_MODULE_0__.router().mutation('
   resolve: async ({
     input
   }) => {
-    const scriptRoot = (0,_helpers_util__WEBPACK_IMPORTED_MODULE_6__/* .getScriptRoot */ .x)();
+    const scriptRoot = (0,_helpers_util__WEBPACK_IMPORTED_MODULE_7__/* .getScriptRoot */ .x)();
 
     try {
       const result = await (0,util__WEBPACK_IMPORTED_MODULE_1__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_2__.exec)(`sudo ${path__WEBPACK_IMPORTED_MODULE_3___default().join(scriptRoot, 'scripts/change-hostname.sh')} ${input.hostname}`);
@@ -768,6 +775,10 @@ const wifiRouter = _trpc_server__WEBPACK_IMPORTED_MODULE_0__.router().mutation('
         throw new Error(result.stderr);
       }
     } catch (e) {
+      if (e instanceof Error) {
+        (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_6__/* .getLogger */ .j)().error(e.message);
+      }
+
       throw new _trpc_server__WEBPACK_IMPORTED_MODULE_0__.TRPCError({
         message: 'An error occured while attempting to change the hostname',
         code: 'INTERNAL_SERVER_ERROR',
@@ -785,12 +796,16 @@ const wifiRouter = _trpc_server__WEBPACK_IMPORTED_MODULE_0__.router().mutation('
     input
   }) => {
     try {
-      const result = await (0,util__WEBPACK_IMPORTED_MODULE_1__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_2__.exec)(`sudo ${path__WEBPACK_IMPORTED_MODULE_3___default().join((0,_helpers_util__WEBPACK_IMPORTED_MODULE_6__/* .getScriptRoot */ .x)(), 'add-wifi-network.sh')} "${sanitizeForBash(input.ssid)}" "${sanitizeForBash(input.passphrase)}" "${sanitizeForBash(input.country ?? 'GB')}"`);
+      const result = await (0,util__WEBPACK_IMPORTED_MODULE_1__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_2__.exec)(`sudo ${path__WEBPACK_IMPORTED_MODULE_3___default().join((0,_helpers_util__WEBPACK_IMPORTED_MODULE_7__/* .getScriptRoot */ .x)(), 'add-wifi-network.sh')} "${sanitizeForBash(input.ssid)}" "${sanitizeForBash(input.passphrase)}" "${sanitizeForBash(input.country ?? 'GB')}"`);
 
       if (result.stderr) {
         throw new Error(result.stderr);
       }
     } catch (e) {
+      if (e instanceof Error) {
+        (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_6__/* .getLogger */ .j)().error(e.message);
+      }
+
       throw new _trpc_server__WEBPACK_IMPORTED_MODULE_0__.TRPCError({
         message: 'Invalid wifi credentials',
         code: 'PRECONDITION_FAILED',
@@ -821,6 +836,10 @@ const wifiRouter = _trpc_server__WEBPACK_IMPORTED_MODULE_0__.router().mutation('
         apForce: true
       });
     } catch (e) {
+      if (e instanceof Error) {
+        (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_6__/* .getLogger */ .j)().error(e.message);
+      }
+
       throw new _trpc_server__WEBPACK_IMPORTED_MODULE_0__.TRPCError({
         message: 'Failed to scan wifi networks',
         code: 'INTERNAL_SERVER_ERROR',
