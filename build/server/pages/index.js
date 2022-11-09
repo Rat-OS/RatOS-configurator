@@ -787,8 +787,8 @@ const Modal = props => {
     1: setOpen
   } = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
   const onButtonClick = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
-    setOpen(false);
     onClick === null || onClick === void 0 ? void 0 : onClick();
+    setOpen(false);
   }, [onClick]);
   const success = props.success ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx("div", {
     className: "mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100",
@@ -803,7 +803,7 @@ const Modal = props => {
     children: /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx(_headlessui_react__WEBPACK_IMPORTED_MODULE_1__.Dialog, {
       as: "div",
       className: "fixed z-10 inset-0 overflow-y-auto",
-      onClose: setOpen,
+      onClose: onButtonClick,
       children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
         className: "flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0",
         children: [/*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx(_headlessui_react__WEBPACK_IMPORTED_MODULE_1__.Transition.Child, {
