@@ -90,12 +90,7 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 		wifiMutation.mutate({ passphrase: password, ssid: selectedNetwork.ssid, country: selectedNetwork.country });
 	}, [password, selectedNetwork, wifiMutation]);
 
-	const rebootMutation = useMutation<void, string>(() => {
-		if (moonrakerQuery) {
-			return moonrakerQuery('machine.reboot');
-		}
-		return Promise.reject('Cannot reboot raspberry pi: No connection to moonraker');
-	});
+	const rebootMutation = trpc.useMutation('reboot');
 
 	const rebootAndClose = useCallback(async () => {
 		await rebootMutation.mutateAsync();
@@ -115,6 +110,17 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 				buttonLabel="Got it!"
 				onClick={rebootAndClose}
 			/>
+		) : rebootMutation.isError ? (
+			<div className="mb-4 h-48">
+				<ErrorMessage>{rebootMutation.error}</ErrorMessage>
+			</div>
+		) : rebootMutation.isLoading || rebootMutation.isSuccess ? (
+			<div className="mb-4 h-48">
+				<div className="flex justify-center items-center mb-4 h-8">Rebooting...</div>
+				<div className="flex justify-center items-center mb-4 h-48">
+					<Spinner />
+				</div>
+			</div>
 		) : selectedNetwork && wifiMutation.isSuccess ? (
 			<TextInput
 				label="Printer hostname"
@@ -148,17 +154,6 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 		) : isError ? (
 			<div className="mb-4 h-48">
 				<ErrorMessage>{error?.message}</ErrorMessage>
-			</div>
-		) : rebootMutation.isError ? (
-			<div className="mb-4 h-48">
-				<ErrorMessage>{rebootMutation.error}</ErrorMessage>
-			</div>
-		) : rebootMutation.isLoading || rebootMutation.isSuccess ? (
-			<div className="mb-4 h-48">
-				<div className="flex justify-center items-center mb-4 h-8">Rebooting...</div>
-				<div className="flex justify-center items-center mb-4 h-48">
-					<Spinner />
-				</div>
 			</div>
 		) : Object.keys(apList).length === 0 ? (
 			<div className="flex justify-center items-center mb-4 h-48">

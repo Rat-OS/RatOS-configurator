@@ -415,6 +415,15 @@ const appRouter = (0,_context__WEBPACK_IMPORTED_MODULE_0__/* .createRouter */ .p
   resolve: async () => {
     process.exit();
   }
+}).mutation('reboot', {
+  resolve: async () => {
+    setTimeout(() => {
+      (0,util__WEBPACK_IMPORTED_MODULE_4__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_5__.exec)('reboot');
+    }, 2000);
+    return {
+      result: 'success'
+    };
+  }
 }).merge('mcu.', _mcu__WEBPACK_IMPORTED_MODULE_3__/* .mcuRouter */ .px).merge('wifi.', _wifi__WEBPACK_IMPORTED_MODULE_2__/* .wifiRouter */ .X).merge('klippy-extensions.', _klippy_extensions__WEBPACK_IMPORTED_MODULE_7__/* .klippyExtensionsRouter */ ._).merge('moonraker-extensions.', _moonraker_extensions__WEBPACK_IMPORTED_MODULE_8__/* .moonrakerExtensionsRouter */ .J); // export type definition of API
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } });

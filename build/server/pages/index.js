@@ -1556,31 +1556,28 @@ __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __we
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(6689);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _card_selector__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(4769);
-/* harmony import */ var react_query__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(1175);
-/* harmony import */ var react_query__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react_query__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _spinner__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(3273);
-/* harmony import */ var _error_message__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(5621);
-/* harmony import */ var _heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(8802);
-/* harmony import */ var _heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_5__);
-/* harmony import */ var _forms_text_input__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(6087);
-/* harmony import */ var _step_nav_buttons__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(7511);
-/* harmony import */ var _modal__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(3680);
-/* harmony import */ var _helpers_wifi__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(2141);
-/* harmony import */ var _hooks_useMoonraker__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(3040);
-/* harmony import */ var recoil__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(9755);
-/* harmony import */ var recoil__WEBPACK_IMPORTED_MODULE_11___default = /*#__PURE__*/__webpack_require__.n(recoil__WEBPACK_IMPORTED_MODULE_11__);
-/* harmony import */ var _helpers_trpc__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(3729);
-/* harmony import */ var _helpers_validators_wifi__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(4430);
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(997);
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__);
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_card_selector__WEBPACK_IMPORTED_MODULE_1__, _modal__WEBPACK_IMPORTED_MODULE_8__, _helpers_validators_wifi__WEBPACK_IMPORTED_MODULE_13__]);
-([_card_selector__WEBPACK_IMPORTED_MODULE_1__, _modal__WEBPACK_IMPORTED_MODULE_8__, _helpers_validators_wifi__WEBPACK_IMPORTED_MODULE_13__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+/* harmony import */ var _spinner__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(3273);
+/* harmony import */ var _error_message__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(5621);
+/* harmony import */ var _heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(8802);
+/* harmony import */ var _heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var _forms_text_input__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(6087);
+/* harmony import */ var _step_nav_buttons__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(7511);
+/* harmony import */ var _modal__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(3680);
+/* harmony import */ var _helpers_wifi__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(2141);
+/* harmony import */ var _hooks_useMoonraker__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(3040);
+/* harmony import */ var recoil__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(9755);
+/* harmony import */ var recoil__WEBPACK_IMPORTED_MODULE_10___default = /*#__PURE__*/__webpack_require__.n(recoil__WEBPACK_IMPORTED_MODULE_10__);
+/* harmony import */ var _helpers_trpc__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(3729);
+/* harmony import */ var _helpers_validators_wifi__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(4430);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(997);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__);
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_card_selector__WEBPACK_IMPORTED_MODULE_1__, _modal__WEBPACK_IMPORTED_MODULE_7__, _helpers_validators_wifi__WEBPACK_IMPORTED_MODULE_12__]);
+([_card_selector__WEBPACK_IMPORTED_MODULE_1__, _modal__WEBPACK_IMPORTED_MODULE_7__, _helpers_validators_wifi__WEBPACK_IMPORTED_MODULE_12__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { _defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 
 
 
@@ -1611,7 +1608,7 @@ const WifiSetup = props => {
     0: password,
     1: setPassword
   } = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)('');
-  const moonrakerQuery = (0,recoil__WEBPACK_IMPORTED_MODULE_11__.useRecoilValue)(_hooks_useMoonraker__WEBPACK_IMPORTED_MODULE_10__/* .MoonrakerQueryState */ .V5);
+  const moonrakerQuery = (0,recoil__WEBPACK_IMPORTED_MODULE_10__.useRecoilValue)(_hooks_useMoonraker__WEBPACK_IMPORTED_MODULE_9__/* .MoonrakerQueryState */ .V5);
   const {
     0: hostname,
     1: setHostname
@@ -1625,7 +1622,7 @@ const WifiSetup = props => {
     isError,
     error,
     data
-  } = _helpers_trpc__WEBPACK_IMPORTED_MODULE_12__/* .trpc.useQuery */ .S.useQuery(['wifi.scan'], {
+  } = _helpers_trpc__WEBPACK_IMPORTED_MODULE_11__/* .trpc.useQuery */ .S.useQuery(['wifi.scan'], {
     refetchInterval: (data, query) => {
       if (query.state.error) {
         return false;
@@ -1634,8 +1631,8 @@ const WifiSetup = props => {
       return 1000;
     }
   });
-  const hostnameMutation = _helpers_trpc__WEBPACK_IMPORTED_MODULE_12__/* .trpc.useMutation */ .S.useMutation(['wifi.hostname']);
-  const wifiMutation = _helpers_trpc__WEBPACK_IMPORTED_MODULE_12__/* .trpc.useMutation */ .S.useMutation(['wifi.join']);
+  const hostnameMutation = _helpers_trpc__WEBPACK_IMPORTED_MODULE_11__/* .trpc.useMutation */ .S.useMutation(['wifi.hostname']);
+  const wifiMutation = _helpers_trpc__WEBPACK_IMPORTED_MODULE_11__/* .trpc.useMutation */ .S.useMutation(['wifi.join']);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     setApList(apList => {
       const newList = _objectSpread({}, apList);
@@ -1646,10 +1643,10 @@ const WifiSetup = props => {
       return newList;
     });
   }, [data]);
-  const hostnameValidation = _helpers_validators_wifi__WEBPACK_IMPORTED_MODULE_13__/* .hostnameInput.safeParse */ .k.safeParse({
+  const hostnameValidation = _helpers_validators_wifi__WEBPACK_IMPORTED_MODULE_12__/* .hostnameInput.safeParse */ .k.safeParse({
     hostname
   });
-  const passwordValidation = _helpers_validators_wifi__WEBPACK_IMPORTED_MODULE_13__/* .joinInput.safeParse */ .K.safeParse({
+  const passwordValidation = _helpers_validators_wifi__WEBPACK_IMPORTED_MODULE_12__/* .joinInput.safeParse */ .K.safeParse({
     passphrase: password,
     ssid: selectedNetwork === null || selectedNetwork === void 0 ? void 0 : selectedNetwork.ssid
   });
@@ -1658,21 +1655,21 @@ const WifiSetup = props => {
     return Object.keys(apList).map(ap => ({
       name: apList[ap].ssid ?? 'Unknown Network',
       id: ap,
-      details: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.Fragment, {
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("span", {
+      details: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.Fragment, {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("span", {
           className: "mr-4",
-          children: [/*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx("span", {
+          children: [/*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx("span", {
             className: "font-semibold",
             children: "Signal Strength:"
-          }), " ", (0,_helpers_wifi__WEBPACK_IMPORTED_MODULE_9__/* .parseSignal */ .y)(apList[ap].signal)]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("span", {
-          children: [/*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx("span", {
+          }), " ", (0,_helpers_wifi__WEBPACK_IMPORTED_MODULE_8__/* .parseSignal */ .y)(apList[ap].signal)]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("span", {
+          children: [/*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx("span", {
             className: "font-semibold",
             children: "Frequency:"
           }), " ", Math.round(apList[ap].frequency / 100) / 10, "GHz"]
         })]
       }),
-      right: /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_5__.WifiIcon, {
+      right: /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_4__.WifiIcon, {
         className: "h-8 w-8 text-slate-500"
       })
     }));
@@ -1691,13 +1688,7 @@ const WifiSetup = props => {
       country: selectedNetwork.country
     });
   }, [password, selectedNetwork, wifiMutation]);
-  const rebootMutation = (0,react_query__WEBPACK_IMPORTED_MODULE_2__.useMutation)(() => {
-    if (moonrakerQuery) {
-      return moonrakerQuery('machine.reboot');
-    }
-
-    return Promise.reject('Cannot reboot raspberry pi: No connection to moonraker');
-  });
+  const rebootMutation = _helpers_trpc__WEBPACK_IMPORTED_MODULE_11__/* .trpc.useMutation */ .S.useMutation('reboot');
   const rebootAndClose = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(async () => {
     await rebootMutation.mutateAsync();
     window.close();
@@ -1708,46 +1699,46 @@ const WifiSetup = props => {
     });
     setHostnameCompleted(true);
   }, [hostnameMutation, hostname]);
-  const content = selectedNetwork && wifiMutation.isSuccess && hostnameCompleted ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx(_modal__WEBPACK_IMPORTED_MODULE_8__/* .Modal */ .u, {
+  const content = selectedNetwork && wifiMutation.isSuccess && hostnameCompleted ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx(_modal__WEBPACK_IMPORTED_MODULE_7__/* .Modal */ .u, {
     title: "Settings saved!",
     body: `RatOS is now setup to connect to ${selectedNetwork.ssid}! Your raspberry pi will now reboot, and join your local wifi network. Click the button below to reboot the pi and close this window. You can then reconnect to your local network where http://${hostname}.local/ should be available in a few minutes. If RatOS fails to join ${selectedNetwork.ssid}, it will recreate the "ratos" hotspot and you'll have to try again.`,
     buttonLabel: "Got it!",
     onClick: rebootAndClose
-  }) : selectedNetwork && wifiMutation.isSuccess ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx(_forms_text_input__WEBPACK_IMPORTED_MODULE_6__/* .TextInput */ .o, {
+  }) : rebootMutation.isError ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx("div", {
+    className: "mb-4 h-48",
+    children: /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx(_error_message__WEBPACK_IMPORTED_MODULE_3__/* .ErrorMessage */ .B, {
+      children: rebootMutation.error
+    })
+  }) : rebootMutation.isLoading || rebootMutation.isSuccess ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("div", {
+    className: "mb-4 h-48",
+    children: [/*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx("div", {
+      className: "flex justify-center items-center mb-4 h-8",
+      children: "Rebooting..."
+    }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx("div", {
+      className: "flex justify-center items-center mb-4 h-48",
+      children: /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx(_spinner__WEBPACK_IMPORTED_MODULE_2__/* .Spinner */ .$, {})
+    })]
+  }) : selectedNetwork && wifiMutation.isSuccess ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx(_forms_text_input__WEBPACK_IMPORTED_MODULE_5__/* .TextInput */ .o, {
     label: "Printer hostname",
     type: "text",
     defaultValue: "RatOS",
     error: hostnameMutation.isError ? hostnameMutation.error.message : hostnameValidation.success ? undefined : hostnameValidation.error.issues[0].message,
     onChange: setHostname,
     help: "Only use characters from a-Z and dashes. For example, entering \"RatOS\" will make your printer available at http://RatOS.local/"
-  }, "hostname") : selectedNetwork ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx(_forms_text_input__WEBPACK_IMPORTED_MODULE_6__/* .TextInput */ .o, {
+  }, "hostname") : selectedNetwork ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx(_forms_text_input__WEBPACK_IMPORTED_MODULE_5__/* .TextInput */ .o, {
     label: selectedNetwork.security.toLocaleUpperCase() + ' Password',
     type: "password",
     error: wifiMutation.isError ? wifiMutation.error.message : passwordValidation.success ? undefined : passwordValidation.error.issues[0].message,
     onChange: setPassword
-  }, "password") : isError ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx("div", {
+  }, "password") : isError ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx("div", {
     className: "mb-4 h-48",
-    children: /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx(_error_message__WEBPACK_IMPORTED_MODULE_4__/* .ErrorMessage */ .B, {
+    children: /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx(_error_message__WEBPACK_IMPORTED_MODULE_3__/* .ErrorMessage */ .B, {
       children: error === null || error === void 0 ? void 0 : error.message
     })
-  }) : rebootMutation.isError ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx("div", {
-    className: "mb-4 h-48",
-    children: /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx(_error_message__WEBPACK_IMPORTED_MODULE_4__/* .ErrorMessage */ .B, {
-      children: rebootMutation.error
-    })
-  }) : rebootMutation.isLoading || rebootMutation.isSuccess ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("div", {
-    className: "mb-4 h-48",
-    children: [/*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx("div", {
-      className: "flex justify-center items-center mb-4 h-8",
-      children: "Rebooting..."
-    }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx("div", {
-      className: "flex justify-center items-center mb-4 h-48",
-      children: /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx(_spinner__WEBPACK_IMPORTED_MODULE_3__/* .Spinner */ .$, {})
-    })]
-  }) : Object.keys(apList).length === 0 ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx("div", {
+  }) : Object.keys(apList).length === 0 ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx("div", {
     className: "flex justify-center items-center mb-4 h-48",
-    children: /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx(_spinner__WEBPACK_IMPORTED_MODULE_3__/* .Spinner */ .$, {})
-  }) : /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx(_card_selector__WEBPACK_IMPORTED_MODULE_1__/* .CardSelector */ .$, {
+    children: /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx(_spinner__WEBPACK_IMPORTED_MODULE_2__/* .Spinner */ .$, {})
+  }) : /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx(_card_selector__WEBPACK_IMPORTED_MODULE_1__/* .CardSelector */ .$, {
     cards: cards,
     onSelect: onSelectCard
   });
@@ -1797,20 +1788,20 @@ const WifiSetup = props => {
     }
   }
 
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, {
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("div", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)(react__WEBPACK_IMPORTED_MODULE_0__.Fragment, {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("div", {
       className: "p-8",
-      children: [' ', /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("div", {
+      children: [' ', /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("div", {
         className: "pb-5 mb-5 border-b border-gray-200",
-        children: [/*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx("h3", {
+        children: [/*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx("h3", {
           className: "text-lg leading-6 font-medium text-gray-900",
           children: "Configure Wifi Setup"
-        }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx("p", {
+        }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx("p", {
           className: "mt-2 max-w-4xl text-sm text-gray-500",
           children: subtext
         })]
       }), content]
-    }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx(_step_nav_buttons__WEBPACK_IMPORTED_MODULE_7__/* .StepNavButtons */ .Q, {
+    }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx(_step_nav_buttons__WEBPACK_IMPORTED_MODULE_6__/* .StepNavButtons */ .Q, {
       right: rightButton,
       left: leftButton
     })]
