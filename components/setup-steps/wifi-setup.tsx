@@ -103,7 +103,11 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 	}, [hostnameMutation, hostname]);
 
 	const content =
-		selectedNetwork && wifiMutation.isSuccess && hostnameCompleted ? (
+		selectedNetwork &&
+		wifiMutation.isSuccess &&
+		hostnameCompleted &&
+		!rebootMutation.isSuccess &&
+		!rebootMutation.isError ? (
 			<Modal
 				title="Settings saved!"
 				body={`RatOS is now setup to connect to ${selectedNetwork.ssid}! Your raspberry pi will now reboot, and join your local wifi network. Click the button below to reboot the pi and close this window. You can then reconnect to your local network where http://${hostname}.local/ should be available in a few minutes. If RatOS fails to join ${selectedNetwork.ssid}, it will recreate the "ratos" hotspot and you'll have to try again.`}
@@ -118,7 +122,8 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 			<div className="mb-4 h-48">
 				<div className="flex justify-center items-center mb-4 h-8">Rebooting...</div>
 				<div className="flex justify-center items-center mb-4 h-48">
-					<Spinner />
+					Please reconnect to {selectedNetwork?.ssid ?? 'your local network'} and visit http://{hostname}.local/ in a
+					few minutes.
 				</div>
 			</div>
 		) : selectedNetwork && wifiMutation.isSuccess ? (

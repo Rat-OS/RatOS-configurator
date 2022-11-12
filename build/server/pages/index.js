@@ -1699,7 +1699,7 @@ const WifiSetup = props => {
     });
     setHostnameCompleted(true);
   }, [hostnameMutation, hostname]);
-  const content = selectedNetwork && wifiMutation.isSuccess && hostnameCompleted ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx(_modal__WEBPACK_IMPORTED_MODULE_7__/* .Modal */ .u, {
+  const content = selectedNetwork && wifiMutation.isSuccess && hostnameCompleted && !rebootMutation.isSuccess && !rebootMutation.isError ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx(_modal__WEBPACK_IMPORTED_MODULE_7__/* .Modal */ .u, {
     title: "Settings saved!",
     body: `RatOS is now setup to connect to ${selectedNetwork.ssid}! Your raspberry pi will now reboot, and join your local wifi network. Click the button below to reboot the pi and close this window. You can then reconnect to your local network where http://${hostname}.local/ should be available in a few minutes. If RatOS fails to join ${selectedNetwork.ssid}, it will recreate the "ratos" hotspot and you'll have to try again.`,
     buttonLabel: "Got it!",
@@ -1714,9 +1714,9 @@ const WifiSetup = props => {
     children: [/*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx("div", {
       className: "flex justify-center items-center mb-4 h-8",
       children: "Rebooting..."
-    }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx("div", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("div", {
       className: "flex justify-center items-center mb-4 h-48",
-      children: /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx(_spinner__WEBPACK_IMPORTED_MODULE_2__/* .Spinner */ .$, {})
+      children: ["Please reconnect to ", (selectedNetwork === null || selectedNetwork === void 0 ? void 0 : selectedNetwork.ssid) ?? 'your local network', " and visit http://", hostname, ".local/ in a few minutes."]
     })]
   }) : selectedNetwork && wifiMutation.isSuccess ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx(_forms_text_input__WEBPACK_IMPORTED_MODULE_5__/* .TextInput */ .o, {
     label: "Printer hostname",
