@@ -43,6 +43,16 @@ export const appRouter = createRouter()
 			process.exit();
 		},
 	})
+	.mutation('reboot', {
+		resolve: async () => {
+			setTimeout(() => {
+				promisify(exec)('reboot');
+			}, 2000);
+			return {
+				result: 'success',
+			};
+		},
+	})
 	.merge('mcu.', mcuRouter)
 	.merge('wifi.', wifiRouter)
 	.merge('klippy-extensions.', klippyExtensionsRouter)
