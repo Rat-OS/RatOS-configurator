@@ -1716,7 +1716,11 @@ const WifiSetup = props => {
       children: "Rebooting..."
     }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("div", {
       className: "flex justify-center items-center mb-4",
-      children: ["Please reconnect to ", (selectedNetwork === null || selectedNetwork === void 0 ? void 0 : selectedNetwork.ssid) ?? 'your local network', " and visit http://", hostname, ".local/ in a few minutes."]
+      children: ["Please reconnect to ", (selectedNetwork === null || selectedNetwork === void 0 ? void 0 : selectedNetwork.ssid) ?? 'your local network', " and visit", ' ', /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("a", {
+        href: "http://{hostname}.local/configure?step=1",
+        className: "text-brand-600",
+        children: ["http://", hostname, ".local/configure?step=1"]
+      }), ' ', "in a few minutes."]
     })]
   }) : selectedNetwork && wifiMutation.isSuccess ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx(_forms_text_input__WEBPACK_IMPORTED_MODULE_5__/* .TextInput */ .o, {
     label: "Printer hostname",
