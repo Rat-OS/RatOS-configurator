@@ -120,8 +120,8 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 			</div>
 		) : rebootMutation.isLoading || rebootMutation.isSuccess ? (
 			<div className="mb-4 h-48">
-				<div className="flex justify-center items-center mb-4 h-8">Rebooting...</div>
-				<div className="flex justify-center items-center mb-4 h-48">
+				<div className="flex justify-center items-center font-bold mb-4">Rebooting...</div>
+				<div className="flex justify-center items-center mb-4">
 					Please reconnect to {selectedNetwork?.ssid ?? 'your local network'} and visit http://{hostname}.local/ in a
 					few minutes.
 				</div>
