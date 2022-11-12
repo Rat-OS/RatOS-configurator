@@ -770,10 +770,6 @@ const wifiRouter = _trpc_server__WEBPACK_IMPORTED_MODULE_0__.router().mutation('
 
     try {
       const result = await (0,util__WEBPACK_IMPORTED_MODULE_1__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_2__.exec)(`sudo ${path__WEBPACK_IMPORTED_MODULE_3___default().join(scriptRoot, 'change-hostname.sh')} ${input.hostname}`);
-
-      if (result.stderr) {
-        throw new Error(result.stderr);
-      }
     } catch (e) {
       if (e instanceof Error) {
         (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_6__/* .getLogger */ .j)().error(e.message);
@@ -796,11 +792,7 @@ const wifiRouter = _trpc_server__WEBPACK_IMPORTED_MODULE_0__.router().mutation('
     input
   }) => {
     try {
-      const result = await (0,util__WEBPACK_IMPORTED_MODULE_1__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_2__.exec)(`sudo ${path__WEBPACK_IMPORTED_MODULE_3___default().join((0,_helpers_util__WEBPACK_IMPORTED_MODULE_7__/* .getScriptRoot */ .x)(), 'add-wifi-network.sh')} "${sanitizeForBash(input.ssid)}" "${sanitizeForBash(input.passphrase)}" "${sanitizeForBash(input.country ?? 'GB')}"`);
-
-      if (result.stderr) {
-        throw new Error(result.stderr);
-      }
+      await (0,util__WEBPACK_IMPORTED_MODULE_1__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_2__.exec)(`sudo ${path__WEBPACK_IMPORTED_MODULE_3___default().join((0,_helpers_util__WEBPACK_IMPORTED_MODULE_7__/* .getScriptRoot */ .x)(), 'add-wifi-network.sh')} "${sanitizeForBash(input.ssid)}" "${sanitizeForBash(input.passphrase)}" "${sanitizeForBash(input.country ?? 'GB')}"`);
     } catch (e) {
       if (e instanceof Error) {
         (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_6__/* .getLogger */ .j)().error(e.message);

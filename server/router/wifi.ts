@@ -18,9 +18,6 @@ export const wifiRouter = trpc
 			const scriptRoot = getScriptRoot();
 			try {
 				const result = await promisify(exec)(`sudo ${path.join(scriptRoot, 'change-hostname.sh')} ${input.hostname}`);
-				if (result.stderr) {
-					throw new Error(result.stderr);
-				}
 			} catch (e) {
 				if (e instanceof Error) {
 					getLogger().error(e.message);
@@ -40,14 +37,11 @@ export const wifiRouter = trpc
 		input: joinInput,
 		resolve: async ({ input }) => {
 			try {
-				const result = await promisify(exec)(
+				await promisify(exec)(
 					`sudo ${path.join(getScriptRoot(), 'add-wifi-network.sh')} "${sanitizeForBash(
 						input.ssid,
 					)}" "${sanitizeForBash(input.passphrase)}" "${sanitizeForBash(input.country ?? 'GB')}"`,
 				);
-				if (result.stderr) {
-					throw new Error(result.stderr);
-				}
 			} catch (e) {
 				if (e instanceof Error) {
 					getLogger().error(e.message);
