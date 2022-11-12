@@ -79,6 +79,7 @@ ${LOGFILE} {
     maxsize 10M
 }
 __EOF
+    chmod 644 ${LOGROTATE_FILE}
 }
 
 # Force script to exit if an error occurs
