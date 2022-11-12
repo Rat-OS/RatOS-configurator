@@ -1712,10 +1712,10 @@ const WifiSetup = props => {
   }) : rebootMutation.isLoading || rebootMutation.isSuccess ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("div", {
     className: "mb-4 h-48",
     children: [/*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx("div", {
-      className: "flex justify-center items-center mb-4 h-8",
+      className: "flex justify-center items-center font-bold mb-4",
       children: "Rebooting..."
     }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("div", {
-      className: "flex justify-center items-center mb-4 h-48",
+      className: "flex justify-center items-center mb-4",
       children: ["Please reconnect to ", (selectedNetwork === null || selectedNetwork === void 0 ? void 0 : selectedNetwork.ssid) ?? 'your local network', " and visit http://", hostname, ".local/ in a few minutes."]
     })]
   }) : selectedNetwork && wifiMutation.isSuccess ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx(_forms_text_input__WEBPACK_IMPORTED_MODULE_5__/* .TextInput */ .o, {
