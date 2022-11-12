@@ -22,7 +22,14 @@ install_service()
     report_status "Installing RatOS system start script..."
     sudo groupadd -f ratos-configurator
     sudo /bin/sh -c "cat > ${SERVICE_FILE}" << __EOF
-# Systemd service file for the RatOS Configurator
+#### RatOS-configurator - Systemd service file
+####
+#### Written by Mikkel Schmidt <mikkel.schmidt@gmail.com>
+#### Copyright 2022
+#### https://github.com/Rat-OS/RatOS-Configurator
+####
+#### This File is distributed under GPLv3
+####
 [Unit]
 Description=API Server for Klipper
 Requires=network-online.target
@@ -44,6 +51,34 @@ __EOF
     # Enable the ratos configurator systemd service script
     sudo systemctl enable ratos-configurator.service
     sudo systemctl daemon-reload
+}
+
+install_logrotation() {
+    LOGROTATE_FILE="/etc/logrotate.d/ratos-configurator"
+    LOGFILE="/home/${USER}/printer_data/logs/configurator.log"
+    report_status "Installing RatOS log rotation script..."
+    sudo /bin/sh -c "cat > ${LOGROTATE_FILE}" << __EOF
+#### RatOS-configurator
+####
+#### Written by Mikkel Schmidt <mikkel.schmidt@gmail.com>
+#### Copyright 2022
+#### https://github.com/Rat-OS/RatOS-Configurator
+####
+#### This File is distributed under GPLv3
+####
+
+
+${LOGFILE} {
+    rotate 4
+    missingok
+    notifempty
+    create
+    daily
+    dateext
+    dateformat .%Y-%m-%d
+    maxsize 10M
+}
+__EOF
 }
 
 # Force script to exit if an error occurs
