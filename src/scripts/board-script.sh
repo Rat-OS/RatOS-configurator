@@ -5,3 +5,4 @@ if [ ! "$EUID" -eq 0 ]; then
 fi
 echo "Compiling firmware at /home/pi/klipper_config/config/boards/$1..."
 /home/pi/klipper_config/config/boards/$1
+chown -R pi:pi $KLIPPER_DIR
