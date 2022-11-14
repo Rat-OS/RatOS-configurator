@@ -8,6 +8,7 @@ import { createRouter } from './context';
 import { TRPCError } from '@trpc/server';
 import { getScriptRoot } from '../../helpers/util';
 import path from 'path';
+import { runSudoScript } from '../../helpers/run-script';
 
 export const Board = z.object({
 	serialPath: z.string(),
@@ -152,8 +153,7 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 					ctx.board.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''),
 					ctx.board.compileScript,
 				);
-				console.log(`${getScriptRoot()}/board-script.sh ${compileScript}`);
-				compileResult = await promisify(exec)(`sudo ${getScriptRoot()}/board-script.sh ${compileScript}`);
+				compileResult = await runSudoScript('board-script.sh', compileScript);
 			} catch (e) {
 				const message = e instanceof Error ? e.message : e;
 				throw new TRPCError({
@@ -182,17 +182,19 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 				connectedBoards.map(async (b) => {
 					try {
 						const current = AutoFlashableBoard.parse(b);
-						await promisify(exec)(
-							`sudo ${getScriptRoot()}/board-script.sh ${path.join(
+						await runSudoScript(
+							'board-script.sh',
+							path.join(
 								current.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''),
 								current.compileScript,
-							)}`,
+							),
 						);
-						await promisify(exec)(
-							`sudo ${getScriptRoot()}/board-script.sh ${path.join(
+						await runSudoScript(
+							'board-script.sh',
+							path.join(
 								current.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''),
 								current.flashScript,
-							)}`,
+							),
 						);
 					} catch (e) {
 						const message = e instanceof Error ? e.message : e;
@@ -250,8 +252,7 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 					ctx.board.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''),
 					ctx.board.compileScript,
 				);
-				console.log(`${getScriptRoot()}/board-script.sh ${compileScript}`);
-				compileResult = await promisify(exec)(`sudo ${getScriptRoot()}/board-script.sh ${compileScript}`);
+				compileResult = await runSudoScript('board-script.sh', compileScript);
 			} catch (e) {
 				const message = e instanceof Error ? e.message : e;
 				throw new TRPCError({
@@ -272,8 +273,7 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 					ctx.board.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''),
 					ctx.board.flashScript,
 				);
-				console.log(`${getScriptRoot()}/board-script.sh ${flashScript}`);
-				flashResult = await promisify(exec)(`sudo ${getScriptRoot()}/board-script.sh ${flashScript}`);
+				flashResult = await runSudoScript('board-script.sh', flashScript);
 			} catch (e) {
 				const message = e instanceof Error ? e.message : e;
 				throw new TRPCError({
@@ -333,7 +333,7 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 					ctx.board.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''),
 					ctx.board.compileScript,
 				);
-				compileResult = await promisify(exec)(`sudo ${getScriptRoot()}/board-script.sh ${compileScript}`);
+				compileResult = await runSudoScript('board-script.sh', compileScript);
 			} catch (e) {
 				const message = e instanceof Error ? e.message : e;
 				throw new TRPCError({
@@ -349,7 +349,7 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 				});
 			}
 			try {
-				const flashResult = await promisify(exec)('sudo ' + path.join(getScriptRoot(), 'dfu-flash.sh'));
+				const flashResult = await runSudoScript('dfu-flash.sh');
 				return flashResult.stdout;
 			} catch (e) {
 				throw new TRPCError({

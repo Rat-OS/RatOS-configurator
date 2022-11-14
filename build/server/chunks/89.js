@@ -3,6 +3,32 @@ exports.id = 89;
 exports.ids = [89];
 exports.modules = {
 
+/***/ 3552:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "$": () => (/* binding */ runSudoScript)
+/* harmony export */ });
+/* harmony import */ var child_process__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(2081);
+/* harmony import */ var child_process__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(child_process__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1017);
+/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var util__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(3837);
+/* harmony import */ var util__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(util__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(9737);
+
+
+
+
+const runSudoScript = async (script, ...args) => {
+  const scriptRoot = (0,_util__WEBPACK_IMPORTED_MODULE_3__/* .getScriptRoot */ .x)();
+  return await (0,util__WEBPACK_IMPORTED_MODULE_2__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_0__.exec)(`sudo ${path__WEBPACK_IMPORTED_MODULE_1___default().join(scriptRoot, script)} ${args.join(' ')}`, {
+    env: process.env
+  });
+};
+
+/***/ }),
+
 /***/ 9737:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
@@ -62,9 +88,9 @@ __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __we
 /* harmony import */ var util__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(3837);
 /* harmony import */ var util__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(util__WEBPACK_IMPORTED_MODULE_4__);
 /* harmony import */ var _context__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(296);
-/* harmony import */ var _helpers_util__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(9737);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(1017);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_6__);
+/* harmony import */ var _helpers_run_script__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(3552);
 var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([zod__WEBPACK_IMPORTED_MODULE_0__]);
 zod__WEBPACK_IMPORTED_MODULE_0__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__)[0];
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
@@ -226,8 +252,7 @@ const mcuRouter = (0,_context__WEBPACK_IMPORTED_MODULE_5__/* .createRouter */ .p
       }
 
       const compileScript = path__WEBPACK_IMPORTED_MODULE_6___default().join(ctx.board.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''), ctx.board.compileScript);
-      console.log(`${(0,_helpers_util__WEBPACK_IMPORTED_MODULE_7__/* .getScriptRoot */ .x)()}/board-script.sh ${compileScript}`);
-      compileResult = await (0,util__WEBPACK_IMPORTED_MODULE_4__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_3__.exec)(`sudo ${(0,_helpers_util__WEBPACK_IMPORTED_MODULE_7__/* .getScriptRoot */ .x)()}/board-script.sh ${compileScript}`);
+      compileResult = await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_7__/* .runSudoScript */ .$)('board-script.sh', compileScript);
     } catch (e) {
       const message = e instanceof Error ? e.message : e;
       throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
@@ -258,8 +283,8 @@ const mcuRouter = (0,_context__WEBPACK_IMPORTED_MODULE_5__/* .createRouter */ .p
     const flashResults = await Promise.all(connectedBoards.map(async b => {
       try {
         const current = AutoFlashableBoard.parse(b);
-        await (0,util__WEBPACK_IMPORTED_MODULE_4__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_3__.exec)(`sudo ${(0,_helpers_util__WEBPACK_IMPORTED_MODULE_7__/* .getScriptRoot */ .x)()}/board-script.sh ${path__WEBPACK_IMPORTED_MODULE_6___default().join(current.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''), current.compileScript)}`);
-        await (0,util__WEBPACK_IMPORTED_MODULE_4__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_3__.exec)(`sudo ${(0,_helpers_util__WEBPACK_IMPORTED_MODULE_7__/* .getScriptRoot */ .x)()}/board-script.sh ${path__WEBPACK_IMPORTED_MODULE_6___default().join(current.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''), current.flashScript)}`);
+        await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_7__/* .runSudoScript */ .$)('board-script.sh', path__WEBPACK_IMPORTED_MODULE_6___default().join(current.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''), current.compileScript));
+        await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_7__/* .runSudoScript */ .$)('board-script.sh', path__WEBPACK_IMPORTED_MODULE_6___default().join(current.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''), current.flashScript));
       } catch (e) {
         const message = e instanceof Error ? e.message : e;
         return {
@@ -319,8 +344,7 @@ const mcuRouter = (0,_context__WEBPACK_IMPORTED_MODULE_5__/* .createRouter */ .p
       }
 
       const compileScript = path__WEBPACK_IMPORTED_MODULE_6___default().join(ctx.board.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''), ctx.board.compileScript);
-      console.log(`${(0,_helpers_util__WEBPACK_IMPORTED_MODULE_7__/* .getScriptRoot */ .x)()}/board-script.sh ${compileScript}`);
-      compileResult = await (0,util__WEBPACK_IMPORTED_MODULE_4__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_3__.exec)(`sudo ${(0,_helpers_util__WEBPACK_IMPORTED_MODULE_7__/* .getScriptRoot */ .x)()}/board-script.sh ${compileScript}`);
+      compileResult = await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_7__/* .runSudoScript */ .$)('board-script.sh', compileScript);
     } catch (e) {
       const message = e instanceof Error ? e.message : e;
       throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
@@ -341,8 +365,7 @@ const mcuRouter = (0,_context__WEBPACK_IMPORTED_MODULE_5__/* .createRouter */ .p
 
     try {
       const flashScript = path__WEBPACK_IMPORTED_MODULE_6___default().join(ctx.board.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''), ctx.board.flashScript);
-      console.log(`${(0,_helpers_util__WEBPACK_IMPORTED_MODULE_7__/* .getScriptRoot */ .x)()}/board-script.sh ${flashScript}`);
-      flashResult = await (0,util__WEBPACK_IMPORTED_MODULE_4__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_3__.exec)(`sudo ${(0,_helpers_util__WEBPACK_IMPORTED_MODULE_7__/* .getScriptRoot */ .x)()}/board-script.sh ${flashScript}`);
+      flashResult = await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_7__/* .runSudoScript */ .$)('board-script.sh', flashScript);
     } catch (e) {
       const message = e instanceof Error ? e.message : e;
       throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
@@ -412,7 +435,7 @@ const mcuRouter = (0,_context__WEBPACK_IMPORTED_MODULE_5__/* .createRouter */ .p
       }
 
       const compileScript = path__WEBPACK_IMPORTED_MODULE_6___default().join(ctx.board.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''), ctx.board.compileScript);
-      compileResult = await (0,util__WEBPACK_IMPORTED_MODULE_4__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_3__.exec)(`sudo ${(0,_helpers_util__WEBPACK_IMPORTED_MODULE_7__/* .getScriptRoot */ .x)()}/board-script.sh ${compileScript}`);
+      compileResult = await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_7__/* .runSudoScript */ .$)('board-script.sh', compileScript);
     } catch (e) {
       const message = e instanceof Error ? e.message : e;
       throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
@@ -430,7 +453,7 @@ const mcuRouter = (0,_context__WEBPACK_IMPORTED_MODULE_5__/* .createRouter */ .p
     }
 
     try {
-      const flashResult = await (0,util__WEBPACK_IMPORTED_MODULE_4__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_3__.exec)('sudo ' + path__WEBPACK_IMPORTED_MODULE_6___default().join((0,_helpers_util__WEBPACK_IMPORTED_MODULE_7__/* .getScriptRoot */ .x)(), 'dfu-flash.sh'));
+      const flashResult = await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_7__/* .runSudoScript */ .$)('dfu-flash.sh');
       return flashResult.stdout;
     } catch (e) {
       throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({

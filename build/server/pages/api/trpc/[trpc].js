@@ -751,12 +751,14 @@ __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __we
 /* harmony import */ var child_process__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(child_process__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(1017);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var _helpers_util__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(9737);
+/* harmony import */ var _helpers_util__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(9737);
 /* harmony import */ var _helpers_iw__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(2494);
 /* harmony import */ var _helpers_validators_wifi__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(4756);
 /* harmony import */ var _helpers_logger__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(924);
+/* harmony import */ var _helpers_run_script__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(3552);
 var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_helpers_validators_wifi__WEBPACK_IMPORTED_MODULE_5__]);
 _helpers_validators_wifi__WEBPACK_IMPORTED_MODULE_5__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__)[0];
+
 
 
 
@@ -775,7 +777,7 @@ const wifiRouter = _trpc_server__WEBPACK_IMPORTED_MODULE_0__.router().mutation('
   resolve: async ({
     input
   }) => {
-    const scriptRoot = (0,_helpers_util__WEBPACK_IMPORTED_MODULE_7__/* .getScriptRoot */ .x)();
+    const scriptRoot = (0,_helpers_util__WEBPACK_IMPORTED_MODULE_8__/* .getScriptRoot */ .x)();
 
     try {
       const result = await (0,util__WEBPACK_IMPORTED_MODULE_1__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_2__.exec)(`sudo ${path__WEBPACK_IMPORTED_MODULE_3___default().join(scriptRoot, 'change-hostname.sh')} ${input.hostname}`);
@@ -801,7 +803,7 @@ const wifiRouter = _trpc_server__WEBPACK_IMPORTED_MODULE_0__.router().mutation('
     input
   }) => {
     try {
-      await (0,util__WEBPACK_IMPORTED_MODULE_1__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_2__.exec)(`sudo ${path__WEBPACK_IMPORTED_MODULE_3___default().join((0,_helpers_util__WEBPACK_IMPORTED_MODULE_7__/* .getScriptRoot */ .x)(), 'add-wifi-network.sh')} "${sanitizeForBash(input.ssid)}" "${sanitizeForBash(input.passphrase)}" "${sanitizeForBash(input.country ?? 'GB')}"`);
+      await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_7__/* .runSudoScript */ .$)('add-wifi-network.sh', `"${sanitizeForBash(input.ssid)}"`, `"${sanitizeForBash(input.passphrase)}"`, `"${sanitizeForBash(input.country ?? 'GB')}"`);
     } catch (e) {
       if (e instanceof Error) {
         (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_6__/* .getLogger */ .j)().error(e.message);
