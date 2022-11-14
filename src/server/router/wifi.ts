@@ -6,6 +6,7 @@ import { getScriptRoot } from '../../helpers/util';
 import { getWirelessInterface, scan } from '../../helpers/iw';
 import { hostnameInput, joinInput } from '../../helpers/validators/wifi';
 import { getLogger } from '../../helpers/logger';
+import { runSudoScript } from '../../helpers/run-script';
 
 const sanitizeForBash = (str: string) => {
 	return str.replace(/(["'$`\\])/g, '\\$1');
@@ -37,10 +38,11 @@ export const wifiRouter = trpc
 		input: joinInput,
 		resolve: async ({ input }) => {
 			try {
-				await promisify(exec)(
-					`sudo ${path.join(getScriptRoot(), 'add-wifi-network.sh')} "${sanitizeForBash(
-						input.ssid,
-					)}" "${sanitizeForBash(input.passphrase)}" "${sanitizeForBash(input.country ?? 'GB')}"`,
+				await runSudoScript(
+					'add-wifi-network.sh',
+					`"${sanitizeForBash(input.ssid)}"`,
+					`"${sanitizeForBash(input.passphrase)}"`,
+					`"${sanitizeForBash(input.country ?? 'GB')}"`,
 				);
 			} catch (e) {
 				if (e instanceof Error) {
