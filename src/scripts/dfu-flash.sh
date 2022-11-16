@@ -3,12 +3,15 @@ if [ "$EUID" -ne 0 ]
   then echo "ERROR: Please run as root"
   exit
 fi
+MCU=$1
+if [ "$MCU" == "" ]; then
+	echo "ERROR: Please specify a device to flash"
+	exit
+fi
 pushd /home/pi/klipper
 service klipper stop
-if [ -h $MCU ]; then
-    echo "Flashing Octopus via path"
-    make flash FLASH_DEVICE=0483:df11
-fi
+echo "Flashing DFU device"
+make flash FLASH_DEVICE=0483:df11
 sleep 5
 if [ -h $MCU ]; then
     echo "Flashing Successful!"
