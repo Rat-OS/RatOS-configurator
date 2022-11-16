@@ -20,6 +20,7 @@ export const Board = z.object({
 	compileScript: z.string(),
 	flashScript: z.string().optional(),
 	flashInstructions: z.string().optional(),
+	disableAutoFlash: z.boolean().optional(),
 	documentationLink: z.string().optional(),
 	dfu: z
 		.object({
@@ -177,7 +178,9 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 			includeHost: true,
 		},
 		resolve: async ({ ctx }) => {
-			const connectedBoards = ctx.boards.filter((b) => existsSync(b.serialPath) && b.flashScript && b.compileScript);
+			const connectedBoards = ctx.boards.filter(
+				(b) => existsSync(b.serialPath) && b.flashScript && b.compileScript && b.disableAutoFlash !== true,
+			);
 			const flashResults = await Promise.all(
 				connectedBoards.map(async (b) => {
 					try {
