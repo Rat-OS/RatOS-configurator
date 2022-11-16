@@ -458,7 +458,7 @@ const mcuRouter = (0,_context__WEBPACK_IMPORTED_MODULE_5__/* .createRouter */ .p
     }
 
     try {
-      const flashResult = await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_7__/* .runSudoScript */ .$)('dfu-flash.sh');
+      const flashResult = await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_7__/* .runSudoScript */ .$)('dfu-flash.sh', ctx.board.serialPath);
       return flashResult.stdout;
     } catch (e) {
       throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({

@@ -352,7 +352,7 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 				});
 			}
 			try {
-				const flashResult = await runSudoScript('dfu-flash.sh');
+				const flashResult = await runSudoScript('dfu-flash.sh', ctx.board.serialPath);
 				return flashResult.stdout;
 			} catch (e) {
 				throw new TRPCError({
