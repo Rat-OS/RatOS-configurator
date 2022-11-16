@@ -260,7 +260,7 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 				const message = e instanceof Error ? e.message : e;
 				throw new TRPCError({
 					code: 'INTERNAL_SERVER_ERROR',
-					message: `Could not compile firmware for ${ctx.board.name}: ${message}'}`,
+					message: `Could not compile firmware for ${ctx.board.name}: ${compileResult?.stdout ?? message}'}`,
 					cause: e,
 				});
 			}
@@ -281,7 +281,7 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 				const message = e instanceof Error ? e.message : e;
 				throw new TRPCError({
 					code: 'INTERNAL_SERVER_ERROR',
-					message: `Could not flash firmware to ${ctx.board.name}: ${message}'}`,
+					message: `Could not flash firmware to ${ctx.board.name}: ${flashResult?.stdout ?? message}'}`,
 					cause: e,
 				});
 			}

@@ -347,10 +347,12 @@ const mcuRouter = (0,_context__WEBPACK_IMPORTED_MODULE_5__/* .createRouter */ .p
       const compileScript = path__WEBPACK_IMPORTED_MODULE_6___default().join(ctx.board.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''), ctx.board.compileScript);
       compileResult = await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_7__/* .runSudoScript */ .$)('board-script.sh', compileScript);
     } catch (e) {
+      var _compileResult;
+
       const message = e instanceof Error ? e.message : e;
       throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: `Could not compile firmware for ${ctx.board.name}: ${message}'}`,
+        message: `Could not compile firmware for ${ctx.board.name}: ${((_compileResult = compileResult) === null || _compileResult === void 0 ? void 0 : _compileResult.stdout) ?? message}'}`,
         cause: e
       });
     }
@@ -368,10 +370,12 @@ const mcuRouter = (0,_context__WEBPACK_IMPORTED_MODULE_5__/* .createRouter */ .p
       const flashScript = path__WEBPACK_IMPORTED_MODULE_6___default().join(ctx.board.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''), ctx.board.flashScript);
       flashResult = await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_7__/* .runSudoScript */ .$)('board-script.sh', flashScript);
     } catch (e) {
+      var _flashResult;
+
       const message = e instanceof Error ? e.message : e;
       throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: `Could not flash firmware to ${ctx.board.name}: ${message}'}`,
+        message: `Could not flash firmware to ${ctx.board.name}: ${((_flashResult = flashResult) === null || _flashResult === void 0 ? void 0 : _flashResult.stdout) ?? message}'}`,
         cause: e
       });
     }
