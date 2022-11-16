@@ -119,6 +119,7 @@ const Board = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
   compileScript: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
   flashScript: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional(),
   flashInstructions: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional(),
+  disableAutoFlash: zod__WEBPACK_IMPORTED_MODULE_0__.z.boolean().optional(),
   documentationLink: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional(),
   dfu: zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
     dfuBootImage: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
@@ -279,7 +280,7 @@ const mcuRouter = (0,_context__WEBPACK_IMPORTED_MODULE_5__/* .createRouter */ .p
   resolve: async ({
     ctx
   }) => {
-    const connectedBoards = ctx.boards.filter(b => (0,fs__WEBPACK_IMPORTED_MODULE_2__.existsSync)(b.serialPath) && b.flashScript && b.compileScript);
+    const connectedBoards = ctx.boards.filter(b => (0,fs__WEBPACK_IMPORTED_MODULE_2__.existsSync)(b.serialPath) && b.flashScript && b.compileScript && b.disableAutoFlash !== true);
     const flashResults = await Promise.all(connectedBoards.map(async b => {
       try {
         const current = AutoFlashableBoard.parse(b);
