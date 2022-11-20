@@ -190,20 +190,17 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 			for (const b of connectedBoards) {
 				try {
 					const current = AutoFlashableBoard.parse(b);
-					const compile = await runSudoScript(
+					await runSudoScript(
 						'board-script.sh',
 						path.join(
 							current.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''),
 							current.compileScript,
 						),
 					);
-					getLogger().info(`Compile result for ${b.name}: ${compile.stdout}`);
-					const flash = await runSudoScript(
+					await runSudoScript(
 						'board-script.sh',
 						path.join(current.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''), current.flashScript),
 					);
-					getLogger().info(`Flash result for ${b.name}: ${flash.stdout}`);
-
 					flashResults.push({
 						board: b,
 						result: 'success',
