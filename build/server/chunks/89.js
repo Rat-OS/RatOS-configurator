@@ -3,6 +3,39 @@ exports.id = 89;
 exports.ids = [89];
 exports.modules = {
 
+/***/ 2882:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "j": () => (/* binding */ getLogger)
+/* harmony export */ });
+/* harmony import */ var pino__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8545);
+/* harmony import */ var pino__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(pino__WEBPACK_IMPORTED_MODULE_0__);
+
+let logger = null;
+const getLogger = () => {
+  if (logger != null) {
+    return logger;
+  }
+
+  if (process.env.LOG_FILE == null) {
+    throw new Error('No LOG_FILE specified in environment');
+  }
+
+  const transportOption =  false ? 0 : {
+    target: 'pino/file',
+    options: {
+      destination: process.env.LOG_FILE,
+      append: false
+    } // Truncate the log when service is restarted. In case of a crash this might not be great.
+
+  };
+  logger = pino__WEBPACK_IMPORTED_MODULE_0___default()(pino__WEBPACK_IMPORTED_MODULE_0___default().transport(transportOption));
+  return logger;
+};
+
+/***/ }),
+
 /***/ 3552:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
@@ -91,6 +124,7 @@ __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __we
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(1017);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_6__);
 /* harmony import */ var _helpers_run_script__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(3552);
+/* harmony import */ var _helpers_logger__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(2882);
 var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([zod__WEBPACK_IMPORTED_MODULE_0__]);
 zod__WEBPACK_IMPORTED_MODULE_0__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__)[0];
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
@@ -98,6 +132,7 @@ function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (O
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { _defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 
 
 
@@ -281,25 +316,29 @@ const mcuRouter = (0,_context__WEBPACK_IMPORTED_MODULE_5__/* .createRouter */ .p
     ctx
   }) => {
     const connectedBoards = ctx.boards.filter(b => (0,fs__WEBPACK_IMPORTED_MODULE_2__.existsSync)(b.serialPath) && b.flashScript && b.compileScript && b.disableAutoFlash !== true);
-    const flashResults = await Promise.all(connectedBoards.map(async b => {
+    const flashResults = [];
+
+    for (const b of connectedBoards) {
       try {
         const current = AutoFlashableBoard.parse(b);
-        await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_7__/* .runSudoScript */ .$)('board-script.sh', path__WEBPACK_IMPORTED_MODULE_6___default().join(current.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''), current.compileScript));
-        await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_7__/* .runSudoScript */ .$)('board-script.sh', path__WEBPACK_IMPORTED_MODULE_6___default().join(current.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''), current.flashScript));
+        const compile = await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_7__/* .runSudoScript */ .$)('board-script.sh', path__WEBPACK_IMPORTED_MODULE_6___default().join(current.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''), current.compileScript));
+        (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_8__/* .getLogger */ .j)().info(`Compile result for ${b.name}: ${compile.stdout}`);
+        const flash = await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_7__/* .runSudoScript */ .$)('board-script.sh', path__WEBPACK_IMPORTED_MODULE_6___default().join(current.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''), current.flashScript));
+        (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_8__/* .getLogger */ .j)().info(`Flash result for ${b.name}: ${flash.stdout}`);
+        flashResults.push({
+          board: b,
+          result: 'success'
+        });
       } catch (e) {
         const message = e instanceof Error ? e.message : e;
-        return {
+        flashResults.push({
           board: b,
           result: 'error',
-          message: message
-        };
+          message: typeof message === 'string' ? message : undefined
+        });
       }
+    }
 
-      return {
-        board: b,
-        result: 'success'
-      };
-    }));
     const successCount = flashResults.filter(r => r.result === 'success').length;
     let report = `${successCount}/${connectedBoards.length} connected board(s) flashed successfully.\n`;
     flashResults.map(r => {

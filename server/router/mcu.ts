@@ -9,6 +9,7 @@ import { TRPCError } from '@trpc/server';
 import { getScriptRoot } from '../../helpers/util';
 import path from 'path';
 import { runSudoScript } from '../../helpers/run-script';
+import { getLogger } from '../../helpers/logger';
 
 export const Board = z.object({
 	serialPath: z.string(),
@@ -181,38 +182,41 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 			const connectedBoards = ctx.boards.filter(
 				(b) => existsSync(b.serialPath) && b.flashScript && b.compileScript && b.disableAutoFlash !== true,
 			);
-			const flashResults = await Promise.all(
-				connectedBoards.map(async (b) => {
-					try {
-						const current = AutoFlashableBoard.parse(b);
-						await runSudoScript(
-							'board-script.sh',
-							path.join(
-								current.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''),
-								current.compileScript,
-							),
-						);
-						await runSudoScript(
-							'board-script.sh',
-							path.join(
-								current.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''),
-								current.flashScript,
-							),
-						);
-					} catch (e) {
-						const message = e instanceof Error ? e.message : e;
-						return {
-							board: b,
-							result: 'error',
-							message: message,
-						};
-					}
-					return {
+			const flashResults: {
+				board: Board;
+				result: 'success' | 'error';
+				message?: string;
+			}[] = [];
+			for (const b of connectedBoards) {
+				try {
+					const current = AutoFlashableBoard.parse(b);
+					const compile = await runSudoScript(
+						'board-script.sh',
+						path.join(
+							current.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''),
+							current.compileScript,
+						),
+					);
+					getLogger().info(`Compile result for ${b.name}: ${compile.stdout}`);
+					const flash = await runSudoScript(
+						'board-script.sh',
+						path.join(current.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''), current.flashScript),
+					);
+					getLogger().info(`Flash result for ${b.name}: ${flash.stdout}`);
+
+					flashResults.push({
 						board: b,
 						result: 'success',
-					};
-				}),
-			);
+					});
+				} catch (e) {
+					const message = e instanceof Error ? e.message : e;
+					flashResults.push({
+						board: b,
+						result: 'error',
+						message: typeof message === 'string' ? message : undefined,
+					});
+				}
+			}
 			const successCount = flashResults.filter((r) => r.result === 'success').length;
 			let report = `${successCount}/${connectedBoards.length} connected board(s) flashed successfully.\n`;
 			flashResults.map((r) => {

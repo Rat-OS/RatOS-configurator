@@ -12,6 +12,13 @@ module.exports = require("@trpc/server");
 
 /***/ }),
 
+/***/ 8545:
+/***/ ((module) => {
+
+module.exports = require("pino");
+
+/***/ }),
+
 /***/ 4475:
 /***/ ((module) => {
 
