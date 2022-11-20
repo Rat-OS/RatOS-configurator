@@ -12,13 +12,6 @@ module.exports = require("@trpc/server");
 
 /***/ }),
 
-/***/ 8545:
-/***/ ((module) => {
-
-module.exports = require("pino");
-
-/***/ }),
-
 /***/ 72:
 /***/ ((module) => {
 
@@ -264,6 +257,44 @@ const iw = {
 
 /***/ }),
 
+/***/ 924:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+
+// EXPORTS
+__webpack_require__.d(__webpack_exports__, {
+  "j": () => (/* binding */ getLogger)
+});
+
+;// CONCATENATED MODULE: external "pino"
+const external_pino_namespaceObject = require("pino");
+var external_pino_default = /*#__PURE__*/__webpack_require__.n(external_pino_namespaceObject);
+;// CONCATENATED MODULE: ./helpers/logger.ts
+
+let logger = null;
+const getLogger = () => {
+  if (logger != null) {
+    return logger;
+  }
+
+  if (process.env.LOG_FILE == null) {
+    throw new Error('No LOG_FILE specified in environment');
+  }
+
+  const transportOption =  false ? 0 : {
+    target: 'pino/file',
+    options: {
+      destination: process.env.LOG_FILE,
+      append: false
+    } // Truncate the log when service is restarted. In case of a crash this might not be great.
+
+  };
+  logger = external_pino_default()(external_pino_default().transport(transportOption));
+  return logger;
+};
+
+/***/ }),
+
 /***/ 4756:
 /***/ ((module, __webpack_exports__, __webpack_require__) => {
 
@@ -298,7 +329,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
 /* harmony import */ var _trpc_server_adapters_next__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(5445);
-/* harmony import */ var _helpers_logger__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2882);
+/* harmony import */ var _helpers_logger__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(924);
 /* harmony import */ var _server_router_context__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(296);
 /* harmony import */ var _server_router_index__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(2041);
 var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_server_router_index__WEBPACK_IMPORTED_MODULE_3__]);
@@ -411,7 +442,7 @@ __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __we
 /* harmony import */ var _trpc_server__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_trpc_server__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(7147);
 /* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(fs__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _helpers_logger__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(2882);
+/* harmony import */ var _helpers_logger__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(924);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(1017);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_4__);
 var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([zod__WEBPACK_IMPORTED_MODULE_0__]);
@@ -564,7 +595,7 @@ __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __we
 /* harmony import */ var _trpc_server__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_trpc_server__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(7147);
 /* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(fs__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _helpers_logger__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(2882);
+/* harmony import */ var _helpers_logger__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(924);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(1017);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_4__);
 var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([zod__WEBPACK_IMPORTED_MODULE_0__]);
@@ -723,7 +754,7 @@ __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __we
 /* harmony import */ var _helpers_util__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(9737);
 /* harmony import */ var _helpers_iw__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(2494);
 /* harmony import */ var _helpers_validators_wifi__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(4756);
-/* harmony import */ var _helpers_logger__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(2882);
+/* harmony import */ var _helpers_logger__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(924);
 /* harmony import */ var _helpers_run_script__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(3552);
 var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_helpers_validators_wifi__WEBPACK_IMPORTED_MODULE_5__]);
 _helpers_validators_wifi__WEBPACK_IMPORTED_MODULE_5__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__)[0];
