@@ -123,7 +123,7 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 				<div className="flex justify-center items-center font-bold mb-4">Rebooting...</div>
 				<div className="flex justify-center items-center mb-4">
 					Please reconnect to {selectedNetwork?.ssid ?? 'your local network'} and visit{' '}
-					<a href="http://{hostname}.local/configure?step=1" className="text-brand-600">
+					<a href={`http://${hostname}.local/configure?step=1`} className="text-brand-600">
 						http://{hostname}.local/configure?step=1
 					</a>{' '}
 					in a few minutes.
