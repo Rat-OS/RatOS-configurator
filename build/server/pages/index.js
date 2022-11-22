@@ -1717,7 +1717,7 @@ const WifiSetup = props => {
     }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("div", {
       className: "flex justify-center items-center mb-4",
       children: ["Please reconnect to ", (selectedNetwork === null || selectedNetwork === void 0 ? void 0 : selectedNetwork.ssid) ?? 'your local network', " and visit", ' ', /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("a", {
-        href: "http://{hostname}.local/configure?step=1",
+        href: `http://${hostname}.local/configure?step=1`,
         className: "text-brand-600",
         children: ["http://", hostname, ".local/configure?step=1"]
       }), ' ', "in a few minutes."]
