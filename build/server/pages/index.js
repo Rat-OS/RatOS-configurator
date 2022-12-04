@@ -1498,7 +1498,7 @@ const SDCardFlashing = props => {
       children: [props.board.manufacturer, " ", props.board.name, " was not detected"]
     }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx(_button__WEBPACK_IMPORTED_MODULE_6__/* .Button */ .z, {
       color: "brand",
-      onClick: isFirmwareReady ? props.onSuccess : () => compile.mutate({
+      onClick: isFirmwareReady ? undefined : () => compile.mutate({
         boardPath: props.board.path
       }),
       className: "w-52 justify-center",
@@ -1518,7 +1518,9 @@ const SDCardFlashing = props => {
         }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx("li", {
           children: "Format the sd card for your board to FAT16 (sometimes just called FAT), or FAT32 with a clustersize of 8kb or 4kb."
         }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx("li", {
-          children: "Put it onto the sd card for your board"
+          children: "If you're reusing a card you've used for flashing before, be sure to delete ALL files on the card (or reformat it)."
+        }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx("li", {
+          children: "Copy the firmware binary onto the sd card for your board"
         }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx("li", {
           children: "Make sure the firmware file is called firmware.bin on the sd card (enable \"display file extensions\" in your file explorer). The file you downloaded will already have the correct name."
         }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx("li", {
@@ -1527,11 +1529,20 @@ const SDCardFlashing = props => {
           children: "Physically take out the sd card and insert it into your control board."
         }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx("li", {
           children: "Click the reset button on the board, or turn it off and back on again. NOTE: if the Raspberry Pi running RatOS is currently powered by your control board or the same power source, please shut it down safely first by using the button below. When the green light stops blinking and is turned off, you can cut the power."
+        }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx("li", {
+          children: "Click \"Check board status\" below."
         })]
-      }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx(_button__WEBPACK_IMPORTED_MODULE_6__/* .Button */ .z, {
-        color: "gray",
-        onClick: onShutdown,
-        children: "Shutdown RatOS"
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
+        className: "flex gap-x-4",
+        children: [/*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx(_button__WEBPACK_IMPORTED_MODULE_6__/* .Button */ .z, {
+          color: "gray",
+          onClick: onShutdown,
+          children: "Shutdown RatOS"
+        }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx(_button__WEBPACK_IMPORTED_MODULE_6__/* .Button */ .z, {
+          color: "brand",
+          onClick: props.onSuccess,
+          children: "Check board status"
+        })]
       })]
     }), shutdownModalVisible ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx(_modal__WEBPACK_IMPORTED_MODULE_7__/* .Modal */ .u, {
       title: "Shutdown RatOS?",
