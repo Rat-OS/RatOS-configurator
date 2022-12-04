@@ -62,7 +62,7 @@ export const SDCardFlashing: React.FC<SDCardFlashingProps> = (props) => {
 
 			<Button
 				color="brand"
-				onClick={isFirmwareReady ? props.onSuccess : () => compile.mutate({ boardPath: props.board.path })}
+				onClick={isFirmwareReady ? undefined : () => compile.mutate({ boardPath: props.board.path })}
 				className="w-52 justify-center"
 				disabled={compile.isLoading && !isFirmwareReady}
 				href={isFirmwareReady ? '/api/download-firmware?boardPath=' + encodeURIComponent(props.board.path) : undefined}
@@ -83,7 +83,10 @@ export const SDCardFlashing: React.FC<SDCardFlashingProps> = (props) => {
 						Format the sd card for your board to FAT16 (sometimes just called FAT), or FAT32 with a clustersize of 8kb
 						or 4kb.
 					</li>
-					<li>Put it onto the sd card for your board</li>
+					<li>
+						If you're reusing a card you've used for flashing before, be sure to delete ALL files on the card (or reformat it).
+					</li>
+					<li>Copy the firmware binary onto the sd card for your board</li>
 					<li>
 						Make sure the firmware file is called firmware.bin on the sd card (enable "display file extensions" in your
 						file explorer). The file you downloaded will already have the correct name.
@@ -95,10 +98,18 @@ export const SDCardFlashing: React.FC<SDCardFlashingProps> = (props) => {
 						RatOS is currently powered by your control board or the same power source, please shut it down safely first
 						by using the button below. When the green light stops blinking and is turned off, you can cut the power.
 					</li>
+					<li>
+						Click "Check board status" below.
+					</li>
 				</ol>
-				<Button color="gray" onClick={onShutdown}>
-					Shutdown RatOS
-				</Button>
+				<div className="flex gap-x-4">
+					<Button color="gray" onClick={onShutdown}>
+						Shutdown RatOS
+					</Button>
+					<Button color="brand" onClick={props.onSuccess}>
+						Check board status
+					</Button>
+				</div>
 			</div>
 			{shutdownModalVisible ? (
 				<Modal
