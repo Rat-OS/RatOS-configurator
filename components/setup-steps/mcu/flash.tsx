@@ -5,6 +5,7 @@ import { Button } from '../../button';
 import { MutationStatus } from '../../common/mutation-status';
 import { InfoMessage } from '../../info-message';
 import { StepNavButton, StepNavButtons } from '../../step-nav-buttons';
+import { WarningMessage } from '../../warning-message';
 import { MCUStepScreenProps } from '../mcu-preparation';
 import { DFUFlash } from './dfu-flash';
 import { SDCardFlashing } from './sd-card-flash';
@@ -12,6 +13,15 @@ import { SDCardFlashing } from './sd-card-flash';
 export const MCUFlashing = (props: MCUStepScreenProps) => {
 	const { data: isBoardDetected } = trpc.useQuery(['mcu.detect', { boardPath: props.selectedBoards[0].board.path }], {
 		refetchInterval: 1000,
+	});
+	const { data: boardVersion } = trpc.useQuery(
+		['mcu.board-version', { boardPath: props.selectedBoards[0].board.path }],
+		{
+			enabled: isBoardDetected,
+		},
+	);
+	const { data: klipperVersion } = trpc.useQuery(['klipper-version'], {
+		enabled: isBoardDetected,
 	});
 	const [forceReflash, setForceReflash] = useState(false);
 	const [flashStrategy, setFlashStrategy] = useState<null | 'dfu' | 'sdcard' | 'path'>(null);
@@ -46,12 +56,20 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 			flashStrategy === 'dfu' && firstBoard.dfu?.reminder ? (
 				<InfoMessage title="Reminder">{firstBoard.dfu?.reminder}</InfoMessage>
 			) : null;
+		const versionMismatch =
+			boardVersion != null && klipperVersion != null && boardVersion !== klipperVersion ? (
+				<WarningMessage title="Version mismatch">
+					The board is running version {boardVersion} but you your pi is on version ${klipperVersion}. If you want to
+					update your board click 'flash again' below.
+				</WarningMessage>
+			) : null;
 		content = (
 			<Fragment>
 				<h3 className="text-xl font-medium text-gray-900">
 					<CheckCircleIcon className="text-brand-700 h-7 w-7 inline" /> {firstBoard.name} detected
 				</h3>
 				{jumperReminder}
+				{versionMismatch}
 				<p>
 					Proceed to the next step or{' '}
 					<button color="gray" className="text-brand-700 hover:text-brand-600" onClick={reflash}>

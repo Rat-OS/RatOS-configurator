@@ -391,6 +391,14 @@ const appRouter = (0,_context__WEBPACK_IMPORTED_MODULE_0__/* .createRouter */ .p
       stdout
     }) => stdout.trim());
   }
+}).query('klipper-version', {
+  resolve: async () => {
+    return await (0,util__WEBPACK_IMPORTED_MODULE_4__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_5__.exec)('git describe --tags --always', {
+      cwd: process.env.KLIPPER_DIR
+    }).then(({
+      stdout
+    }) => stdout.trim());
+  }
 }).query('os-version', {
   resolve: async () => {
     if (false) {}

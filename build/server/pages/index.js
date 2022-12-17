@@ -1148,17 +1148,19 @@ __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __we
 /* harmony import */ var _common_mutation_status__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(223);
 /* harmony import */ var _info_message__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(2468);
 /* harmony import */ var _step_nav_buttons__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(7511);
-/* harmony import */ var _dfu_flash__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(4911);
-/* harmony import */ var _sd_card_flash__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(7500);
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(997);
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__);
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_sd_card_flash__WEBPACK_IMPORTED_MODULE_8__]);
-_sd_card_flash__WEBPACK_IMPORTED_MODULE_8__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__)[0];
+/* harmony import */ var _warning_message__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(8410);
+/* harmony import */ var _dfu_flash__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(4911);
+/* harmony import */ var _sd_card_flash__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(7500);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(997);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__);
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_sd_card_flash__WEBPACK_IMPORTED_MODULE_9__]);
+_sd_card_flash__WEBPACK_IMPORTED_MODULE_9__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__)[0];
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { _defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 
 
 
@@ -1178,6 +1180,18 @@ const MCUFlashing = props => {
     boardPath: props.selectedBoards[0].board.path
   }], {
     refetchInterval: 1000
+  });
+  const {
+    data: boardVersion
+  } = _helpers_trpc__WEBPACK_IMPORTED_MODULE_2__/* .trpc.useQuery */ .S.useQuery(['mcu.board-version', {
+    boardPath: props.selectedBoards[0].board.path
+  }], {
+    enabled: isBoardDetected
+  });
+  const {
+    data: klipperVersion
+  } = _helpers_trpc__WEBPACK_IMPORTED_MODULE_2__/* .trpc.useQuery */ .S.useQuery(['klipper-version'], {
+    enabled: isBoardDetected
   });
   const {
     0: forceReflash,
@@ -1215,22 +1229,26 @@ const MCUFlashing = props => {
   if (isBoardDetected && !forceReflash) {
     var _firstBoard$dfu, _firstBoard$dfu2;
 
-    const jumperReminder = flashStrategy === 'dfu' && (_firstBoard$dfu = firstBoard.dfu) !== null && _firstBoard$dfu !== void 0 && _firstBoard$dfu.reminder ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx(_info_message__WEBPACK_IMPORTED_MODULE_5__/* .InfoMessage */ .$, {
+    const jumperReminder = flashStrategy === 'dfu' && (_firstBoard$dfu = firstBoard.dfu) !== null && _firstBoard$dfu !== void 0 && _firstBoard$dfu.reminder ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx(_info_message__WEBPACK_IMPORTED_MODULE_5__/* .InfoMessage */ .$, {
       title: "Reminder",
       children: (_firstBoard$dfu2 = firstBoard.dfu) === null || _firstBoard$dfu2 === void 0 ? void 0 : _firstBoard$dfu2.reminder
     }) : null;
-    content = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(react__WEBPACK_IMPORTED_MODULE_1__.Fragment, {
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("h3", {
+    const versionMismatch = boardVersion != null && klipperVersion != null && boardVersion !== klipperVersion ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_warning_message__WEBPACK_IMPORTED_MODULE_7__/* .WarningMessage */ .j, {
+      title: "Version mismatch",
+      children: ["The board is running version ", boardVersion, " but you your pi is on version $", klipperVersion, ". If you want to update your board click 'flash again' below."]
+    }) : null;
+    content = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(react__WEBPACK_IMPORTED_MODULE_1__.Fragment, {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("h3", {
         className: "text-xl font-medium text-gray-900",
-        children: [/*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx(_heroicons_react_24_outline__WEBPACK_IMPORTED_MODULE_0__.CheckCircleIcon, {
+        children: [/*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx(_heroicons_react_24_outline__WEBPACK_IMPORTED_MODULE_0__.CheckCircleIcon, {
           className: "text-brand-700 h-7 w-7 inline"
         }), " ", firstBoard.name, " detected"]
-      }), jumperReminder, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("p", {
-        children: ["Proceed to the next step or", ' ', /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("button", {
+      }), jumperReminder, versionMismatch, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("p", {
+        children: ["Proceed to the next step or", ' ', /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("button", {
           color: "gray",
           className: "text-brand-700 hover:text-brand-600",
           onClick: reflash,
-          children: ["flash again ", /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx(_heroicons_react_24_outline__WEBPACK_IMPORTED_MODULE_0__.ArrowPathIcon, {
+          children: ["flash again ", /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx(_heroicons_react_24_outline__WEBPACK_IMPORTED_MODULE_0__.ArrowPathIcon, {
             className: "h-5 w-5 inline"
           })]
         })]
@@ -1242,7 +1260,7 @@ const MCUFlashing = props => {
     let path = null;
 
     if (firstBoard.dfu != null) {
-      dfu = /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx(_button__WEBPACK_IMPORTED_MODULE_3__/* .Button */ .z, {
+      dfu = /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx(_button__WEBPACK_IMPORTED_MODULE_3__/* .Button */ .z, {
         color: "gray",
         onClick: () => setFlashStrategy('dfu'),
         className: "justify-center",
@@ -1251,7 +1269,7 @@ const MCUFlashing = props => {
     }
 
     if (!firstBoard.isToolboard) {
-      sdCard = /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx(_button__WEBPACK_IMPORTED_MODULE_3__/* .Button */ .z, {
+      sdCard = /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx(_button__WEBPACK_IMPORTED_MODULE_3__/* .Button */ .z, {
         color: "gray",
         onClick: () => setFlashStrategy('sdcard'),
         className: "justify-center",
@@ -1260,7 +1278,7 @@ const MCUFlashing = props => {
     }
 
     if (isBoardDetected && firstBoard.flashScript != null) {
-      path = /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx(_button__WEBPACK_IMPORTED_MODULE_3__/* .Button */ .z, {
+      path = /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx(_button__WEBPACK_IMPORTED_MODULE_3__/* .Button */ .z, {
         color: "gray",
         onClick: onFlashViaPath,
         className: "justify-center",
@@ -1268,11 +1286,11 @@ const MCUFlashing = props => {
       });
     }
 
-    content = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(react__WEBPACK_IMPORTED_MODULE_1__.Fragment, {
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("h3", {
+    content = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(react__WEBPACK_IMPORTED_MODULE_1__.Fragment, {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("h3", {
         className: "text-xl font-medium text-gray-900",
         children: ["How do you want to flash your ", firstBoard.name, "?"]
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
         className: "grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3",
         children: [path, dfu, sdCard]
       })]
@@ -1280,49 +1298,49 @@ const MCUFlashing = props => {
   } else {
     switch (flashStrategy) {
       case 'dfu':
-        content = /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx(_dfu_flash__WEBPACK_IMPORTED_MODULE_7__/* .DFUFlash */ .h, {
+        content = /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx(_dfu_flash__WEBPACK_IMPORTED_MODULE_8__/* .DFUFlash */ .h, {
           board: firstBoard,
           onSuccess: () => setForceReflash(false)
         });
         break;
 
       case 'sdcard':
-        content = /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx(_sd_card_flash__WEBPACK_IMPORTED_MODULE_8__/* .SDCardFlashing */ .f, {
+        content = /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx(_sd_card_flash__WEBPACK_IMPORTED_MODULE_9__/* .SDCardFlashing */ .f, {
           board: firstBoard,
           onSuccess: () => setForceReflash(false)
         });
         break;
 
       case 'path':
-        content = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("h3", {
+        content = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("h3", {
             className: "text-xl font-medium text-gray-900",
             children: ["Flashing ", firstBoard.name, "..."]
-          }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx("div", {
+          }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx("div", {
             className: "mt-4 prose text-base text-gray-500",
             children: "Please wait while RatOS flashes your board."
-          }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx(_common_mutation_status__WEBPACK_IMPORTED_MODULE_4__/* .MutationStatus */ .y, _objectSpread({}, flashViaPath))]
+          }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx(_common_mutation_status__WEBPACK_IMPORTED_MODULE_4__/* .MutationStatus */ .y, _objectSpread({}, flashViaPath))]
         });
     }
   }
 
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(react__WEBPACK_IMPORTED_MODULE_1__.Fragment, {
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(react__WEBPACK_IMPORTED_MODULE_1__.Fragment, {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
       className: "p-8",
-      children: [' ', /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
+      children: [' ', /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
         className: "pb-5 mb-5 border-b border-gray-200",
-        children: [/*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx("h3", {
+        children: [/*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx("h3", {
           className: "text-lg leading-6 font-medium text-gray-900",
           children: props.name
-        }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx("p", {
+        }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx("p", {
           className: "mt-2 max-w-4xl text-sm text-gray-500",
           children: props.description
         })]
-      }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx("div", {
+      }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx("div", {
         className: "space-y-4",
         children: content
       })]
-    }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx(_step_nav_buttons__WEBPACK_IMPORTED_MODULE_6__/* .StepNavButtons */ .Q, {
+    }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx(_step_nav_buttons__WEBPACK_IMPORTED_MODULE_6__/* .StepNavButtons */ .Q, {
       right: rightButton,
       left: leftButton
     })]
@@ -2099,6 +2117,51 @@ const VerticalSteps = props => {
           })
         }, name);
       })
+    })
+  });
+};
+
+/***/ }),
+
+/***/ 8410:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "j": () => (/* binding */ WarningMessage)
+/* harmony export */ });
+/* harmony import */ var _heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8802);
+/* harmony import */ var _heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(6689);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(997);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__);
+
+
+
+
+const WarningMessage = props => {
+  return /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx("div", {
+    className: "rounded-md bg-amber-50 p-4",
+    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+      className: "flex",
+      children: [/*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx("div", {
+        className: "flex-shrink-0",
+        children: /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_0__.ExclamationCircleIcon, {
+          className: "h-5 w-5 text-amber-400",
+          "aria-hidden": "true"
+        })
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+        className: "ml-3",
+        children: [/*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx("h3", {
+          className: "text-sm font-medium text-cyan-800",
+          children: props.title ?? 'Info'
+        }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx("div", {
+          className: "mt-2 text-sm text-amber-700",
+          children: /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx("p", {
+            children: props.children
+          })
+        })]
+      })]
     })
   });
 };

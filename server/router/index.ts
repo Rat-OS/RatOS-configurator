@@ -19,6 +19,13 @@ export const appRouter = createRouter()
 			);
 		},
 	})
+	.query('klipper-version', {
+		resolve: async () => {
+			return await promisify(exec)('git describe --tags --always', { cwd: process.env.KLIPPER_DIR }).then(
+				({ stdout }) => stdout.trim(),
+			);
+		},
+	})
 	.query('os-version', {
 		resolve: async () => {
 			if (process.env.NODE_ENV === 'development') {
