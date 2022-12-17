@@ -131,6 +131,42 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 			return false;
 		},
 	})
+	.query('board-version', {
+		meta: {
+			boardRequired: true,
+		},
+		input: inputSchema,
+		resolve: async ({ ctx, input }) => {
+			if (ctx.board == null) {
+				throw new trpc.TRPCError({
+					code: 'PRECONDITION_FAILED',
+					message: `No supported board exists for the path ${input.boardPath}`,
+				});
+			}
+			if (process.env.KLIPPER_ENV == null || process.env.KLIPPER_ENV.trim() === '') {
+				throw new trpc.TRPCError({
+					code: 'PRECONDITION_FAILED',
+					message: `Environment variable KLIPPER_ENV is missing`,
+				});
+			}
+			if (process.env.KLIPPER_DIR == null || process.env.KLIPPER_DIR.trim() === '') {
+				throw new trpc.TRPCError({
+					code: 'PRECONDITION_FAILED',
+					message: `Environment variable KLIPPER_DIR is missing`,
+				});
+			}
+
+			const scriptRoot = getScriptRoot();
+			const version = await promisify(exec)(
+				`${path.join(process.env.KLIPPER_ENV, 'bin', 'python')} ${path.join(scriptRoot, 'check-version.py')} ${
+					ctx.board.serialPath
+				}}`,
+				{ env: { KLIPPER_DIR: process.env.KLIPPER_DIR, NODE_ENV: process.env.NODE_ENV } },
+			);
+			const versionRegEx = /^Version:\s(v\d+\.\d+\.\d+-\d+-\w{9})$/;
+			return version.stdout.match(versionRegEx)?.[0];
+		},
+	})
 	.mutation('compile', {
 		meta: {
 			boardRequired: true,
