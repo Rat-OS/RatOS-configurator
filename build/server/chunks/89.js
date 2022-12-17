@@ -260,15 +260,41 @@ const mcuRouter = (0,_context__WEBPACK_IMPORTED_MODULE_5__/* .createRouter */ .p
       });
     }
 
-    const scriptRoot = (0,_helpers_util__WEBPACK_IMPORTED_MODULE_8__/* .getScriptRoot */ .x)();
-    const version = await (0,util__WEBPACK_IMPORTED_MODULE_4__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_3__.exec)(`${path__WEBPACK_IMPORTED_MODULE_6___default().join(process.env.KLIPPER_ENV, 'bin', 'python')} ${path__WEBPACK_IMPORTED_MODULE_6___default().join(scriptRoot, 'check-version.py')} ${ctx.board.serialPath}`, {
-      env: {
-        KLIPPER_DIR: process.env.KLIPPER_DIR,
-        NODE_ENV: "production"
-      }
-    });
-    const versionRegEx = /^Version:\s(v\d+\.\d+\.\d+-\d+-\w{9})$/;
-    return (_version$stdout$match = version.stdout.match(versionRegEx)) === null || _version$stdout$match === void 0 ? void 0 : _version$stdout$match[0];
+    const scriptRoot = (0,_helpers_util__WEBPACK_IMPORTED_MODULE_8__/* .getScriptRoot */ .x)(); // stop klipper
+
+    let version = {
+      stdout: ''
+    };
+    let error = null;
+
+    try {
+      await fetch('http://localhost:7125/machine/services/stop?service=klipper', {
+        method: 'POST'
+      });
+      version = await (0,util__WEBPACK_IMPORTED_MODULE_4__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_3__.exec)(`${path__WEBPACK_IMPORTED_MODULE_6___default().join(process.env.KLIPPER_ENV, 'bin', 'python')} ${path__WEBPACK_IMPORTED_MODULE_6___default().join(scriptRoot, 'check-version.py')} ${ctx.board.serialPath}`, {
+        env: {
+          KLIPPER_DIR: process.env.KLIPPER_DIR,
+          NODE_ENV: "production"
+        }
+      });
+    } catch (e) {
+      error = e;
+    } finally {
+      await fetch('http://localhost:7125/machine/services/start?service=klipper', {
+        method: 'POST'
+      });
+    }
+
+    if (error) {
+      throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        cause: error
+      });
+    }
+
+    const versionRegEx = /Version:\s(v\d+\.\d+\.\d+-\d+-\w{9})/;
+    console.log(version.stdout.match(versionRegEx));
+    return (_version$stdout$match = version.stdout.match(versionRegEx)) === null || _version$stdout$match === void 0 ? void 0 : _version$stdout$match[1];
   }
 }).mutation('compile', {
   meta: {
