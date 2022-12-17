@@ -261,7 +261,7 @@ const mcuRouter = (0,_context__WEBPACK_IMPORTED_MODULE_5__/* .createRouter */ .p
     }
 
     const scriptRoot = (0,_helpers_util__WEBPACK_IMPORTED_MODULE_8__/* .getScriptRoot */ .x)();
-    const version = await (0,util__WEBPACK_IMPORTED_MODULE_4__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_3__.exec)(`${path__WEBPACK_IMPORTED_MODULE_6___default().join(process.env.KLIPPER_ENV, 'bin', 'python')} ${path__WEBPACK_IMPORTED_MODULE_6___default().join(scriptRoot, 'check-version.py')} ${ctx.board.serialPath}}`, {
+    const version = await (0,util__WEBPACK_IMPORTED_MODULE_4__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_3__.exec)(`${path__WEBPACK_IMPORTED_MODULE_6___default().join(process.env.KLIPPER_ENV, 'bin', 'python')} ${path__WEBPACK_IMPORTED_MODULE_6___default().join(scriptRoot, 'check-version.py')} ${ctx.board.serialPath}`, {
       env: {
         KLIPPER_DIR: process.env.KLIPPER_DIR,
         NODE_ENV: "production"

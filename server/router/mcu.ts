@@ -160,7 +160,7 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 			const version = await promisify(exec)(
 				`${path.join(process.env.KLIPPER_ENV, 'bin', 'python')} ${path.join(scriptRoot, 'check-version.py')} ${
 					ctx.board.serialPath
-				}}`,
+				}`,
 				{ env: { KLIPPER_DIR: process.env.KLIPPER_DIR, NODE_ENV: process.env.NODE_ENV } },
 			);
 			const versionRegEx = /^Version:\s(v\d+\.\d+\.\d+-\d+-\w{9})$/;
