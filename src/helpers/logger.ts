@@ -1,4 +1,5 @@
 import pino from 'pino';
+import pretty from 'pino-pretty';
 
 let logger: pino.Logger<pino.LoggerOptions> | null = null;
 export const getLogger = () => {
@@ -17,6 +18,9 @@ export const getLogger = () => {
 					target: 'pino/file',
 					options: { destination: process.env.LOG_FILE, append: false }, // Truncate the log when service is restarted. In case of a crash this might not be great.
 			  };
-	logger = pino(pino.transport(transportOption));
+	const stream = pretty({
+		colorize: true
+	})
+	logger = pino(stream);
 	return logger;
 };

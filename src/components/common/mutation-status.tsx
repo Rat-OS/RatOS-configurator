@@ -12,7 +12,7 @@ export const MutationStatus = (mutation: UseMutationResult<any, TRPCClientErrorL
 			</div>
 		);
 	}
-	if (mutation.isLoading) {
+	if (mutation.isLoading && !mutation.isIdle && !mutation.isPaused) {
 		return (
 			<div className="flex items-center mb-4 absolute top-9 right-5">
 				<Spinner />

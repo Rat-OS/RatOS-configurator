@@ -4,6 +4,7 @@ import { trpc } from '../../../helpers/trpc';
 import { Button } from '../../button';
 import { MutationStatus } from '../../common/mutation-status';
 import { InfoMessage } from '../../info-message';
+import { Spinner } from '../../spinner';
 import { StepNavButton, StepNavButtons } from '../../step-nav-buttons';
 import { WarningMessage } from '../../warning-message';
 import { MCUStepScreenProps } from '../mcu-preparation';
@@ -11,26 +12,31 @@ import { DFUFlash } from './dfu-flash';
 import { SDCardFlashing } from './sd-card-flash';
 
 export const MCUFlashing = (props: MCUStepScreenProps) => {
-	const { data: isBoardDetected } = trpc.useQuery(['mcu.detect', { boardPath: props.selectedBoards[0].board.path }], {
-		refetchInterval: 1000,
-	});
-	// const { data: boardVersion } = trpc.useQuery(
-	// 	['mcu.board-version', { boardPath: props.selectedBoards[0].board.path }],
-	// 	{
-	// 		enabled: false,
-	// 	},
-	// );
-	const { data: klipperVersion } = trpc.useQuery(['klipper-version'], {
-		enabled: isBoardDetected,
-	});
 	const [forceReflash, setForceReflash] = useState(false);
 	const [flashStrategy, setFlashStrategy] = useState<null | 'dfu' | 'sdcard' | 'path'>(null);
+	const { data: isBoardDetected, ...mcuDetect } = trpc.useQuery(['mcu.detect', { boardPath: props.selectedBoards[0].board.path }], {
+		refetchInterval: 1000,
+	});
+	const { data: boardVersion, isLoading: isBoardVersionLoading, ...mcuBoardVersion } = trpc.useQuery(
+		['mcu.board-version', { boardPath: props.selectedBoards[0].board.path }],
+		{
+			enabled: !!isBoardDetected && forceReflash === false,
+			refetchOnWindowFocus: false,
+			refetchOnMount: false,
+			refetchOnReconnect: false,
+		},
+	);
+	const { data: klipperVersion } = trpc.useQuery(['klipper-version'], {
+		refetchInterval: 60000,
+	});
 	const flashViaPath = trpc.useMutation('mcu.flash-via-path', { onSuccess: () => setForceReflash(false) });
 
 	const reflash = useCallback(() => {
 		console.log('reflash!');
 		setFlashStrategy(null);
 		setForceReflash(true);
+		mcuDetect.remove();
+		mcuBoardVersion.remove();
 	}, []);
 
 	let rightButton: StepNavButton = {
@@ -51,25 +57,36 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 
 	let content = null;
 
-	if (isBoardDetected && !forceReflash) {
+	if (isBoardVersionLoading && !mcuBoardVersion.isIdle) {
+		content = (
+			<Fragment>
+				<h3 className="text-xl font-medium text-gray-900">
+					<Spinner className='inline relative -top-0.5 mr-2' noMargin={true} /> {firstBoard.name} detected, checking version...
+				</h3>
+				<p>
+					Please wait while RatOS queries your board..
+				</p>
+			</Fragment>
+		);
+	} else if (boardVersion || isBoardDetected && !forceReflash) {
 		const jumperReminder =
 			flashStrategy === 'dfu' && firstBoard.dfu?.reminder ? (
 				<InfoMessage title="Reminder">{firstBoard.dfu?.reminder}</InfoMessage>
 			) : null;
-		// const versionMismatch =
-		// 	boardVersion != null && klipperVersion != null && boardVersion !== klipperVersion ? (
-		// 		<WarningMessage title="Version mismatch">
-		// 			The board is running version {boardVersion} but you your pi is on version ${klipperVersion}. If you want to
-		// 			update your board click 'flash again' below.
-		// 		</WarningMessage>
-		// 	) : null;
+		const versionMismatch =
+			boardVersion != null && klipperVersion != null && boardVersion !== klipperVersion ? (
+				<WarningMessage title="Version mismatch">
+					The board is running version {boardVersion} but you your pi is on version {klipperVersion}. If you want to
+					update your board click 'flash again' below.
+				</WarningMessage>
+			) : null;
 		content = (
 			<Fragment>
 				<h3 className="text-xl font-medium text-gray-900">
-					<CheckCircleIcon className="text-brand-700 h-7 w-7 inline" /> {firstBoard.name} detected
+					<CheckCircleIcon className="text-brand-700 h-7 w-7 inline relative -top-0.5" /> {firstBoard.name} detected
 				</h3>
 				{jumperReminder}
-				{/* {versionMismatch} */}
+				{versionMismatch}
 				<p>
 					Proceed to the next step or{' '}
 					<button color="gray" className="text-brand-700 hover:text-brand-600" onClick={reflash}>

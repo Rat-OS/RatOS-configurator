@@ -157,14 +157,31 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 			}
 
 			const scriptRoot = getScriptRoot();
-			const version = await promisify(exec)(
-				`${path.join(process.env.KLIPPER_ENV, 'bin', 'python')} ${path.join(scriptRoot, 'check-version.py')} ${
-					ctx.board.serialPath
-				}`,
-				{ env: { KLIPPER_DIR: process.env.KLIPPER_DIR, NODE_ENV: process.env.NODE_ENV } },
-			);
-			const versionRegEx = /^Version:\s(v\d+\.\d+\.\d+-\d+-\w{9})$/;
-			return version.stdout.match(versionRegEx)?.[0];
+			// stop klipper
+			let version = {stdout: ''};
+			let error: any = null;
+			try {
+				await fetch('http://localhost:7125/machine/services/stop?service=klipper', {method: 'POST'});
+				version = await promisify(exec)(
+					`${path.join(process.env.KLIPPER_ENV, 'bin', 'python')} ${path.join(scriptRoot, 'check-version.py')} ${
+						ctx.board.serialPath
+					}`,
+					{ env: { KLIPPER_DIR: process.env.KLIPPER_DIR, NODE_ENV: process.env.NODE_ENV } },
+				);
+			} catch (e) {
+				error = e;
+			} finally {
+				await fetch('http://localhost:7125/machine/services/start?service=klipper', {method: 'POST'});
+			}
+			if (error) {
+				throw new trpc.TRPCError({
+					code: 'INTERNAL_SERVER_ERROR',
+					cause: error,
+				});
+			}
+			const versionRegEx = /Version:\s(v\d+\.\d+\.\d+-\d+-\w{9})/;
+			console.log(version.stdout.match(versionRegEx));
+			return version.stdout.match(versionRegEx)?.[1];
 		},
 	})
 	.mutation('compile', {
