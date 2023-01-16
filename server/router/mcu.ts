@@ -199,7 +199,7 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 				});
 			}
 			let compileResult = null;
-			const firmwareBinary = path.resolve('/home/pi/klipper_config/firmware_binaries', ctx.board.firmwareBinaryName);
+			const firmwareBinary = path.resolve('/home/pi/printer_data/config/firmware_binaries', ctx.board.firmwareBinaryName);
 			try {
 				if (fs.existsSync(firmwareBinary)) {
 					fs.rmSync(firmwareBinary);
@@ -300,7 +300,7 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 				});
 			}
 			let compileResult = null;
-			const firmwareBinary = path.resolve('/home/pi/klipper_config/firmware_binaries', ctx.board.firmwareBinaryName);
+			const firmwareBinary = path.resolve('/home/pi/printer_data/config/firmware_binaries', ctx.board.firmwareBinaryName);
 			try {
 				if (fs.existsSync(firmwareBinary)) {
 					fs.rmSync(firmwareBinary);
@@ -381,7 +381,7 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 				});
 			}
 			let compileResult = null;
-			const firmwareBinary = path.resolve('/home/pi/klipper_config/firmware_binaries', ctx.board.firmwareBinaryName);
+			const firmwareBinary = path.resolve('/home/pi/printer_data/config/firmware_binaries', ctx.board.firmwareBinaryName);
 			try {
 				if (fs.existsSync(firmwareBinary)) {
 					fs.rmSync(firmwareBinary);

@@ -315,7 +315,7 @@ const mcuRouter = (0,_context__WEBPACK_IMPORTED_MODULE_5__/* .createRouter */ .p
     }
 
     let compileResult = null;
-    const firmwareBinary = path__WEBPACK_IMPORTED_MODULE_6___default().resolve('/home/pi/klipper_config/firmware_binaries', ctx.board.firmwareBinaryName);
+    const firmwareBinary = path__WEBPACK_IMPORTED_MODULE_6___default().resolve('/home/pi/printer_data/config/firmware_binaries', ctx.board.firmwareBinaryName);
 
     try {
       if (fs__WEBPACK_IMPORTED_MODULE_2___default().existsSync(firmwareBinary)) {
@@ -409,7 +409,7 @@ const mcuRouter = (0,_context__WEBPACK_IMPORTED_MODULE_5__/* .createRouter */ .p
     }
 
     let compileResult = null;
-    const firmwareBinary = path__WEBPACK_IMPORTED_MODULE_6___default().resolve('/home/pi/klipper_config/firmware_binaries', ctx.board.firmwareBinaryName);
+    const firmwareBinary = path__WEBPACK_IMPORTED_MODULE_6___default().resolve('/home/pi/printer_data/config/firmware_binaries', ctx.board.firmwareBinaryName);
 
     try {
       if (fs__WEBPACK_IMPORTED_MODULE_2___default().existsSync(firmwareBinary)) {
@@ -504,7 +504,7 @@ const mcuRouter = (0,_context__WEBPACK_IMPORTED_MODULE_5__/* .createRouter */ .p
     }
 
     let compileResult = null;
-    const firmwareBinary = path__WEBPACK_IMPORTED_MODULE_6___default().resolve('/home/pi/klipper_config/firmware_binaries', ctx.board.firmwareBinaryName);
+    const firmwareBinary = path__WEBPACK_IMPORTED_MODULE_6___default().resolve('/home/pi/printer_data/config/firmware_binaries', ctx.board.firmwareBinaryName);
 
     try {
       if (fs__WEBPACK_IMPORTED_MODULE_2___default().existsSync(firmwareBinary)) {
