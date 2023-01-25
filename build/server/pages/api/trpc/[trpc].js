@@ -369,18 +369,21 @@ __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __we
 /* harmony import */ var _context__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(296);
 /* harmony import */ var superjson__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(72);
 /* harmony import */ var superjson__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(superjson__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _wifi__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(541);
-/* harmony import */ var _mcu__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(5089);
-/* harmony import */ var util__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(3837);
-/* harmony import */ var util__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(util__WEBPACK_IMPORTED_MODULE_4__);
-/* harmony import */ var child_process__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(2081);
-/* harmony import */ var child_process__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(child_process__WEBPACK_IMPORTED_MODULE_5__);
-/* harmony import */ var _helpers_iw__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(2494);
-/* harmony import */ var _klippy_extensions__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(8970);
-/* harmony import */ var _moonraker_extensions__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(1978);
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_wifi__WEBPACK_IMPORTED_MODULE_2__, _mcu__WEBPACK_IMPORTED_MODULE_3__, _klippy_extensions__WEBPACK_IMPORTED_MODULE_7__, _moonraker_extensions__WEBPACK_IMPORTED_MODULE_8__]);
-([_wifi__WEBPACK_IMPORTED_MODULE_2__, _mcu__WEBPACK_IMPORTED_MODULE_3__, _klippy_extensions__WEBPACK_IMPORTED_MODULE_7__, _moonraker_extensions__WEBPACK_IMPORTED_MODULE_8__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(7147);
+/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(fs__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _wifi__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(541);
+/* harmony import */ var _mcu__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(5089);
+/* harmony import */ var util__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(3837);
+/* harmony import */ var util__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(util__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var child_process__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(2081);
+/* harmony import */ var child_process__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(child_process__WEBPACK_IMPORTED_MODULE_6__);
+/* harmony import */ var _helpers_iw__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(2494);
+/* harmony import */ var _klippy_extensions__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(8970);
+/* harmony import */ var _moonraker_extensions__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(1978);
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_wifi__WEBPACK_IMPORTED_MODULE_3__, _mcu__WEBPACK_IMPORTED_MODULE_4__, _klippy_extensions__WEBPACK_IMPORTED_MODULE_8__, _moonraker_extensions__WEBPACK_IMPORTED_MODULE_9__]);
+([_wifi__WEBPACK_IMPORTED_MODULE_3__, _mcu__WEBPACK_IMPORTED_MODULE_4__, _klippy_extensions__WEBPACK_IMPORTED_MODULE_8__, _moonraker_extensions__WEBPACK_IMPORTED_MODULE_9__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
 // src/server/router/index.ts
+
 
 
 
@@ -392,7 +395,7 @@ var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_wif
 
 const appRouter = (0,_context__WEBPACK_IMPORTED_MODULE_0__/* .createRouter */ .p)().transformer((superjson__WEBPACK_IMPORTED_MODULE_1___default())).query('version', {
   resolve: async () => {
-    return await (0,util__WEBPACK_IMPORTED_MODULE_4__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_5__.exec)('git describe --tags --always', {
+    return await (0,util__WEBPACK_IMPORTED_MODULE_5__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_6__.exec)('git describe --tags --always', {
       cwd: process.env.RATOS_CONFIGURATION_PATH
     }).then(({
       stdout
@@ -400,7 +403,7 @@ const appRouter = (0,_context__WEBPACK_IMPORTED_MODULE_0__/* .createRouter */ .p
   }
 }).query('klipper-version', {
   resolve: async () => {
-    return await (0,util__WEBPACK_IMPORTED_MODULE_4__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_5__.exec)('git describe --tags --always', {
+    return await (0,util__WEBPACK_IMPORTED_MODULE_5__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_6__.exec)('git describe --tags --always', {
       cwd: process.env.KLIPPER_DIR
     }).then(({
       stdout
@@ -410,15 +413,16 @@ const appRouter = (0,_context__WEBPACK_IMPORTED_MODULE_0__/* .createRouter */ .p
   resolve: async () => {
     if (false) {}
 
-    return await (0,util__WEBPACK_IMPORTED_MODULE_4__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_5__.exec)('cat /etc/ratos-release').then(({
+    const releaseFile = (0,fs__WEBPACK_IMPORTED_MODULE_2__.statSync)('/etc/ratos-release').isFile() ? '/etc/ratos-release' : '/etc/RatOS-release';
+    return await (0,util__WEBPACK_IMPORTED_MODULE_5__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_6__.exec)(`cat ${releaseFile}`).then(({
       stdout
     }) => stdout.trim().replace('RatOS ', ''));
   }
 }).query('ip-address', {
   resolve: async () => {
-    const wirelessInterface = await (0,_helpers_iw__WEBPACK_IMPORTED_MODULE_6__/* .getWirelessInterface */ .l9)();
+    const wirelessInterface = await (0,_helpers_iw__WEBPACK_IMPORTED_MODULE_7__/* .getWirelessInterface */ .l9)();
     const iface = wirelessInterface == null || wirelessInterface.trim() === '' ? 'eth0' : wirelessInterface.trim();
-    return (await (0,util__WEBPACK_IMPORTED_MODULE_4__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_5__.exec)(`ip address | grep "${iface}"`).then(({
+    return (await (0,util__WEBPACK_IMPORTED_MODULE_5__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_6__.exec)(`ip address | grep "${iface}"`).then(({
       stdout
     }) => {
       var _stdout$match;
@@ -433,13 +437,13 @@ const appRouter = (0,_context__WEBPACK_IMPORTED_MODULE_0__/* .createRouter */ .p
 }).mutation('reboot', {
   resolve: async () => {
     setTimeout(() => {
-      (0,util__WEBPACK_IMPORTED_MODULE_4__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_5__.exec)('reboot');
+      (0,util__WEBPACK_IMPORTED_MODULE_5__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_6__.exec)('reboot');
     }, 2000);
     return {
       result: 'success'
     };
   }
-}).merge('mcu.', _mcu__WEBPACK_IMPORTED_MODULE_3__/* .mcuRouter */ .px).merge('wifi.', _wifi__WEBPACK_IMPORTED_MODULE_2__/* .wifiRouter */ .X).merge('klippy-extensions.', _klippy_extensions__WEBPACK_IMPORTED_MODULE_7__/* .klippyExtensionsRouter */ ._).merge('moonraker-extensions.', _moonraker_extensions__WEBPACK_IMPORTED_MODULE_8__/* .moonrakerExtensionsRouter */ .J); // export type definition of API
+}).merge('mcu.', _mcu__WEBPACK_IMPORTED_MODULE_4__/* .mcuRouter */ .px).merge('wifi.', _wifi__WEBPACK_IMPORTED_MODULE_3__/* .wifiRouter */ .X).merge('klippy-extensions.', _klippy_extensions__WEBPACK_IMPORTED_MODULE_8__/* .klippyExtensionsRouter */ ._).merge('moonraker-extensions.', _moonraker_extensions__WEBPACK_IMPORTED_MODULE_9__/* .moonrakerExtensionsRouter */ .J); // export type definition of API
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } });
 
