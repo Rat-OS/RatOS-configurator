@@ -1,6 +1,7 @@
 // src/server/router/index.ts
 import { createRouter } from './context';
 import superjson from 'superjson';
+import { statSync } from 'fs';
 
 import { wifiRouter } from './wifi';
 import { mcuRouter } from './mcu';
@@ -31,7 +32,8 @@ export const appRouter = createRouter()
 			if (process.env.NODE_ENV === 'development') {
 				return 'DEV';
 			}
-			return await promisify(exec)('cat /etc/ratos-release').then(({ stdout }) => stdout.trim().replace('RatOS ', ''));
+			const releaseFile = statSync('/etc/ratos-release').isFile() ? '/etc/ratos-release' : '/etc/RatOS-release';
+			return await promisify(exec)(`cat ${releaseFile}`).then(({ stdout }) => stdout.trim().replace('RatOS ', ''));
 		},
 	})
 	.query('ip-address', {
