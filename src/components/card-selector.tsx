@@ -40,7 +40,7 @@ export const CardSelector = <Selectable extends SelectableCard = SelectableCard>
 
 	return (
 		<RadioGroup value={selected} onChange={onSelect}>
-			<RadioGroup.Label className="sr-only">Server size</RadioGroup.Label>
+			<RadioGroup.Label className="sr-only">Selector</RadioGroup.Label>
 			<div className="space-y-4">
 				{props.cards.map((card, i) => (
 					<RadioGroup.Option
@@ -50,7 +50,7 @@ export const CardSelector = <Selectable extends SelectableCard = SelectableCard>
 							classNames(
 								checked ? 'border-transparent' : 'border-gray-300',
 								active ? 'ring-2 ring-brand-600' : '',
-								'relative block bg-white border rounded-lg shadow-sm px-6 py-4 cursor-pointer sm:flex sm:justify-between focus:outline-none',
+								'relative bg-white border rounded-lg shadow-sm px-6 py-4 cursor-pointer flex justify-between focus:outline-none',
 							)
 						}
 					>
