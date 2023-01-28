@@ -89,7 +89,7 @@ const CardSelector = props => {
     onChange: onSelect,
     children: [/*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx(_headlessui_react__WEBPACK_IMPORTED_MODULE_1__.RadioGroup.Label, {
       className: "sr-only",
-      children: "Server size"
+      children: "Selector"
     }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx("div", {
       className: "space-y-4",
       children: props.cards.map((card, i) => /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx(_headlessui_react__WEBPACK_IMPORTED_MODULE_1__.RadioGroup.Option, {
@@ -97,7 +97,7 @@ const CardSelector = props => {
         className: ({
           checked,
           active
-        }) => (0,_helpers_classNames__WEBPACK_IMPORTED_MODULE_3__/* .classNames */ .A)(checked ? 'border-transparent' : 'border-gray-300', active ? 'ring-2 ring-brand-600' : '', 'relative block bg-white border rounded-lg shadow-sm px-6 py-4 cursor-pointer sm:flex sm:justify-between focus:outline-none'),
+        }) => (0,_helpers_classNames__WEBPACK_IMPORTED_MODULE_3__/* .classNames */ .A)(checked ? 'border-transparent' : 'border-gray-300', active ? 'ring-2 ring-brand-600' : '', 'relative bg-white border rounded-lg shadow-sm px-6 py-4 cursor-pointer flex justify-between focus:outline-none'),
         children: ({
           active,
           checked
@@ -1657,7 +1657,6 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 
 
-
 const WifiSetup = props => {
   const {
     0: apList,
@@ -1718,14 +1717,16 @@ const WifiSetup = props => {
     return Object.keys(apList).map(ap => ({
       name: apList[ap].ssid ?? 'Unknown Network',
       id: ap,
-      details: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.Fragment, {
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("span", {
-          className: "mr-4",
+      details: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("div", {
+        className: "md:grid md:grid-cols-2 gap-4",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("div", {
+          className: "md:col-span-1",
           children: [/*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx("span", {
             className: "font-semibold",
             children: "Signal Strength:"
           }), " ", (0,_helpers_wifi__WEBPACK_IMPORTED_MODULE_8__/* .parseSignal */ .y)(apList[ap].signal)]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("span", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("div", {
+          className: "md:col-span-1",
           children: [/*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx("span", {
             className: "font-semibold",
             children: "Frequency:"
@@ -1777,13 +1778,15 @@ const WifiSetup = props => {
     children: [/*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx("div", {
       className: "flex justify-center items-center font-bold mb-4",
       children: "Rebooting..."
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("div", {
+    }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx("div", {
       className: "flex justify-center items-center mb-4",
-      children: ["Please reconnect to ", (selectedNetwork === null || selectedNetwork === void 0 ? void 0 : selectedNetwork.ssid) ?? 'your local network', " and visit", ' ', /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("a", {
-        href: `http://${hostname}.local/configure?step=1`,
-        className: "text-brand-600",
-        children: ["http://", hostname, ".local/configure?step=1"]
-      }), ' ', "in a few minutes."]
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("div", {
+        children: ["Please reconnect to ", (selectedNetwork === null || selectedNetwork === void 0 ? void 0 : selectedNetwork.ssid) ?? 'your local network', " and visit", ' ', /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("a", {
+          href: `http://${hostname}.local/configure?step=1`,
+          className: "text-brand-600",
+          children: ["http://", hostname, ".local/configure?step=1"]
+        }), ' ', "in a few minutes."]
+      })
     })]
   }) : selectedNetwork && wifiMutation.isSuccess ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx(_forms_text_input__WEBPACK_IMPORTED_MODULE_5__/* .TextInput */ .o, {
     label: "Printer hostname",

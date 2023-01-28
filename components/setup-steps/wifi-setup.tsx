@@ -63,14 +63,14 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 			name: apList[ap].ssid ?? 'Unknown Network',
 			id: ap,
 			details: (
-				<>
-					<span className="mr-4">
+				<div className="md:grid md:grid-cols-2 gap-4">
+					<div className="md:col-span-1">
 						<span className="font-semibold">Signal Strength:</span> {parseSignal(apList[ap].signal)}
-					</span>
-					<span>
+					</div>
+					<div className="md:col-span-1">
 						<span className="font-semibold">Frequency:</span> {Math.round(apList[ap].frequency / 100) / 10}GHz
-					</span>
-				</>
+					</div>
+				</div>
 			),
 			right: <WifiIcon className="h-8 w-8 text-slate-500" />,
 		}));
@@ -122,11 +122,13 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 			<div className="mb-4 h-48">
 				<div className="flex justify-center items-center font-bold mb-4">Rebooting...</div>
 				<div className="flex justify-center items-center mb-4">
-					Please reconnect to {selectedNetwork?.ssid ?? 'your local network'} and visit{' '}
-					<a href={`http://${hostname}.local/configure?step=1`} className="text-brand-600">
-						http://{hostname}.local/configure?step=1
-					</a>{' '}
-					in a few minutes.
+					<div>
+						Please reconnect to {selectedNetwork?.ssid ?? 'your local network'} and visit{' '}
+						<a href={`http://${hostname}.local/configure?step=1`} className="text-brand-600">
+							http://{hostname}.local/configure?step=1
+						</a>{' '}
+						in a few minutes.
+					</div>
 				</div>
 			</div>
 		) : selectedNetwork && wifiMutation.isSuccess ? (
