@@ -21,7 +21,7 @@ pnpm_install() {
 }
 
 ensure_pnpm_installation() {
-	which pnpm > /dev/null
+	which pnpm &> /dev/null
 	if [ $? -ne 0 ]; then
 		report_status "Installing pnpm"
 		curl -fsSL https://get.pnpm.io/install.sh | sh -
