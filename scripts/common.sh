@@ -14,9 +14,18 @@ report_status()
     echo -e "\n\n###### $1"
 }
 
-yarn_install() {
+ensure_pnpm_installation() {
+	which pnpm > /dev/null
+	if [ $? -ne 0 ]; then
+		report_status "Installing pnpm"
+		curl -fsSL https://get.pnpm.io/install.sh | sh -
+		source ~/.bashrc
+	fi
+}
+
+pnpm_install() {
     pushd $SCRIPT_DIR/..
-    yarn install
+    pnpm install
     popd
 }
 
