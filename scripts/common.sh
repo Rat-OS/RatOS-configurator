@@ -14,24 +14,28 @@ report_status()
     echo -e "\n\n###### $1"
 }
 
-ensure_pnpm_installation() {
-	which pnpm > /dev/null
-	if [ $? -ne 0 ]; then
-		report_status "Installing pnpm"
-		curl -fsSL https://get.pnpm.io/install.sh | sh -
-		source ~/.bashrc
-	fi
-}
-
 pnpm_install() {
     pushd $SCRIPT_DIR/..
     pnpm install
     popd
 }
 
+ensure_pnpm_installation() {
+	which pnpm > /dev/null
+	if [ $? -ne 0 ]; then
+		report_status "Installing pnpm"
+		curl -fsSL https://get.pnpm.io/install.sh | sh -
+		source ~/.bashrc
+		# remove old node modules
+		rm -rf $SRC_DIR/node_modules
+		pnpm_install
+	fi
+}
+
+
 build() {
 	pushd $SCRIPT_DIR/..
-	yarn build
+	pnpm build
 	popd
 }
 
