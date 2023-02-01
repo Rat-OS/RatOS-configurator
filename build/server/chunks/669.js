@@ -1,21 +1,21 @@
 "use strict";
-exports.id = 445;
-exports.ids = [445];
+exports.id = 669;
+exports.ids = [669];
 exports.modules = {
 
-/***/ 5445:
+/***/ 5669:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 
 
 if (true) {
-  module.exports = __webpack_require__(497);
+  module.exports = __webpack_require__(8383);
 } else {}
 
 
 /***/ }),
 
-/***/ 497:
+/***/ 8383:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 var __webpack_unused_export__;
@@ -23,11 +23,11 @@ var __webpack_unused_export__;
 
 __webpack_unused_export__ = ({ value: true });
 
-var transformTRPCResponse = __webpack_require__(4690);
-var nodeHTTPRequestHandler = __webpack_require__(9601);
+var transformTRPCResponse = __webpack_require__(2411);
+var nodeHTTPRequestHandler = __webpack_require__(7456);
 __webpack_require__(7310);
-__webpack_require__(2818);
-__webpack_require__(2903);
+__webpack_require__(7317);
+__webpack_require__(4583);
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 function createNextApiHandler(opts) {
@@ -79,7 +79,7 @@ exports.createNextApiHandler = createNextApiHandler;
 
 /***/ }),
 
-/***/ 2903:
+/***/ 4583:
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -148,14 +148,14 @@ exports.invert = invert;
 
 /***/ }),
 
-/***/ 9601:
+/***/ 7456:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 
 var url = __webpack_require__(7310);
-var resolveHTTPResponse = __webpack_require__(2818);
-var transformTRPCResponse = __webpack_require__(4690);
+var resolveHTTPResponse = __webpack_require__(7317);
+var transformTRPCResponse = __webpack_require__(2411);
 
 async function getPostBody({
   req,
@@ -263,13 +263,13 @@ exports.nodeHTTPRequestHandler = nodeHTTPRequestHandler;
 
 /***/ }),
 
-/***/ 2818:
+/***/ 7317:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 
-var transformTRPCResponse = __webpack_require__(4690);
-var codes = __webpack_require__(2903);
+var transformTRPCResponse = __webpack_require__(2411);
+var codes = __webpack_require__(4583);
 
 /* istanbul ignore file */
 function assertNotBrowser() {
@@ -567,39 +567,35 @@ exports.resolveHTTPResponse = resolveHTTPResponse;
 
 /***/ }),
 
-/***/ 4690:
+/***/ 2411:
 /***/ ((__unused_webpack_module, exports) => {
 
 
 
-function getMessageFromUnkownError(err, fallback) {
-  if (typeof err === 'string') {
-    return err;
+async function callProcedure(opts) {
+  const {
+    type,
+    path,
+    input
+  } = opts;
+  const caller = opts.router.createCaller(opts.ctx);
+
+  if (type === 'query') {
+    return caller.query(path, input);
   }
 
-  if (err instanceof Error && typeof err.message === 'string') {
-    return err.message;
+  if (type === 'mutation') {
+    return caller.mutation(path, input);
   }
 
-  return fallback;
-}
-function getErrorFromUnknown(cause) {
-  // this should ideally be an `instanceof TRPCError` but for some reason that isn't working
-  // ref https://github.com/trpc/trpc/issues/331
-  if (cause instanceof Error && cause.name === 'TRPCError') {
-    return cause;
+  if (type === 'subscription') {
+    const sub = await caller.subscription(path, input);
+    return sub;
   }
+  /* istanbul ignore next */
 
-  const err = new TRPCError({
-    code: 'INTERNAL_SERVER_ERROR',
-    cause
-  }); // take stack trace from cause
 
-  if (cause instanceof Error) {
-    err.stack = cause.stack;
-  }
-
-  return err;
+  throw new Error(`Unknown procedure type ${type}`);
 }
 
 class TRPCError extends Error {
@@ -628,30 +624,35 @@ class TRPCError extends Error {
 
 }
 
-async function callProcedure(opts) {
-  const {
-    type,
-    path,
-    input
-  } = opts;
-  const caller = opts.router.createCaller(opts.ctx);
-
-  if (type === 'query') {
-    return caller.query(path, input);
+function getMessageFromUnkownError(err, fallback) {
+  if (typeof err === 'string') {
+    return err;
   }
 
-  if (type === 'mutation') {
-    return caller.mutation(path, input);
+  if (err instanceof Error && typeof err.message === 'string') {
+    return err.message;
   }
 
-  if (type === 'subscription') {
-    const sub = await caller.subscription(path, input);
-    return sub;
+  return fallback;
+}
+function getErrorFromUnknown(cause) {
+  // this should ideally be an `instanceof TRPCError` but for some reason that isn't working
+  // ref https://github.com/trpc/trpc/issues/331
+  if (cause instanceof Error && cause.name === 'TRPCError') {
+    return cause;
   }
-  /* istanbul ignore next */
 
+  const err = new TRPCError({
+    code: 'INTERNAL_SERVER_ERROR',
+    cause
+  }); // take stack trace from cause
 
-  throw new Error(`Unknown procedure type ${type}`);
+  if (cause instanceof Error) {
+    err.stack = cause.stack;
+    err.message = cause.message;
+  }
+
+  return err;
 }
 
 function transformTRPCResponseItem(router, item) {
@@ -683,6 +684,7 @@ function transformTRPCResponse(router, itemOrItems) {
 exports.TRPCError = TRPCError;
 exports.callProcedure = callProcedure;
 exports.getErrorFromUnknown = getErrorFromUnknown;
+exports.getMessageFromUnkownError = getMessageFromUnkownError;
 exports.transformTRPCResponse = transformTRPCResponse;
 
 

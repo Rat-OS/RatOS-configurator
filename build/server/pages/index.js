@@ -5,15 +5,15 @@ exports.id = 405;
 exports.ids = [405];
 exports.modules = {
 
-/***/ 5588:
+/***/ 4681:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "z": () => (/* binding */ Button)
 /* harmony export */ });
-/* harmony import */ var next_link__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1664);
+/* harmony import */ var next_link__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(3178);
 /* harmony import */ var next_link__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(next_link__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _helpers_classNames__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(3180);
+/* harmony import */ var _helpers_classNames__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(3265);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(997);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__);
 
@@ -42,7 +42,7 @@ const Button = props => {
 
 /***/ }),
 
-/***/ 4769:
+/***/ 3038:
 /***/ ((module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
@@ -52,7 +52,7 @@ __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __we
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(6689);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _headlessui_react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1185);
-/* harmony import */ var _helpers_classNames__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(3180);
+/* harmony import */ var _helpers_classNames__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(3265);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(997);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__);
 var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_headlessui_react__WEBPACK_IMPORTED_MODULE_1__]);
@@ -77,7 +77,7 @@ const CardSelector = props => {
       setSelected(card);
     }
 
-    _onSelect === null || _onSelect === void 0 ? void 0 : _onSelect(card);
+    _onSelect?.(card);
   }, [_onSelect, props.value]);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
     if (props.value !== undefined) {
@@ -136,7 +136,7 @@ __webpack_async_result__();
 
 /***/ }),
 
-/***/ 9710:
+/***/ 358:
 /***/ ((module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
@@ -148,8 +148,8 @@ __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __we
 /* harmony import */ var _headlessui_react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1185);
 /* harmony import */ var _heroicons_react_20_solid__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(9476);
 /* harmony import */ var _heroicons_react_20_solid__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_heroicons_react_20_solid__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _helpers_trpc__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(3729);
-/* harmony import */ var _mutation_modal__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(5597);
+/* harmony import */ var _helpers_trpc__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(1095);
+/* harmony import */ var _mutation_modal__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(7263);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(997);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__);
 var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_headlessui_react__WEBPACK_IMPORTED_MODULE_1__, _mutation_modal__WEBPACK_IMPORTED_MODULE_4__]);
@@ -333,7 +333,7 @@ __webpack_async_result__();
 
 /***/ }),
 
-/***/ 5597:
+/***/ 7263:
 /***/ ((module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
@@ -465,14 +465,14 @@ __webpack_async_result__();
 
 /***/ }),
 
-/***/ 223:
+/***/ 6881:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "y": () => (/* binding */ MutationStatus)
 /* harmony export */ });
-/* harmony import */ var _error_message__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(5621);
-/* harmony import */ var _spinner__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3273);
+/* harmony import */ var _error_message__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(3722);
+/* harmony import */ var _spinner__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(7500);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(997);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__);
 
@@ -480,12 +480,10 @@ __webpack_async_result__();
 
 const MutationStatus = mutation => {
   if (mutation.isError) {
-    var _mutation$error;
-
     return /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx("div", {
       className: "mb-4 h-48",
       children: /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx(_error_message__WEBPACK_IMPORTED_MODULE_0__/* .ErrorMessage */ .B, {
-        children: (_mutation$error = mutation.error) === null || _mutation$error === void 0 ? void 0 : _mutation$error.message
+        children: mutation.error?.message
       })
     });
   }
@@ -502,14 +500,14 @@ const MutationStatus = mutation => {
 
 /***/ }),
 
-/***/ 9884:
+/***/ 5998:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "o": () => (/* binding */ QueryStatus)
 /* harmony export */ });
-/* harmony import */ var _error_message__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(5621);
-/* harmony import */ var _spinner__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3273);
+/* harmony import */ var _error_message__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(3722);
+/* harmony import */ var _spinner__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(7500);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(997);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__);
 
@@ -517,12 +515,10 @@ const MutationStatus = mutation => {
 
 const QueryStatus = query => {
   if (query.isError) {
-    var _query$error;
-
     return /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx("div", {
       className: "mb-4 h-48",
       children: /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx(_error_message__WEBPACK_IMPORTED_MODULE_0__/* .ErrorMessage */ .B, {
-        children: (_query$error = query.error) === null || _query$error === void 0 ? void 0 : _query$error.message
+        children: query.error?.message
       })
     });
   }
@@ -539,7 +535,7 @@ const QueryStatus = query => {
 
 /***/ }),
 
-/***/ 5621:
+/***/ 3722:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
@@ -584,7 +580,7 @@ const ErrorMessage = props => {
 
 /***/ }),
 
-/***/ 6087:
+/***/ 1663:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
@@ -596,7 +592,7 @@ const ErrorMessage = props => {
 /* harmony import */ var _heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(6689);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _helpers_classNames__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(3180);
+/* harmony import */ var _helpers_classNames__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(3265);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(997);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__);
 
@@ -635,7 +631,7 @@ const TextInput = props => {
     children: props.help
   }) : null;
   const onChange = (0,react__WEBPACK_IMPORTED_MODULE_2__.useCallback)(e => {
-    _onChange === null || _onChange === void 0 ? void 0 : _onChange(e.currentTarget.value);
+    _onChange?.(e.currentTarget.value);
   }, [_onChange]);
   const togglePasswordVisibility = (0,react__WEBPACK_IMPORTED_MODULE_2__.useCallback)(() => {
     setIsPasswordVisible(b => !b);
@@ -672,7 +668,7 @@ const TextInput = props => {
 
 /***/ }),
 
-/***/ 2468:
+/***/ 9632:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
@@ -717,7 +713,7 @@ const InfoMessage = props => {
 
 /***/ }),
 
-/***/ 5264:
+/***/ 1757:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
@@ -727,8 +723,8 @@ const InfoMessage = props => {
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var recoil__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(9755);
 /* harmony import */ var recoil__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(recoil__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _helpers_classNames__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(3180);
-/* harmony import */ var _hooks_useKlippyStateHandler__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(3062);
+/* harmony import */ var _helpers_classNames__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(3265);
+/* harmony import */ var _hooks_useKlippyStateHandler__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(335);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(997);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__);
 
@@ -756,7 +752,7 @@ const KlippyStateBadge = props => {
 
 /***/ }),
 
-/***/ 3680:
+/***/ 3459:
 /***/ ((module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
@@ -787,7 +783,7 @@ const Modal = props => {
     1: setOpen
   } = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
   const onButtonClick = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
-    onClick === null || onClick === void 0 ? void 0 : onClick();
+    onClick?.();
     setOpen(false);
   }, [onClick]);
   const success = props.success ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx("div", {
@@ -866,7 +862,7 @@ __webpack_async_result__();
 
 /***/ }),
 
-/***/ 1188:
+/***/ 3778:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
@@ -876,8 +872,8 @@ __webpack_async_result__();
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var recoil__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(9755);
 /* harmony import */ var recoil__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(recoil__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _helpers_classNames__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(3180);
-/* harmony import */ var _hooks_useMoonraker__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(3040);
+/* harmony import */ var _helpers_classNames__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(3265);
+/* harmony import */ var _hooks_useMoonraker__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(6533);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(997);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__);
 
@@ -905,7 +901,7 @@ const MoonrakerStateBadge = props => {
 
 /***/ }),
 
-/***/ 2821:
+/***/ 7027:
 /***/ ((module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
@@ -920,12 +916,12 @@ __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __we
 /* harmony import */ var react_query__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react_query__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var recoil__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(9755);
 /* harmony import */ var recoil__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(recoil__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var _helpers_trpc__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(3729);
-/* harmony import */ var _hooks_useMoonraker__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(3040);
-/* harmony import */ var _hooks_useSteps__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(7482);
-/* harmony import */ var _common_query_status__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(9884);
-/* harmony import */ var _mcu_flash__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(70);
-/* harmony import */ var _mcu_pick__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(6100);
+/* harmony import */ var _helpers_trpc__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(1095);
+/* harmony import */ var _hooks_useMoonraker__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(6533);
+/* harmony import */ var _hooks_useSteps__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(1145);
+/* harmony import */ var _common_query_status__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(5998);
+/* harmony import */ var _mcu_flash__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(7470);
+/* harmony import */ var _mcu_pick__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(7048);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(997);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__);
 var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_mcu_flash__WEBPACK_IMPORTED_MODULE_8__, _mcu_pick__WEBPACK_IMPORTED_MODULE_9__]);
@@ -1015,11 +1011,7 @@ const MCUPreparation = props => {
   }, [boardsQuery.isError, boardsQuery.data]);
   (0,react__WEBPACK_IMPORTED_MODULE_1__.useEffect)(() => {
     // Only handle single board selection for now
-    const board = cards.find(c => {
-      var _selectedBoardQuery$d;
-
-      return c.board.serialPath === ((_selectedBoardQuery$d = selectedBoardQuery.data) === null || _selectedBoardQuery$d === void 0 ? void 0 : _selectedBoardQuery$d[0].serialPath);
-    });
+    const board = cards.find(c => c.board.serialPath === selectedBoardQuery.data?.[0].serialPath);
 
     _setSelectedBoards(board ? [board] : []);
   }, [selectedBoardQuery.data, cards]);
@@ -1046,7 +1038,7 @@ __webpack_async_result__();
 
 /***/ }),
 
-/***/ 4911:
+/***/ 4695:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
@@ -1054,9 +1046,9 @@ __webpack_async_result__();
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(6689);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _helpers_trpc__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3729);
-/* harmony import */ var _button__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(5588);
-/* harmony import */ var _error_message__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(5621);
+/* harmony import */ var _helpers_trpc__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1095);
+/* harmony import */ var _button__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(4681);
+/* harmony import */ var _error_message__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(3722);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(997);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__);
 /* eslint-disable @next/next/no-img-element */
@@ -1067,8 +1059,6 @@ __webpack_async_result__();
 
 
 const DFUFlash = props => {
-  var _props$board$dfu;
-
   const {
     data: dfuDetected,
     error
@@ -1097,7 +1087,7 @@ const DFUFlash = props => {
   }) : null;
   const flashButtonTitle = isFlashing ? 'Flashing...' : dfuDetected ? 'Flash' : 'Waiting for DFU...';
   const boardPathUri = 'boardPath=' + encodeURIComponent(props.board.path);
-  const instructions = (_props$board$dfu = props.board.dfu) === null || _props$board$dfu === void 0 ? void 0 : _props$board$dfu.instructions.map((step, index) => /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx("li", {
+  const instructions = props.board.dfu?.instructions.map((step, index) => /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx("li", {
     children: step
   }, index));
   const detectionText = dfuDetected ? 'DFU device detected' : 'DFU not detected';
@@ -1132,7 +1122,7 @@ const DFUFlash = props => {
 
 /***/ }),
 
-/***/ 70:
+/***/ 7470:
 /***/ ((module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
@@ -1143,15 +1133,15 @@ __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __we
 /* harmony import */ var _heroicons_react_24_outline__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_heroicons_react_24_outline__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(6689);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _helpers_trpc__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(3729);
-/* harmony import */ var _button__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(5588);
-/* harmony import */ var _common_mutation_status__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(223);
-/* harmony import */ var _info_message__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(2468);
-/* harmony import */ var _spinner__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(3273);
-/* harmony import */ var _step_nav_buttons__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(7511);
-/* harmony import */ var _warning_message__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(8410);
-/* harmony import */ var _dfu_flash__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(4911);
-/* harmony import */ var _sd_card_flash__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(7500);
+/* harmony import */ var _helpers_trpc__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(1095);
+/* harmony import */ var _button__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(4681);
+/* harmony import */ var _common_mutation_status__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(6881);
+/* harmony import */ var _info_message__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(9632);
+/* harmony import */ var _spinner__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(7500);
+/* harmony import */ var _step_nav_buttons__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(44);
+/* harmony import */ var _warning_message__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(9754);
+/* harmony import */ var _dfu_flash__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(4695);
+/* harmony import */ var _sd_card_flash__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(3521);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(997);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__);
 var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_sd_card_flash__WEBPACK_IMPORTED_MODULE_10__]);
@@ -1261,11 +1251,9 @@ const MCUFlashing = props => {
       })]
     });
   } else if (boardVersion || isBoardDetected && !forceReflash) {
-    var _firstBoard$dfu, _firstBoard$dfu2;
-
-    const jumperReminder = flashStrategy === 'dfu' && (_firstBoard$dfu = firstBoard.dfu) !== null && _firstBoard$dfu !== void 0 && _firstBoard$dfu.reminder ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx(_info_message__WEBPACK_IMPORTED_MODULE_5__/* .InfoMessage */ .$, {
+    const jumperReminder = flashStrategy === 'dfu' && firstBoard.dfu?.reminder ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx(_info_message__WEBPACK_IMPORTED_MODULE_5__/* .InfoMessage */ .$, {
       title: "Reminder",
-      children: (_firstBoard$dfu2 = firstBoard.dfu) === null || _firstBoard$dfu2 === void 0 ? void 0 : _firstBoard$dfu2.reminder
+      children: firstBoard.dfu?.reminder
     }) : null;
     const versionMismatch = boardVersion != null && klipperVersion != null && boardVersion !== klipperVersion ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)(_warning_message__WEBPACK_IMPORTED_MODULE_8__/* .WarningMessage */ .j, {
       title: "Version mismatch",
@@ -1385,7 +1373,7 @@ __webpack_async_result__();
 
 /***/ }),
 
-/***/ 6100:
+/***/ 7048:
 /***/ ((module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
@@ -1394,8 +1382,8 @@ __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __we
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(6689);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _card_selector__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(4769);
-/* harmony import */ var _step_nav_buttons__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(7511);
+/* harmony import */ var _card_selector__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3038);
+/* harmony import */ var _step_nav_buttons__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(44);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(997);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__);
 var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_card_selector__WEBPACK_IMPORTED_MODULE_1__]);
@@ -1461,7 +1449,7 @@ __webpack_async_result__();
 
 /***/ }),
 
-/***/ 7500:
+/***/ 3521:
 /***/ ((module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
@@ -1476,11 +1464,11 @@ __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __we
 /* harmony import */ var react_query__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react_query__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var recoil__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(9755);
 /* harmony import */ var recoil__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(recoil__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var _helpers_trpc__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(3729);
-/* harmony import */ var _hooks_useMoonraker__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(3040);
-/* harmony import */ var _button__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(5588);
-/* harmony import */ var _modal__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(3680);
-/* harmony import */ var _spinner__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(3273);
+/* harmony import */ var _helpers_trpc__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(1095);
+/* harmony import */ var _hooks_useMoonraker__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(6533);
+/* harmony import */ var _button__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(4681);
+/* harmony import */ var _modal__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(3459);
+/* harmony import */ var _spinner__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(7500);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(997);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__);
 var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_modal__WEBPACK_IMPORTED_MODULE_7__]);
@@ -1609,7 +1597,7 @@ __webpack_async_result__();
 
 /***/ }),
 
-/***/ 2109:
+/***/ 5473:
 /***/ ((module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
@@ -1618,20 +1606,20 @@ __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __we
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(6689);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _card_selector__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(4769);
-/* harmony import */ var _spinner__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(3273);
-/* harmony import */ var _error_message__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(5621);
+/* harmony import */ var _card_selector__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3038);
+/* harmony import */ var _spinner__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(7500);
+/* harmony import */ var _error_message__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(3722);
 /* harmony import */ var _heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(8802);
 /* harmony import */ var _heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_4__);
-/* harmony import */ var _forms_text_input__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(6087);
-/* harmony import */ var _step_nav_buttons__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(7511);
-/* harmony import */ var _modal__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(3680);
-/* harmony import */ var _helpers_wifi__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(2141);
-/* harmony import */ var _hooks_useMoonraker__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(3040);
+/* harmony import */ var _forms_text_input__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(1663);
+/* harmony import */ var _step_nav_buttons__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(44);
+/* harmony import */ var _modal__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(3459);
+/* harmony import */ var _helpers_wifi__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(1415);
+/* harmony import */ var _hooks_useMoonraker__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(6533);
 /* harmony import */ var recoil__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(9755);
 /* harmony import */ var recoil__WEBPACK_IMPORTED_MODULE_10___default = /*#__PURE__*/__webpack_require__.n(recoil__WEBPACK_IMPORTED_MODULE_10__);
-/* harmony import */ var _helpers_trpc__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(3729);
-/* harmony import */ var _helpers_validators_wifi__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(4430);
+/* harmony import */ var _helpers_trpc__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(1095);
+/* harmony import */ var _helpers_validators_wifi__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(483);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(997);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__);
 var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_card_selector__WEBPACK_IMPORTED_MODULE_1__, _modal__WEBPACK_IMPORTED_MODULE_7__, _helpers_validators_wifi__WEBPACK_IMPORTED_MODULE_12__]);
@@ -1699,7 +1687,7 @@ const WifiSetup = props => {
     setApList(apList => {
       const newList = _objectSpread({}, apList);
 
-      data === null || data === void 0 ? void 0 : data.forEach(ap => {
+      data?.forEach(ap => {
         newList[ap.address] = ap;
       });
       return newList;
@@ -1710,7 +1698,7 @@ const WifiSetup = props => {
   });
   const passwordValidation = _helpers_validators_wifi__WEBPACK_IMPORTED_MODULE_12__/* .joinInput.safeParse */ .K.safeParse({
     passphrase: password,
-    ssid: selectedNetwork === null || selectedNetwork === void 0 ? void 0 : selectedNetwork.ssid
+    ssid: selectedNetwork?.ssid
   });
   const cards = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => {
     if (isError) return [];
@@ -1781,7 +1769,7 @@ const WifiSetup = props => {
     }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx("div", {
       className: "flex justify-center items-center mb-4",
       children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("div", {
-        children: ["Please reconnect to ", (selectedNetwork === null || selectedNetwork === void 0 ? void 0 : selectedNetwork.ssid) ?? 'your local network', " and visit", ' ', /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("a", {
+        children: ["Please reconnect to ", selectedNetwork?.ssid ?? 'your local network', " and visit", ' ', /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsxs)("a", {
           href: `http://${hostname}.local/configure?step=1`,
           className: "text-brand-600",
           children: ["http://", hostname, ".local/configure?step=1"]
@@ -1803,7 +1791,7 @@ const WifiSetup = props => {
   }, "password") : isError ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx("div", {
     className: "mb-4 h-48",
     children: /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx(_error_message__WEBPACK_IMPORTED_MODULE_3__/* .ErrorMessage */ .B, {
-      children: error === null || error === void 0 ? void 0 : error.message
+      children: error?.message
     })
   }) : Object.keys(apList).length === 0 ? /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_13__.jsx("div", {
     className: "flex justify-center items-center mb-4 h-48",
@@ -1882,13 +1870,13 @@ __webpack_async_result__();
 
 /***/ }),
 
-/***/ 1717:
+/***/ 9292:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "g": () => (/* binding */ WizardComplete)
 /* harmony export */ });
-/* harmony import */ var _step_nav_buttons__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(7511);
+/* harmony import */ var _step_nav_buttons__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(44);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(997);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__);
 
@@ -1939,7 +1927,7 @@ const WizardComplete = props => {
 
 /***/ }),
 
-/***/ 3273:
+/***/ 7500:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
@@ -1975,7 +1963,7 @@ const Spinner = props => {
 
 /***/ }),
 
-/***/ 7511:
+/***/ 44:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
@@ -1985,8 +1973,8 @@ const Spinner = props => {
 /* harmony import */ var _heroicons_react_24_outline__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_heroicons_react_24_outline__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(6689);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _button__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(5588);
-/* harmony import */ var _spinner__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(3273);
+/* harmony import */ var _button__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(4681);
+/* harmony import */ var _spinner__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(7500);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(997);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__);
 
@@ -2042,7 +2030,7 @@ const StepNavButtons = props => {
 
 /***/ }),
 
-/***/ 2750:
+/***/ 9968:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
@@ -2052,7 +2040,7 @@ const StepNavButtons = props => {
 /* harmony import */ var _heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(6689);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _helpers_classNames__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(3180);
+/* harmony import */ var _helpers_classNames__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(3265);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(997);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__);
 
@@ -2160,7 +2148,7 @@ const VerticalSteps = props => {
 
 /***/ }),
 
-/***/ 8410:
+/***/ 9754:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
@@ -2205,7 +2193,7 @@ const WarningMessage = props => {
 
 /***/ }),
 
-/***/ 3180:
+/***/ 3265:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
@@ -2217,7 +2205,7 @@ const classNames = (...classes) => {
 
 /***/ }),
 
-/***/ 3729:
+/***/ 1095:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
@@ -2230,7 +2218,7 @@ const trpc = (0,_trpc_react__WEBPACK_IMPORTED_MODULE_0__.createReactQueryHooks)(
 
 /***/ }),
 
-/***/ 4430:
+/***/ 483:
 /***/ ((module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
@@ -2255,7 +2243,7 @@ __webpack_async_result__();
 
 /***/ }),
 
-/***/ 2141:
+/***/ 1415:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
@@ -2303,7 +2291,7 @@ const parseSignal = dBm => {
 
 /***/ }),
 
-/***/ 4646:
+/***/ 6631:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 
@@ -2522,7 +2510,7 @@ const isConnectedToWifi = async () => {
 
 /***/ }),
 
-/***/ 7482:
+/***/ 1145:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
@@ -2538,8 +2526,6 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 
 const useSteps = props => {
-  var _props$parentScreenPr, _props$parentScreenPr2, _props$parentScreenPr3, _props$parentScreenPr4;
-
   const {
     onIncrementStep,
     onDecrementStep
@@ -2560,23 +2546,23 @@ const useSteps = props => {
   const hasPreviousScreen = currentStepIndex > 0;
   const incrementStep = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
     setCurrentStepIndex(csi => {
-      onIncrementStep === null || onIncrementStep === void 0 ? void 0 : onIncrementStep(csi + 1);
+      onIncrementStep?.(csi + 1);
       return csi + 1;
     });
   }, [onIncrementStep]);
   const decrementStep = (0,react__WEBPACK_IMPORTED_MODULE_0__.useCallback)(() => {
     setCurrentStepIndex(csi => {
-      onDecrementStep === null || onDecrementStep === void 0 ? void 0 : onDecrementStep(csi - 1);
+      onDecrementStep?.(csi - 1);
       return csi - 1;
     });
   }, [onDecrementStep]);
 
   const partialScreenProps = _objectSpread(_objectSpread({}, 'extraScreenProps' in props ? props.extraScreenProps : {}), {}, {
     key: 'step-' + currentStepIndex,
-    hasNextScreen: hasNextScreen || (((_props$parentScreenPr = props.parentScreenProps) === null || _props$parentScreenPr === void 0 ? void 0 : _props$parentScreenPr.hasNextScreen) ?? false),
-    hasPreviousScreen: hasPreviousScreen || (((_props$parentScreenPr2 = props.parentScreenProps) === null || _props$parentScreenPr2 === void 0 ? void 0 : _props$parentScreenPr2.hasNextScreen) ?? false),
-    nextScreen: hasNextScreen ? incrementStep : (_props$parentScreenPr3 = props.parentScreenProps) !== null && _props$parentScreenPr3 !== void 0 && _props$parentScreenPr3.hasNextScreen ? props.parentScreenProps.nextScreen : undefined,
-    previousScreen: hasPreviousScreen ? decrementStep : (_props$parentScreenPr4 = props.parentScreenProps) !== null && _props$parentScreenPr4 !== void 0 && _props$parentScreenPr4.hasPreviousScreen ? props.parentScreenProps.previousScreen : undefined,
+    hasNextScreen: hasNextScreen || (props.parentScreenProps?.hasNextScreen ?? false),
+    hasPreviousScreen: hasPreviousScreen || (props.parentScreenProps?.hasNextScreen ?? false),
+    nextScreen: hasNextScreen ? incrementStep : props.parentScreenProps?.hasNextScreen ? props.parentScreenProps.nextScreen : undefined,
+    previousScreen: hasPreviousScreen ? decrementStep : props.parentScreenProps?.hasPreviousScreen ? props.parentScreenProps.previousScreen : undefined,
     skipSteps: props.parentScreenProps && props.parentScreenProps.hasNextScreen ? props.parentScreenProps.nextScreen : undefined
   });
 
@@ -2597,7 +2583,7 @@ const useSteps = props => {
 
 /***/ }),
 
-/***/ 2119:
+/***/ 8765:
 /***/ ((module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
@@ -2612,20 +2598,20 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var next_head__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(next_head__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(6689);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _components_klippy_state_badge__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(5264);
-/* harmony import */ var _components_moonraker_state_badge__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(1188);
-/* harmony import */ var _components_vertical_steps__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(2750);
+/* harmony import */ var _components_klippy_state_badge__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(1757);
+/* harmony import */ var _components_moonraker_state_badge__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(3778);
+/* harmony import */ var _components_vertical_steps__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(9968);
 /* harmony import */ var react_query__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(1175);
 /* harmony import */ var react_query__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(react_query__WEBPACK_IMPORTED_MODULE_6__);
-/* harmony import */ var _components_setup_steps_wifi_setup__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(2109);
-/* harmony import */ var _helpers_wpa_cli__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(4646);
-/* harmony import */ var _components_setup_steps_mcu_preparation__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(2821);
+/* harmony import */ var _components_setup_steps_wifi_setup__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(5473);
+/* harmony import */ var _helpers_wpa_cli__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(6631);
+/* harmony import */ var _components_setup_steps_mcu_preparation__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(7027);
 /* harmony import */ var next_router__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(1853);
 /* harmony import */ var next_router__WEBPACK_IMPORTED_MODULE_10___default = /*#__PURE__*/__webpack_require__.n(next_router__WEBPACK_IMPORTED_MODULE_10__);
-/* harmony import */ var _hooks_useSteps__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(7482);
-/* harmony import */ var _helpers_trpc__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(3729);
-/* harmony import */ var _components_setup_steps_wizard_complete__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(1717);
-/* harmony import */ var _components_common_actions_dropdown__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(9710);
+/* harmony import */ var _hooks_useSteps__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(1145);
+/* harmony import */ var _helpers_trpc__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(1095);
+/* harmony import */ var _components_setup_steps_wizard_complete__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(9292);
+/* harmony import */ var _components_common_actions_dropdown__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(358);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(997);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_15__);
 var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_components_setup_steps_wifi_setup__WEBPACK_IMPORTED_MODULE_7__, _components_setup_steps_mcu_preparation__WEBPACK_IMPORTED_MODULE_9__, _components_common_actions_dropdown__WEBPACK_IMPORTED_MODULE_14__]);
@@ -3083,7 +3069,7 @@ module.exports = import("zod");;
 var __webpack_require__ = require("../webpack-runtime.js");
 __webpack_require__.C(exports);
 var __webpack_exec__ = (moduleId) => (__webpack_require__(__webpack_require__.s = moduleId))
-var __webpack_exports__ = __webpack_require__.X(0, [286,383,246,664,62], () => (__webpack_exec__(2119)));
+var __webpack_exports__ = __webpack_require__.X(0, [115,387,836,178,335], () => (__webpack_exec__(8765)));
 module.exports = __webpack_exports__;
 
 })();

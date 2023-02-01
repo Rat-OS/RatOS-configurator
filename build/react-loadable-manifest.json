@@ -1,8 +1,8 @@
 {
-  "../node_modules/next/dist/client/index.js -> ../pages/_error": {
-    "id": 9651,
+  "../node_modules/.pnpm/next@12.2.3_sfoxds7t5ydpegc3knd667wn6m/node_modules/next/dist/client/index.js -> ../pages/_error": {
+    "id": 8368,
     "files": [
-      "static/chunks/651.412a32fde78b36e0.js"
+      "static/chunks/368.584f5471a5813c4b.js"
     ]
   }
 }

@@ -1,9 +1,9 @@
 "use strict";
-exports.id = 62;
-exports.ids = [62];
+exports.id = 335;
+exports.ids = [335];
 exports.modules = {
 
-/***/ 3062:
+/***/ 335:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
@@ -14,7 +14,7 @@ exports.modules = {
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var recoil__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(9755);
 /* harmony import */ var recoil__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(recoil__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _hooks_useMoonraker__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(3040);
+/* harmony import */ var _hooks_useMoonraker__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(6533);
 
 
 
@@ -32,7 +32,7 @@ const useKlippyStateHandler = () => {
     if (moonrakerReadyState === 1 && moonrakerQuery != null) {
       try {
         const serverInfo = await moonrakerQuery('server.info');
-        if ((serverInfo === null || serverInfo === void 0 ? void 0 : serverInfo.klippy_state) == null) return;
+        if (serverInfo?.klippy_state == null) return;
         const klippyState = serverInfo.klippy_state;
         setKlippyReadyState(klippyState);
 
@@ -54,15 +54,15 @@ const useKlippyStateHandler = () => {
     }
   }, [moonrakerReadyState, moonrakerQuery, queryKlippyState]);
   useEffect(() => {
-    if ((moonrakerMessage === null || moonrakerMessage === void 0 ? void 0 : moonrakerMessage.method) === 'notify_klippy_ready') {
+    if (moonrakerMessage?.method === 'notify_klippy_ready') {
       setKlippyReadyState('ready');
     }
 
-    if ((moonrakerMessage === null || moonrakerMessage === void 0 ? void 0 : moonrakerMessage.method) === 'notify_klippy_shutdown') {
+    if (moonrakerMessage?.method === 'notify_klippy_shutdown') {
       setKlippyReadyState('shutdown');
     }
 
-    if ((moonrakerMessage === null || moonrakerMessage === void 0 ? void 0 : moonrakerMessage.method) === 'notify_klippy_disconnected') {
+    if (moonrakerMessage?.method === 'notify_klippy_disconnected') {
       setKlippyReadyState('unknown');
       queryKlippyState();
     }
@@ -71,7 +71,7 @@ const useKlippyStateHandler = () => {
 
 /***/ }),
 
-/***/ 3040:
+/***/ 6533:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
@@ -112,7 +112,7 @@ const useMoonraker = hostname => {
     lastJsonMessage,
     sendJsonMessage,
     readyState
-  } = useWebSocket(`ws://${((hostname === null || hostname === void 0 ? void 0 : hostname.trim()) ?? '') != '' ? hostname : window.location.hostname}:7125/websocket`, {
+  } = useWebSocket(`ws://${(hostname?.trim() ?? '') != '' ? hostname : window.location.hostname}:7125/websocket`, {
     shouldReconnect: closeEvent => {
       return true;
     },
@@ -168,7 +168,7 @@ const useMoonraker = hostname => {
     }
   }, [readyState, setMoonrakerStatus, setMoonrakerReadyState]);
   useEffect(() => {
-    if (lastJsonMessage !== null && lastJsonMessage !== void 0 && lastJsonMessage.id && inFlightRequests[lastJsonMessage.id]) {
+    if (lastJsonMessage?.id && inFlightRequests[lastJsonMessage.id]) {
       window.clearTimeout(inFlightRequestTimeouts[lastJsonMessage.id]);
       inFlightRequests[lastJsonMessage.id](null, lastJsonMessage.result);
       delete inFlightRequestTimeouts[lastJsonMessage.id];

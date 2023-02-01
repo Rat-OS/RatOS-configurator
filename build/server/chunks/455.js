@@ -1,9 +1,9 @@
 "use strict";
-exports.id = 89;
-exports.ids = [89];
+exports.id = 455;
+exports.ids = [455];
 exports.modules = {
 
-/***/ 3552:
+/***/ 6030:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
@@ -15,7 +15,7 @@ exports.modules = {
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var util__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(3837);
 /* harmony import */ var util__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(util__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(9737);
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(6454);
 
 
 
@@ -29,7 +29,7 @@ const runSudoScript = async (script, ...args) => {
 
 /***/ }),
 
-/***/ 9737:
+/***/ 6454:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
@@ -42,7 +42,7 @@ const getScriptRoot = () => {
 
 /***/ }),
 
-/***/ 296:
+/***/ 6823:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
@@ -54,8 +54,8 @@ const getScriptRoot = () => {
 // src/server/router/context.ts
 
 const createContext = opts => {
-  const req = opts === null || opts === void 0 ? void 0 : opts.req;
-  const res = opts === null || opts === void 0 ? void 0 : opts.res;
+  const req = opts?.req;
+  const res = opts?.res;
   const boards = null;
   const board = null;
   return {
@@ -69,7 +69,7 @@ const createRouter = () => _trpc_server__WEBPACK_IMPORTED_MODULE_0__.router();
 
 /***/ }),
 
-/***/ 5089:
+/***/ 8455:
 /***/ ((module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
@@ -87,11 +87,11 @@ __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __we
 /* harmony import */ var child_process__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(child_process__WEBPACK_IMPORTED_MODULE_3__);
 /* harmony import */ var util__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(3837);
 /* harmony import */ var util__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(util__WEBPACK_IMPORTED_MODULE_4__);
-/* harmony import */ var _context__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(296);
-/* harmony import */ var _helpers_util__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(9737);
+/* harmony import */ var _context__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(6823);
+/* harmony import */ var _helpers_util__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(6454);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(1017);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_6__);
-/* harmony import */ var _helpers_run_script__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(3552);
+/* harmony import */ var _helpers_run_script__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(6030);
 var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([zod__WEBPACK_IMPORTED_MODULE_0__]);
 zod__WEBPACK_IMPORTED_MODULE_0__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__)[0];
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
@@ -161,7 +161,7 @@ const mcuRouter = (0,_context__WEBPACK_IMPORTED_MODULE_5__/* .createRouter */ .p
   try {
     boards = await getBoards();
 
-    if ((meta === null || meta === void 0 ? void 0 : meta.includeHost) !== true) {
+    if (meta?.includeHost !== true) {
       boards = getBoardsWithoutHost(boards);
     }
   } catch (e) {
@@ -175,7 +175,7 @@ const mcuRouter = (0,_context__WEBPACK_IMPORTED_MODULE_5__/* .createRouter */ .p
   let board = null;
   const boardPath = inputSchema.safeParse(rawInput);
 
-  if (meta !== null && meta !== void 0 && meta.boardRequired && !boardPath.success) {
+  if (meta?.boardRequired && !boardPath.success) {
     throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
       code: 'PRECONDITION_FAILED',
       message: `boardPath parameter missing.`
@@ -237,8 +237,6 @@ const mcuRouter = (0,_context__WEBPACK_IMPORTED_MODULE_5__/* .createRouter */ .p
     ctx,
     input
   }) => {
-    var _version$stdout$match;
-
     if (ctx.board == null) {
       throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
         code: 'PRECONDITION_FAILED',
@@ -294,7 +292,7 @@ const mcuRouter = (0,_context__WEBPACK_IMPORTED_MODULE_5__/* .createRouter */ .p
 
     const versionRegEx = /Version:\s(v\d+\.\d+\.\d+-\d+-\w{9})/;
     console.log(version.stdout.match(versionRegEx));
-    return (_version$stdout$match = version.stdout.match(versionRegEx)) === null || _version$stdout$match === void 0 ? void 0 : _version$stdout$match[1];
+    return version.stdout.match(versionRegEx)?.[1];
   }
 }).mutation('compile', {
   meta: {
@@ -419,12 +417,10 @@ const mcuRouter = (0,_context__WEBPACK_IMPORTED_MODULE_5__/* .createRouter */ .p
       const compileScript = path__WEBPACK_IMPORTED_MODULE_6___default().join(ctx.board.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''), ctx.board.compileScript);
       compileResult = await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_7__/* .runSudoScript */ .$)('board-script.sh', compileScript);
     } catch (e) {
-      var _compileResult;
-
       const message = e instanceof Error ? e.message : e;
       throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: `Could not compile firmware for ${ctx.board.name}: ${((_compileResult = compileResult) === null || _compileResult === void 0 ? void 0 : _compileResult.stdout) ?? message}'}`,
+        message: `Could not compile firmware for ${ctx.board.name}: ${compileResult?.stdout ?? message}'}`,
         cause: e
       });
     }
@@ -442,12 +438,10 @@ const mcuRouter = (0,_context__WEBPACK_IMPORTED_MODULE_5__/* .createRouter */ .p
       const flashScript = path__WEBPACK_IMPORTED_MODULE_6___default().join(ctx.board.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''), ctx.board.flashScript);
       flashResult = await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_7__/* .runSudoScript */ .$)('board-script.sh', flashScript);
     } catch (e) {
-      var _flashResult;
-
       const message = e instanceof Error ? e.message : e;
       throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: `Could not flash firmware to ${ctx.board.name}: ${((_flashResult = flashResult) === null || _flashResult === void 0 ? void 0 : _flashResult.stdout) ?? message}'}`,
+        message: `Could not flash firmware to ${ctx.board.name}: ${flashResult?.stdout ?? message}'}`,
         cause: e
       });
     }

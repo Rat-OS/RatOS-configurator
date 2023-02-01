@@ -54,7 +54,7 @@ module.exports = require("util");
 
 /***/ }),
 
-/***/ 829:
+/***/ 4369:
 /***/ ((module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
@@ -68,7 +68,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var util__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(util__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(1017);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _server_router_mcu__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(5089);
+/* harmony import */ var _server_router_mcu__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(8455);
 /* harmony import */ var file_type__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(4475);
 var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_server_router_mcu__WEBPACK_IMPORTED_MODULE_3__, file_type__WEBPACK_IMPORTED_MODULE_4__]);
 ([_server_router_mcu__WEBPACK_IMPORTED_MODULE_3__, file_type__WEBPACK_IMPORTED_MODULE_4__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
@@ -112,10 +112,8 @@ async function handler(req, res) {
     const firmwarePath = path__WEBPACK_IMPORTED_MODULE_2___default().join(process.env.RATOS_CONFIGURATION_PATH, '..', 'firmware_binaries', board.firmwareBinaryName);
 
     try {
-      var _await$fileTypeFromFi;
-
       const buf = await (0,util__WEBPACK_IMPORTED_MODULE_1__.promisify)((fs__WEBPACK_IMPORTED_MODULE_0___default().readFile))(firmwarePath);
-      res.setHeader('Content-Type', ((_await$fileTypeFromFi = await (0,file_type__WEBPACK_IMPORTED_MODULE_4__.fileTypeFromFile)(firmwarePath)) === null || _await$fileTypeFromFi === void 0 ? void 0 : _await$fileTypeFromFi.mime) ?? 'application/octet-stream');
+      res.setHeader('Content-Type', (await (0,file_type__WEBPACK_IMPORTED_MODULE_4__.fileTypeFromFile)(firmwarePath))?.mime ?? 'application/octet-stream');
       res.setHeader('Content-Disposition', `attachment; filename=firmware.bin`);
       return res.status(200).send(buf);
     } catch (e) {
@@ -140,7 +138,7 @@ __webpack_async_result__();
 var __webpack_require__ = require("../../webpack-api-runtime.js");
 __webpack_require__.C(exports);
 var __webpack_exec__ = (moduleId) => (__webpack_require__(__webpack_require__.s = moduleId))
-var __webpack_exports__ = __webpack_require__.X(0, [89], () => (__webpack_exec__(829)));
+var __webpack_exports__ = __webpack_require__.X(0, [455], () => (__webpack_exec__(4369)));
 module.exports = __webpack_exports__;
 
 })();
