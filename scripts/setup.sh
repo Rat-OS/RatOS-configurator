@@ -89,6 +89,7 @@ verify_ready
 verify_users
 install_hooks
 ensure_sudo_command_whitelisting
-yarn_install
+ensure_pnpm_installation
+pnpm_install
 disable_telemetry
 install_service
