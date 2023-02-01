@@ -15,13 +15,9 @@ refresh_yarn_gpg_key()
     curl -sSL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | tee /usr/share/keyrings/yarnkey.gpg >/dev/null
 }
 
-# Force script to exit if an error occurs
-set -e
-
 verify_ready
 verify_users
 install_hooks
 ensure_sudo_command_whitelisting
-refresh_yarn_gpg_key
 ensure_pnpm_installation
 pnpm_install
