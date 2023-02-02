@@ -20,8 +20,8 @@ install_service()
         # Create systemd service file
     SERVICE_FILE="/etc/systemd/system/ratos-configurator.service"
     report_status "Installing RatOS system start script..."
-    groupadd -f ratos-configurator
-    /bin/sh -c "cat > ${SERVICE_FILE}" << __EOF
+    sudo groupadd -f ratos-configurator
+    sudo /bin/sh -c "cat > ${SERVICE_FILE}" << __EOF
 #### RatOS-configurator - Systemd service file
 ####
 #### Written by Mikkel Schmidt <mikkel.schmidt@gmail.com>
@@ -42,22 +42,22 @@ User=$USER
 SupplementaryGroups=ratos-configurator
 RemainAfterExit=yes
 WorkingDirectory=${SRC_DIR}
-ExecStart=npm start
+ExecStart=yarn start
 Restart=always
 RestartSec=10
 StandardOutput=append:/var/log/ratos-configurator.log
 StandardError=append:/var/log/ratos-configurator.log
 __EOF
     # Enable the ratos configurator systemd service script
-    systemctl enable ratos-configurator.service
-    systemctl daemon-reload
+    sudo systemctl enable ratos-configurator.service
+    sudo systemctl daemon-reload
 }
 
 install_logrotation() {
     LOGROTATE_FILE="/etc/logrotate.d/ratos-configurator"
     LOGFILE="/home/${USER}/printer_data/logs/configurator.log"
     report_status "Installing RatOS log rotation script..."
-    /bin/sh -c "cat > ${LOGROTATE_FILE}" << __EOF
+    sudo /bin/sh -c "cat > ${LOGROTATE_FILE}" << __EOF
 #### RatOS-configurator
 ####
 #### Written by Mikkel Schmidt <mikkel.schmidt@gmail.com>
