@@ -15,8 +15,9 @@ report_status()
 }
 
 pnpm_install() {
-    pushd "$SCRIPT_DIR/.." || exit 1
+    pushd "$SRC_DIR" || exit 1
     pnpm install
+	chmod a+rx -R "$SRC_DIR/node_modules"
     popd || exit 1
 }
 
