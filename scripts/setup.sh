@@ -5,7 +5,7 @@ source $SCRIPT_DIR/common.sh
 verify_ready()
 {
     if [ "$EUID" -eq 0 ]; then
-        echo "This script must not run as root"
+        echo "This script must run as root"
         exit -1
     fi
 }
@@ -20,8 +20,8 @@ install_service()
         # Create systemd service file
     SERVICE_FILE="/etc/systemd/system/ratos-configurator.service"
     report_status "Installing RatOS system start script..."
-    sudo groupadd -f ratos-configurator
-    sudo /bin/sh -c "cat > ${SERVICE_FILE}" << __EOF
+    groupadd -f ratos-configurator
+    /bin/sh -c "cat > ${SERVICE_FILE}" << __EOF
 #### RatOS-configurator - Systemd service file
 ####
 #### Written by Mikkel Schmidt <mikkel.schmidt@gmail.com>
@@ -49,15 +49,15 @@ StandardOutput=append:/var/log/ratos-configurator.log
 StandardError=append:/var/log/ratos-configurator.log
 __EOF
     # Enable the ratos configurator systemd service script
-    sudo systemctl enable ratos-configurator.service
-    sudo systemctl daemon-reload
+    systemctl enable ratos-configurator.service
+    systemctl daemon-reload
 }
 
 install_logrotation() {
     LOGROTATE_FILE="/etc/logrotate.d/ratos-configurator"
     LOGFILE="/home/${USER}/printer_data/logs/configurator.log"
     report_status "Installing RatOS log rotation script..."
-    sudo /bin/sh -c "cat > ${LOGROTATE_FILE}" << __EOF
+    /bin/sh -c "cat > ${LOGROTATE_FILE}" << __EOF
 #### RatOS-configurator
 ####
 #### Written by Mikkel Schmidt <mikkel.schmidt@gmail.com>
