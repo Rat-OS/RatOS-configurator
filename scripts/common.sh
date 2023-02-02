@@ -7,7 +7,6 @@ if echo "$SCRIPT_DIR" | grep "/src/" > /dev/null; then
 fi
 SRC_DIR=$(realpath "$SCRIPT_DIR/..")
 GIT_DIR=$(realpath "$GIT_DIR")
-source /root/.bashrc
 
 report_status()
 {
@@ -17,15 +16,13 @@ report_status()
 pnpm_install() {
     pushd "$SRC_DIR" || exit 1
     pnpm install
-	chmod a+rx -R "$SRC_DIR/node_modules"
     popd || exit 1
 }
 
 ensure_pnpm_installation() {
 	if ! which pnpm &> /dev/null; then
 		report_status "Installing pnpm"
-		curl -fsSL https://get.pnpm.io/install.sh | sh -
-		source /root/.bashrc
+		npm install -g pnpm
 		# remove old node modules
 		rm -rf "$SRC_DIR/node_modules"
 		pnpm_install
