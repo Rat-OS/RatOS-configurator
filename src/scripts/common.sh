@@ -1,14 +1,13 @@
 #!/usr/bin/env bash
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 GIT_DIR=$SCRIPT_DIR/../.git
-echo $SCRIPT_DIR | grep "/src/" > /dev/null
-if [ $? -eq 0 ]; then
+if echo "$SCRIPT_DIR" | grep "/src/" > /dev/null; then
 	# in the deployment branch src is the root. In main src is a subdirectory.
 	GIT_DIR=$SCRIPT_DIR/../../.git
 fi
 SRC_DIR=$(realpath "$SCRIPT_DIR/..")
-GIT_DIR=$(realpath $GIT_DIR)
-source ~/.bashrc
+GIT_DIR=$(realpath "$GIT_DIR")
+source /root/.bashrc
 
 report_status()
 {
@@ -16,34 +15,34 @@ report_status()
 }
 
 pnpm_install() {
-    pushd $SCRIPT_DIR/..
+    pushd "$SCRIPT_DIR/.." || exit 1
     pnpm install
-    popd
+    popd || exit 1
 }
 
 ensure_pnpm_installation() {
 	if ! which pnpm &> /dev/null; then
 		report_status "Installing pnpm"
 		curl -fsSL https://get.pnpm.io/install.sh | sh -
-		source ~/.bashrc
+		source /root/.bashrc
 		# remove old node modules
-		rm -rf $SRC_DIR/node_modules
+		rm -rf "$SRC_DIR/node_modules"
 		pnpm_install
 	fi
 }
 
 
 build() {
-	pushd $SCRIPT_DIR/..
+    pushd "$SCRIPT_DIR/.." || exit 1
 	pnpm build
-	popd
+	popd || exit 1
 }
 
 install_hooks()
 {
     report_status "Installing git hooks"
-	if [ ! -L $GIT_DIR/hooks/post-merge ]; then
- 	   ln -s $SCRIPT_DIR/post-merge.sh $GIT_DIR/hooks/post-merge
+	if [ ! -L "$GIT_DIR/hooks/post-merge" ]; then
+ 	   ln -s "$SCRIPT_DIR/post-merge.sh" "$GIT_DIR/hooks/post-merge"
 	fi
 }
 
@@ -51,7 +50,7 @@ verify_users()
 {
 	if ! id "pi" &>/dev/null; then
 		echo "User pi is not present on the system"
-		exit -1
+		exit 1
 	fi
 }
 
