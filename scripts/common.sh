@@ -8,6 +8,7 @@ if [ $? -eq 0 ]; then
 fi
 SRC_DIR=$(realpath "$SCRIPT_DIR/..")
 GIT_DIR=$(realpath $GIT_DIR)
+source ~/.bashrc
 
 report_status()
 {
