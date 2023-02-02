@@ -4,7 +4,7 @@ source $SCRIPT_DIR/common.sh
 
 verify_ready()
 {
-    if [ "$EUID" -eq 0 ]; then
+    if [ ! "$EUID" -eq 0 ]; then
         echo "This script must run as root"
         exit -1
     fi
