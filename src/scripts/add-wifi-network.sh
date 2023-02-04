@@ -75,3 +75,35 @@ update_config=1
 __EOF
 
 # autohotspotN
+
+function get_board {
+    cat /etc/board-release | grep BOARD_NAME | cut -d '=' -f2
+}
+
+#CB1
+if [[ -e /etc/board-release && $(get_board) = '"BTT-CB1"' ]]
+then
+  cat << __EOF > /boot/system.cfg
+#-----------------------------------------#
+check_interval=5        # Cycle to detect whether wifi is connected, time 5s
+router_ip=8.8.8.8       # Reference DNS, used to detect network connections
+
+eth=eth0        # Ethernet card device number
+wlan=wlan0      # Wireless NIC device number
+
+###########################################
+# wifi name
+#WIFI_SSID="ZYIPTest"
+# wifi password
+#WIFI_PASSWD="12345678"
+
+###########################################
+WIFI_AP="false"             # Whether to open wifi AP mode, default off
+WIFI_AP_SSID="rtl8189"      # Hotspot name created by wifi AP mode
+WIFI_AP_PASSWD="12345678"   # wifi AP mode to create hotspot connection password
+
+# Supplied by RatOS Configurator
+WIFI_SSID="$1"
+WIFI_PASSWD="$2"
+__EOF
+fi
