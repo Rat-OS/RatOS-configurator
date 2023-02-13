@@ -76,12 +76,12 @@ __EOF
 
 # autohotspotN
 
-function get_board {
+function get_sbc  {
     cat /etc/board-release | grep BOARD_NAME | cut -d '=' -f2
 }
 
 #CB1
-if [[ -e /etc/board-release && $(get_board) = '"BTT-CB1"' ]]
+if [[ -e /etc/board-release && $(get_sbc ) = '"BTT-CB1"' ]]
 then
   cat << __EOF > /boot/system.cfg
 #-----------------------------------------#
