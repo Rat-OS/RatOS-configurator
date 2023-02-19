@@ -9,6 +9,7 @@ const klippyExtension = z.object({
 	fileName: z.string(),
 	path: z.string(),
 	extensionName: z.string(),
+	errorIfExists: z.boolean().optional(),
 });
 const klippyExtensions = z.array(klippyExtension);
 
@@ -53,11 +54,15 @@ export const klippyExtensionsRouter = trpc
 				});
 			}
 			if (currentExtensions.find((ext) => ext.fileName === input.fileName)) {
-				getLogger().error(`An extension with the fileName "${input.fileName}" is already registered`);
-				throw new TRPCError({
-					message: `An extension with the fileName "${input.fileName}" is already registered`,
-					code: 'PRECONDITION_FAILED',
-				});
+				if (input.errorIfExists === true) {
+					getLogger().error(`An extension with the fileName "${input.fileName}" is already registered`);
+					throw new TRPCError({
+						message: `An extension with the fileName "${input.fileName}" is already registered`,
+						code: 'PRECONDITION_FAILED',
+					});
+				}
+				getLogger().warn(`An extension with the fileName "${input.fileName}" is already registered, ignoring...`);
+				return true;
 			}
 			currentExtensions.push(input);
 			saveExtensions(currentExtensions);
