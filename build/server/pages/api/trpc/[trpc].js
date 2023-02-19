@@ -471,7 +471,8 @@ zod__WEBPACK_IMPORTED_MODULE_0__ = (__webpack_async_dependencies__.then ? (await
 const klippyExtension = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
   fileName: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
   path: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
-  extensionName: zod__WEBPACK_IMPORTED_MODULE_0__.z.string()
+  extensionName: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+  errorIfExists: zod__WEBPACK_IMPORTED_MODULE_0__.z.boolean().optional()
 });
 const klippyExtensions = zod__WEBPACK_IMPORTED_MODULE_0__.z.array(klippyExtension);
 
@@ -525,11 +526,16 @@ const klippyExtensionsRouter = _trpc_server__WEBPACK_IMPORTED_MODULE_1__.router(
     }
 
     if (currentExtensions.find(ext => ext.fileName === input.fileName)) {
-      (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__/* .getLogger */ .j)().error(`An extension with the fileName "${input.fileName}" is already registered`);
-      throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
-        message: `An extension with the fileName "${input.fileName}" is already registered`,
-        code: 'PRECONDITION_FAILED'
-      });
+      if (input.errorIfExists === true) {
+        (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__/* .getLogger */ .j)().error(`An extension with the fileName "${input.fileName}" is already registered`);
+        throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
+          message: `An extension with the fileName "${input.fileName}" is already registered`,
+          code: 'PRECONDITION_FAILED'
+        });
+      }
+
+      (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__/* .getLogger */ .j)().warn(`An extension with the fileName "${input.fileName}" is already registered, ignoring...`);
+      return true;
     }
 
     currentExtensions.push(input);
@@ -624,7 +630,8 @@ zod__WEBPACK_IMPORTED_MODULE_0__ = (__webpack_async_dependencies__.then ? (await
 const moonrakerExtension = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
   fileName: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
   path: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
-  extensionName: zod__WEBPACK_IMPORTED_MODULE_0__.z.string()
+  extensionName: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+  errorIfExists: zod__WEBPACK_IMPORTED_MODULE_0__.z.boolean().optional()
 });
 const moonrakerExtensions = zod__WEBPACK_IMPORTED_MODULE_0__.z.array(moonrakerExtension);
 
@@ -678,11 +685,16 @@ const moonrakerExtensionsRouter = _trpc_server__WEBPACK_IMPORTED_MODULE_1__.rout
     }
 
     if (currentExtensions.find(ext => ext.fileName === input.fileName)) {
-      (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__/* .getLogger */ .j)().error(`An extension with the fileName "${input.fileName}" is already registered`);
-      throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
-        message: `An extension with the fileName "${input.fileName}" is already registered`,
-        code: 'PRECONDITION_FAILED'
-      });
+      if (input.errorIfExists === true) {
+        (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__/* .getLogger */ .j)().error(`An extension with the fileName "${input.fileName}" is already registered`);
+        throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
+          message: `An extension with the fileName "${input.fileName}" is already registered`,
+          code: 'PRECONDITION_FAILED'
+        });
+      }
+
+      (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__/* .getLogger */ .j)().warn(`An extension with the fileName "${input.fileName}" is already registered, ignoring...`);
+      return true;
     }
 
     currentExtensions.push(input);
