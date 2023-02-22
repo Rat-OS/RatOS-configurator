@@ -106,4 +106,6 @@ WIFI_AP_PASSWD="12345678"   # wifi AP mode to create hotspot connection password
 WIFI_SSID="$1"
 WIFI_PASSWD="$2"
 __EOF
+
+systemctl disable create_ap
 fi
