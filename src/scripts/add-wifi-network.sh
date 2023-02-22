@@ -102,6 +102,17 @@ WIFI_AP="false"             # Whether to open wifi AP mode, default off
 WIFI_AP_SSID="rtl8189"      # Hotspot name created by wifi AP mode
 WIFI_AP_PASSWD="12345678"   # wifi AP mode to create hotspot connection password
 
+###########################################
+# BTT-PAD7 (ON/OFF)
+BTT_PAD7="OFF"
+# touch vibration effects
+TOUCH_VIBRATION="OFF"
+# touch sound effects
+TOUCH_SOUND="OFF"
+# Automatic brightness adjustment
+AUTO_BRIGHTNESS="OFF"
+###########################################
+
 # Supplied by RatOS Configurator
 WIFI_SSID="$1"
 WIFI_PASSWD="$2"
