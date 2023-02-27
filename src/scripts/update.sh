@@ -18,6 +18,7 @@ refresh_yarn_gpg_key()
 verify_ready
 verify_users
 install_hooks
+ensure_service_permission
 ensure_sudo_command_whitelisting
 ensure_pnpm_installation
 pnpm_install
