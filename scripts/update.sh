@@ -23,4 +23,5 @@ verify_users
 install_hooks
 ensure_sudo_command_whitelisting
 refresh_yarn_gpg_key
+ensure_service_permission
 yarn_install
