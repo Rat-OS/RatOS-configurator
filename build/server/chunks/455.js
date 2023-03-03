@@ -13,17 +13,53 @@ exports.modules = {
 /* harmony import */ var child_process__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(child_process__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1017);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var util__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(3837);
-/* harmony import */ var util__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(util__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(6454);
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(6454);
 
 
 
+const runSudoScript = (script, ...args) => {
+  const scriptRoot = (0,_util__WEBPACK_IMPORTED_MODULE_2__/* .getScriptRoot */ .x)();
+  return new Promise((resolve, reject) => {
+    try {
+      const child = (0,child_process__WEBPACK_IMPORTED_MODULE_0__.spawn)('sudo', [path__WEBPACK_IMPORTED_MODULE_1___default().join(scriptRoot, script), ...args]);
+      let stdout = '';
+      let stderr = '';
+      child.stdout.on('data', data => {
+        stdout += data;
+      });
+      child.stderr.on('data', data => {
+        stderr += data;
+      });
+      child.on('error', err => {
+        reject(err);
+      });
+      child.on('exit', code => {
+        if (code === 0) {
+          resolve({
+            stdout,
+            stderr
+          });
+        } else {
+          reject('An error occured while attempting to run script');
+        }
+      });
+      child.on('close', code => {
+        if (code === 0) {
+          resolve({
+            stderr,
+            stdout
+          });
+        } else {
+          reject(stderr);
+        }
+      });
+    } catch (e) {
+      if (e instanceof Error) {
+        return reject(e.message);
+      }
 
-const runSudoScript = async (script, ...args) => {
-  const scriptRoot = (0,_util__WEBPACK_IMPORTED_MODULE_3__/* .getScriptRoot */ .x)();
-  return await (0,util__WEBPACK_IMPORTED_MODULE_2__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_0__.exec)(`sudo ${path__WEBPACK_IMPORTED_MODULE_1___default().join(scriptRoot, script)} ${args.join(' ')}`, {
-    env: process.env
+      reject('An error occured while attempting to run script');
+    }
   });
 };
 

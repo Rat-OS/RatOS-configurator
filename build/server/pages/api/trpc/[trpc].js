@@ -794,11 +794,6 @@ _helpers_validators_wifi__WEBPACK_IMPORTED_MODULE_5__ = (__webpack_async_depende
 
 
 
-
-const sanitizeForBash = str => {
-  return str.replace(/(["'$`\\])/g, '\\$1');
-};
-
 const wifiRouter = _trpc_server__WEBPACK_IMPORTED_MODULE_0__.router().mutation('hostname', {
   input: _helpers_validators_wifi__WEBPACK_IMPORTED_MODULE_5__/* .hostnameInput */ .k,
   resolve: async ({
@@ -830,7 +825,7 @@ const wifiRouter = _trpc_server__WEBPACK_IMPORTED_MODULE_0__.router().mutation('
     input
   }) => {
     try {
-      await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_7__/* .runSudoScript */ .$)('add-wifi-network.sh', `"${sanitizeForBash(input.ssid)}"`, `"${sanitizeForBash(input.passphrase)}"`, `"${sanitizeForBash(input.country ?? 'GB')}"`);
+      await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_7__/* .runSudoScript */ .$)('add-wifi-network.sh', input.ssid, input.passphrase, input.country ?? 'GB');
     } catch (e) {
       if (e instanceof Error) {
         (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_6__/* .getLogger */ .j)().error(e.message);
