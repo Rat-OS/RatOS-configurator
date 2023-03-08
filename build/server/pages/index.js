@@ -1237,19 +1237,7 @@ const MCUFlashing = props => {
   }, [flashViaPath, firstBoard.path]);
   let content = null;
 
-  if (isBoardVersionLoading && !mcuBoardVersion.isIdle) {
-    content = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)(react__WEBPACK_IMPORTED_MODULE_1__.Fragment, {
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("h3", {
-        className: "text-xl font-medium text-gray-900",
-        children: [/*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx(_spinner__WEBPACK_IMPORTED_MODULE_6__/* .Spinner */ .$, {
-          className: "inline relative -top-0.5 mr-2",
-          noMargin: true
-        }), " ", firstBoard.name, " detected, checking version..."]
-      }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx("p", {
-        children: "Please wait while RatOS queries your board.."
-      })]
-    });
-  } else if (mcuBoardVersion.error) {
+  if (mcuBoardVersion.error) {
     content = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)(react__WEBPACK_IMPORTED_MODULE_1__.Fragment, {
       children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("h3", {
         className: "text-xl font-medium text-gray-900",
@@ -1265,6 +1253,18 @@ const MCUFlashing = props => {
             className: "h-5 w-5 inline"
           })]
         })
+      })]
+    });
+  } else if (isBoardVersionLoading && !mcuBoardVersion.isIdle) {
+    content = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)(react__WEBPACK_IMPORTED_MODULE_1__.Fragment, {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("h3", {
+        className: "text-xl font-medium text-gray-900",
+        children: [/*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx(_spinner__WEBPACK_IMPORTED_MODULE_6__/* .Spinner */ .$, {
+          className: "inline relative -top-0.5 mr-2",
+          noMargin: true
+        }), " ", firstBoard.name, " detected, checking version..."]
+      }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx("p", {
+        children: "Please wait while RatOS queries your board.."
       })]
     });
   } else if (boardVersion || isBoardDetected && !forceReflash) {
