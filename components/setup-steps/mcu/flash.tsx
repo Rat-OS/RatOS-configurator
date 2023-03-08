@@ -59,7 +59,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 	}, [flashViaPath, firstBoard.path]);
 
 	let content = null;
-	if (mcuBoardVersion.error) {
+	if (mcuBoardVersion.error && !forceReflash) {
 		content = (
 			<Fragment>
 				<h3 className="text-xl font-medium text-gray-900">{firstBoard.name} detected but is unresponsive.</h3>

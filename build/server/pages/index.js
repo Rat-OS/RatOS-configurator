@@ -1237,7 +1237,7 @@ const MCUFlashing = props => {
   }, [flashViaPath, firstBoard.path]);
   let content = null;
 
-  if (mcuBoardVersion.error) {
+  if (mcuBoardVersion.error && !forceReflash) {
     content = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)(react__WEBPACK_IMPORTED_MODULE_1__.Fragment, {
       children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("h3", {
         className: "text-xl font-medium text-gray-900",
