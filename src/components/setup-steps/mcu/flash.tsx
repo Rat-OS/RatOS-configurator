@@ -45,7 +45,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 	let rightButton: StepNavButton = {
 		onClick: props.nextScreen,
 		label: 'Next',
-		disabled: !isBoardDetected || forceReflash,
+		disabled: !isBoardDetected || !!mcuBoardVersion.error || forceReflash,
 	};
 	let leftButton: StepNavButton = {
 		onClick: props.previousScreen,
