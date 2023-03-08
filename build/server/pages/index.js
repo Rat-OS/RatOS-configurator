@@ -1223,7 +1223,7 @@ const MCUFlashing = props => {
   let rightButton = {
     onClick: props.nextScreen,
     label: 'Next',
-    disabled: !isBoardDetected || forceReflash
+    disabled: !isBoardDetected || !!mcuBoardVersion.error || forceReflash
   };
   let leftButton = {
     onClick: props.previousScreen
