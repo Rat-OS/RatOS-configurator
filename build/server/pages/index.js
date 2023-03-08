@@ -1215,7 +1215,6 @@ const MCUFlashing = props => {
     onSuccess: () => setForceReflash(false)
   });
   const reflash = (0,react__WEBPACK_IMPORTED_MODULE_1__.useCallback)(() => {
-    console.log('reflash!');
     setFlashStrategy(null);
     setForceReflash(true);
     mcuDetect.remove();
@@ -1248,6 +1247,24 @@ const MCUFlashing = props => {
         }), " ", firstBoard.name, " detected, checking version..."]
       }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx("p", {
         children: "Please wait while RatOS queries your board.."
+      })]
+    });
+  } else if (mcuBoardVersion.error) {
+    content = /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)(react__WEBPACK_IMPORTED_MODULE_1__.Fragment, {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("h3", {
+        className: "text-xl font-medium text-gray-900",
+        children: [firstBoard.name, " detected but is unresponsive."]
+      }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx("p", {
+        children: "Klipper doesn't seem to be running on your board, which may indicate faulty firmware or a faulty board. Please check your board and try flashing it again."
+      }), /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx("p", {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("button", {
+          color: "gray",
+          className: "text-brand-700 hover:text-brand-600",
+          onClick: reflash,
+          children: ["flash again ", /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx(_heroicons_react_24_outline__WEBPACK_IMPORTED_MODULE_0__.ArrowPathIcon, {
+            className: "h-5 w-5 inline"
+          })]
+        })
       })]
     });
   } else if (boardVersion || isBoardDetected && !forceReflash) {

@@ -14,25 +14,28 @@ import { SDCardFlashing } from './sd-card-flash';
 export const MCUFlashing = (props: MCUStepScreenProps) => {
 	const [forceReflash, setForceReflash] = useState(false);
 	const [flashStrategy, setFlashStrategy] = useState<null | 'dfu' | 'sdcard' | 'path'>(null);
-	const { data: isBoardDetected, ...mcuDetect } = trpc.useQuery(['mcu.detect', { boardPath: props.selectedBoards[0].board.path }], {
-		refetchInterval: 1000,
-	});
-	const { data: boardVersion, isLoading: isBoardVersionLoading, ...mcuBoardVersion } = trpc.useQuery(
-		['mcu.board-version', { boardPath: props.selectedBoards[0].board.path }],
+	const { data: isBoardDetected, ...mcuDetect } = trpc.useQuery(
+		['mcu.detect', { boardPath: props.selectedBoards[0].board.path }],
 		{
-			enabled: !!isBoardDetected && forceReflash === false,
-			refetchOnWindowFocus: false,
-			refetchOnMount: false,
-			refetchOnReconnect: false,
+			refetchInterval: 1000,
 		},
 	);
+	const {
+		data: boardVersion,
+		isLoading: isBoardVersionLoading,
+		...mcuBoardVersion
+	} = trpc.useQuery(['mcu.board-version', { boardPath: props.selectedBoards[0].board.path }], {
+		enabled: !!isBoardDetected && forceReflash === false,
+		refetchOnWindowFocus: false,
+		refetchOnMount: false,
+		refetchOnReconnect: false,
+	});
 	const { data: klipperVersion } = trpc.useQuery(['klipper-version'], {
 		refetchInterval: 60000,
 	});
 	const flashViaPath = trpc.useMutation('mcu.flash-via-path', { onSuccess: () => setForceReflash(false) });
 
 	const reflash = useCallback(() => {
-		console.log('reflash!');
 		setFlashStrategy(null);
 		setForceReflash(true);
 		mcuDetect.remove();
@@ -61,14 +64,28 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 		content = (
 			<Fragment>
 				<h3 className="text-xl font-medium text-gray-900">
-					<Spinner className='inline relative -top-0.5 mr-2' noMargin={true} /> {firstBoard.name} detected, checking version...
+					<Spinner className="inline relative -top-0.5 mr-2" noMargin={true} /> {firstBoard.name} detected, checking
+					version...
 				</h3>
+				<p>Please wait while RatOS queries your board..</p>
+			</Fragment>
+		);
+	} else if (mcuBoardVersion.error) {
+		content = (
+			<Fragment>
+				<h3 className="text-xl font-medium text-gray-900">{firstBoard.name} detected but is unresponsive.</h3>
 				<p>
-					Please wait while RatOS queries your board..
+					Klipper doesn't seem to be running on your board, which may indicate faulty firmware or a faulty board. Please
+					check your board and try flashing it again.
+				</p>
+				<p>
+					<button color="gray" className="text-brand-700 hover:text-brand-600" onClick={reflash}>
+						flash again <ArrowPathIcon className="h-5 w-5 inline" />
+					</button>
 				</p>
 			</Fragment>
 		);
-	} else if (boardVersion || isBoardDetected && !forceReflash) {
+	} else if (boardVersion || (isBoardDetected && !forceReflash)) {
 		const jumperReminder =
 			flashStrategy === 'dfu' && firstBoard.dfu?.reminder ? (
 				<InfoMessage title="Reminder">{firstBoard.dfu?.reminder}</InfoMessage>
