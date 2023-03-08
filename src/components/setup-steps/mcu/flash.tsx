@@ -59,18 +59,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 	}, [flashViaPath, firstBoard.path]);
 
 	let content = null;
-
-	if (isBoardVersionLoading && !mcuBoardVersion.isIdle) {
-		content = (
-			<Fragment>
-				<h3 className="text-xl font-medium text-gray-900">
-					<Spinner className="inline relative -top-0.5 mr-2" noMargin={true} /> {firstBoard.name} detected, checking
-					version...
-				</h3>
-				<p>Please wait while RatOS queries your board..</p>
-			</Fragment>
-		);
-	} else if (mcuBoardVersion.error) {
+	if (mcuBoardVersion.error) {
 		content = (
 			<Fragment>
 				<h3 className="text-xl font-medium text-gray-900">{firstBoard.name} detected but is unresponsive.</h3>
@@ -83,6 +72,16 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 						flash again <ArrowPathIcon className="h-5 w-5 inline" />
 					</button>
 				</p>
+			</Fragment>
+		);
+	} else if (isBoardVersionLoading && !mcuBoardVersion.isIdle) {
+		content = (
+			<Fragment>
+				<h3 className="text-xl font-medium text-gray-900">
+					<Spinner className="inline relative -top-0.5 mr-2" noMargin={true} /> {firstBoard.name} detected, checking
+					version...
+				</h3>
+				<p>Please wait while RatOS queries your board..</p>
 			</Fragment>
 		);
 	} else if (boardVersion || (isBoardDetected && !forceReflash)) {
