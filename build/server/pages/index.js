@@ -948,7 +948,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 const MCUSteps = [{
   id: '01',
   name: screenProps => screenProps.toolboards ? 'Toolboard' : 'Control board',
-  description: screenProps => `Pick your ${screenProps.toolboards ? 'toolboard' : 'control board. If you also use a toolboard, you can add that later.'}`,
+  description: screenProps => `Pick your ${screenProps.toolboards ? `toolboard. If you don't use a toolboard you can skip this step.` : 'control board. If you also use a toolboard, you can add that later.'}`,
   href: '#',
   renderScreen: screenProps => /*#__PURE__*/react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx(_mcu_pick__WEBPACK_IMPORTED_MODULE_9__/* .MCUPicker */ .M, _objectSpread({}, screenProps))
 }, {
