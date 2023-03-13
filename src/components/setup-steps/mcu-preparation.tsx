@@ -34,7 +34,9 @@ const MCUSteps: StepScreen<ExtraStepProps>[] = [
 		name: (screenProps) => (screenProps.toolboards ? 'Toolboard' : 'Control board'),
 		description: (screenProps) =>
 			`Pick your ${
-				screenProps.toolboards ? 'toolboard' : 'control board. If you also use a toolboard, you can add that later.'
+				screenProps.toolboards
+					? `toolboard. If you don't use a toolboard you can skip this step.`
+					: 'control board. If you also use a toolboard, you can add that later.'
 			}`,
 		href: '#',
 		renderScreen: (screenProps) => <MCUPicker {...screenProps} />,
