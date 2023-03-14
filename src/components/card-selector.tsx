@@ -1,4 +1,3 @@
-/* This example requires Tailwind CSS v2.0+ */
 import React, { useCallback, useEffect, useState } from 'react';
 import { RadioGroup } from '@headlessui/react';
 import { classNames } from '../helpers/classNames';
@@ -50,7 +49,7 @@ export const CardSelector = <Selectable extends SelectableCard = SelectableCard>
 							classNames(
 								checked ? 'border-transparent' : 'border-gray-300',
 								active ? 'ring-2 ring-brand-600' : '',
-								'relative bg-white border rounded-lg shadow-sm px-6 py-4 cursor-pointer flex justify-between focus:outline-none',
+								'relative flex cursor-pointer justify-between rounded-lg border bg-white px-6 py-4 shadow-sm focus:outline-none',
 							)
 						}
 					>
@@ -58,22 +57,22 @@ export const CardSelector = <Selectable extends SelectableCard = SelectableCard>
 							<>
 								<div className="flex items-center">
 									<div>
-										<RadioGroup.Label as="p" className="font-bold text-gray-900 text-sm">
+										<RadioGroup.Label as="p" className="text-sm font-bold text-gray-900">
 											{card.name}
 										</RadioGroup.Label>
-										<RadioGroup.Description as="div" className="text-gray-500 text-xs">
+										<RadioGroup.Description as="div" className="text-xs text-gray-500">
 											<p className="sm:inline">{card.details}</p>
 										</RadioGroup.Description>
 									</div>
 								</div>
-								<RadioGroup.Description as="div" className="mt-2 flex text-sm sm:mt-0 sm:block sm:ml-4 sm:text-right">
+								<RadioGroup.Description as="div" className="mt-2 flex text-sm sm:mt-0 sm:ml-4 sm:block sm:text-right">
 									{card.right}
 								</RadioGroup.Description>
 								<div
 									className={classNames(
 										active ? 'border' : 'border-2',
 										checked ? 'border-brand-600' : 'border-transparent',
-										'absolute -inset-px rounded-lg pointer-events-none',
+										'pointer-events-none absolute -inset-px rounded-lg',
 									)}
 									aria-hidden="true"
 								/>

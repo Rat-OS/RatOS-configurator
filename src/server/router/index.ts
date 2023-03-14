@@ -10,6 +10,7 @@ import { exec } from 'child_process';
 import { getWirelessInterface } from '../../helpers/iw';
 import { klippyExtensionsRouter } from './klippy-extensions';
 import { moonrakerExtensionsRouter } from './moonraker-extensions';
+import { printerRouter } from './printer';
 
 export const appRouter = createRouter()
 	.transformer(superjson)
@@ -63,6 +64,7 @@ export const appRouter = createRouter()
 		},
 	})
 	.merge('mcu.', mcuRouter)
+	.merge('printer.', printerRouter)
 	.merge('wifi.', wifiRouter)
 	.merge('klippy-extensions.', klippyExtensionsRouter)
 	.merge('moonraker-extensions.', moonrakerExtensionsRouter);

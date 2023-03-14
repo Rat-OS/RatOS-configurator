@@ -1,4 +1,4 @@
-import { env } from "./env/server.mjs";
+import { env } from './env/server.mjs';
 
 /**
  * Don't be scared of the generics here.
@@ -8,17 +8,20 @@ import { env } from "./env/server.mjs";
  * @param {T} config - A generic parameter that flows through to the return type
  * @constraint {{import('next').NextConfig}}
  */
- function defineNextConfig(config) {
-  return config;
+function defineNextConfig(config) {
+	return config;
 }
 
 export default defineNextConfig({
-  reactStrictMode: true,
-  distDir: 'build',
-  cleanDistDir: true,
-  basePath: '/configure',
-  publicRuntimeConfig: {
-    // Will be available on both server and client
-    basePath: '/configure',
-  },
+	reactStrictMode: true,
+	distDir: 'build',
+	cleanDistDir: true,
+	basePath: '/configure',
+	publicRuntimeConfig: {
+		// Will be available on both server and client
+		basePath: '/configure',
+	},
+	experimental: {
+		swcPlugins: [['next-superjson-plugin', {}]],
+	},
 });

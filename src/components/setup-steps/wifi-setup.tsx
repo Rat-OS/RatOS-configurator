@@ -1,6 +1,5 @@
 import React, { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { CardSelector, SelectableCard } from '../card-selector';
-import { useMutation } from 'react-query';
 import { Spinner } from '../spinner';
 import { ErrorMessage } from '../error-message';
 import { WifiIcon } from '@heroicons/react/24/solid';
@@ -9,8 +8,6 @@ import { StepNavButton, StepNavButtons } from '../step-nav-buttons';
 import { Network } from '../../helpers/iw';
 import { Modal } from '../modal';
 import { parseSignal } from '../../helpers/wifi';
-import { MoonrakerQueryState } from '../../hooks/useMoonraker';
-import { useRecoilValue } from 'recoil';
 import { StepScreenProps } from '../../hooks/useSteps';
 import { trpc } from '../../helpers/trpc';
 import { hostnameInput, joinInput } from '../../helpers/validators/wifi';
@@ -27,11 +24,10 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 	const [apList, setApList] = useState<APList>({});
 	const [selectedNetwork, setSelectedNetwork] = useState<null | Network>(null);
 	const [password, setPassword] = useState('');
-	const moonrakerQuery = useRecoilValue(MoonrakerQueryState);
 	const [hostname, setHostname] = useState('ratos');
 	const [hostnameCompleted, setHostnameCompleted] = useState(false);
 
-	const { isLoading, isError, error, data } = trpc.useQuery(['wifi.scan'], {
+	const { isError, error, data } = trpc.useQuery(['wifi.scan'], {
 		refetchInterval: (data, query) => {
 			if (query.state.error) {
 				return false;
