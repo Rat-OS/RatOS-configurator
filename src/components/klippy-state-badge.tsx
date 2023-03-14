@@ -1,11 +1,28 @@
 import React from 'react';
 import { useRecoilValue } from 'recoil';
 import { classNames } from '../helpers/classNames';
-import { KlippyStatusState } from '../hooks/useKlippyStateHandler';
+import { KlippyReadyStates, KlippyStatusState } from '../hooks/useKlippyStateHandler';
 
 interface Props {
 	className?: string;
 }
+
+const klipperStateToText = (klippyState: KlippyReadyStates) => {
+	switch (klippyState) {
+		case 'error':
+			return 'Klipper State: Error';
+		case 'ready':
+			return 'Klipper State: Ready';
+		case 'shutdown':
+			return 'Klipper State: Shutdown';
+		case 'startup':
+			return 'Klipper State: Startup';
+		case 'unknown':
+			return 'Klipper State: Unknown';
+		default:
+			return 'Klipper State: Unknown';
+	}
+};
 
 export const KlippyStateBadge: React.FC<Props> = (props) => {
 	const klippyState = useRecoilValue(KlippyStatusState);
@@ -19,8 +36,9 @@ export const KlippyStateBadge: React.FC<Props> = (props) => {
 					: '',
 				klippyState === 'startup' ? 'text-yellow-700 bg-yellow-100 dark:text-yellow-100 dark:bg-yellow-700' : '',
 				props.className != null ? props.className : '',
-				'inline-flex items-center px-3 py-0.5 rounded-full text-xs font-semibold',
+				'inline-flex items-center px-3 py-0.5 rounded-full text-xs font-semibold cursor-default',
 			)}
+			title={klipperStateToText(klippyState)}
 		>
 			<svg
 				className={classNames(
@@ -30,8 +48,8 @@ export const KlippyStateBadge: React.FC<Props> = (props) => {
 					klippyState === 'startup' ? 'text-yellow-400' : '',
 					'-ml-1 mr-1.5 h-2 w-2',
 				)}
-				fill='currentColor'
-				viewBox='0 0 8 8'
+				fill="currentColor"
+				viewBox="0 0 8 8"
 			>
 				<circle cx={4} cy={4} r={3} />
 			</svg>
