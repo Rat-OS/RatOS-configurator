@@ -15,7 +15,7 @@ export const Button: React.FC<ButtonProps> = (props) => {
 		props.color === 'gray' ? 'border-zinc-300 bg-gray-100 hover:bg-gray-200 text-black' : '',
 		props.color === 'brand' ? 'text-black bg-brand-500 hover:bg-brand-600 border-transparent' : '',
 		props.disabled ? 'opacity-60 cursor-not-allowed' : '',
-		'inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-600',
+		'inline-flex items-center px-4 py-2 border text-sm font-semibold rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-600',
 	);
 
 	if (props.href) {
