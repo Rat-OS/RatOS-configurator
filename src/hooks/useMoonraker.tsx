@@ -7,9 +7,9 @@ export const MoonrakerReadyState = atom({
 	default: 0,
 });
 
-type MoonrakerStatuus = 'connected' | 'connecting' | 'not-running';
+export type MoonrakerStatus = 'connected' | 'connecting' | 'not-running';
 
-export const MoonrakerStatusState = atom<MoonrakerStatuus>({
+export const MoonrakerStatusState = atom<MoonrakerStatus>({
 	key: 'MoonrakerStatus',
 	default: 'connecting',
 });

@@ -7,7 +7,7 @@ import {
 	MoonrakerStatusState,
 } from '../hooks/useMoonraker';
 
-type KlippyReadyStates = 'ready' | 'error' | 'shutdown' | 'startup' | 'unknown';
+export type KlippyReadyStates = 'ready' | 'error' | 'shutdown' | 'startup' | 'unknown';
 
 export const KlippyStatusState = atom<KlippyReadyStates>({
 	key: 'KlippyReadyState',
