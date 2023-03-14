@@ -20,12 +20,12 @@ export const Button: React.FC<ButtonProps> = (props) => {
 
 	if (props.href) {
 		return (
-			<Link href={props.href}>
-				<a className={buttonClassName} onClick={props.onClick}>
-					{props.children}
-				</a>
-			</Link>
-		);
+            (<Link href={props.href} className={buttonClassName} onClick={props.onClick}>
+
+                {props.children}
+
+            </Link>)
+        );
 	}
 	return (
 		<button className={buttonClassName} onClick={props.disabled ? undefined : props.onClick}>
