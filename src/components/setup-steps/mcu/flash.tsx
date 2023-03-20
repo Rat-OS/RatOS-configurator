@@ -40,7 +40,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 		setForceReflash(true);
 		mcuDetect.remove();
 		mcuBoardVersion.remove();
-	}, []);
+	}, [mcuBoardVersion, mcuDetect]);
 
 	let rightButton: StepNavButton = {
 		onClick: props.nextScreen,

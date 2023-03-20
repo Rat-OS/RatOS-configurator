@@ -16,6 +16,7 @@ import { StepScreen, useSteps } from '../hooks/useSteps';
 import { trpc } from '../helpers/trpc';
 import { WizardComplete } from '../components/setup-steps/wizard-complete';
 import { ActionsDropdown } from '../components/common/actions-dropdown';
+import { HardwareSelection } from '../components/setup-steps/hardware-selection';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -36,6 +37,13 @@ const steps: StepScreen[] = [
 		renderScreen: (screenProps) => <PrinterSelection {...screenProps} />,
 	},
 	{
+		id: '04',
+		name: 'Hardware Selection',
+		description: 'Select your printer',
+		href: '#',
+		renderScreen: (screenProps) => <HardwareSelection {...screenProps} />,
+	},
+	{
 		id: '02',
 		name: 'Control board preparation',
 		description: 'Firmware flashing and connectivity',
@@ -50,7 +58,7 @@ const steps: StepScreen[] = [
 		renderScreen: (screenProps) => <MCUPreparation {...screenProps} toolboards={true} />,
 	},
 	{
-		id: '04',
+		id: '05',
 		name: 'Configure printer in Mainsail',
 		description: 'Choose your hardware and start calibrating your printer',
 		href: '#',
@@ -137,9 +145,7 @@ const Home: NextPage<IndexProps> = (props) => {
 				{/* Page body */}
 				<div className="mt-8 max-w-3xl mx-auto grid grid-cols-1 gap-6 sm:px-6 lg:max-w-7xl lg:grid-flow-col-dense lg:grid-cols-3">
 					<div className="lg:col-start-1 lg:col-span-2">
-						<div className="bg-white rounded-lg shadow overflow-hidden relative">
-							{currentStep.renderScreen(screenProps)}
-						</div>
+						<div className="bg-white rounded-lg shadow relative">{currentStep.renderScreen(screenProps)}</div>
 					</div>
 					<div className="space-y-6 lg:col-start-3 lg:col-span-1">
 						<div className="bg-white rounded-lg shadow overflow-hidden p-8">

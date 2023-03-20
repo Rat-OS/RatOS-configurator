@@ -9,11 +9,13 @@ import Image from 'next/image';
 import getConfig from 'next/config';
 import { withTRPC } from '@trpc/next';
 import { AppRouter } from './api/trpc/[trpc]';
-import superjson from 'superjson';
+import { Inter } from 'next/font/google';
 
 function classNames(...classes: string[]) {
 	return classes.filter(Boolean).join(' ');
 }
+
+const inter = Inter({ subsets: ['latin'] });
 
 const navigation = [{ name: 'Setup Wizard', href: '/configure', current: true }];
 interface Props {
@@ -26,6 +28,13 @@ function MyApp(props: AppProps<Props>) {
 
 	return (
 		<RecoilRoot>
+			<style jsx global>
+				{`
+					:root {
+						--inter-font: ${inter.style.fontFamily};
+					}
+				`}
+			</style>
 			{moonraker}
 			<div className="min-h-full">
 				<Disclosure as="nav" className="bg-zinc-800">
@@ -154,7 +163,6 @@ export default withTRPC<AppRouter>({
 		if (typeof window !== 'undefined') {
 			// during client requests
 			return {
-				transformer: superjson,
 				url: '/configure/api/trpc',
 			};
 		}
@@ -168,7 +176,6 @@ export default withTRPC<AppRouter>({
 				: 'http://localhost/configure/api/trpc';
 
 		return {
-			transformer: superjson,
 			url,
 			headers: {
 				'x-ssr': '1',

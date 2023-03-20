@@ -1,22 +1,30 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StepNavButtons } from '../step-nav-buttons';
 import { StepScreenProps } from '../../hooks/useSteps';
-import { CardSelectorWithOptions, SelectableCard } from '../card-selector-with-options';
 import { Dropdown } from '../forms/dropdown';
+import { trpc } from '../../helpers/trpc';
 
-const hotends = [
-	{ name: 'E3D V6', id: 'v6.cfg' },
-	{ name: 'E3D Revo', id: 'revo.cfg' },
-	{ name: 'Phaetus Dragonfly', id: 'dragonfly.cfg' },
-	{ name: 'Phaetus Dragon SF', id: 'dragon-standard-flow.cfg' },
-	{ name: 'Phaetus Dragon HF', id: 'dragon-high-flow.cfg' },
-	{ name: 'Phaetus Rapido', id: 'rapido.cfg' },
-	{ name: 'Slice Engineering Mosquito', id: 'mosquito.cfg' },
-	{ name: 'Slice Engineering Mosquito Magnum', id: 'mosquito-magnum.cfg' },
-	{ name: 'Slice Engineering Copperhead', id: 'copperhead.cfg' },
-];
+export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
+	const hotends = trpc.useQuery(['printer.hotends']);
+	const extruders = trpc.useQuery(['printer.extruders']);
+	const thermistors = trpc.useQuery(['printer.thermistors']);
+	const probes = trpc.useQuery(['printer.probes']);
+	const xEndstops = trpc.useQuery(['printer.x-endstops']);
+	const yEndstops = trpc.useQuery(['printer.y-endstops']);
 
-export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
+	const hotendData = useMemo(() => {
+		return hotends.data?.map((h) => ({ id: h.id, name: h.title })) ?? [];
+	}, [hotends.data]);
+	const thermistorData = useMemo(() => {
+		return thermistors.data?.map((h) => ({ id: h, name: h })) ?? [];
+	}, [hotends.data]);
+	const extruderData = useMemo(() => {
+		return extruders.data?.map((h) => ({ id: h.id, name: h.title })) ?? [];
+	}, [hotends.data]);
+	const probeData = useMemo(() => {
+		return probes.data?.map((e) => ({ id: e.id, name: e.title })) ?? [];
+	}, [hotends.data]);
+
 	return (
 		<>
 			<div className="p-8">
@@ -27,13 +35,25 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 						If your hardware isn't listed, pick the one closest to it and modify it in printer.cfg later
 					</p>
 				</div>
-				<div>
-					<Dropdown label="Hotend" options={hotends} />
-					<Dropdown label="Extruder" options={[]} />
-					<Dropdown label="Thermistor" options={[]} />
-					<Dropdown label="Probe" options={[]} />
-					<Dropdown label="X Endstop" options={[]} />
-					<Dropdown label="Y Endstop" options={[]} />
+				<div className="grid grid-cols-2 gap-4">
+					<div>
+						<Dropdown label="Hotend" options={hotendData} />
+					</div>
+					<div>
+						<Dropdown label="Hotend Thermistor" options={thermistorData} />
+					</div>
+					<div className="col-span-2">
+						<Dropdown label="Extruder" options={extruderData} />
+					</div>
+					<div className="col-span-2">
+						<Dropdown label="Probe" options={probeData} />
+					</div>
+					<div>
+						<Dropdown label="X Endstop" options={xEndstops.data ?? []} />
+					</div>
+					<div>
+						<Dropdown label="Y Endstop" options={yEndstops.data ?? []} />
+					</div>
 				</div>
 			</div>
 			<StepNavButtons left={{ onClick: props.previousScreen }} right={{ onClick: props.nextScreen }} />

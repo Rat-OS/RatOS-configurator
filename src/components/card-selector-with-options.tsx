@@ -15,7 +15,7 @@ export interface SelectableCard<Option extends SelectableOption = SelectableOpti
 	options?: Option[];
 }
 
-type SelectedCard<Selectable, Option extends SelectableOption = SelectableOption> = Selectable & {
+export type SelectedCard<Selectable, Option extends SelectableOption = SelectableOption> = Selectable & {
 	selectedOption: Option | null;
 };
 
@@ -47,7 +47,7 @@ export const CardSelectorWithOptions = <
 			}
 			_onSelect?.(newSelection);
 		},
-		[_onSelect, props.value, selected],
+		[_onSelect, props.value],
 	);
 
 	const onSelectOption = useCallback(
@@ -59,7 +59,7 @@ export const CardSelectorWithOptions = <
 			}
 			_onSelect?.(newSelection);
 		},
-		[selected, _onSelect, props.value],
+		[_onSelect, props.value],
 	);
 
 	useEffect(() => {

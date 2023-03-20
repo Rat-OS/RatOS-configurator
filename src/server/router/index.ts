@@ -1,6 +1,5 @@
 // src/server/router/index.ts
 import { createRouter } from './context';
-import superjson from 'superjson';
 import { statSync } from 'fs';
 
 import { wifiRouter } from './wifi';
@@ -13,7 +12,6 @@ import { moonrakerExtensionsRouter } from './moonraker-extensions';
 import { printerRouter } from './printer';
 
 export const appRouter = createRouter()
-	.transformer(superjson)
 	.query('version', {
 		resolve: async () => {
 			return await promisify(exec)('git describe --tags --always', { cwd: process.env.RATOS_CONFIGURATION_PATH }).then(
