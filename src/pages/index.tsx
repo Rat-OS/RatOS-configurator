@@ -126,8 +126,8 @@ const Home: NextPage<IndexProps> = (props) => {
 				<div className="max-w-3xl mx-auto px-4 sm:px-6 md:flex md:items-center md:justify-between md:space-x-5 lg:max-w-7xl lg:px-8">
 					<div className="flex items-center space-x-5">
 						<div>
-							<h1 className="text-2xl font-bold text-gray-900">Printer Setup</h1>
-							<p className="text-sm font-medium text-gray-500">
+							<h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Printer Setup</h1>
+							<p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
 								RatOS {version} @ {ip}
 							</p>
 						</div>
@@ -145,12 +145,14 @@ const Home: NextPage<IndexProps> = (props) => {
 				{/* Page body */}
 				<div className="mt-8 max-w-3xl mx-auto grid grid-cols-1 gap-6 sm:px-6 lg:max-w-7xl lg:grid-flow-col-dense lg:grid-cols-3">
 					<div className="lg:col-start-1 lg:col-span-2">
-						<div className="bg-white rounded-lg shadow relative">{currentStep.renderScreen(screenProps)}</div>
+						<div className="bg-white dark:bg-zinc-800 rounded-lg shadow relative">
+							{currentStep.renderScreen(screenProps)}
+						</div>
 					</div>
 					<div className="space-y-6 lg:col-start-3 lg:col-span-1">
-						<div className="bg-white rounded-lg shadow overflow-hidden p-8">
-							<div className="pb-5 mb-5 border-b border-gray-200">
-								<h3 className="text-lg leading-6 font-medium text-gray-900">Setup Progress</h3>
+						<div className="bg-white dark:bg-zinc-800 rounded-lg shadow overflow-hidden p-8">
+							<div className="pb-5 mb-5 border-b border-zinc-200 dark:border-zinc-800">
+								<h3 className="text-lg leading-6 font-medium text-zinc-900 dark:text-zinc-100">Setup Progress</h3>
 							</div>
 							<VerticalSteps steps={steps} screenProps={screenProps} currentStepIndex={currentStepIndex} />
 						</div>

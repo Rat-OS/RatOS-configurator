@@ -31,7 +31,7 @@ export const TextInput: React.FC<TextInputProps> = (props) => {
 	const inputClass = classNames(
 		props.error
 			? 'border-red-300 text-red-900 placeholder-red-300 focus:ring-red-500 focus:border-red-500'
-			: 'border-gray-300 text-gray-900 placeholder-gray-300 focus:ring-brand-600 focus:border-brand-600',
+			: 'border-zinc-300 text-zinc-900 placeholder-zinc-300 focus:ring-brand-600 focus:border-brand-600',
 		'block w-full pr-10 focus:outline-none sm:text-sm rounded-md shadow-sm',
 	);
 
@@ -42,7 +42,7 @@ export const TextInput: React.FC<TextInputProps> = (props) => {
 	) : null;
 
 	const help = props.help ? (
-		<p className="mt-2 text-sm text-gray-500" id="email-description">
+		<p className="mt-2 text-sm text-zinc-500" id="email-description">
 			{props.help}
 		</p>
 	) : null;
@@ -66,16 +66,16 @@ export const TextInput: React.FC<TextInputProps> = (props) => {
 				className={`absolute inset-y-0 ${iconRight} pr-3 flex items-center cursor-pointer`}
 			>
 				{isPasswordVisible ? (
-					<EyeSlashIcon className="h-5 w-5 text-gray-400" />
+					<EyeSlashIcon className="h-5 w-5 text-zinc-400" />
 				) : (
-					<EyeIcon className="h-5 w-5 text-gray-400" />
+					<EyeIcon className="h-5 w-5 text-zinc-400" />
 				)}
 			</div>
 		) : null;
 
 	return (
 		<div>
-			<label htmlFor="email" className="block text-sm font-medium text-gray-700">
+			<label htmlFor="email" className="block text-sm font-medium text-zinc-700">
 				{props.label}
 			</label>
 			<div className="mt-1 relative rounded-md shadow-sm">

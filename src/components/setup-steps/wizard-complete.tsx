@@ -10,9 +10,9 @@ export const WizardComplete: React.FC<StepScreenProps> = (props) => {
 		<>
 			<div className="p-8">
 				{' '}
-				<div className="pb-5 mb-5 border-b border-gray-200">
-					<h3 className="text-lg leading-6 font-medium text-gray-900">{props.name}</h3>
-					<p className="mt-2 max-w-4xl text-sm text-gray-500">{props.description}</p>
+				<div className="pb-5 mb-5 border-b border-zinc-200">
+					<h3 className="text-lg leading-6 font-medium text-zinc-900">{props.name}</h3>
+					<p className="mt-2 max-w-4xl text-sm text-zinc-500">{props.description}</p>
 				</div>
 				<div className="space-y-4">
 					Now that your controlboard is configured, you can connect to your printer via Mainsail and start configuring

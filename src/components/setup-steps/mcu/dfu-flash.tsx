@@ -40,14 +40,14 @@ export const DFUFlash: React.FC<DFUFlashProps> = (props) => {
 
 	return (
 		<div className="space-y-4">
-			<h3 className="text-xl font-medium text-gray-900">Flashing {props.board.name} via DFU</h3>
+			<h3 className="text-xl font-medium text-zinc-900 dark:text-zinc-100">Flashing {props.board.name} via DFU</h3>
 			{dfuError}
-			<p className="mt-4 text-gray-500">Status: {detectionText}</p>
+			<p className="mt-4 text-zinc-500 dark:text-zinc-400">Status: {detectionText}</p>
 			<Button color="brand" disabled={!dfuDetected || isFlashing} onClick={startFlash}>
 				{flashButtonTitle}
 			</Button>
-			<h4 className="text-sm font-medium text-gray-900">DFU Boot Instructions</h4>
-			<div className="mt-4 prose text-base text-gray-500">
+			<h4 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">DFU Boot Instructions</h4>
+			<div className="mt-4 prose text-base text-zinc-500 dark:text-zinc-400">
 				<ol className="list-decimal pl-4 mb-4">{instructions}</ol>
 				<img src={'/configure/api/dfu-image?' + boardPathUri} alt="DFU boot buttons and or jumper visualization" />
 			</div>

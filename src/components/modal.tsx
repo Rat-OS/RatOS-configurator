@@ -9,25 +9,36 @@ interface ModalProps {
 	success?: boolean;
 	buttonLabel: string;
 	onClick?: () => void;
+	onClose?: () => void;
 }
 
 export const Modal: React.FC<ModalProps> = (props) => {
-	const { onClick } = props;
+	const { onClick, onClose } = props;
 	const [open, setOpen] = useState(true);
 	const onButtonClick = useCallback(() => {
 		onClick?.();
 		setOpen(false);
 	}, [onClick]);
 
+	const onDialogClose = useCallback(() => {
+		console.log(onDialogClose);
+		onClose?.();
+		setOpen(false);
+	}, [onClose]);
+
 	const success = props.success ? (
-		<div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
-			<CheckIcon className="h-6 w-6 text-green-600" aria-hidden="true" />
+		<div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full  bg-green-100 dark:bg-green-700">
+			<CheckIcon className="h-6 w-6 text-green-600 dark:text-green-100" aria-hidden="true" />
 		</div>
 	) : null;
 
 	return (
-		<Transition.Root show={open} as={Fragment}>
-			<Dialog as="div" className="fixed z-10 inset-0 overflow-y-auto" onClose={onButtonClick}>
+		<Transition.Root show={open} as={Fragment} appear={true}>
+			<Dialog
+				as="div"
+				className="fixed z-10 inset-0 overflow-y-auto scrollbar-thumb-zinc-400 dark:scrollbar-thumb-zinc-600 scrollbar-thin scrollbar-thumb-rounded-md"
+				onClose={onDialogClose}
+			>
 				<div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
 					<Transition.Child
 						as={Fragment}
@@ -38,7 +49,7 @@ export const Modal: React.FC<ModalProps> = (props) => {
 						leaveFrom="opacity-100"
 						leaveTo="opacity-0"
 					>
-						<Dialog.Overlay className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+						<Dialog.Overlay className="fixed inset-0 bg-zinc-500 dark:bg-zinc-800 dark:bg-opacity-75 bg-opacity-75 transition-opacity" />
 					</Transition.Child>
 
 					{/* This element is to trick the browser into centering the modal contents. */}
@@ -54,15 +65,15 @@ export const Modal: React.FC<ModalProps> = (props) => {
 						leaveFrom="opacity-100 translate-y-0 sm:scale-100"
 						leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
 					>
-						<div className="relative inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-sm sm:w-full sm:p-6">
+						<div className="relative inline-block align-bottom bg-white dark:bg-zinc-900 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-sm sm:w-full sm:p-6">
 							<div>
 								{success}
 								<div className="mt-3 text-center sm:mt-5">
-									<Dialog.Title as="h3" className="text-lg leading-6 font-medium text-gray-900">
+									<Dialog.Title as="h3" className="text-lg leading-6 font-medium text-zinc-900 dark:text-zinc-100">
 										{props.title}
 									</Dialog.Title>
 									<div className="mt-2">
-										<p className="text-sm text-gray-500">{props.body}</p>
+										<p className="text-sm text-zinc-500 dark:text-zinc-400">{props.body}</p>
 									</div>
 								</div>
 							</div>

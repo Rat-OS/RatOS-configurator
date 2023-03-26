@@ -62,7 +62,9 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 	if (mcuBoardVersion.error && !forceReflash) {
 		content = (
 			<Fragment>
-				<h3 className="text-xl font-medium text-gray-900">{firstBoard.name} detected but is unresponsive.</h3>
+				<h3 className="text-xl font-medium text-zinc-900 dark:text-zinc-100">
+					{firstBoard.name} detected but is unresponsive.
+				</h3>
 				<p>
 					Klipper doesn't seem to be running on your board, which may indicate faulty firmware or a faulty board. Please
 					check your board and try flashing it again.
@@ -77,7 +79,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 	} else if (isBoardVersionLoading && !mcuBoardVersion.isIdle) {
 		content = (
 			<Fragment>
-				<h3 className="text-xl font-medium text-gray-900">
+				<h3 className="text-xl font-medium text-zinc-900 dark:text-zinc-100">
 					<Spinner className="inline relative -top-0.5 mr-2" noMargin={true} /> {firstBoard.name} detected, checking
 					version...
 				</h3>
@@ -98,7 +100,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 			) : null;
 		content = (
 			<Fragment>
-				<h3 className="text-xl font-medium text-gray-900">
+				<h3 className="text-xl font-medium text-zinc-900 dark:text-zinc-100">
 					<CheckCircleIcon className="text-brand-700 h-7 w-7 inline relative -top-0.5" /> {firstBoard.name} detected
 				</h3>
 				{jumperReminder}
@@ -138,7 +140,9 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 		}
 		content = (
 			<Fragment>
-				<h3 className="text-xl font-medium text-gray-900">How do you want to flash your {firstBoard.name}?</h3>
+				<h3 className="text-xl font-medium text-zinc-900 dark:text-zinc-100">
+					How do you want to flash your {firstBoard.name}?
+				</h3>
 				<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
 					{path}
 					{dfu}
@@ -157,8 +161,8 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 			case 'path':
 				content = (
 					<div>
-						<h3 className="text-xl font-medium text-gray-900">Flashing {firstBoard.name}...</h3>
-						<div className="mt-4 prose text-base text-gray-500">Please wait while RatOS flashes your board.</div>
+						<h3 className="text-xl font-medium text-zinc-900 dark:text-zinc-100">Flashing {firstBoard.name}...</h3>
+						<div className="mt-4 prose text-base text-zinc-500">Please wait while RatOS flashes your board.</div>
 						<MutationStatus {...flashViaPath} />
 					</div>
 				);
@@ -168,9 +172,9 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 		<Fragment>
 			<div className="p-8">
 				{' '}
-				<div className="pb-5 mb-5 border-b border-gray-200">
-					<h3 className="text-lg leading-6 font-medium text-gray-900">{props.name}</h3>
-					<p className="mt-2 max-w-4xl text-sm text-gray-500">{props.description}</p>
+				<div className="pb-5 mb-5 border-b border-zinc-200 dark:border-zinc-700">
+					<h3 className="text-lg leading-6 font-medium text-zinc-900 dark:text-zinc-100">{props.name}</h3>
+					<p className="mt-2 max-w-4xl text-sm text-zinc-500 dark:text-zinc-400">{props.description}</p>
 				</div>
 				<div className="space-y-4">{content}</div>
 			</div>

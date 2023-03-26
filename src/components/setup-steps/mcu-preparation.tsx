@@ -95,7 +95,7 @@ export const MCUPreparation: React.FC<StepScreenProps & ExtraProps> = (props) =>
 					<span className="font-semibold">Automatic flashing:</span> {b.flashScript ? 'Yes' : 'No'}
 				</span>
 			),
-			right: <CpuChipIcon className="h-8 w-8 text-slate-500" />,
+			right: <CpuChipIcon className="h-8 w-8 text-zinc-500" />,
 		}));
 	}, [boardsQuery.isError, boardsQuery.data]);
 

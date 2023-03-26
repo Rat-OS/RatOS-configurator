@@ -78,9 +78,9 @@ export const CardSelectorWithOptions = <
 						value={card}
 						className={({ checked, active }) =>
 							classNames(
-								checked ? 'border-transparent' : 'border-gray-300',
-								active ? 'ring-2 ring-brand-600' : '',
-								'relative cursor-pointer rounded-lg border bg-white px-6 py-4 shadow-sm focus:outline-none',
+								checked ? 'border-transparent' : 'border-zinc-300 dark:border-zinc-700',
+								active ? 'ring-2 ring-brand-600 dark:ring-brand-500' : '',
+								'relative cursor-pointer rounded-lg border bg-white dark:bg-zinc-800 px-6 py-4 shadow-sm focus:outline-none',
 							)
 						}
 					>
@@ -89,10 +89,10 @@ export const CardSelectorWithOptions = <
 								<div className="flex justify-between">
 									<div className="flex items-center">
 										<div>
-											<RadioGroup.Label as="p" className="text-sm font-bold text-gray-900">
+											<RadioGroup.Label as="p" className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
 												{card.name}
 											</RadioGroup.Label>
-											<RadioGroup.Description as="div" className="text-xs text-gray-500">
+											<RadioGroup.Description as="div" className="text-xs text-zinc-500 dark:text-zinc-400">
 												<p className="sm:inline">{card.details}</p>
 											</RadioGroup.Description>
 										</div>
@@ -116,10 +116,10 @@ export const CardSelectorWithOptions = <
 													className={({ active, checked }) =>
 														classNames(
 															'cursor-pointer focus:outline-none',
-															active ? 'ring-2 ring-brand-600 ring-offset-2' : '',
+															active ? 'ring-2 dark:ring-brand-500 ring-brand-600 ring-offset-2' : '',
 															checked
-																? 'bg-brand-600 text-white hover:bg-brand-700'
-																: 'bg-white text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50',
+																? 'bg-brand-500 text-white hover:bg-brand-300 dark:text-zinc-900'
+																: 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 ring-1 ring-inset dark:ring-zinc-700 dark:hover:bg-zinc-800 ring-zinc-300 hover:bg-zinc-50',
 															'flex items-center justify-center rounded-md py-3 px-3 text-sm font-semibold uppercase sm:flex-1',
 														)
 													}

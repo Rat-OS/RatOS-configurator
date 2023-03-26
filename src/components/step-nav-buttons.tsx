@@ -21,7 +21,7 @@ export const StepNavButtons: React.FC<StepNavButtonsProps> = (props) => {
 	const leftIcon = props.left.isLoading ? (
 		<Spinner />
 	) : (
-		<PlayIcon className="mr-3 h-5 w-5 text-black rotate-180" aria-hidden="true" />
+		<PlayIcon className="mr-3 h-5 w-5 rotate-180" aria-hidden="true" />
 	);
 	const left = props.left.onClick ? (
 		<div className="flex-1 flex justify-start">
@@ -32,18 +32,14 @@ export const StepNavButtons: React.FC<StepNavButtonsProps> = (props) => {
 		</div>
 	) : null;
 
-	const rightIcon = props.right.isLoading ? (
-		<Spinner />
-	) : (
-		<PlayIcon className="ml-3 h-5 w-5 text-black-400" aria-hidden="true" />
-	);
+	const rightIcon = props.right.isLoading ? <Spinner /> : <PlayIcon className="ml-3 h-5 w-5" aria-hidden="true" />;
 
 	const right = props.right.onClick ? (
 		<div className="flex-1 flex justify-end space-x-4">
 			{props.skip && (
 				<Button color="gray" onClick={props.skip.onClick} disabled={props.skip.disabled}>
 					{props.skip.label ?? 'Skip'}
-					<ForwardIcon className="ml-3 h-5 w-5 text-black" aria-hidden="true" />
+					<ForwardIcon className="ml-3 h-5 w-5" aria-hidden="true" />
 				</Button>
 			)}
 			<Button color="brand" disabled={props.right.disabled} onClick={props.right.onClick}>
@@ -56,8 +52,8 @@ export const StepNavButtons: React.FC<StepNavButtonsProps> = (props) => {
 	return (
 		<div className="px-8 pb-5">
 			<nav
-				className="bg-white py-3 flex items-center 
-		justify-between border-t border-gray-200"
+				className="bg-white dark:bg-zinc-800 py-3 flex items-center 
+		justify-between border-t border-zinc-200 dark:border-zinc-700"
 				aria-label="Pagination"
 			>
 				{left}

@@ -17,24 +17,24 @@ export const MutationModal: React.FC<ModalProps> = (props) => {
 	const { open, setOpen } = props;
 
 	const icon = props.isFailed ? (
-		<div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-			<XMarkIcon className="h-6 w-6 text-red-600" aria-hidden="true" />
+		<div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-800">
+			<XMarkIcon className="h-6 w-6 text-red-600 dark:text-red-300" aria-hidden="true" />
 		</div>
 	) : (
-		<div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-			<CheckIcon className="h-6 w-6 text-green-600" aria-hidden="true" />
+		<div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-700">
+			<CheckIcon className="h-6 w-6 text-green-600 dark:text-green-100" aria-hidden="true" />
 		</div>
 	);
 
 	const buttonClass = clsx(
-		'inline-flex w-full justify-center rounded-md border border-transparent px-4 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 sm:text-sm',
+		'inline-flex w-full justify-center rounded-md border border-transparent px-4 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-zinc-900 sm:text-sm',
 		props.isLoading
 			? 'bg-brand-600 text-base font-medium text-white opacity-50 cursor-not-allowed'
 			: 'bg-brand-600 text-base font-medium text-white hover:bg-brand-700',
 	);
 
 	return (
-		<Transition.Root show={open} as={Fragment}>
+		<Transition.Root show={open} as={Fragment} appear={true}>
 			<Dialog as="div" className="relative z-10" onClose={setOpen}>
 				<Transition.Child
 					as={Fragment}
@@ -45,10 +45,10 @@ export const MutationModal: React.FC<ModalProps> = (props) => {
 					leaveFrom="opacity-100"
 					leaveTo="opacity-0"
 				>
-					<div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+					<div className="fixed inset-0 bg-zinc-500 dark:bg-zinc-800 dark:bg-opacity-75 bg-opacity-75 transition-opacity" />
 				</Transition.Child>
 
-				<div className="fixed inset-0 z-10 overflow-y-auto">
+				<div className="fixed inset-0 z-10 overflow-y-auto scrollbar-thumb-zinc-400 dark:scrollbar-thumb-zinc-600 scrollbar-thin scrollbar-thumb-rounded-md">
 					<div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
 						<Transition.Child
 							as={Fragment}
@@ -59,12 +59,12 @@ export const MutationModal: React.FC<ModalProps> = (props) => {
 							leaveFrom="opacity-100 translate-y-0 sm:scale-100"
 							leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
 						>
-							<Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm md:max-w-lg lg:max-w-xl xl:max-w-3xl sm:p-6">
+							<Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white dark:bg-zinc-900 dark px-4 pt-5 pb-4 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm md:max-w-lg lg:max-w-xl xl:max-w-3xl sm:p-6">
 								<div>
 									{props.isLoading ? (
-										<div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
+										<div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800">
 											<svg
-												className={clsx('animate-spin h-6 w-6 text-gray-800')}
+												className={clsx('animate-spin h-6 w-6 text-zinc-800 dark:text-zinc-200')}
 												xmlns="http://www.w3.org/2000/svg"
 												fill="none"
 												viewBox="0 0 24 24"
@@ -88,11 +88,11 @@ export const MutationModal: React.FC<ModalProps> = (props) => {
 										icon
 									)}
 									<div className="mt-3 text-center sm:mt-5">
-										<Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900">
+										<Dialog.Title as="h3" className="text-lg font-medium leading-6 text-zinc-900 dark:text-zinc-100">
 											{props.title}
 										</Dialog.Title>
 										<div className="mt-2">
-											<div className="text-sm text-gray-500">{props.children}</div>
+											<div className="text-sm text-zinc-500 dark:text-zinc-400">{props.children}</div>
 										</div>
 									</div>
 								</div>

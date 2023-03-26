@@ -56,7 +56,7 @@ export const SDCardFlashing: React.FC<SDCardFlashingProps> = (props) => {
 
 	return (
 		<div className="space-y-4">
-			<h3 className="text-xl font-medium text-gray-900">
+			<h3 className="text-xl font-medium text-zinc-900 dark:text-zinc-100">
 				{props.board.manufacturer} {props.board.name} was not detected
 			</h3>
 
@@ -76,7 +76,7 @@ export const SDCardFlashing: React.FC<SDCardFlashingProps> = (props) => {
 				)}
 			</Button>
 
-			<div className="mt-4 prose text-base text-gray-500">
+			<div className="mt-4 prose text-base text-zinc-500 dark:text-zinc-400">
 				<ol className="list-decimal pl-4 mb-4">
 					<li>Disconnect all wires except Power and USB, and make sure your jumpers are set correctly.</li>
 					<li>
@@ -84,7 +84,8 @@ export const SDCardFlashing: React.FC<SDCardFlashingProps> = (props) => {
 						or 4kb.
 					</li>
 					<li>
-						If you're reusing a card you've used for flashing before, be sure to delete ALL files on the card (or reformat it).
+						If you're reusing a card you've used for flashing before, be sure to delete ALL files on the card (or
+						reformat it).
 					</li>
 					<li>Copy the firmware binary onto the sd card for your board</li>
 					<li>
@@ -98,9 +99,7 @@ export const SDCardFlashing: React.FC<SDCardFlashingProps> = (props) => {
 						RatOS is currently powered by your control board or the same power source, please shut it down safely first
 						by using the button below. When the green light stops blinking and is turned off, you can cut the power.
 					</li>
-					<li>
-						Click "Check board status" below.
-					</li>
+					<li>Click "Check board status" below.</li>
 				</ol>
 				<div className="flex gap-x-4">
 					<Button color="gray" onClick={onShutdown}>
@@ -117,6 +116,7 @@ export const SDCardFlashing: React.FC<SDCardFlashingProps> = (props) => {
 					body={`You raspberry pi will shutdown and this page will become unresponsive until it's powered back on. Do not remove power before the green light on the Rasperry Pi has stopped blinking.`}
 					buttonLabel="Shutdown"
 					onClick={shutdown}
+					onClose={() => setTimeout(() => setShutdownModalVisible(false), 500)}
 				/>
 			) : null}
 		</div>

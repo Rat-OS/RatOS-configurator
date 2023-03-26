@@ -1,58 +1,103 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { StepNavButtons } from '../step-nav-buttons';
 import { StepScreenProps } from '../../hooks/useSteps';
 import { Dropdown } from '../forms/dropdown';
 import { trpc } from '../../helpers/trpc';
+import { z } from 'zod';
+import type { Endstop, Extruder, Hotend, Probe, Thermistor } from '../../server/router/printer';
+
+const stringToTitleObject = <Item extends string>(data: Item | null): { id: Item; title: Item } | null => {
+	if (data == null) {
+		return null;
+	}
+	return { id: data, title: data };
+};
 
 export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
+	const [hasManuallySelectedThermistor, setHasManuallySelectedThermistor] = useState(false);
+	const [selectedHotend, setSelectedHotend] = useState<z.infer<typeof Hotend> | null>(null);
+	const [selectedExtruder, setSelectedExtruder] = useState<z.infer<typeof Extruder> | null>(null);
+	const [selectedThermistor, setSelectedThermistor] = useState<z.infer<typeof Thermistor> | null>(null);
+	const [selectedProbe, setSelectedProbe] = useState<z.infer<typeof Probe> | null>(null);
+	const [selectedXEndstop, setSelectedXEndstop] = useState<z.infer<typeof Endstop> | null>(null);
+	const [selectedYEndstop, setSelectedYEndstop] = useState<z.infer<typeof Endstop> | null>(null);
+
 	const hotends = trpc.useQuery(['printer.hotends']);
 	const extruders = trpc.useQuery(['printer.extruders']);
-	const thermistors = trpc.useQuery(['printer.thermistors']);
+	const thermistors = trpc.useQuery(['printer.thermistors'], {
+		select(data) {
+			return data?.map((t) => ({ id: t, title: t })) ?? [];
+		},
+	});
 	const probes = trpc.useQuery(['printer.probes']);
 	const xEndstops = trpc.useQuery(['printer.x-endstops']);
 	const yEndstops = trpc.useQuery(['printer.y-endstops']);
 
-	const hotendData = useMemo(() => {
-		return hotends.data?.map((h) => ({ id: h.id, name: h.title })) ?? [];
-	}, [hotends.data]);
-	const thermistorData = useMemo(() => {
-		return thermistors.data?.map((h) => ({ id: h, name: h })) ?? [];
-	}, [hotends.data]);
-	const extruderData = useMemo(() => {
-		return extruders.data?.map((h) => ({ id: h.id, name: h.title })) ?? [];
-	}, [hotends.data]);
-	const probeData = useMemo(() => {
-		return probes.data?.map((e) => ({ id: e.id, name: e.title })) ?? [];
-	}, [hotends.data]);
+	const onSelectHotend = useCallback(
+		(hotend: z.infer<typeof Hotend>) => {
+			setSelectedHotend(hotend);
+			if (!hasManuallySelectedThermistor) {
+				setSelectedThermistor(hotend.thermistor);
+			}
+		},
+		[hasManuallySelectedThermistor],
+	);
+
+	const onSelectThermistor = (thermistor: { id: z.infer<typeof Thermistor> }) => {
+		setSelectedThermistor(thermistor.id);
+		setHasManuallySelectedThermistor(true);
+	};
 
 	return (
 		<>
 			<div className="p-8">
 				{' '}
-				<div className="mb-5 border-b border-gray-200 pb-5">
-					<h3 className="text-lg font-medium leading-6 text-gray-900">Select your printer hardware</h3>
-					<p className="mt-2 max-w-4xl text-sm text-gray-500">
+				<div className="mb-5 border-b border-zinc-200 pb-5 dark:border-zinc-700">
+					<h3 className="text-lg font-medium leading-6 text-zinc-900 dark:text-zinc-100">
+						Select your printer hardware
+					</h3>
+					<p className="mt-2 max-w-4xl text-sm text-zinc-500 dark:text-zinc-400">
 						If your hardware isn't listed, pick the one closest to it and modify it in printer.cfg later
 					</p>
 				</div>
 				<div className="grid grid-cols-2 gap-4">
 					<div>
-						<Dropdown label="Hotend" options={hotendData} />
+						<Dropdown label="Hotend" options={hotends.data ?? []} onSelect={onSelectHotend} value={selectedHotend} />
 					</div>
 					<div>
-						<Dropdown label="Hotend Thermistor" options={thermistorData} />
+						<Dropdown
+							label="Hotend Thermistor"
+							options={thermistors.data ?? []}
+							onSelect={onSelectThermistor}
+							value={stringToTitleObject(selectedThermistor)}
+						/>
 					</div>
 					<div className="col-span-2">
-						<Dropdown label="Extruder" options={extruderData} />
+						<Dropdown
+							label="Extruder"
+							options={extruders.data ?? []}
+							onSelect={setSelectedExtruder}
+							value={selectedExtruder}
+						/>
 					</div>
 					<div className="col-span-2">
-						<Dropdown label="Probe" options={probeData} />
+						<Dropdown label="Probe" options={probes.data ?? []} onSelect={setSelectedProbe} value={selectedProbe} />
 					</div>
 					<div>
-						<Dropdown label="X Endstop" options={xEndstops.data ?? []} />
+						<Dropdown
+							label="X Endstop"
+							options={xEndstops.data ?? []}
+							onSelect={setSelectedXEndstop}
+							value={selectedXEndstop}
+						/>
 					</div>
 					<div>
-						<Dropdown label="Y Endstop" options={yEndstops.data ?? []} />
+						<Dropdown
+							label="Y Endstop"
+							options={yEndstops.data ?? []}
+							onSelect={setSelectedYEndstop}
+							value={selectedYEndstop}
+						/>
 					</div>
 				</div>
 			</div>

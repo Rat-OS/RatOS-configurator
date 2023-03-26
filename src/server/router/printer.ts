@@ -88,15 +88,17 @@ export const printerRouter = trpc
 		resolve: () => thermistors,
 	})
 	.query('x-endstops', {
+		output: z.array(Endstop),
 		resolve: () => [
-			{ id: 'endstop', name: 'Physical Endstop' },
-			{ id: 'endstop-toolboard', name: 'Physical Endstop (toolboard)' },
-			{ id: 'sensorless', name: 'Sensorless Homing' },
+			{ id: 'endstop' as const, title: 'Physical Endstop' },
+			{ id: 'endstop-toolboard' as const, title: 'Physical Endstop (toolboard)' },
+			{ id: 'sensorless' as const, title: 'Sensorless Homing' },
 		],
 	})
 	.query('y-endstops', {
+		output: z.array(Endstop),
 		resolve: () => [
-			{ id: 'endstop', name: 'Physical Endstop' },
-			{ id: 'sensorless', name: 'Sensorless Homing' },
+			{ id: 'endstop' as const, title: 'Physical Endstop' },
+			{ id: 'sensorless' as const, title: 'Sensorless Homing' },
 		],
 	});

@@ -47,9 +47,9 @@ export const CardSelector = <Selectable extends SelectableCard = SelectableCard>
 						value={card}
 						className={({ checked, active }) =>
 							classNames(
-								checked ? 'border-transparent' : 'border-gray-300',
+								checked ? 'border-transparent' : 'border-zinc-300 dark:border-zinc-700',
 								active ? 'ring-2 ring-brand-600' : '',
-								'relative flex cursor-pointer justify-between rounded-lg border bg-white px-6 py-4 shadow-sm focus:outline-none',
+								'relative flex cursor-pointer justify-between rounded-lg border bg-white dark:bg-zinc-900 px-6 py-4 shadow-sm focus:outline-none',
 							)
 						}
 					>
@@ -57,10 +57,10 @@ export const CardSelector = <Selectable extends SelectableCard = SelectableCard>
 							<>
 								<div className="flex items-center">
 									<div>
-										<RadioGroup.Label as="p" className="text-sm font-bold text-gray-900">
+										<RadioGroup.Label as="p" className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
 											{card.name}
 										</RadioGroup.Label>
-										<RadioGroup.Description as="div" className="text-xs text-gray-500">
+										<RadioGroup.Description as="div" className="text-xs text-zinc-500 dark:text-zinc-400">
 											<p className="sm:inline">{card.details}</p>
 										</RadioGroup.Description>
 									</div>

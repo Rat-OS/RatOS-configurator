@@ -3,7 +3,11 @@ import clsx from 'clsx';
 export const Spinner: React.FC<{ className?: string; noMargin?: boolean }> = (props) => {
 	return (
 		<svg
-			className={clsx('animate-spin h-5 w-5 text-black', !props.noMargin ? '-ml-1 mr-3' : '', props.className)}
+			className={clsx(
+				'animate-spin h-5 w-5 text-black dark:text-white',
+				!props.noMargin ? '-ml-1 mr-3' : '',
+				props.className,
+			)}
 			xmlns="http://www.w3.org/2000/svg"
 			fill="none"
 			viewBox="0 0 24 24"

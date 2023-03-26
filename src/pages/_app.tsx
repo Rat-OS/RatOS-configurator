@@ -4,12 +4,13 @@ import { RecoilRoot } from 'recoil';
 import { Moonraker } from '../components/moonraker';
 
 import { Disclosure } from '@headlessui/react';
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import { Bars3Icon, XMarkIcon, MoonIcon, SunIcon } from '@heroicons/react/24/outline';
 import Image from 'next/image';
 import getConfig from 'next/config';
 import { withTRPC } from '@trpc/next';
 import { AppRouter } from './api/trpc/[trpc]';
 import { Inter } from 'next/font/google';
+import { useEffect, useState } from 'react';
 
 function classNames(...classes: string[]) {
 	return classes.filter(Boolean).join(' ');
@@ -22,9 +23,54 @@ interface Props {
 	klipperHostname: string;
 }
 
+const getCurrentTheme = () => {
+	if (typeof window !== 'undefined') {
+		if (
+			window.localStorage.theme === 'dark' ||
+			(!('theme' in window.localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
+		) {
+			return 'dark' as const;
+		} else {
+			return 'light' as const;
+		}
+	}
+	return 'light' as const;
+};
+
 function MyApp(props: AppProps<Props>) {
 	const { Component, pageProps } = props;
 	const moonraker = process.browser ? <Moonraker hostname={process.env.NEXT_PUBLIC_KLIPPER_HOSTNAME} /> : null;
+	const [theme, setTheme] = useState<'dark' | 'light' | null>(null);
+
+	const onThemeChange = () => {
+		if (getCurrentTheme() === 'dark') {
+			document.documentElement.classList.add('dark');
+		} else {
+			document.documentElement.classList.remove('dark');
+		}
+	};
+
+	useEffect(() => {
+		setTheme(getCurrentTheme());
+	}, []);
+
+	useEffect(() => {
+		onThemeChange();
+	}, [theme]);
+
+	const setDarkMode = () => {
+		window.localStorage.theme = 'dark';
+		setTheme('dark');
+	};
+
+	const setLightMode = () => {
+		window.localStorage.theme = 'light';
+		setTheme('light');
+	};
+
+	const setOSDefault = () => {
+		window.localStorage.removeItem('theme');
+	};
 
 	return (
 		<RecoilRoot>
@@ -72,7 +118,7 @@ function MyApp(props: AppProps<Props>) {
 												</div>
 											</div>
 										</div>
-										<div className="hidden md:flex justify-between items-center">
+										<div className="hidden md:flex justify-between items-center space-x-2">
 											<a
 												href="https://github.com/sponsors/miklschmidt"
 												target="_blank"
@@ -85,10 +131,21 @@ function MyApp(props: AppProps<Props>) {
 												href="https://os.ratrig.com/docs/introduction"
 												target="_blank"
 												rel="noreferrer"
-												className="inline-flex items-center justify-center ml-2 px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-zinc-300 bg-transparent hover:bg-zinc-700 hover:text-white focus:outline-none"
+												className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-zinc-300 bg-transparent hover:bg-zinc-700 hover:text-white focus:outline-none"
 											>
 												Documentation
 											</a>
+											{getCurrentTheme() === 'light' ? (
+												<MoonIcon
+													className="h-9 w-9 text-zinc-300 cursor-pointer hover:text-brand-500 rounded-md hover:bg-zinc-700 px-2 py-2"
+													onClick={setDarkMode}
+												/>
+											) : (
+												<SunIcon
+													className="h-9 w-9 text-zinc-300 cursor-pointer hover:text-brand-500 rounded-md hover:bg-zinc-700 px-2 py-2"
+													onClick={setLightMode}
+												/>
+											)}
 										</div>
 										<div className="-mr-2 flex md:hidden">
 											{/* Mobile menu button */}
