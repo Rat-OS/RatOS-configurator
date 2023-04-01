@@ -26,6 +26,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 		...mcuBoardVersion
 	} = trpc.useQuery(['mcu.board-version', { boardPath: props.selectedBoards[0].board.path }], {
 		enabled: !!isBoardDetected && forceReflash === false,
+		retry: false,
 		refetchOnWindowFocus: false,
 		refetchOnMount: false,
 		refetchOnReconnect: false,
