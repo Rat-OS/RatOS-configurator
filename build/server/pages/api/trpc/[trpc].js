@@ -61,7 +61,7 @@ module.exports = require("util");
 
 /***/ }),
 
-/***/ 4687:
+/***/ 5413:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
@@ -257,7 +257,7 @@ const iw = {
 
 /***/ }),
 
-/***/ 4127:
+/***/ 3132:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 
@@ -302,7 +302,7 @@ const getLogger = () => {
 
 /***/ }),
 
-/***/ 603:
+/***/ 5943:
 /***/ ((module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
@@ -327,7 +327,7 @@ __webpack_async_result__();
 
 /***/ }),
 
-/***/ 3537:
+/***/ 8738:
 /***/ ((module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
@@ -336,9 +336,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
 /* harmony import */ var _trpc_server_adapters_next__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(5669);
-/* harmony import */ var _helpers_logger__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(4127);
-/* harmony import */ var _server_router_context__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(6823);
-/* harmony import */ var _server_router_index__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(5068);
+/* harmony import */ var _helpers_logger__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3132);
+/* harmony import */ var _server_router_context__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(2776);
+/* harmony import */ var _server_router_index__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(7608);
 var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_server_router_index__WEBPACK_IMPORTED_MODULE_3__]);
 _server_router_index__WEBPACK_IMPORTED_MODULE_3__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__)[0];
 
@@ -359,27 +359,27 @@ __webpack_async_result__();
 
 /***/ }),
 
-/***/ 5068:
+/***/ 7608:
 /***/ ((module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "q": () => (/* binding */ appRouter)
 /* harmony export */ });
-/* harmony import */ var _context__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(6823);
+/* harmony import */ var _context__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(2776);
 /* harmony import */ var superjson__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(72);
 /* harmony import */ var superjson__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(superjson__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(7147);
 /* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(fs__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _wifi__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(4586);
-/* harmony import */ var _mcu__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(8455);
+/* harmony import */ var _wifi__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(4485);
+/* harmony import */ var _mcu__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(7932);
 /* harmony import */ var util__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(3837);
 /* harmony import */ var util__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(util__WEBPACK_IMPORTED_MODULE_5__);
 /* harmony import */ var child_process__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(2081);
 /* harmony import */ var child_process__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(child_process__WEBPACK_IMPORTED_MODULE_6__);
-/* harmony import */ var _helpers_iw__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(4687);
-/* harmony import */ var _klippy_extensions__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(3573);
-/* harmony import */ var _moonraker_extensions__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(4952);
+/* harmony import */ var _helpers_iw__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(5413);
+/* harmony import */ var _klippy_extensions__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(1910);
+/* harmony import */ var _moonraker_extensions__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(8596);
 var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_wifi__WEBPACK_IMPORTED_MODULE_3__, _mcu__WEBPACK_IMPORTED_MODULE_4__, _klippy_extensions__WEBPACK_IMPORTED_MODULE_8__, _moonraker_extensions__WEBPACK_IMPORTED_MODULE_9__]);
 ([_wifi__WEBPACK_IMPORTED_MODULE_3__, _mcu__WEBPACK_IMPORTED_MODULE_4__, _klippy_extensions__WEBPACK_IMPORTED_MODULE_8__, _moonraker_extensions__WEBPACK_IMPORTED_MODULE_9__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
 // src/server/router/index.ts
@@ -445,7 +445,7 @@ __webpack_async_result__();
 
 /***/ }),
 
-/***/ 3573:
+/***/ 1910:
 /***/ ((module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
@@ -457,7 +457,7 @@ __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __we
 /* harmony import */ var _trpc_server__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_trpc_server__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(7147);
 /* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(fs__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _helpers_logger__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(4127);
+/* harmony import */ var _helpers_logger__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(3132);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(1017);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_4__);
 var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([zod__WEBPACK_IMPORTED_MODULE_0__]);
@@ -604,7 +604,7 @@ __webpack_async_result__();
 
 /***/ }),
 
-/***/ 4952:
+/***/ 8596:
 /***/ ((module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
@@ -616,7 +616,7 @@ __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __we
 /* harmony import */ var _trpc_server__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_trpc_server__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(7147);
 /* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(fs__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _helpers_logger__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(4127);
+/* harmony import */ var _helpers_logger__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(3132);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(1017);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_4__);
 var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([zod__WEBPACK_IMPORTED_MODULE_0__]);
@@ -763,7 +763,7 @@ __webpack_async_result__();
 
 /***/ }),
 
-/***/ 4586:
+/***/ 4485:
 /***/ ((module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
@@ -778,11 +778,11 @@ __webpack_require__.a(module, async (__webpack_handle_async_dependencies__, __we
 /* harmony import */ var child_process__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(child_process__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(1017);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var _helpers_util__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(6454);
-/* harmony import */ var _helpers_iw__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(4687);
-/* harmony import */ var _helpers_validators_wifi__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(603);
-/* harmony import */ var _helpers_logger__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(4127);
-/* harmony import */ var _helpers_run_script__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(6030);
+/* harmony import */ var _helpers_util__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(5820);
+/* harmony import */ var _helpers_iw__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(5413);
+/* harmony import */ var _helpers_validators_wifi__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(5943);
+/* harmony import */ var _helpers_logger__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(3132);
+/* harmony import */ var _helpers_run_script__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(3712);
 var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_helpers_validators_wifi__WEBPACK_IMPORTED_MODULE_5__]);
 _helpers_validators_wifi__WEBPACK_IMPORTED_MODULE_5__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__)[0];
 
@@ -885,7 +885,7 @@ __webpack_async_result__();
 var __webpack_require__ = require("../../../webpack-api-runtime.js");
 __webpack_require__.C(exports);
 var __webpack_exec__ = (moduleId) => (__webpack_require__(__webpack_require__.s = moduleId))
-var __webpack_exports__ = __webpack_require__.X(0, [669,455], () => (__webpack_exec__(3537)));
+var __webpack_exports__ = __webpack_require__.X(0, [669,932], () => (__webpack_exec__(8738)));
 module.exports = __webpack_exports__;
 
 })();

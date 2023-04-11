@@ -1,8 +1,8 @@
-exports.id = 178;
-exports.ids = [178];
+exports.id = 327;
+exports.ids = [327];
 exports.modules = {
 
-/***/ 1791:
+/***/ 8479:
 /***/ ((module, exports, __webpack_require__) => {
 
 "use strict";
@@ -15,7 +15,7 @@ exports.addBasePath = addBasePath;
 
 var _addPathPrefix = __webpack_require__(1751);
 
-var _normalizeTrailingSlash = __webpack_require__(3137);
+var _normalizeTrailingSlash = __webpack_require__(346);
 
 const basePath = "/configure" || 0;
 
@@ -35,7 +35,7 @@ if ((typeof exports.default === 'function' || typeof exports.default === 'object
 
 /***/ }),
 
-/***/ 2499:
+/***/ 9319:
 /***/ ((module, exports, __webpack_require__) => {
 
 "use strict";
@@ -46,7 +46,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.addLocale = void 0;
 
-var _normalizeTrailingSlash = __webpack_require__(3137);
+var _normalizeTrailingSlash = __webpack_require__(346);
 
 const addLocale = (path, ...args) => {
   if (false) {}
@@ -66,7 +66,7 @@ if ((typeof exports.default === 'function' || typeof exports.default === 'object
 
 /***/ }),
 
-/***/ 6652:
+/***/ 6571:
 /***/ ((module, exports) => {
 
 "use strict";
@@ -93,7 +93,7 @@ if ((typeof exports.default === 'function' || typeof exports.default === 'object
 
 /***/ }),
 
-/***/ 1091:
+/***/ 1967:
 /***/ ((module, exports) => {
 
 "use strict";
@@ -121,7 +121,7 @@ if ((typeof exports.default === 'function' || typeof exports.default === 'object
 
 /***/ }),
 
-/***/ 9762:
+/***/ 1316:
 /***/ ((module, exports, __webpack_require__) => {
 
 "use strict";
@@ -150,7 +150,7 @@ if ((typeof exports.default === 'function' || typeof exports.default === 'object
 
 /***/ }),
 
-/***/ 1616:
+/***/ 9852:
 /***/ ((module, exports, __webpack_require__) => {
 
 "use strict";
@@ -163,19 +163,19 @@ exports["default"] = void 0;
 
 var _react = _interopRequireDefault(__webpack_require__(6689));
 
-var _router = __webpack_require__(4728);
+var _router = __webpack_require__(256);
 
-var _addLocale = __webpack_require__(2499);
+var _addLocale = __webpack_require__(9319);
 
 var _routerContext = __webpack_require__(4964);
 
 var _appRouterContext = __webpack_require__(3280);
 
-var _useIntersection = __webpack_require__(7151);
+var _useIntersection = __webpack_require__(2641);
 
-var _getDomainLocale = __webpack_require__(1091);
+var _getDomainLocale = __webpack_require__(1967);
 
-var _addBasePath = __webpack_require__(1791);
+var _addBasePath = __webpack_require__(8479);
 
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : {
@@ -424,7 +424,7 @@ if ((typeof exports.default === 'function' || typeof exports.default === 'object
 
 /***/ }),
 
-/***/ 9455:
+/***/ 6879:
 /***/ ((module, exports, __webpack_require__) => {
 
 "use strict";
@@ -435,7 +435,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.removeBasePath = removeBasePath;
 
-var _hasBasePath = __webpack_require__(9762);
+var _hasBasePath = __webpack_require__(1316);
 
 const basePath = "/configure" || 0;
 
@@ -457,7 +457,7 @@ if ((typeof exports.default === 'function' || typeof exports.default === 'object
 
 /***/ }),
 
-/***/ 2376:
+/***/ 9750:
 /***/ ((module, exports, __webpack_require__) => {
 
 "use strict";
@@ -486,7 +486,7 @@ if ((typeof exports.default === 'function' || typeof exports.default === 'object
 
 /***/ }),
 
-/***/ 2918:
+/***/ 1856:
 /***/ ((module, exports, __webpack_require__) => {
 
 "use strict";
@@ -502,9 +502,9 @@ exports.createRouteLoader = createRouteLoader;
 
 var _getAssetPathFromRoute = _interopRequireDefault(__webpack_require__(9565));
 
-var _trustedTypes = __webpack_require__(6096);
+var _trustedTypes = __webpack_require__(2942);
 
-var _requestIdleCallback = __webpack_require__(8115);
+var _requestIdleCallback = __webpack_require__(8935);
 
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : {
@@ -822,7 +822,7 @@ if ((typeof exports.default === 'function' || typeof exports.default === 'object
 
 /***/ }),
 
-/***/ 6096:
+/***/ 2942:
 /***/ ((module, exports) => {
 
 "use strict";
@@ -864,7 +864,7 @@ if ((typeof exports.default === 'function' || typeof exports.default === 'object
 
 /***/ }),
 
-/***/ 4728:
+/***/ 256:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -879,15 +879,15 @@ exports.resolveHref = resolveHref;
 exports.createKey = createKey;
 exports["default"] = void 0;
 
-var _normalizeTrailingSlash = __webpack_require__(3137);
+var _normalizeTrailingSlash = __webpack_require__(346);
 
 var _removeTrailingSlash = __webpack_require__(3297);
 
-var _routeLoader = __webpack_require__(2918);
+var _routeLoader = __webpack_require__(1856);
 
-var _script = __webpack_require__(2068);
+var _script = __webpack_require__(7741);
 
-var _isError = _interopRequireWildcard(__webpack_require__(6856));
+var _isError = _interopRequireWildcard(__webpack_require__(3768));
 
 var _denormalizePagePath = __webpack_require__(4406);
 
@@ -911,19 +911,19 @@ var _routeRegex = __webpack_require__(5052);
 
 var _formatUrl = __webpack_require__(3938);
 
-var _detectDomainLocale = __webpack_require__(6652);
+var _detectDomainLocale = __webpack_require__(6571);
 
 var _parsePath = __webpack_require__(8854);
 
-var _addLocale = __webpack_require__(2499);
+var _addLocale = __webpack_require__(9319);
 
-var _removeLocale = __webpack_require__(2376);
+var _removeLocale = __webpack_require__(9750);
 
-var _removeBasePath = __webpack_require__(9455);
+var _removeBasePath = __webpack_require__(6879);
 
-var _addBasePath = __webpack_require__(1791);
+var _addBasePath = __webpack_require__(8479);
 
-var _hasBasePath = __webpack_require__(9762);
+var _hasBasePath = __webpack_require__(1316);
 
 var _getNextPathnameInfo = __webpack_require__(5789);
 
@@ -2745,10 +2745,10 @@ exports["default"] = Router;
 
 /***/ }),
 
-/***/ 3178:
+/***/ 2327:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-module.exports = __webpack_require__(1616)
+module.exports = __webpack_require__(9852)
 
 
 /***/ })

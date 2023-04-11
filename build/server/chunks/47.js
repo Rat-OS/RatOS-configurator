@@ -1,8 +1,8 @@
-exports.id = 566;
-exports.ids = [566];
+exports.id = 47;
+exports.ids = [47];
 exports.modules = {
 
-/***/ 3274:
+/***/ 3239:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -41,9 +41,9 @@ var _utils = __webpack_require__(6368);
 
 var _htmlescape = __webpack_require__(9716);
 
-var _script = _interopRequireDefault(__webpack_require__(2068));
+var _script = _interopRequireDefault(__webpack_require__(7741));
 
-var _isError = _interopRequireDefault(__webpack_require__(6856));
+var _isError = _interopRequireDefault(__webpack_require__(3768));
 
 var _htmlContext = __webpack_require__(8743);
 
@@ -780,7 +780,7 @@ class NextScript extends _react.Component {
       const data = JSON.stringify(__NEXT_DATA__);
       const bytes =  false ? 0 : Buffer.from(data).byteLength;
 
-      const prettyBytes = (__webpack_require__(4652)/* ["default"] */ .Z);
+      const prettyBytes = (__webpack_require__(6487)/* ["default"] */ .Z);
 
       if (largePageDataBytes && bytes > largePageDataBytes) {
         console.warn(`Warning: data for page "${__NEXT_DATA__.page}" is ${prettyBytes(bytes)} which exceeds the threshold of ${prettyBytes(largePageDataBytes)}, this amount of data can reduce performance.\nSee more info here: https://nextjs.org/docs/messages/large-page-data`);
@@ -877,7 +877,7 @@ function getHeadHTMLProps(props) {
 
 /***/ }),
 
-/***/ 4652:
+/***/ 6487:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -950,10 +950,10 @@ Formats the given number using `Number#toLocaleString`.
 
 /***/ }),
 
-/***/ 5566:
+/***/ 9047:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-module.exports = __webpack_require__(3274)
+module.exports = __webpack_require__(3239)
 
 
 /***/ })

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-source $SCRIPT_DIR/common.sh
+source "$SCRIPT_DIR"/common.sh
 
 verify_ready()
 {
@@ -17,6 +17,8 @@ refresh_yarn_gpg_key()
 
 verify_ready
 verify_users
+update_npm
+update_pnpm
 install_hooks
 ensure_service_permission
 ensure_sudo_command_whitelisting

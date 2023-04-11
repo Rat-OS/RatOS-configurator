@@ -1,9 +1,9 @@
 "use strict";
-exports.id = 836;
-exports.ids = [836];
+exports.id = 392;
+exports.ids = [392];
 exports.modules = {
 
-/***/ 3137:
+/***/ 346:
 /***/ ((module, exports, __webpack_require__) => {
 
 
@@ -45,7 +45,7 @@ if ((typeof exports.default === 'function' || typeof exports.default === 'object
 
 /***/ }),
 
-/***/ 7151:
+/***/ 2641:
 /***/ ((module, exports, __webpack_require__) => {
 
 
@@ -57,7 +57,7 @@ exports.useIntersection = useIntersection;
 
 var _react = __webpack_require__(6689);
 
-var _requestIdleCallback = __webpack_require__(8115);
+var _requestIdleCallback = __webpack_require__(8935);
 
 const hasIntersectionObserver = typeof IntersectionObserver === 'function';
 
