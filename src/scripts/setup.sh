@@ -15,6 +15,19 @@ disable_telemetry()
     npx --yes -- next telemetry disable
 }
 
+
+update_npm()
+{
+    report_status "Updating npm..."
+    npm install -g npm
+}
+
+update_pnpm()
+{
+    report_status "Updating pnpm..."
+    npm install -g pnpm
+}
+
 install_service()
 {
         # Create systemd service file
