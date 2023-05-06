@@ -8,6 +8,17 @@ if [[ ! $NETWORK =~ ^network ]]; then
 	echo "Invalid wifi credentials"
 	exit -1
 fi
+
+# NetworkManager operation mode
+if systemctl is-active --quiet NetworkManager; then
+	nmcli con add type wifi ifname wlan0 con-name "$1" autoconnect yes ssid "$1" 
+	nmcli con modify "$1" wifi-sec.key-mgmt wpa-psk
+	nmcli con modify "$1" wifi-sec.psk "$2"
+	nmcli con modify "$1" wifi-sec.auth-alg open
+	exit 0
+fi
+
+# wpa_supplicant operation mode
 cat << __EOF > /etc/wpa_supplicant/wpa_supplicant.conf
 # Use this file to configure your wifi connection(s).
 #
