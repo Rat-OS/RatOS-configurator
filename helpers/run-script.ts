@@ -22,7 +22,7 @@ export const runSudoScript = (script: string, ...args: string[]): Promise<{ stde
 				if (code === 0) {
 					resolve({ stdout, stderr });
 				} else {
-					reject('An error occured while attempting to run script');
+					reject('An error occured while attempting to run script: ' + stdout);
 				}
 			});
 			child.on('close', (code) => {

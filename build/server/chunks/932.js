@@ -40,7 +40,7 @@ const runSudoScript = (script, ...args) => {
             stderr
           });
         } else {
-          reject('An error occured while attempting to run script');
+          reject('An error occured while attempting to run script: ' + stdout);
         }
       });
       child.on('close', code => {
