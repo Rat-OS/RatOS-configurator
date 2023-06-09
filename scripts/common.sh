@@ -27,7 +27,7 @@ update_pnpm()
 
 pnpm_install() {
     pushd "$SRC_DIR" || exit 1
-    pnpm install
+    pnpm install --frozen-lockfile
     popd || exit 1
 }
 
