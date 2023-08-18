@@ -13,6 +13,7 @@ interface CardSelectorProps<Selectable extends SelectableCard = SelectableCard> 
 	cards: Selectable[];
 	onSelect?: (card: Selectable) => void;
 	value?: Selectable | null;
+	title?: (card: Selectable) => string;
 }
 
 export const CardSelector = <Selectable extends SelectableCard = SelectableCard>(
@@ -58,7 +59,7 @@ export const CardSelector = <Selectable extends SelectableCard = SelectableCard>
 								<div className="flex items-center">
 									<div>
 										<RadioGroup.Label as="p" className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-											{card.name}
+											{props.title ? props.title(card) : card.name}
 										</RadioGroup.Label>
 										<RadioGroup.Description as="div" className="text-xs text-zinc-500 dark:text-zinc-400">
 											<p className="sm:inline">{card.details}</p>

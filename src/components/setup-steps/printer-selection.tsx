@@ -4,6 +4,7 @@ import { StepNavButtons } from '../step-nav-buttons';
 import getConfig from 'next/config';
 import { StepScreenProps } from '../../hooks/useSteps';
 import { CardSelectorWithOptions, SelectableCard } from '../card-selector-with-options';
+import { trpc } from '../../helpers/trpc';
 
 const basePath = getConfig().publicRuntimeConfig.basePath;
 
@@ -45,7 +46,7 @@ const printers: SelectableCard[] = [
 	{
 		id: 'rat-rig-v-core-pro',
 		name: 'RatRig V-Core Pro 1.3',
-		details: 'Discontinued CoreXY printer from Rat Rig which comes in 4 sizes',
+		details: 'Discontinued CoreXY printer from Rat Rig which comes in 3 sizes',
 		right: (
 			<Image
 				src={basePath + '/img/rat-rig-v-core-pro-13.jpg'}
@@ -125,6 +126,25 @@ const printers: SelectableCard[] = [
 ];
 
 export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
+	const printerQuery = trpc.useQuery(['printer.printers']);
+	const printers = printerQuery.data ? printerQuery.data.map((p) => {
+		const printerImgUri = 'printerId=' + encodeURIComponent(p.id);
+		return {
+			id: p.id,
+			name: `${p.manufacturer} ${p.name}`,
+			details: p.description,
+			right: (
+				<Image
+					src={'/configure/api/printer-image?' + printerImgUri}
+					width={50}
+					className="bg-white rounded-lg shadow-md dark:shadow-zinc-900 p-1"
+					height={50}
+					alt={`${p.manufacturer} ${p.name}`}
+				/>
+			),
+			options: p.sizes ? (p.sizes.map((s) => ({ id: s, name: s + '' }))) : undefined,
+		}
+	}) satisfies SelectableCard[] : [];
 	return (
 		<>
 			<div className="p-8">

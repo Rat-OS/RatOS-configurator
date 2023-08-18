@@ -11,7 +11,6 @@ export const parseMetadata = async <T extends ZodType>(cfgFile: string, zod: T):
 		.filter((l) => l !== '')
 		.map((l) => (l.indexOf('#') === 0 ? l.substring(1) : l));
 	if (jsonArray.length === 0) {
-		console.log('skipping empty file: ' + cfgFile);
 		return null;
 	}
 	try {

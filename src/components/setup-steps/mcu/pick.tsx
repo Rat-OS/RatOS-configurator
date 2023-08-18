@@ -13,7 +13,7 @@ export const MCUPicker: React.FC<MCUPickProps> = (props) => {
 	}, [props.toolboards, props.cards]);
 
 	let content = (
-		<CardSelector<SelectableBoard> cards={cards} value={props.selectedBoards[0]} onSelect={props.setSelectedBoard} />
+		<CardSelector<SelectableBoard> cards={cards} value={props.selectedBoard} onSelect={props.setSelectedBoard} />
 	);
 
 	let rightButton: StepNavButton = {
@@ -32,7 +32,7 @@ export const MCUPicker: React.FC<MCUPickProps> = (props) => {
 			  }
 			: undefined;
 
-	if (props.selectedBoards.length > 0) {
+	if (props.selectedBoard != null) {
 		rightButton = {
 			onClick: props.nextScreen,
 			label: 'Next',

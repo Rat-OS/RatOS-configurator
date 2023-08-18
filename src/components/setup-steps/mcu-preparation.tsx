@@ -1,11 +1,13 @@
 import { CpuChipIcon } from '@heroicons/react/24/outline';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery } from 'react-query';
-import { useRecoilValue } from 'recoil';
+import { useRecoilValue, useSetRecoilState } from 'recoil';
+import { z } from 'zod';
 import { trpc } from '../../helpers/trpc';
 import { MoonrakerDBGetItemResponse, MoonrakerQueryState } from '../../hooks/useMoonraker';
+import { ControlboardState, ToolboardState } from '../../hooks/usePrinterConfiguration';
 import { StepScreen, StepScreenProps, useSteps } from '../../hooks/useSteps';
-import { Board } from '../../server/router/mcu';
+import { Board } from '../../zods/boards';
 import { SelectableCard } from '../card-selector';
 import { QueryStatus } from '../common/query-status';
 import { MCUFlashing } from './mcu/flash';
@@ -16,9 +18,9 @@ export interface SelectableBoard extends SelectableCard {
 }
 
 interface ExtraStepProps {
-	selectedBoards: SelectableBoard[];
+	selectedBoard: SelectableBoard | null;
 	cards: SelectableBoard[];
-	setSelectedBoard: (boards: SelectableBoard) => void;
+	setSelectedBoard: (board: SelectableBoard | null) => void;
 	toolboards?: boolean;
 }
 
@@ -33,8 +35,7 @@ const MCUSteps: StepScreen<ExtraStepProps>[] = [
 		id: '01',
 		name: (screenProps) => (screenProps.toolboards ? 'Toolboard' : 'Control board'),
 		description: (screenProps) =>
-			`Pick your ${
-				screenProps.toolboards ? 'toolboard' : 'control board. If you also use a toolboard, you can add that later.'
+			`Pick your ${screenProps.toolboards ? 'toolboard' : 'control board. If you also use a toolboard, you can add that later.'
 			}`,
 		href: '#',
 		renderScreen: (screenProps) => <MCUPicker {...screenProps} />,
@@ -50,7 +51,10 @@ const MCUSteps: StepScreen<ExtraStepProps>[] = [
 ];
 
 export const MCUPreparation: React.FC<StepScreenProps & ExtraProps> = (props) => {
-	const [selectedBoards, _setSelectedBoards] = useState<SelectableBoard[]>([]);
+	const _setControlboard = useSetRecoilState(ControlboardState);
+	const _setToolboard = useSetRecoilState(ToolboardState);
+	const [selectedBoard, _setSelectedBoard] = useState<SelectableBoard | null>(null);
+
 	const moonrakerQuery = useRecoilValue(MoonrakerQueryState);
 
 	const boardsQuery = trpc.useQuery(['mcu.boards']);
@@ -75,12 +79,20 @@ export const MCUPreparation: React.FC<StepScreenProps & ExtraProps> = (props) =>
 			namespace: 'RatOS',
 			key: props.toolboards ? 'toolboards' : 'boards',
 		})) as MoonrakerDBGetItemResponse<string>;
-		return JSON.parse(response.value);
+		if (response == null || response.value == null) return [];
+		return z.array(Board).parse(JSON.parse(response.value));
 	});
 	const setSelectedBoard = useCallback(
-		(selectedBoard: SelectableBoard) => {
-			setBoardMutation.mutate([selectedBoard.board]);
-			_setSelectedBoards([selectedBoard]);
+		(selectedBoard: SelectableBoard | null) => {
+			_setSelectedBoard(selectedBoard);
+			// Remove SelectableCard props
+			const newBoard = selectedBoard == null ? null : Board.parse(selectedBoard.board);
+			setBoardMutation.mutate(newBoard ? [newBoard] : []);
+			if (props.toolboards) {
+				_setToolboard(newBoard);
+			} else {
+				_setControlboard(newBoard);
+			}
 		},
 		[setBoardMutation],
 	);
@@ -89,7 +101,7 @@ export const MCUPreparation: React.FC<StepScreenProps & ExtraProps> = (props) =>
 		if (boardsQuery.isError || boardsQuery.data == null) return [];
 		return boardsQuery.data.map((b) => ({
 			board: b,
-			name: b.manufacturer + ' ' + b.name,
+			name: `${b.manufacturer} ${b.name}`,
 			details: (
 				<span>
 					<span className="font-semibold">Automatic flashing:</span> {b.flashScript ? 'Yes' : 'No'}
@@ -102,10 +114,20 @@ export const MCUPreparation: React.FC<StepScreenProps & ExtraProps> = (props) =>
 	useEffect(() => {
 		// Only handle single board selection for now
 		const board = cards.find((c) => c.board.serialPath === selectedBoardQuery.data?.[0].serialPath);
-		_setSelectedBoards(board ? [board] : []);
+		_setSelectedBoard(board ?? null);
+		if (props.toolboards) {
+			_setToolboard(board?.board ?? null);
+		} else {
+			_setControlboard(board?.board ?? null);
+		}
 	}, [selectedBoardQuery.data, cards]);
 
-	const extraScreenProps: ExtraStepProps = { selectedBoards, cards, setSelectedBoard, toolboards: props.toolboards };
+	const extraScreenProps: ExtraStepProps = {
+		selectedBoard: selectedBoard ?? null,
+		cards,
+		setSelectedBoard,
+		toolboards: props.toolboards,
+	};
 	const { currentStep, screenProps } = useSteps<ExtraStepProps>({
 		steps: MCUSteps,
 		parentScreenProps: props,

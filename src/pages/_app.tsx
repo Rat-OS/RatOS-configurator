@@ -54,6 +54,8 @@ function MyApp(props: AppProps<Props>) {
 		setTheme(getCurrentTheme());
 	}, []);
 
+	console.log(theme);
+
 	useEffect(() => {
 		onThemeChange();
 	}, [theme]);
@@ -87,7 +89,7 @@ function MyApp(props: AppProps<Props>) {
 					{({ open }) => (
 						<>
 							<div className="max-w-7xl mx-auto sm:px-6">
-								<div className="border-b border-zinc-700">
+								<div className="">
 									<div className="flex items-center justify-between h-16 px-4 sm:px-0">
 										<div className="flex items-center">
 											<div className="flex-shrink-0">
@@ -135,7 +137,7 @@ function MyApp(props: AppProps<Props>) {
 											>
 												Documentation
 											</a>
-											{getCurrentTheme() === 'light' ? (
+											{theme === 'light' ? (
 												<MoonIcon
 													className="h-9 w-9 text-zinc-300 cursor-pointer hover:text-brand-500 rounded-md hover:bg-zinc-700 px-2 py-2"
 													onClick={setDarkMode}

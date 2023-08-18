@@ -9,41 +9,7 @@ import { TRPCError } from '@trpc/server';
 import { getScriptRoot } from '../../helpers/util';
 import path from 'path';
 import { runSudoScript } from '../../helpers/run-script';
-import { getLogger } from '../../helpers/logger';
-
-export const Board = z.object({
-	serialPath: z.string(),
-	isToolboard: z.boolean().optional(),
-	isHost: z.boolean().optional(),
-	name: z.string(),
-	manufacturer: z.string(),
-	firmwareBinaryName: z.string(),
-	compileScript: z.string(),
-	flashScript: z.string().optional(),
-	flashInstructions: z.string().optional(),
-	disableAutoFlash: z.boolean().optional(),
-	documentationLink: z.string().optional(),
-	dfu: z
-		.object({
-			dfuBootImage: z.string(),
-			flashDevice: z.string(),
-			instructions: z.array(z.string()),
-			reminder: z.string().optional(),
-		})
-		.optional(),
-	path: z.string(),
-});
-
-export const AutoFlashableBoard = z.object({
-	serialPath: z.string(),
-	isToolboard: z.boolean().optional(),
-	compileScript: z.string(),
-	flashScript: z.string(),
-	path: z.string(),
-});
-
-export type Board = z.infer<typeof Board>;
-export type AutoFlashableBoard = z.infer<typeof AutoFlashableBoard>;
+import { AutoFlashableBoard, Board } from '../../zods/boards';
 
 const inputSchema = z.object({
 	boardPath: z.string(),
@@ -57,7 +23,7 @@ export const getBoards = async () => {
 			.map((f) =>
 				f.trim() === ''
 					? null
-					: { ...JSON.parse(readFileSync(f).toString()), path: f.replace('board-definition.json', '') },
+					: { ...(JSON.parse(readFileSync(f).toString()) as {}), path: f.replace('board-definition.json', '') },
 			)
 			.filter((f) => f != null),
 	);
@@ -158,10 +124,10 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 
 			const scriptRoot = getScriptRoot();
 			// stop klipper
-			let version = {stdout: ''};
+			let version = { stdout: '' };
 			let error: any = null;
 			try {
-				await fetch('http://localhost:7125/machine/services/stop?service=klipper', {method: 'POST'});
+				await fetch('http://localhost:7125/machine/services/stop?service=klipper', { method: 'POST' });
 				version = await promisify(exec)(
 					`${path.join(process.env.KLIPPER_ENV, 'bin', 'python')} ${path.join(scriptRoot, 'check-version.py')} ${
 						ctx.board.serialPath
@@ -171,7 +137,7 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 			} catch (e) {
 				error = e;
 			} finally {
-				await fetch('http://localhost:7125/machine/services/start?service=klipper', {method: 'POST'});
+				await fetch('http://localhost:7125/machine/services/start?service=klipper', { method: 'POST' });
 			}
 			if (error) {
 				throw new trpc.TRPCError({
@@ -199,7 +165,10 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 				});
 			}
 			let compileResult = null;
-			const firmwareBinary = path.resolve('/home/pi/printer_data/config/firmware_binaries', ctx.board.firmwareBinaryName);
+			const firmwareBinary = path.resolve(
+				'/home/pi/printer_data/config/firmware_binaries',
+				ctx.board.firmwareBinaryName,
+			);
 			try {
 				if (fs.existsSync(firmwareBinary)) {
 					fs.rmSync(firmwareBinary);
@@ -300,7 +269,10 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 				});
 			}
 			let compileResult = null;
-			const firmwareBinary = path.resolve('/home/pi/printer_data/config/firmware_binaries', ctx.board.firmwareBinaryName);
+			const firmwareBinary = path.resolve(
+				'/home/pi/printer_data/config/firmware_binaries',
+				ctx.board.firmwareBinaryName,
+			);
 			try {
 				if (fs.existsSync(firmwareBinary)) {
 					fs.rmSync(firmwareBinary);
@@ -381,7 +353,10 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 				});
 			}
 			let compileResult = null;
-			const firmwareBinary = path.resolve('/home/pi/printer_data/config/firmware_binaries', ctx.board.firmwareBinaryName);
+			const firmwareBinary = path.resolve(
+				'/home/pi/printer_data/config/firmware_binaries',
+				ctx.board.firmwareBinaryName,
+			);
 			try {
 				if (fs.existsSync(firmwareBinary)) {
 					fs.rmSync(firmwareBinary);
@@ -417,3 +392,4 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 			}
 		},
 	});
+export { Board };

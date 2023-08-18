@@ -1,10 +1,19 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { StepNavButtons } from '../step-nav-buttons';
 import { StepScreenProps } from '../../hooks/useSteps';
 import { Dropdown } from '../forms/dropdown';
 import { trpc } from '../../helpers/trpc';
 import { z } from 'zod';
-import type { Endstop, Extruder, Hotend, Probe, Thermistor } from '../../server/router/printer';
+import { useRecoilState } from 'recoil';
+import {
+	ExtruderState,
+	HotendState,
+	ProbeState,
+	ThermistorState,
+	XEndstopState,
+	YEndstopState,
+} from '../../hooks/usePrinterConfiguration';
+import { Hotend, Thermistor } from '../../zods/hardware';
 
 const stringToTitleObject = <Item extends string>(data: Item | null): { id: Item; title: Item } | null => {
 	if (data == null) {
@@ -15,12 +24,12 @@ const stringToTitleObject = <Item extends string>(data: Item | null): { id: Item
 
 export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 	const [hasManuallySelectedThermistor, setHasManuallySelectedThermistor] = useState(false);
-	const [selectedHotend, setSelectedHotend] = useState<z.infer<typeof Hotend> | null>(null);
-	const [selectedExtruder, setSelectedExtruder] = useState<z.infer<typeof Extruder> | null>(null);
-	const [selectedThermistor, setSelectedThermistor] = useState<z.infer<typeof Thermistor> | null>(null);
-	const [selectedProbe, setSelectedProbe] = useState<z.infer<typeof Probe> | null>(null);
-	const [selectedXEndstop, setSelectedXEndstop] = useState<z.infer<typeof Endstop> | null>(null);
-	const [selectedYEndstop, setSelectedYEndstop] = useState<z.infer<typeof Endstop> | null>(null);
+	const [selectedHotend, setSelectedHotend] = useRecoilState(HotendState);
+	const [selectedExtruder, setSelectedExtruder] = useRecoilState(ExtruderState);
+	const [selectedThermistor, setSelectedThermistor] = useRecoilState(ThermistorState);
+	const [selectedProbe, setSelectedProbe] = useRecoilState(ProbeState);
+	const [selectedXEndstop, setSelectedXEndstop] = useRecoilState(XEndstopState);
+	const [selectedYEndstop, setSelectedYEndstop] = useRecoilState(YEndstopState);
 
 	const hotends = trpc.useQuery(['printer.hotends']);
 	const extruders = trpc.useQuery(['printer.extruders']);
@@ -101,7 +110,19 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 					</div>
 				</div>
 			</div>
-			<StepNavButtons left={{ onClick: props.previousScreen }} right={{ onClick: props.nextScreen }} />
+			<StepNavButtons
+				left={{ onClick: props.previousScreen }}
+				right={{
+					onClick: props.nextScreen,
+					disabled:
+						selectedHotend == null ||
+						selectedThermistor == null ||
+						selectedExtruder == null ||
+						selectedProbe == null ||
+						selectedXEndstop == null ||
+						selectedYEndstop == null,
+				}}
+			/>
 		</>
 	);
 };
