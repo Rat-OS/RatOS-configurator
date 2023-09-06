@@ -7,7 +7,7 @@ import { trpc } from '../../helpers/trpc';
 import { MoonrakerDBGetItemResponse, MoonrakerQueryState } from '../../hooks/useMoonraker';
 import { ControlboardState, ToolboardState } from '../../hooks/usePrinterConfiguration';
 import { StepScreen, StepScreenProps, useSteps } from '../../hooks/useSteps';
-import { Board } from '../../zods/boards';
+import { Board, Toolboard } from '../../zods/boards';
 import { SelectableCard } from '../card-selector';
 import { QueryStatus } from '../common/query-status';
 import { MCUFlashing } from './mcu/flash';
@@ -35,7 +35,8 @@ const MCUSteps: StepScreen<ExtraStepProps>[] = [
 		id: '01',
 		name: (screenProps) => (screenProps.toolboards ? 'Toolboard' : 'Control board'),
 		description: (screenProps) =>
-			`Pick your ${screenProps.toolboards ? 'toolboard' : 'control board. If you also use a toolboard, you can add that later.'
+			`Pick your ${
+				screenProps.toolboards ? 'toolboard' : 'control board. If you also use a toolboard, you can add that later.'
 			}`,
 		href: '#',
 		renderScreen: (screenProps) => <MCUPicker {...screenProps} />,
@@ -89,7 +90,8 @@ export const MCUPreparation: React.FC<StepScreenProps & ExtraProps> = (props) =>
 			const newBoard = selectedBoard == null ? null : Board.parse(selectedBoard.board);
 			setBoardMutation.mutate(newBoard ? [newBoard] : []);
 			if (props.toolboards) {
-				_setToolboard(newBoard);
+				const toolboard = Toolboard.parse(newBoard);
+				_setToolboard(toolboard);
 			} else {
 				_setControlboard(newBoard);
 			}
@@ -115,8 +117,9 @@ export const MCUPreparation: React.FC<StepScreenProps & ExtraProps> = (props) =>
 		// Only handle single board selection for now
 		const board = cards.find((c) => c.board.serialPath === selectedBoardQuery.data?.[0].serialPath);
 		_setSelectedBoard(board ?? null);
-		if (props.toolboards) {
-			_setToolboard(board?.board ?? null);
+		if (props.toolboards && board?.board.isToolboard) {
+			const toolboard = Toolboard.parse(board.board);
+			_setToolboard(toolboard ?? null);
 		} else {
 			_setControlboard(board?.board ?? null);
 		}

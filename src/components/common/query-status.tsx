@@ -7,7 +7,7 @@ import { Spinner } from '../spinner';
 export const QueryStatus = (query: UseQueryResult<any, TRPCClientErrorLike<AppRouter>>) => {
 	if (query.isError) {
 		return (
-			<div className="mb-4 h-48">
+			<div className="mb-4">
 				<ErrorMessage>{query.error?.message}</ErrorMessage>
 			</div>
 		);

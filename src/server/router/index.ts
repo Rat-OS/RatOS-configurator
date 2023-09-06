@@ -14,9 +14,9 @@ import { printerRouter } from './printer';
 export const appRouter = createRouter()
 	.query('version', {
 		resolve: async () => {
-			return await promisify(exec)('git describe --tags --always', { cwd: process.env.RATOS_CONFIGURATION_PATH }).then(
-				({ stdout }) => stdout.trim(),
-			);
+			return await promisify(exec)('git describe --tags --always', {
+				cwd: process.env.RATOS_CONFIGURATION_PATH,
+			}).then(({ stdout }) => stdout.trim());
 		},
 	})
 	.query('klipper-version', {

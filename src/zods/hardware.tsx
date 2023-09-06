@@ -13,9 +13,13 @@ export const thermistors = [
 	'PT1000',
 ] as const;
 
-const environment = serverSchema.parse(process.env);
+let startsWithServerValidation = '';
+if (process.env.RATOS_CONFIGURATION_PATH) {
+	const environment = serverSchema.parse(process.env);
+	startsWithServerValidation = environment.RATOS_CONFIGURATION_PATH;
+}
 const hardwareType = z.object({
-	path: z.string().startsWith(environment.RATOS_CONFIGURATION_PATH).endsWith('.cfg'),
+	path: z.string().startsWith(startsWithServerValidation).endsWith('.cfg'),
 	id: z.string().endsWith('.cfg'),
 });
 

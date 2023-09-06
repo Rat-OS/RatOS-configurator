@@ -1,12 +1,14 @@
 import Link from 'next/link';
 import { classNames } from '../helpers/classNames';
+import React from 'react';
 
-interface ButtonProps {
+interface ButtonProps extends React.PropsWithChildren {
 	disabled?: boolean;
 	onClick?: () => void;
 	className?: string;
 	color: 'brand' | 'gray';
 	href?: string;
+	title?: string;
 }
 
 export const Button: React.FC<ButtonProps> = (props) => {
@@ -26,13 +28,13 @@ export const Button: React.FC<ButtonProps> = (props) => {
 
 	if (props.href) {
 		return (
-			<Link href={props.href} className={buttonClassName} onClick={props.onClick}>
+			<Link href={props.href} className={buttonClassName} onClick={props.onClick} title={props.title}>
 				{props.children}
 			</Link>
 		);
 	}
 	return (
-		<button className={buttonClassName} onClick={props.disabled ? undefined : props.onClick}>
+		<button className={buttonClassName} onClick={props.disabled ? undefined : props.onClick} title={props.title}>
 			{props.children}
 		</button>
 	);

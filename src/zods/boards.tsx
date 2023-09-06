@@ -31,5 +31,11 @@ export const AutoFlashableBoard = z.object({
 	path: z.string(),
 });
 
+export const Toolboard = Board.extend({
+	isToolboard: z.literal(true),
+	isHost: z.literal(false),
+});
+
 export type Board = z.infer<typeof Board>;
+export type Toolboard = z.infer<typeof Toolboard>;
 export type AutoFlashableBoard = z.infer<typeof AutoFlashableBoard>;

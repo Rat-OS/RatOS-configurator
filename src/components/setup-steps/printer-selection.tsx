@@ -1,150 +1,72 @@
 import React from 'react';
 import Image from 'next/image';
 import { StepNavButtons } from '../step-nav-buttons';
-import getConfig from 'next/config';
 import { StepScreenProps } from '../../hooks/useSteps';
-import { CardSelectorWithOptions, SelectableCard } from '../card-selector-with-options';
+import { CardSelectorWithOptions, SelectableCard, SelectableOption, SelectedCard } from '../card-selector-with-options';
 import { trpc } from '../../helpers/trpc';
-
-const basePath = getConfig().publicRuntimeConfig.basePath;
-
-const printers: SelectableCard[] = [
-	{
-		id: 'rat-rig-v-core-3',
-		name: 'RatRig V-Core 3',
-		details: "Rat Rig's current flagship CoreXY printer which comes in 4 sizes",
-		right: (
-			<Image
-				src={basePath + '/img/rat-rig-v-core-3.png'}
-				width={50}
-				className="bg-white rounded-lg shadow-md dark:shadow-zinc-900 p-1"
-				height={50}
-				alt="Rat Rig V-Core 3"
-			/>
-		),
-		options: [
-			{ name: '200mm', id: '200' },
-			{ name: '300mm', id: '300' },
-			{ name: '400mm', id: '400' },
-			{ name: '500mm', id: '500' },
-		],
-	},
-	{
-		id: 'rat-rig-v-minion',
-		name: 'RatRig V-Minion',
-		details: `A small 180x180x180mm bed slinger from Rat Rig`,
-		right: (
-			<Image
-				src={basePath + '/img/rat-rig-v-minion.jpeg'}
-				width={50}
-				className="bg-white rounded-lg shadow-md dark:shadow-zinc-900 p-1"
-				height={50}
-				alt="Rat Rig V-Minion"
-			/>
-		),
-	},
-	{
-		id: 'rat-rig-v-core-pro',
-		name: 'RatRig V-Core Pro 1.3',
-		details: 'Discontinued CoreXY printer from Rat Rig which comes in 3 sizes',
-		right: (
-			<Image
-				src={basePath + '/img/rat-rig-v-core-pro-13.jpg'}
-				width={50}
-				className="bg-white rounded-lg shadow-md dark:shadow-zinc-900 p-1"
-				height={50}
-				alt="Rat Rig V-Core Pro 1.3"
-			/>
-		),
-		options: [
-			{ name: '300mm', id: '300' },
-			{ name: '400mm', id: '400' },
-			{ name: '500mm', id: '500' },
-		],
-	},
-	{
-		id: 'voron-v24',
-		name: 'Voron V2.4',
-		details: 'CoreXY printer with floating gantry from Voron Design, which comes in 3 sizes',
-		right: (
-			<Image
-				src={basePath + '/img/voron-v24.png'}
-				width={50}
-				height={50}
-				className="bg-white rounded-lg shadow-md dark:shadow-zinc-900 p-1"
-				alt="Rat Rig V-Minion"
-			/>
-		),
-		options: [
-			{ name: '250mm', id: '250' },
-			{ name: '300mm', id: '300' },
-			{ name: '350mm', id: '350' },
-		],
-	},
-	{
-		id: 'voron-v01',
-		name: 'Voron V0.1',
-		details: 'Mini CoreXY printer from Voron Design',
-		right: (
-			<Image
-				src={basePath + '/img/voron-v0.png'}
-				className="bg-white rounded-lg shadow-md dark:shadow-zinc-900 p-1"
-				width={50}
-				height={50}
-				alt="Rat Rig V-Minion"
-			/>
-		),
-	},
-	{
-		id: 'prusa-mk3s',
-		name: 'Prusa MK3s',
-		details: 'The classic Prusa i3 MK3s from Prusa Research',
-		right: (
-			<Image
-				src={basePath + '/img/prusa-mk3s.webp'}
-				width={50}
-				className="bg-white rounded-lg shadow-md dark:shadow-zinc-900 p-1"
-				height={50}
-				alt="Rat Rig V-Minion"
-			/>
-		),
-	},
-	{
-		id: 'prusa-mini',
-		name: 'Prusa Mini',
-		details: 'Mini bed slinger from Prusa Research',
-		right: (
-			<Image
-				src={basePath + '/img/prusa-mini.webp'}
-				width={50}
-				className="bg-white rounded-lg shadow-md dark:shadow-zinc-900 p-1"
-				height={50}
-				alt="Rat Rig V-Minion"
-			/>
-		),
-	},
-];
+import { usePrinterConfiguration } from '../../hooks/usePrinterConfiguration';
+import { ShowWhenReady } from '../common/show-when-ready';
 
 export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 	const printerQuery = trpc.useQuery(['printer.printers']);
-	const printers = printerQuery.data ? printerQuery.data.map((p) => {
-		const printerImgUri = 'printerId=' + encodeURIComponent(p.id);
-		return {
-			id: p.id,
-			name: `${p.manufacturer} ${p.name}`,
-			details: p.description,
-			right: (
-				<Image
-					src={'/configure/api/printer-image?' + printerImgUri}
-					width={50}
-					className="bg-white rounded-lg shadow-md dark:shadow-zinc-900 p-1"
-					height={50}
-					alt={`${p.manufacturer} ${p.name}`}
-				/>
-			),
-			options: p.sizes ? (p.sizes.map((s) => ({ id: s, name: s + '' }))) : undefined,
+	const {
+		setPrinterDefaults,
+		setSelectedPrinter,
+		setSelectedPrinterOption,
+		selectedPrinter,
+		selectedPrinterOption,
+		parsedPrinterConfiguration,
+		isReady,
+		queryErrors,
+	} = usePrinterConfiguration();
+	const cards = printerQuery.data
+		? (printerQuery.data.map((p) => {
+				const printerImgUri = 'printerId=' + encodeURIComponent(p.id);
+				return {
+					id: p.id,
+					name: `${p.manufacturer} ${p.name}`,
+					details: p.description,
+					right: (
+						<Image
+							src={'/configure/api/printer-image?' + printerImgUri}
+							width={50}
+							className="bg-white rounded-lg shadow-md dark:shadow-zinc-900 p-1"
+							height={50}
+							alt={`${p.manufacturer} ${p.name}`}
+						/>
+					),
+					options: p.sizes ? p.sizes.map((s) => ({ id: s, name: s + '' })) : undefined,
+				};
+		  }) satisfies SelectableCard[])
+		: [];
+
+	const selectedCard = cards.find((c) => c.id === selectedPrinter?.id);
+	const selectedPrinterOptionFromCard = selectedCard?.options?.find((o) => o.id === selectedPrinterOption);
+
+	const onSelectPrinter = (card: SelectedCard<Unpacked<typeof cards>>, option: SelectableOption | null) => {
+		const printer = printerQuery.data?.find((p) => p.id === card.id);
+		if (printer == null) {
+			console.error('No printer found matching the criteria');
+			return;
 		}
-	}) satisfies SelectableCard[] : [];
+		setSelectedPrinter(printer);
+		if ((printer.sizes?.length ?? 0) > 0) {
+			if (option == null || typeof option.id !== 'number') {
+				throw new Error('An option must be selected for printers that come in different size configurations');
+			}
+			setSelectedPrinterOption(option.id);
+		} else {
+			setSelectedPrinterOption(undefined);
+		}
+		setPrinterDefaults(printer);
+	};
+
+	const errors = printerQuery.error ? [printerQuery.error?.message].concat(queryErrors) : queryErrors;
+
+	if (selectedPrinter && parsedPrinterConfiguration.success === false) {
+		console.error(parsedPrinterConfiguration.error);
+	}
+
 	return (
 		<>
 			<div className="p-8">
@@ -155,9 +77,23 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 						This will determine the template used for printer.cfg
 					</p>
 				</div>
-				<CardSelectorWithOptions cards={printers} />
+				<ShowWhenReady isReady={isReady} queryErrors={errors}>
+					<CardSelectorWithOptions
+						cards={cards}
+						onSelect={onSelectPrinter}
+						value={selectedCard}
+						optionValue={selectedPrinterOptionFromCard}
+					/>
+				</ShowWhenReady>
 			</div>
-			<StepNavButtons left={{ onClick: props.previousScreen }} right={{ onClick: props.nextScreen }} />
+			<StepNavButtons
+				left={{ onClick: props.previousScreen }}
+				right={{
+					onClick: props.nextScreen,
+					disabled: !parsedPrinterConfiguration.success,
+					title: parsedPrinterConfiguration.success === false ? 'Invalid printer configuration selected' : undefined,
+				}}
+			/>
 		</>
 	);
 };

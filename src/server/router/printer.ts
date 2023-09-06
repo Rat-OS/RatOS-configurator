@@ -37,7 +37,11 @@ export const getPrinters = async () => {
 			.map((f) =>
 				f.trim() === ''
 					? null
-					: { ...(JSON.parse(readFileSync(f).toString()) as {}), path: f.replace('printer-definition.json', ''), id: f.replace('/printer-definition.json', '').split('/').pop() },
+					: {
+							...(JSON.parse(readFileSync(f).toString()) as {}),
+							path: f.replace('printer-definition.json', ''),
+							id: f.replace('/printer-definition.json', '').split('/').pop(),
+					  },
 			)
 			.filter((f) => f != null),
 	);

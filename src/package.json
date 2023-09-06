@@ -30,7 +30,7 @@
 		"react-dom": "18.2.0",
 		"react-query": "^3.39.3",
 		"react-use-websocket": "^2.9.1",
-		"recoil": "^0.7.6",
+		"recoil": "^0.7.7",
 		"superjson": "^1.12.2",
 		"zod": "^3.20.2"
 	},
@@ -40,7 +40,7 @@
 		"@testing-library/react": "^14.0.0",
 		"@total-typescript/ts-reset": "^0.4.2",
 		"@types/node": "16.11.12",
-		"@types/react": "17.0.37",
+		"@types/react": "18.2.21",
 		"autoprefixer": "^10.4.13",
 		"dotenv": "^16.3.1",
 		"eslint": "8.4.1",

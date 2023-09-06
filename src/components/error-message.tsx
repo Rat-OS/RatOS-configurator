@@ -1,7 +1,7 @@
 import { XCircleIcon } from '@heroicons/react/24/solid';
 import React from 'react';
 
-export const ErrorMessage: React.FC = (props) => {
+export const ErrorMessage: React.FC<React.PropsWithChildren> = (props) => {
 	return (
 		<div className="rounded-md bg-red-50 dark:bg-red-800 p-4">
 			<div className="flex">

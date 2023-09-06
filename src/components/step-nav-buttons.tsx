@@ -9,6 +9,7 @@ export interface StepNavButton {
 	onClick?: () => void;
 	disabled?: boolean;
 	isLoading?: boolean;
+	title?: string;
 }
 
 interface StepNavButtonsProps {
@@ -25,7 +26,7 @@ export const StepNavButtons: React.FC<StepNavButtonsProps> = (props) => {
 	);
 	const left = props.left.onClick ? (
 		<div className="flex-1 flex justify-start">
-			<Button color="gray" disabled={props.left.disabled} onClick={props.left.onClick}>
+			<Button color="gray" disabled={props.left.disabled} onClick={props.left.onClick} title={props.left.title}>
 				{leftIcon}
 				{props.left.label ?? 'Back'}
 			</Button>
@@ -37,12 +38,12 @@ export const StepNavButtons: React.FC<StepNavButtonsProps> = (props) => {
 	const right = props.right.onClick ? (
 		<div className="flex-1 flex justify-end space-x-4">
 			{props.skip && (
-				<Button color="gray" onClick={props.skip.onClick} disabled={props.skip.disabled}>
+				<Button color="gray" onClick={props.skip.onClick} disabled={props.skip.disabled} title={props.skip.title}>
 					{props.skip.label ?? 'Skip'}
 					<ForwardIcon className="ml-3 h-5 w-5" aria-hidden="true" />
 				</Button>
 			)}
-			<Button color="brand" disabled={props.right.disabled} onClick={props.right.onClick}>
+			<Button color="brand" disabled={props.right.disabled} onClick={props.right.onClick} title={props.right.title}>
 				{props.right.label ?? 'Next'}
 				{rightIcon}
 			</Button>

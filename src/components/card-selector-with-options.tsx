@@ -15,17 +15,16 @@ export interface SelectableCard<Option extends SelectableOption = SelectableOpti
 	options?: Option[];
 }
 
-export type SelectedCard<Selectable, Option extends SelectableOption = SelectableOption> = Selectable & {
-	selectedOption: Option | null;
-};
+export type SelectedCard<Selectable> = Selectable;
 
 interface CardSelectorProps<
 	Option extends SelectableOption = SelectableOption,
 	Selectable extends SelectableCard<Option> = SelectableCard<Option>,
 > {
 	cards: Selectable[];
-	onSelect?: (card: SelectedCard<Selectable, Option>) => void;
-	value?: SelectedCard<Selectable, Option> | null;
+	onSelect?: (card: SelectedCard<Selectable>, option: Option | null) => void;
+	value?: SelectedCard<Selectable> | null;
+	optionValue?: Option | null;
 }
 
 export const CardSelectorWithOptions = <
@@ -34,39 +33,50 @@ export const CardSelectorWithOptions = <
 >(
 	props: CardSelectorProps<Option, Selectable>,
 ) => {
-	const [selected, setSelected] = useState<SelectedCard<Selectable, Option> | null>(null);
-	const selectedRef = useRef(selected);
+	const [selected, setSelected] = useState<SelectedCard<Selectable> | null>(null);
+	const [selectedOption, setSelectedOption] = useState<Option | null>(null);
+	const selectedRef = useRef({ selected, selectedOption });
 	const { onSelect: _onSelect } = props;
 
 	const onSelect = useCallback(
 		(card: Selectable) => {
-			const newSelection = { ...card, selectedOption: card.options?.[0] ?? null };
-			if (props.value === undefined && selectedRef.current?.id !== newSelection.id) {
-				selectedRef.current = newSelection;
-				setSelected(newSelection);
+			// Do not select the same card twice, since onSelectOption might have been called first.
+			if (selectedRef.current.selected !== card) {
+				if (props.value === undefined) {
+					setSelected(card);
+					if (props.optionValue === undefined) {
+						setSelectedOption(card.options?.[0] ?? null);
+					}
+				}
+				selectedRef.current.selected = card;
+				selectedRef.current.selectedOption = card.options?.[0] ?? null;
+				_onSelect?.(card, card.options?.[0] ?? null);
 			}
-			_onSelect?.(newSelection);
 		},
 		[_onSelect, props.value],
 	);
 
 	const onSelectOption = useCallback(
 		(card: Selectable, option: Option | null) => {
-			const newSelection = { ...card, selectedOption: option };
 			if (props.value === undefined) {
-				selectedRef.current = newSelection;
-				setSelected(newSelection);
+				setSelected(card);
+				setSelectedOption(option);
 			}
-			_onSelect?.(newSelection);
+			selectedRef.current.selected = card;
+			selectedRef.current.selectedOption = option;
+			_onSelect?.(card, option);
 		},
 		[_onSelect, props.value],
 	);
 
 	useEffect(() => {
-		if (props.value !== undefined) {
+		if (props.value !== undefined && props.value !== selectedRef.current.selected) {
 			setSelected(props.value);
 		}
-	}, [props.value]);
+		if (props.optionValue !== undefined && props.optionValue !== selectedRef.current.selectedOption) {
+			setSelectedOption(props.optionValue);
+		}
+	}, [props.value, props.optionValue]);
 
 	return (
 		<RadioGroup value={selected} onChange={onSelect}>
@@ -103,7 +113,7 @@ export const CardSelectorWithOptions = <
 								</div>
 								{card.options != null && (
 									<RadioGroup
-										value={selected?.name === card.name ? selected.selectedOption : null}
+										value={selected?.id === card.id ? selectedOption : null}
 										onChange={(option) => onSelectOption(card, option)}
 										className="mt-2"
 									>
