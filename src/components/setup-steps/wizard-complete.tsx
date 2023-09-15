@@ -1,3 +1,4 @@
+'use client';
 import { StepScreenProps } from '../../hooks/useSteps';
 import { StepNavButtons } from '../step-nav-buttons';
 
@@ -10,8 +11,8 @@ export const WizardComplete: React.FC<StepScreenProps> = (props) => {
 		<>
 			<div className="p-8">
 				{' '}
-				<div className="pb-5 mb-5 border-b border-zinc-200">
-					<h3 className="text-lg leading-6 font-medium text-zinc-900">{props.name}</h3>
+				<div className="mb-5 border-b border-zinc-200 pb-5">
+					<h3 className="text-lg font-medium leading-6 text-zinc-900">{props.name}</h3>
 					<p className="mt-2 max-w-4xl text-sm text-zinc-500">{props.description}</p>
 				</div>
 				<div className="space-y-4">
@@ -23,7 +24,7 @@ export const WizardComplete: React.FC<StepScreenProps> = (props) => {
 							href="https://os.ratrig.com/docs/configuration#initial-configuration"
 							target="_blank"
 							rel="noreferrer"
-							className="text-brand-700 hover:text-brand-600 cursor-pointer"
+							className="cursor-pointer text-brand-700 hover:text-brand-600"
 						>
 							the next step in the documentation.
 						</a>

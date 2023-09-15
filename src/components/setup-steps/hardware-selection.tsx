@@ -44,7 +44,7 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 				setSelectedThermistor(hotend.thermistor);
 			}
 		},
-		[hasManuallySelectedThermistor],
+		[hasManuallySelectedThermistor, setSelectedHotend, setSelectedThermistor],
 	);
 
 	const onSelectThermistor = (thermistor: { id: z.infer<typeof Thermistor> }) => {
@@ -53,7 +53,7 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 	};
 
 	if (parsedPrinterConfiguration.success === false) {
-		console.error(parsedPrinterConfiguration.error);
+		// console.error(parsedPrinterConfiguration.error);
 	}
 
 	return (

@@ -1,3 +1,4 @@
+'use client';
 import React, { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { CardSelector, SelectableCard } from '../card-selector';
 import { Spinner } from '../spinner';
@@ -59,7 +60,7 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 			name: apList[ap].ssid ?? 'Unknown Network',
 			id: ap,
 			details: (
-				<div className="md:grid md:grid-cols-2 gap-4">
+				<div className="gap-4 md:grid md:grid-cols-2">
 					<div className="md:col-span-1">
 						<span className="font-semibold">Signal Strength:</span> {parseSignal(apList[ap].signal)}
 					</div>
@@ -112,12 +113,12 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 			/>
 		) : rebootMutation.isError ? (
 			<div className="mb-4 h-48">
-				<ErrorMessage>{rebootMutation.error}</ErrorMessage>
+				<ErrorMessage>{rebootMutation.error.message}</ErrorMessage>
 			</div>
 		) : rebootMutation.isLoading || rebootMutation.isSuccess ? (
 			<div className="mb-4 h-48">
-				<div className="flex justify-center items-center font-bold mb-4">Rebooting...</div>
-				<div className="flex justify-center items-center mb-4">
+				<div className="mb-4 flex items-center justify-center font-bold">Rebooting...</div>
+				<div className="mb-4 flex items-center justify-center">
 					<div>
 						Please reconnect to {selectedNetwork?.ssid ?? 'your local network'} and visit{' '}
 						<a href={`http://${hostname}.local/configure?step=1`} className="text-brand-600">
@@ -162,7 +163,7 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 				<ErrorMessage>{error?.message}</ErrorMessage>
 			</div>
 		) : Object.keys(apList).length === 0 ? (
-			<div className="flex justify-center items-center mb-4 h-48">
+			<div className="mb-4 flex h-48 items-center justify-center">
 				<Spinner />
 			</div>
 		) : (
@@ -218,8 +219,8 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 		<Fragment>
 			<div className="p-8">
 				{' '}
-				<div className="pb-5 mb-5 border-b border-zinc-200 dark:border-zinc-700">
-					<h3 className="text-lg leading-6 font-medium text-zinc-900 dark:text-zinc-100">Configure Wifi Setup</h3>
+				<div className="mb-5 border-b border-zinc-200 pb-5 dark:border-zinc-700">
+					<h3 className="text-lg font-medium leading-6 text-zinc-900 dark:text-zinc-100">Configure Wifi Setup</h3>
 					<p className="mt-2 max-w-4xl text-sm text-zinc-500 dark:text-zinc-400">{subtext}</p>
 				</div>
 				{content}

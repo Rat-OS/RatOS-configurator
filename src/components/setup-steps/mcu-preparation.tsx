@@ -1,10 +1,9 @@
 import { CpuChipIcon } from '@heroicons/react/24/outline';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery } from 'react-query';
-import { useRecoilValue, useSetRecoilState } from 'recoil';
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import { z } from 'zod';
 import { trpc } from '../../helpers/trpc';
-import { MoonrakerDBGetItemResponse, MoonrakerQueryState } from '../../hooks/useMoonraker';
 import { ControlboardState, ToolboardState } from '../../hooks/usePrinterConfiguration';
 import { StepScreen, StepScreenProps, useSteps } from '../../hooks/useSteps';
 import { Board, Toolboard } from '../../zods/boards';
@@ -52,52 +51,7 @@ const MCUSteps: StepScreen<ExtraStepProps>[] = [
 ];
 
 export const MCUPreparation: React.FC<StepScreenProps & ExtraProps> = (props) => {
-	const _setControlboard = useSetRecoilState(ControlboardState);
-	const _setToolboard = useSetRecoilState(ToolboardState);
-	const [selectedBoard, _setSelectedBoard] = useState<SelectableBoard | null>(null);
-
-	const moonrakerQuery = useRecoilValue(MoonrakerQueryState);
-
 	const boardsQuery = trpc.useQuery(['mcu.boards']);
-
-	const setBoardMutation = useMutation<void, void, Board[]>(async (selectedBoards: Board[]) => {
-		if (moonrakerQuery == null) {
-			throw new Error('Moonraker not connected');
-		}
-		const response = await moonrakerQuery('server.database.post_item', {
-			namespace: 'RatOS',
-			key: props.toolboards ? 'toolboards' : 'boards',
-			value: JSON.stringify(selectedBoards),
-		});
-		return response;
-	});
-
-	const selectedBoardQuery = useQuery<Board[], Error>('selectedBoard', async () => {
-		if (moonrakerQuery == null) {
-			throw new Error('Moonraker not connected');
-		}
-		const response = (await moonrakerQuery('server.database.get_item', {
-			namespace: 'RatOS',
-			key: props.toolboards ? 'toolboards' : 'boards',
-		})) as MoonrakerDBGetItemResponse<string>;
-		if (response == null || response.value == null) return [];
-		return z.array(Board).parse(JSON.parse(response.value));
-	});
-	const setSelectedBoard = useCallback(
-		(selectedBoard: SelectableBoard | null) => {
-			_setSelectedBoard(selectedBoard);
-			// Remove SelectableCard props
-			const newBoard = selectedBoard == null ? null : Board.parse(selectedBoard.board);
-			setBoardMutation.mutate(newBoard ? [newBoard] : []);
-			if (props.toolboards) {
-				const toolboard = Toolboard.parse(newBoard);
-				_setToolboard(toolboard);
-			} else {
-				_setControlboard(newBoard);
-			}
-		},
-		[setBoardMutation],
-	);
 
 	const cards: SelectableBoard[] = useMemo(() => {
 		if (boardsQuery.isError || boardsQuery.data == null) return [];
@@ -113,17 +67,25 @@ export const MCUPreparation: React.FC<StepScreenProps & ExtraProps> = (props) =>
 		}));
 	}, [boardsQuery.isError, boardsQuery.data]);
 
-	useEffect(() => {
-		// Only handle single board selection for now
-		const board = cards.find((c) => c.board.serialPath === selectedBoardQuery.data?.[0].serialPath);
-		_setSelectedBoard(board ?? null);
-		if (props.toolboards && board?.board.isToolboard) {
-			const toolboard = Toolboard.parse(board.board);
-			_setToolboard(toolboard ?? null);
-		} else {
-			_setControlboard(board?.board ?? null);
-		}
-	}, [selectedBoardQuery.data, cards]);
+	const [_controlBoard, _setControlboard] = useRecoilState(ControlboardState);
+	const [_toolBoard, _setToolboard] = useRecoilState(ToolboardState);
+	const selectedBoard =
+		cards.find((c) => c.board.serialPath == (props.toolboards ? _toolBoard?.serialPath : _controlBoard?.serialPath)) ??
+		null;
+
+	const setSelectedBoard = useCallback(
+		(newBoard: SelectableBoard | null) => {
+			if (newBoard == null) {
+				return;
+			}
+			if (props.toolboards) {
+				_setToolboard(Toolboard.parse(newBoard.board));
+			} else {
+				_setControlboard(Board.parse(newBoard.board));
+			}
+		},
+		[_setControlboard, _setToolboard, props.toolboards],
+	);
 
 	const extraScreenProps: ExtraStepProps = {
 		selectedBoard: selectedBoard ?? null,

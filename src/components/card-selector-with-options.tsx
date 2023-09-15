@@ -1,3 +1,4 @@
+'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { RadioGroup } from '@headlessui/react';
 import { classNames } from '../helpers/classNames';
@@ -90,7 +91,7 @@ export const CardSelectorWithOptions = <
 							classNames(
 								checked ? 'border-transparent' : 'border-zinc-300 dark:border-zinc-700',
 								active ? 'ring-2 ring-brand-600 dark:ring-brand-500' : '',
-								'relative cursor-pointer rounded-lg border bg-white dark:bg-zinc-800 px-6 py-4 shadow-sm focus:outline-none',
+								'relative cursor-pointer rounded-lg border bg-white px-6 py-4 shadow-sm focus:outline-none dark:bg-zinc-800',
 							)
 						}
 					>
@@ -107,7 +108,7 @@ export const CardSelectorWithOptions = <
 											</RadioGroup.Description>
 										</div>
 									</div>
-									<RadioGroup.Description as="div" className="mt-2 flex text-sm sm:mt-0 sm:ml-4 sm:block sm:text-right">
+									<RadioGroup.Description as="div" className="mt-2 flex text-sm sm:ml-4 sm:mt-0 sm:block sm:text-right">
 										{card.right}
 									</RadioGroup.Description>
 								</div>
@@ -126,11 +127,11 @@ export const CardSelectorWithOptions = <
 													className={({ active, checked }) =>
 														classNames(
 															'cursor-pointer focus:outline-none',
-															active ? 'ring-2 dark:ring-brand-500 ring-brand-600 ring-offset-2' : '',
+															active ? 'ring-2 ring-brand-600 ring-offset-2 dark:ring-brand-500' : '',
 															checked
 																? 'bg-brand-500 text-white hover:bg-brand-300 dark:text-zinc-900'
-																: 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 ring-1 ring-inset dark:ring-zinc-700 dark:hover:bg-zinc-800 ring-zinc-300 hover:bg-zinc-50',
-															'flex items-center justify-center rounded-md py-3 px-3 text-sm font-semibold uppercase sm:flex-1',
+																: 'bg-white text-zinc-900 ring-1 ring-inset ring-zinc-300 hover:bg-zinc-50 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700 dark:hover:bg-zinc-800',
+															'flex items-center justify-center rounded-md px-3 py-3 text-sm font-semibold uppercase sm:flex-1',
 														)
 													}
 												>

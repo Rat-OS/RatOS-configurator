@@ -1,3 +1,4 @@
+'use client';
 /* This example requires Tailwind CSS v2.0+ */
 import React, { Fragment, useCallback, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
@@ -27,7 +28,7 @@ export const Modal: React.FC<ModalProps> = (props) => {
 	}, [onClose]);
 
 	const success = props.success ? (
-		<div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full  bg-green-100 dark:bg-green-700">
+		<div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full  bg-green-100 dark:bg-green-700">
 			<CheckIcon className="h-6 w-6 text-green-600 dark:text-green-100" aria-hidden="true" />
 		</div>
 	) : null;
@@ -36,10 +37,10 @@ export const Modal: React.FC<ModalProps> = (props) => {
 		<Transition.Root show={open} as={Fragment} appear={true}>
 			<Dialog
 				as="div"
-				className="fixed z-10 inset-0 overflow-y-auto scrollbar-thumb-zinc-400 dark:scrollbar-thumb-zinc-600 scrollbar-thin scrollbar-thumb-rounded-md"
+				className="fixed inset-0 z-10 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-400 scrollbar-thumb-rounded-md dark:scrollbar-thumb-zinc-600"
 				onClose={onDialogClose}
 			>
-				<div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+				<div className="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">
 					<Transition.Child
 						as={Fragment}
 						enter="ease-out duration-300"
@@ -49,11 +50,11 @@ export const Modal: React.FC<ModalProps> = (props) => {
 						leaveFrom="opacity-100"
 						leaveTo="opacity-0"
 					>
-						<Dialog.Overlay className="fixed inset-0 bg-zinc-500 dark:bg-zinc-800 dark:bg-opacity-75 bg-opacity-75 transition-opacity" />
+						<Dialog.Overlay className="fixed inset-0 bg-zinc-500 bg-opacity-75 transition-opacity dark:bg-zinc-800 dark:bg-opacity-75" />
 					</Transition.Child>
 
 					{/* This element is to trick the browser into centering the modal contents. */}
-					<span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
+					<span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">
 						&#8203;
 					</span>
 					<Transition.Child
@@ -65,11 +66,11 @@ export const Modal: React.FC<ModalProps> = (props) => {
 						leaveFrom="opacity-100 translate-y-0 sm:scale-100"
 						leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
 					>
-						<div className="relative inline-block align-bottom bg-white dark:bg-zinc-900 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-sm sm:w-full sm:p-6">
+						<div className="relative inline-block transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left align-bottom shadow-xl transition-all dark:bg-zinc-900 sm:my-8 sm:w-full sm:max-w-sm sm:p-6 sm:align-middle">
 							<div>
 								{success}
 								<div className="mt-3 text-center sm:mt-5">
-									<Dialog.Title as="h3" className="text-lg leading-6 font-medium text-zinc-900 dark:text-zinc-100">
+									<Dialog.Title as="h3" className="text-lg font-medium leading-6 text-zinc-900 dark:text-zinc-100">
 										{props.title}
 									</Dialog.Title>
 									<div className="mt-2">
@@ -80,7 +81,7 @@ export const Modal: React.FC<ModalProps> = (props) => {
 							<div className="mt-5 sm:mt-6">
 								<button
 									type="button"
-									className="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-brand-600 text-base font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 sm:text-sm"
+									className="inline-flex w-full justify-center rounded-md border border-transparent bg-brand-600 px-4 py-2 text-base font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 hover:bg-brand-700 sm:text-sm"
 									onClick={onButtonClick}
 								>
 									{props.buttonLabel}

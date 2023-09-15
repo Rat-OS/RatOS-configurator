@@ -1,3 +1,4 @@
+'use client';
 import Link from 'next/link';
 import { classNames } from '../helpers/classNames';
 import React from 'react';

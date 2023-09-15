@@ -21,4 +21,7 @@ export default defineNextConfig({
 		// Will be available on both server and client
 		basePath: '/configure',
 	},
+	experimental: {
+		appDir: true,
+	}
 });

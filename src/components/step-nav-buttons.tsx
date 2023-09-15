@@ -1,3 +1,4 @@
+'use client';
 import { PlayIcon, ForwardIcon } from '@heroicons/react/24/outline';
 import React from 'react';
 import { classNames } from '../helpers/classNames';
@@ -25,7 +26,7 @@ export const StepNavButtons: React.FC<StepNavButtonsProps> = (props) => {
 		<PlayIcon className="mr-3 h-5 w-5 rotate-180" aria-hidden="true" />
 	);
 	const left = props.left.onClick ? (
-		<div className="flex-1 flex justify-start">
+		<div className="flex flex-1 justify-start">
 			<Button color="gray" disabled={props.left.disabled} onClick={props.left.onClick} title={props.left.title}>
 				{leftIcon}
 				{props.left.label ?? 'Back'}
@@ -36,7 +37,7 @@ export const StepNavButtons: React.FC<StepNavButtonsProps> = (props) => {
 	const rightIcon = props.right.isLoading ? <Spinner /> : <PlayIcon className="ml-3 h-5 w-5" aria-hidden="true" />;
 
 	const right = props.right.onClick ? (
-		<div className="flex-1 flex justify-end space-x-4">
+		<div className="flex flex-1 justify-end space-x-4">
 			{props.skip && (
 				<Button color="gray" onClick={props.skip.onClick} disabled={props.skip.disabled} title={props.skip.title}>
 					{props.skip.label ?? 'Skip'}
@@ -53,8 +54,8 @@ export const StepNavButtons: React.FC<StepNavButtonsProps> = (props) => {
 	return (
 		<div className="px-8 pb-5">
 			<nav
-				className="bg-white dark:bg-zinc-800 py-3 flex items-center 
-		justify-between border-t border-zinc-200 dark:border-zinc-700"
+				className="flex items-center justify-between border-t border-zinc-200 
+		bg-white py-3 dark:border-zinc-700 dark:bg-zinc-800"
 				aria-label="Pagination"
 			>
 				{left}

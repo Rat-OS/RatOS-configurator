@@ -1,3 +1,4 @@
+'use client';
 import { TRPCClientErrorLike } from '@trpc/client';
 import { UseQueryResult } from 'react-query';
 import { AppRouter } from '../../server/router';
@@ -14,7 +15,7 @@ export const QueryStatus = (query: UseQueryResult<any, TRPCClientErrorLike<AppRo
 	}
 	if (query.isFetching) {
 		return (
-			<div className="flex items-center mb-4 absolute top-9 right-5">
+			<div className="absolute right-5 top-9 mb-4 flex items-center">
 				<Spinner />
 			</div>
 		);

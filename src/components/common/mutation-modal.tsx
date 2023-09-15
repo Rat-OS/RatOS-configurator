@@ -1,3 +1,4 @@
+'use client';
 import { Fragment, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
@@ -45,10 +46,10 @@ export const MutationModal: React.FC<ModalProps> = (props) => {
 					leaveFrom="opacity-100"
 					leaveTo="opacity-0"
 				>
-					<div className="fixed inset-0 bg-zinc-500 dark:bg-zinc-800 dark:bg-opacity-75 bg-opacity-75 transition-opacity" />
+					<div className="fixed inset-0 bg-zinc-500 bg-opacity-75 transition-opacity dark:bg-zinc-800 dark:bg-opacity-75" />
 				</Transition.Child>
 
-				<div className="fixed inset-0 z-10 overflow-y-auto scrollbar-thumb-zinc-400 dark:scrollbar-thumb-zinc-600 scrollbar-thin scrollbar-thumb-rounded-md">
+				<div className="fixed inset-0 z-10 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-400 scrollbar-thumb-rounded-md dark:scrollbar-thumb-zinc-600">
 					<div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
 						<Transition.Child
 							as={Fragment}
@@ -59,12 +60,12 @@ export const MutationModal: React.FC<ModalProps> = (props) => {
 							leaveFrom="opacity-100 translate-y-0 sm:scale-100"
 							leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
 						>
-							<Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white dark:bg-zinc-900 dark px-4 pt-5 pb-4 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm md:max-w-lg lg:max-w-xl xl:max-w-3xl sm:p-6">
+							<Dialog.Panel className="dark relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all dark:bg-zinc-900 sm:my-8 sm:w-full sm:max-w-sm sm:p-6 md:max-w-lg lg:max-w-xl xl:max-w-3xl">
 								<div>
 									{props.isLoading ? (
 										<div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800">
 											<svg
-												className={clsx('animate-spin h-6 w-6 text-zinc-800 dark:text-zinc-200')}
+												className={clsx('h-6 w-6 animate-spin text-zinc-800 dark:text-zinc-200')}
 												xmlns="http://www.w3.org/2000/svg"
 												fill="none"
 												viewBox="0 0 24 24"

@@ -8,15 +8,15 @@ export const ShowWhenReady: React.FC<React.PropsWithChildren<{ queryErrors: stri
 	if (props.queryErrors.length > 0) {
 		return (
 			<div className="mb-4 space-y-2">
-				{props.queryErrors.map((error) => {
-					return <ErrorMessage>{error}</ErrorMessage>;
+				{props.queryErrors.map((error, i) => {
+					return <ErrorMessage key={i}>{error}</ErrorMessage>;
 				})}
 			</div>
 		);
 	}
 	if (!props.isReady && props.queryErrors.length === 0) {
 		return (
-			<div className="flex items-center justify-center h-12">
+			<div className="flex h-12 items-center justify-center">
 				<Spinner />
 			</div>
 		);

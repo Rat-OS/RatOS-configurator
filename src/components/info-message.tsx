@@ -1,13 +1,13 @@
 import { InformationCircleIcon } from '@heroicons/react/24/solid';
 import React from 'react';
 
-interface InfoMessageProps {
+interface InfoMessageProps extends React.PropsWithChildren {
 	title?: string;
 }
 
 export const InfoMessage: React.FC<InfoMessageProps> = (props) => {
 	return (
-		<div className="rounded-md bg-cyan-50 dark:bg-cyan-800 p-4">
+		<div className="rounded-md bg-cyan-50 p-4 dark:bg-cyan-800">
 			<div className="flex">
 				<div className="flex-shrink-0">
 					<InformationCircleIcon className="h-5 w-5 text-cyan-400" aria-hidden="true" />

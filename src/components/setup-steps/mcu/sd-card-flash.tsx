@@ -11,11 +11,11 @@ import React, { useState } from 'react';
 import { useMutation } from 'react-query';
 import { useRecoilValue } from 'recoil';
 import { trpc } from '../../../helpers/trpc';
-import { MoonrakerQueryState } from '../../../hooks/useMoonraker';
 import { Board } from '../../../server/router/mcu';
 import { Button } from '../../button';
 import { Modal } from '../../modal';
 import { Spinner } from '../../spinner';
+import { useMoonraker } from '../../../hooks/useMoonraker';
 
 interface SDCardFlashingProps {
 	board: Board;
@@ -24,14 +24,14 @@ interface SDCardFlashingProps {
 
 export const SDCardFlashing: React.FC<SDCardFlashingProps> = (props) => {
 	const [shutdownModalVisible, setShutdownModalVisible] = useState(false);
-	const moonrakerQuery = useRecoilValue(MoonrakerQueryState);
+	const { query: moonrakerQuery, isReady } = useMoonraker();
 	const [isFirmwareReady, setIsFirmwareReady] = useState(false);
 	const compile = trpc.useMutation('mcu.compile', {
 		onSuccess: () => setIsFirmwareReady(true),
 		onError: () => setIsFirmwareReady(false),
 	});
 	const shutdownMutation = useMutation<void, string>(() => {
-		if (moonrakerQuery) {
+		if (isReady) {
 			return moonrakerQuery('machine.shutdown');
 		}
 		return Promise.reject('Cannot reboot raspberry pi: No connection to moonraker');
@@ -46,11 +46,11 @@ export const SDCardFlashing: React.FC<SDCardFlashingProps> = (props) => {
 
 	const compileButton = compile.isLoading ? (
 		<span>
-			Compiling... <Spinner className="inline ml-1" noMargin={true} />
+			Compiling... <Spinner className="ml-1 inline" noMargin={true} />
 		</span>
 	) : (
 		<span>
-			Compile firmware <PlayIcon className="h-5 w-5 inline" />
+			Compile firmware <PlayIcon className="inline h-5 w-5" />
 		</span>
 	);
 
@@ -69,15 +69,15 @@ export const SDCardFlashing: React.FC<SDCardFlashingProps> = (props) => {
 			>
 				{isFirmwareReady ? (
 					<span>
-						Download firmware <ArrowDownTrayIcon className="h-5 w-5 inline" />
+						Download firmware <ArrowDownTrayIcon className="inline h-5 w-5" />
 					</span>
 				) : (
 					compileButton
 				)}
 			</Button>
 
-			<div className="mt-4 prose text-base text-zinc-500 dark:text-zinc-400">
-				<ol className="list-decimal pl-4 mb-4">
+			<div className="prose mt-4 text-base text-zinc-500 dark:text-zinc-400">
+				<ol className="mb-4 list-decimal pl-4">
 					<li>Disconnect all wires except Power and USB, and make sure your jumpers are set correctly.</li>
 					<li>
 						Format the sd card for your board to FAT16 (sometimes just called FAT), or FAT32 with a clustersize of 8kb

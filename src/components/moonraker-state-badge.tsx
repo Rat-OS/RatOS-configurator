@@ -1,13 +1,14 @@
+'use client';
+
 import React from 'react';
-import { useRecoilValue } from 'recoil';
 import { classNames } from '../helpers/classNames';
-import { MoonrakerStatusState, MoonrakerStatus } from '../hooks/useMoonraker';
+import { MoonrakerStatus, useMoonraker } from '../hooks/useMoonraker';
 
 interface Props {
 	className?: string;
 }
 
-const moonrakerStateToText = (moonrakerState: MoonrakerStatus) => {
+const moonrakerStatusToText = (moonrakerState: MoonrakerStatus | null) => {
 	switch (moonrakerState) {
 		case 'not-running':
 			return 'Moonraker State: Not Running';
@@ -21,23 +22,23 @@ const moonrakerStateToText = (moonrakerState: MoonrakerStatus) => {
 };
 
 export const MoonrakerStateBadge: React.FC<Props> = (props) => {
-	const moonrakerState = useRecoilValue(MoonrakerStatusState);
+	const { status } = useMoonraker();
 	return (
 		<span
 			className={classNames(
-				moonrakerState === 'not-running' ? 'text-red-700 bg-red-100 dark:text-red-100 dark:bg-red-700' : '',
-				moonrakerState === 'connected' ? 'text-brand-700 bg-brand-100 dark:text-brand-100 dark:bg-brand-700' : '',
-				moonrakerState === 'connecting' ? 'text-yellow-700 bg-yellow-100 dark:text-yellow-100 dark:bg-yellow-700' : '',
+				status === 'not-running' ? 'bg-red-100 text-red-700 dark:bg-red-700 dark:text-red-100' : '',
+				status === 'connected' ? 'bg-brand-100 text-brand-700 dark:bg-brand-700 dark:text-brand-100' : '',
+				status === 'connecting' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-700 dark:text-yellow-100' : '',
 				props.className != null ? props.className : '',
-				'inline-flex items-center px-3 py-0.5 rounded-full text-xs font-semibold cursor-default',
+				'inline-flex cursor-default items-center rounded-full px-3 py-0.5 text-xs font-semibold',
 			)}
-			title={moonrakerStateToText(moonrakerState)}
+			title={moonrakerStatusToText(status)}
 		>
 			<svg
 				className={classNames(
-					moonrakerState === 'not-running' ? 'text-red-400' : '',
-					moonrakerState === 'connected' ? 'text-brand-400' : '',
-					moonrakerState === 'connecting' ? 'text-yellow-400' : '',
+					status === 'not-running' ? 'text-red-400' : '',
+					status === 'connected' ? 'text-brand-400' : '',
+					status === 'connecting' ? 'text-yellow-400' : '',
 					'-ml-1 mr-1.5 h-2 w-2',
 				)}
 				fill="currentColor"

@@ -1,13 +1,13 @@
 import { ExclamationCircleIcon } from '@heroicons/react/24/solid';
 import React from 'react';
 
-interface WarningMessageProps {
+interface WarningMessageProps extends React.PropsWithChildren {
 	title?: string;
 }
 
 export const WarningMessage: React.FC<WarningMessageProps> = (props) => {
 	return (
-		<div className="rounded-md bg-amber-50 dark:bg-amber-800 p-4">
+		<div className="rounded-md bg-amber-50 p-4 dark:bg-amber-800">
 			<div className="flex">
 				<div className="flex-shrink-0">
 					<ExclamationCircleIcon className="h-5 w-5 text-amber-400" aria-hidden="true" />

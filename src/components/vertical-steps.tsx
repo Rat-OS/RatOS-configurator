@@ -22,16 +22,16 @@ export const VerticalSteps: React.FC<StepProps> = (props) => {
 							{props.currentStepIndex > stepIdx ? (
 								<>
 									{stepIdx !== props.steps.length - 1 ? (
-										<div className="-ml-px absolute mt-0.5 top-4 left-4 w-0.5 h-full bg-brand-500" aria-hidden="true" />
+										<div className="absolute left-4 top-4 -ml-px mt-0.5 h-full w-0.5 bg-brand-500" aria-hidden="true" />
 									) : null}
-									<span className="relative flex items-start group">
-										<span className="h-9 flex items-center">
-											<span className="relative z-10 w-8 h-8 flex items-center justify-center bg-brand-600 rounded-full group-hover:bg-brand-600">
-												<CheckIcon className="w-5 h-5 text-white" aria-hidden="true" />
+									<span className="group relative flex items-start">
+										<span className="flex h-9 items-center">
+											<span className="relative z-10 flex h-8 w-8 items-center justify-center rounded-full bg-brand-600 group-hover:bg-brand-600">
+												<CheckIcon className="h-5 w-5 text-white" aria-hidden="true" />
 											</span>
 										</span>
-										<span className="ml-4 min-w-0 flex flex-col">
-											<span className="text-xs font-semibold tracking-wide uppercase dark:text-zinc-200">{name}</span>
+										<span className="ml-4 flex min-w-0 flex-col">
+											<span className="text-xs font-semibold uppercase tracking-wide dark:text-zinc-200">{name}</span>
 											<span className="text-sm text-zinc-500 dark:text-zinc-400">{description}</span>
 										</span>
 									</span>
@@ -40,18 +40,18 @@ export const VerticalSteps: React.FC<StepProps> = (props) => {
 								<>
 									{stepIdx !== props.steps.length - 1 ? (
 										<div
-											className="-ml-px absolute mt-0.5 top-4 left-4 w-0.5 h-full bg-zinc-300 dark:bg-zinc-700"
+											className="absolute left-4 top-4 -ml-px mt-0.5 h-full w-0.5 bg-zinc-300 dark:bg-zinc-700"
 											aria-hidden="true"
 										/>
 									) : null}
-									<span className="relative flex items-start group" aria-current="step">
-										<span className="h-9 flex items-center" aria-hidden="true">
-											<span className="relative z-10 w-8 h-8 flex items-center justify-center bg-white dark:bg-zinc-800 border-2 border-brand-600 dark:border-brand-500 rounded-full">
-												<span className="h-2.5 w-2.5 bg-brand-600 dark:bg-brand-500 rounded-full" />
+									<span className="group relative flex items-start" aria-current="step">
+										<span className="flex h-9 items-center" aria-hidden="true">
+											<span className="relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 border-brand-600 bg-white dark:border-brand-500 dark:bg-zinc-800">
+												<span className="h-2.5 w-2.5 rounded-full bg-brand-600 dark:bg-brand-500" />
 											</span>
 										</span>
-										<span className="ml-4 min-w-0 flex flex-col">
-											<span className="text-xs font-semibold tracking-wide uppercase text-brand-500">{name}</span>
+										<span className="ml-4 flex min-w-0 flex-col">
+											<span className="text-xs font-semibold uppercase tracking-wide text-brand-500">{name}</span>
 											<span className="text-sm text-zinc-500 dark:text-zinc-400">{description}</span>
 										</span>
 									</span>
@@ -60,18 +60,18 @@ export const VerticalSteps: React.FC<StepProps> = (props) => {
 								<>
 									{stepIdx !== props.steps.length - 1 ? (
 										<div
-											className="-ml-px absolute mt-0.5 top-4 left-4 w-0.5 h-full bg-zinc-300 dark:bg-zinc-700"
+											className="absolute left-4 top-4 -ml-px mt-0.5 h-full w-0.5 bg-zinc-300 dark:bg-zinc-700"
 											aria-hidden="true"
 										/>
 									) : null}
-									<span className="relative flex items-start group">
-										<span className="h-9 flex items-center" aria-hidden="true">
-											<span className="relative z-10 w-8 h-8 flex items-center justify-center bg-white dark:bg-zinc-800 border-2 border-zinc-300 dark:border-zinc-700 rounded-full">
-												<span className="h-2.5 w-2.5 bg-transparent rounded-full" />
+									<span className="group relative flex items-start">
+										<span className="flex h-9 items-center" aria-hidden="true">
+											<span className="relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 border-zinc-300 bg-white dark:border-zinc-700 dark:bg-zinc-800">
+												<span className="h-2.5 w-2.5 rounded-full bg-transparent" />
 											</span>
 										</span>
-										<span className="ml-4 min-w-0 flex flex-col">
-											<span className="text-xs font-semibold tracking-wide uppercase text-zinc-500 dark:text-zinc-200">
+										<span className="ml-4 flex min-w-0 flex-col">
+											<span className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-200">
 												{name}
 											</span>
 											<span className="text-sm text-zinc-500 dark:text-zinc-400">{description}</span>

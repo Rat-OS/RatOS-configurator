@@ -1,3 +1,4 @@
+'use client';
 import React, { useCallback, useEffect, useState } from 'react';
 import { RadioGroup } from '@headlessui/react';
 import { classNames } from '../helpers/classNames';
@@ -50,7 +51,7 @@ export const CardSelector = <Selectable extends SelectableCard = SelectableCard>
 							classNames(
 								checked ? 'border-transparent' : 'border-zinc-300 dark:border-zinc-700',
 								active ? 'ring-2 ring-brand-600' : '',
-								'relative flex cursor-pointer justify-between rounded-lg border bg-white dark:bg-zinc-900 px-6 py-4 shadow-sm focus:outline-none',
+								'relative flex cursor-pointer justify-between rounded-lg border bg-white px-6 py-4 shadow-sm focus:outline-none dark:bg-zinc-900',
 							)
 						}
 					>
@@ -66,7 +67,7 @@ export const CardSelector = <Selectable extends SelectableCard = SelectableCard>
 										</RadioGroup.Description>
 									</div>
 								</div>
-								<RadioGroup.Description as="div" className="mt-2 flex text-sm sm:mt-0 sm:ml-4 sm:block sm:text-right">
+								<RadioGroup.Description as="div" className="mt-2 flex text-sm sm:ml-4 sm:mt-0 sm:block sm:text-right">
 									{card.right}
 								</RadioGroup.Description>
 								<div

@@ -1,7 +1,6 @@
 import '../styles/globals.css';
 import type { AppProps } from 'next/app';
 import { RecoilRoot } from 'recoil';
-import { Moonraker } from '../components/moonraker';
 
 import { Disclosure } from '@headlessui/react';
 import { Bars3Icon, XMarkIcon, MoonIcon, SunIcon } from '@heroicons/react/24/outline';
@@ -11,6 +10,7 @@ import { withTRPC } from '@trpc/next';
 import { AppRouter } from './api/trpc/[trpc]';
 import { Inter } from 'next/font/google';
 import { useEffect, useState } from 'react';
+import { SyncWithMoonraker } from '../components/sync-with-moonraker';
 
 function classNames(...classes: string[]) {
 	return classes.filter(Boolean).join(' ');
@@ -37,9 +37,8 @@ const getCurrentTheme = () => {
 	return 'light' as const;
 };
 
-function MyApp(props: AppProps<Props>) {
+function App(props: AppProps<Props>) {
 	const { Component, pageProps } = props;
-	const moonraker = process.browser ? <Moonraker hostname={process.env.NEXT_PUBLIC_KLIPPER_HOSTNAME} /> : null;
 	const [theme, setTheme] = useState<'dark' | 'light' | null>(null);
 
 	const onThemeChange = () => {
@@ -53,8 +52,6 @@ function MyApp(props: AppProps<Props>) {
 	useEffect(() => {
 		setTheme(getCurrentTheme());
 	}, []);
-
-	console.log(theme);
 
 	useEffect(() => {
 		onThemeChange();
@@ -75,7 +72,7 @@ function MyApp(props: AppProps<Props>) {
 	};
 
 	return (
-		<RecoilRoot>
+		<>
 			<style jsx global>
 				{`
 					:root {
@@ -83,14 +80,13 @@ function MyApp(props: AppProps<Props>) {
 					}
 				`}
 			</style>
-			{moonraker}
 			<div className="min-h-full">
 				<Disclosure as="nav" className="bg-zinc-800">
 					{({ open }) => (
 						<>
-							<div className="max-w-7xl mx-auto sm:px-6">
+							<div className="mx-auto max-w-7xl sm:px-6">
 								<div className="">
-									<div className="flex items-center justify-between h-16 px-4 sm:px-0">
+									<div className="flex h-16 items-center justify-between px-4 sm:px-0">
 										<div className="flex items-center">
 											<div className="flex-shrink-0">
 												<Image
@@ -110,7 +106,7 @@ function MyApp(props: AppProps<Props>) {
 																item.current
 																	? 'bg-brand-500 text-black'
 																	: 'text-zinc-300 hover:bg-zinc-700 hover:text-white',
-																'px-3 py-2 rounded-md text-sm font-medium',
+																'rounded-md px-3 py-2 text-sm font-medium',
 															)}
 															aria-current={item.current ? 'page' : undefined}
 														>
@@ -120,12 +116,12 @@ function MyApp(props: AppProps<Props>) {
 												</div>
 											</div>
 										</div>
-										<div className="hidden md:flex justify-between items-center space-x-2">
+										<div className="hidden items-center justify-between space-x-2 md:flex">
 											<a
 												href="https://github.com/sponsors/miklschmidt"
 												target="_blank"
 												rel="noreferrer"
-												className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-black bg-zinc-300 hover:bg-zinc-400 focus:outline-none"
+												className="inline-flex items-center justify-center rounded-md border border-transparent bg-zinc-300 px-4 py-2 text-sm font-medium text-black shadow-sm focus:outline-none hover:bg-zinc-400"
 											>
 												Donate
 											</a>
@@ -133,25 +129,25 @@ function MyApp(props: AppProps<Props>) {
 												href="https://os.ratrig.com/docs/introduction"
 												target="_blank"
 												rel="noreferrer"
-												className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-zinc-300 bg-transparent hover:bg-zinc-700 hover:text-white focus:outline-none"
+												className="inline-flex items-center justify-center rounded-md border border-transparent bg-transparent px-4 py-2 text-sm font-medium text-zinc-300 shadow-sm focus:outline-none hover:bg-zinc-700 hover:text-white"
 											>
 												Documentation
 											</a>
 											{theme === 'light' ? (
 												<MoonIcon
-													className="h-9 w-9 text-zinc-300 cursor-pointer hover:text-brand-500 rounded-md hover:bg-zinc-700 px-2 py-2"
+													className="h-9 w-9 cursor-pointer rounded-md px-2 py-2 text-zinc-300 hover:bg-zinc-700 hover:text-brand-500"
 													onClick={setDarkMode}
 												/>
 											) : (
 												<SunIcon
-													className="h-9 w-9 text-zinc-300 cursor-pointer hover:text-brand-500 rounded-md hover:bg-zinc-700 px-2 py-2"
+													className="h-9 w-9 cursor-pointer rounded-md px-2 py-2 text-zinc-300 hover:bg-zinc-700 hover:text-brand-500"
 													onClick={setLightMode}
 												/>
 											)}
 										</div>
 										<div className="-mr-2 flex md:hidden">
 											{/* Mobile menu button */}
-											<Disclosure.Button className="bg-zinc-800 inline-flex items-center justify-center p-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-zinc-800 focus:ring-white">
+											<Disclosure.Button className="inline-flex items-center justify-center rounded-md bg-zinc-800 p-2 text-zinc-400 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-zinc-800 hover:bg-zinc-700 hover:text-white">
 												<span className="sr-only">Open main menu</span>
 												{open ? (
 													<XMarkIcon className="block h-6 w-6" aria-hidden="true" />
@@ -164,7 +160,7 @@ function MyApp(props: AppProps<Props>) {
 								</div>
 							</div>
 							<Disclosure.Panel className="md:hidden">
-								<div className="space-y-1 pt-2 pb-3">
+								<div className="space-y-1 pb-3 pt-2">
 									{navigation.map((item) => (
 										<Disclosure.Button
 											key={item.name}
@@ -173,8 +169,8 @@ function MyApp(props: AppProps<Props>) {
 											className={classNames(
 												item.current
 													? 'bg-brand-50 border-brand-500 text-brand-500'
-													: 'border-transparent text-zinc-300 hover:bg-zinc-700 hover:border-zinc-600 hover:text-zinc-100',
-												'block pl-3 pr-4 py-2 border-l-4 text-base font-medium',
+													: 'border-transparent text-zinc-300 hover:border-zinc-600 hover:bg-zinc-700 hover:text-zinc-100',
+												'block border-l-4 py-2 pl-3 pr-4 text-base font-medium',
 											)}
 											aria-current={item.current ? 'page' : undefined}
 										>
@@ -186,7 +182,7 @@ function MyApp(props: AppProps<Props>) {
 										as="a"
 										href={'https://github.com/sponsors/miklschmidt'}
 										className={
-											'border-transparent text-zinc-300 hover:bg-zinc-700 hover:border-zinc-600 hover:text-zinc-100 block pl-3 pr-4 py-2 border-l-4 text-base font-medium'
+											'block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-zinc-300 hover:border-zinc-600 hover:bg-zinc-700 hover:text-zinc-100'
 										}
 									>
 										Donate
@@ -196,7 +192,7 @@ function MyApp(props: AppProps<Props>) {
 										as="a"
 										href="https://os.ratrig.com/docs/introduction"
 										className={
-											'border-transparent text-zinc-300 hover:bg-zinc-700 hover:border-zinc-600 hover:text-zinc-100 block pl-3 pr-4 py-2 border-l-4 text-base font-medium'
+											'block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-zinc-300 hover:border-zinc-600 hover:bg-zinc-700 hover:text-zinc-100'
 										}
 									>
 										Documentation
@@ -208,12 +204,12 @@ function MyApp(props: AppProps<Props>) {
 				</Disclosure>
 
 				<main className="py-10">
-					<div className="max-w-7xl mx-auto pb-12">
+					<div className="mx-auto max-w-7xl pb-12">
 						<Component {...pageProps} />
 					</div>
 				</main>
 			</div>
-		</RecoilRoot>
+		</>
 	);
 }
 
@@ -248,4 +244,4 @@ export default withTRPC<AppRouter>({
 	 * @link https://trpc.io/docs/ssr
 	 */
 	ssr: false,
-})(MyApp);
+})(App);

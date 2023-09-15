@@ -4,7 +4,7 @@ export const Spinner: React.FC<{ className?: string; noMargin?: boolean }> = (pr
 	return (
 		<svg
 			className={clsx(
-				'animate-spin h-5 w-5 text-black dark:text-white',
+				'h-5 w-5 animate-spin text-black dark:text-white',
 				!props.noMargin ? '-ml-1 mr-3' : '',
 				props.className,
 			)}

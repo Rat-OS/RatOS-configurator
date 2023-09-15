@@ -1,7 +1,8 @@
+'use client';
 import React from 'react';
 import { useRecoilValue } from 'recoil';
 import { classNames } from '../helpers/classNames';
-import { KlippyReadyStates, KlippyStatusState } from '../hooks/useKlippyStateHandler';
+import { KlippyReadyStates, KlippyStatusState, useKlippyStateHandler } from '../hooks/useKlippyStateHandler';
 
 interface Props {
 	className?: string;
@@ -25,18 +26,19 @@ const klipperStateToText = (klippyState: KlippyReadyStates) => {
 };
 
 export const KlippyStateBadge: React.FC<Props> = (props) => {
+	useKlippyStateHandler();
 	const klippyState = useRecoilValue(KlippyStatusState);
 	return (
 		<span
 			className={classNames(
-				klippyState === 'error' ? 'text-red-700 bg-red-100 dark:text-red-100 dark:bg-red-700' : '',
-				klippyState === 'ready' ? 'text-brand-700 bg-brand-100 dark:text-brand-100 dark:bg-brand-700' : '',
+				klippyState === 'error' ? 'bg-red-100 text-red-700 dark:bg-red-700 dark:text-red-100' : '',
+				klippyState === 'ready' ? 'bg-brand-100 text-brand-700 dark:bg-brand-700 dark:text-brand-100' : '',
 				klippyState === 'shutdown' || klippyState === 'unknown'
-					? 'text-orange-700 bg-orange-100 dark:text-orange-100 dark:bg-orange-700'
+					? 'bg-orange-100 text-orange-700 dark:bg-orange-700 dark:text-orange-100'
 					: '',
-				klippyState === 'startup' ? 'text-yellow-700 bg-yellow-100 dark:text-yellow-100 dark:bg-yellow-700' : '',
+				klippyState === 'startup' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-700 dark:text-yellow-100' : '',
 				props.className != null ? props.className : '',
-				'inline-flex items-center px-3 py-0.5 rounded-full text-xs font-semibold cursor-default',
+				'inline-flex cursor-default items-center rounded-full px-3 py-0.5 text-xs font-semibold',
 			)}
 			title={klipperStateToText(klippyState)}
 		>

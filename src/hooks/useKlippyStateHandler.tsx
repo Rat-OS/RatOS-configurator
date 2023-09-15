@@ -1,11 +1,8 @@
+'use client';
+
 import { useCallback, useEffect } from 'react';
-import { atom, useRecoilValue, useSetRecoilState } from 'recoil';
-import {
-	MoonrakerMessageState,
-	MoonrakerQueryState,
-	MoonrakerReadyState,
-	MoonrakerStatusState,
-} from '../hooks/useMoonraker';
+import { atom, useSetRecoilState } from 'recoil';
+import { useMoonraker } from '../hooks/useMoonraker';
 
 export type KlippyReadyStates = 'ready' | 'error' | 'shutdown' | 'startup' | 'unknown';
 
@@ -15,48 +12,45 @@ export const KlippyStatusState = atom<KlippyReadyStates>({
 });
 
 export const useKlippyStateHandler = () => {
-	const moonrakerQuery = useRecoilValue(MoonrakerQueryState);
-	const moonrakerReadyState = useRecoilValue(MoonrakerReadyState);
-	const moonrakerMessage = useRecoilValue(MoonrakerMessageState);
-	const setMoonrakerStatus = useSetRecoilState(MoonrakerStatusState);
+	const { query, lastMessage } = useMoonraker();
 	const setKlippyReadyState = useSetRecoilState(KlippyStatusState);
 
 	const queryKlippyState = useCallback(async () => {
-		if (moonrakerReadyState === 1 && moonrakerQuery != null) {
+		if (query != null) {
 			try {
-				const serverInfo = await moonrakerQuery('server.info');
+				const serverInfo = await query('server.info');
 				if (serverInfo?.klippy_state == null) return;
 				const klippyState: KlippyReadyStates = serverInfo.klippy_state;
 				setKlippyReadyState(klippyState);
 				if (klippyState === 'startup') {
-					// Query for server info in to seconds as instructed by the moonraker docs.
+					// Query for server info in two seconds as instructed by the moonraker docs.
 					// Seems unnecessary with globally published events?
 					setTimeout(() => {
 						queryKlippyState();
 					}, 2000);
 				}
 			} catch (e) {
-				setMoonrakerStatus('not-running');
+				setKlippyReadyState('unknown');
 			}
 		}
-	}, [moonrakerQuery, moonrakerReadyState, setMoonrakerStatus, setKlippyReadyState]);
+	}, [query, setKlippyReadyState]);
 
 	useEffect(() => {
-		if (moonrakerReadyState === 1 && moonrakerQuery != null) {
+		if (query != null) {
 			queryKlippyState();
 		}
-	}, [moonrakerReadyState, moonrakerQuery, queryKlippyState]);
+	}, [query, queryKlippyState]);
 
 	useEffect(() => {
-		if (moonrakerMessage?.method === 'notify_klippy_ready') {
+		if (lastMessage?.method === 'notify_klippy_ready') {
 			setKlippyReadyState('ready');
 		}
-		if (moonrakerMessage?.method === 'notify_klippy_shutdown') {
+		if (lastMessage?.method === 'notify_klippy_shutdown') {
 			setKlippyReadyState('shutdown');
 		}
-		if (moonrakerMessage?.method === 'notify_klippy_disconnected') {
+		if (lastMessage?.method === 'notify_klippy_disconnected') {
 			setKlippyReadyState('unknown');
 			queryKlippyState();
 		}
-	}, [moonrakerMessage, queryKlippyState, setKlippyReadyState]);
+	}, [lastMessage, queryKlippyState, setKlippyReadyState]);
 };

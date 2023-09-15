@@ -1,3 +1,4 @@
+'use client';
 import React from 'react';
 import Image from 'next/image';
 import { StepNavButtons } from '../step-nav-buttons';
@@ -30,7 +31,7 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 						<Image
 							src={'/configure/api/printer-image?' + printerImgUri}
 							width={50}
-							className="bg-white rounded-lg shadow-md dark:shadow-zinc-900 p-1"
+							className="rounded-lg bg-white p-1 shadow-md dark:shadow-zinc-900"
 							height={50}
 							alt={`${p.manufacturer} ${p.name}`}
 						/>
@@ -64,14 +65,13 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 	const errors = printerQuery.error ? [printerQuery.error?.message].concat(queryErrors) : queryErrors;
 
 	if (selectedPrinter && parsedPrinterConfiguration.success === false) {
-		console.error(parsedPrinterConfiguration.error);
+		// console.error(parsedPrinterConfiguration.error);
 	}
-
 	return (
 		<>
 			<div className="p-8">
 				{' '}
-				<div className="mb-5 border-b border-zinc-200 dark:border-zinc-700 pb-5">
+				<div className="mb-5 border-b border-zinc-200 pb-5 dark:border-zinc-700">
 					<h3 className="text-lg font-medium leading-6 text-zinc-900 dark:text-zinc-100">Select your printer</h3>
 					<p className="mt-2 max-w-4xl text-sm text-zinc-500 dark:text-zinc-400">
 						This will determine the template used for printer.cfg

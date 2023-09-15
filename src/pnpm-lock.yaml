@@ -14,6 +14,9 @@ dependencies:
   '@loofkid/wireless-tools':
     specifier: ^1.5.0
     version: 1.5.0
+  '@recoiljs/refine':
+    specifier: ^0.1.1
+    version: 0.1.1
   '@tailwindcss/forms':
     specifier: ^0.5.3
     version: 0.5.3(tailwindcss@3.2.4)
@@ -63,17 +66,23 @@ dependencies:
     specifier: ^3.39.3
     version: 3.39.3(react-dom@18.2.0)(react@18.2.0)
   react-use-websocket:
-    specifier: ^2.9.1
-    version: 2.9.1(react-dom@18.2.0)(react@18.2.0)
+    specifier: ^4.4.0
+    version: 4.4.0(react-dom@18.2.0)(react@18.2.0)
   recoil:
     specifier: ^0.7.7
     version: 0.7.7(react-dom@18.2.0)(react@18.2.0)
+  recoil-sync:
+    specifier: ^0.2.0
+    version: 0.2.0(recoil@0.7.7)
   superjson:
     specifier: ^1.12.2
     version: 1.12.2
   zod:
     specifier: ^3.20.2
     version: 3.20.2
+  zod-refine:
+    specifier: ^1.1.1
+    version: 1.1.1(@recoiljs/refine@0.1.1)(recoil-sync@0.2.0)(zod@3.20.2)
 
 devDependencies:
   '@jest/globals':
@@ -1034,6 +1043,10 @@ packages:
       tslib: 2.5.0
     dev: true
 
+  /@recoiljs/refine@0.1.1:
+    resolution: {integrity: sha512-ry02rHswJePYkH1o8K99qL4O6TBntF9/g7W5wXVwaOUrIJEZUGfl/I3+btPXbUgyyEZvNs5xcwvOw13AufmFQw==}
+    dev: false
+
   /@rushstack/eslint-patch@1.2.0:
     resolution: {integrity: sha512-sXo/qW2/pAcmT43VoRKOJbDOfV3cYpq3szSVfIThQXNt+E4DfKj361vaAt3c88U5tPUxzEswam7GW48PJqtKAg==}
     dev: true
@@ -1607,7 +1620,7 @@ packages:
       postcss: ^8.1.0
     dependencies:
       browserslist: 4.21.5
-      caniuse-lite: 1.0.30001450
+      caniuse-lite: 1.0.30001534
       fraction.js: 4.2.0
       normalize-range: 0.1.2
       picocolors: 1.0.0
@@ -1738,7 +1751,7 @@ packages:
     engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
     hasBin: true
     dependencies:
-      caniuse-lite: 1.0.30001450
+      caniuse-lite: 1.0.30001534
       electron-to-chromium: 1.4.284
       node-releases: 2.0.9
       update-browserslist-db: 1.0.10(browserslist@4.21.5)
@@ -1782,12 +1795,8 @@ packages:
     engines: {node: '>=6'}
     dev: true
 
-  /caniuse-lite@1.0.30001450:
-    resolution: {integrity: sha512-qMBmvmQmFXaSxexkjjfMvD5rnDL0+m+dUMZKoDYsGG8iZN29RuYh9eRoMvKsT6uMAWlyUUGDEQGJJYjzCIO9ew==}
-
-  /caniuse-lite@1.0.30001465:
-    resolution: {integrity: sha512-HvjgL3MYAJjceTDCcjRnQGjwUz/5qec9n7JPOzUursUoOTIsYCSDOb1l7RsnZE8mjbxG78zVRCKfrBXyvChBag==}
-    dev: false
+  /caniuse-lite@1.0.30001534:
+    resolution: {integrity: sha512-vlPVrhsCS7XaSh2VvWluIQEzVhefrUQcEsQWSS5A5V+dM07uv1qHeQzAOTGIMy9i3e9bH15+muvI/UHojVgS/Q==}
 
   /chai@4.3.7:
     resolution: {integrity: sha512-HLnAzZ2iupm25PlN0xFreAlBA5zaBSv3og0DdeGA4Ar6h6rJ3A0rolRUKJhSF2V10GZKDgWF/VmAEsNWjCRB+A==}
@@ -1842,7 +1851,7 @@ packages:
       normalize-path: 3.0.0
       readdirp: 3.6.0
     optionalDependencies:
-      fsevents: 2.3.2
+      fsevents: 2.3.3
 
   /ci-info@3.8.0:
     resolution: {integrity: sha512-eXTggHWSooYhq49F2opQhuHWgzucfF2YgODK4e1566GQs5BIfP30B0oenwBJHfWxAs2fyPB1s7Mg949zLf61Yw==}
@@ -2702,8 +2711,8 @@ packages:
   /fs.realpath@1.0.0:
     resolution: {integrity: sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==}
 
-  /fsevents@2.3.2:
-    resolution: {integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==}
+  /fsevents@2.3.3:
+    resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
     os: [darwin]
     requiresBuild: true
@@ -3255,7 +3264,7 @@ packages:
       micromatch: 4.0.5
       walker: 1.0.8
     optionalDependencies:
-      fsevents: 2.3.2
+      fsevents: 2.3.3
     dev: true
 
   /jest-matcher-utils@29.5.0:
@@ -3644,7 +3653,6 @@ packages:
     resolution: {integrity: sha512-BGcqMMJuToF7i1rt+2PWSNVnWIkGCU78jBG3RxO/bZlnZPK2Cmi2QaffxGO/2RvWi9sL+FAiRiXMgsyxQ1DIDA==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
-    dev: true
 
   /natural-compare@1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
@@ -3684,7 +3692,7 @@ packages:
     dependencies:
       '@next/env': 13.2.4
       '@swc/helpers': 0.4.14
-      caniuse-lite: 1.0.30001465
+      caniuse-lite: 1.0.30001534
       postcss: 8.4.14
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
@@ -4056,7 +4064,7 @@ packages:
     resolution: {integrity: sha512-E398TUmfAYFPBSdzgeieK2Y1+1cpdxJx8yXbK/m57nRhKSmk1GB2tO4lbLBtlkfPQTDKfe4Xqv1ASWPpayPEig==}
     engines: {node: ^10 || ^12 || >=14}
     dependencies:
-      nanoid: 3.3.4
+      nanoid: 3.3.6
       picocolors: 1.0.0
       source-map-js: 1.0.2
     dev: false
@@ -4267,11 +4275,11 @@ packages:
       react: 18.2.0
     dev: false
 
-  /react-use-websocket@2.9.1(react-dom@18.2.0)(react@18.2.0):
-    resolution: {integrity: sha512-jV6OxXuxWi6BiPVlbAJd/uWNaoQwkeGARFO9f6HidJeWUatB4J2UopbxI/fduiGpcpHGhRAmpLdfVjeRzrcTnQ==}
+  /react-use-websocket@4.4.0(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-V48JEPMwTUp31oXxBZYTk27aHOHwTeYEhCOb2uPXwcnzolMkLacesRdu4TmEuN5QeuKRenEjCBMVKPsB98aaDg==}
     peerDependencies:
-      react: '>= 16.8.0'
-      react-dom: '>= 16.8.0'
+      react: '>= 18.0.0'
+      react-dom: '>= 18.0.0'
     dependencies:
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
@@ -4323,6 +4331,16 @@ packages:
   /real-require@0.2.0:
     resolution: {integrity: sha512-57frrGM/OCTLqLOAh0mhVA9VBMHd+9U7Zb2THMGdBUoZVOtGbJzjxsYGDJ3A9AYYCP4hn6y1TVbaOfzWtm5GFg==}
     engines: {node: '>= 12.13.0'}
+    dev: false
+
+  /recoil-sync@0.2.0(recoil@0.7.7):
+    resolution: {integrity: sha512-ZYZM1C4LAhGr3EeMMI5MwT4eaEqsr+ddjB4EwdgN8HXXLmE7P5FVCdFHV3HJtMzxR3Y8sOmJDfN1IPrezwKoRg==}
+    peerDependencies:
+      recoil: '>=0.7.3'
+    dependencies:
+      '@recoiljs/refine': 0.1.1
+      recoil: 0.7.7(react-dom@18.2.0)(react@18.2.0)
+      transit-js: 0.8.874
     dev: false
 
   /recoil@0.7.7(react-dom@18.2.0)(react@18.2.0):
@@ -4417,7 +4435,7 @@ packages:
     engines: {node: '>=14.18.0', npm: '>=8.0.0'}
     hasBin: true
     optionalDependencies:
-      fsevents: 2.3.2
+      fsevents: 2.3.3
     dev: true
 
   /run-parallel@1.2.0:
@@ -4828,6 +4846,11 @@ packages:
       punycode: 2.3.0
     dev: true
 
+  /transit-js@0.8.874:
+    resolution: {integrity: sha512-IDJJGKRzUbJHmN0P15HBBa05nbKor3r2MmG6aSt0UxXIlJZZKcddTk67/U7WyAeW9Hv/VYI02IqLzolsC4sbPA==}
+    engines: {node: '>= 0.10.0'}
+    dev: false
+
   /tsconfig-paths@3.14.2:
     resolution: {integrity: sha512-o/9iXgCYc5L/JxCHPe3Hvh8Q/2xm5Z+p18PESBU6Ff33695QnCHBEjcytY2q19ua7Mbl/DavtBOLq+oG0RCL+g==}
     dependencies:
@@ -4998,7 +5021,7 @@ packages:
       postcss: 8.4.24
       rollup: 3.26.0
     optionalDependencies:
-      fsevents: 2.3.2
+      fsevents: 2.3.3
     dev: true
 
   /vitest@0.32.4:
@@ -5208,6 +5231,18 @@ packages:
     resolution: {integrity: sha512-9bnSc/HEW2uRy67wc+T8UwauLuPJVn28jb+GtJY16iiKWyvmYJRXVT4UamsAEGQfPohgr2q4Tq0sQbQlxTfi1g==}
     engines: {node: '>=12.20'}
     dev: true
+
+  /zod-refine@1.1.1(@recoiljs/refine@0.1.1)(recoil-sync@0.2.0)(zod@3.20.2):
+    resolution: {integrity: sha512-aTRboKHcE/jGZjh4WYaU7NRkrNJuLakpRIFTZKNXbAx1vlVb8jOQ4ERf41jECww31v38R9mC41cuKDXFPS//Cg==}
+    peerDependencies:
+      '@recoiljs/refine': ^0.1.1
+      recoil-sync: ^0.1.0
+      zod: ^3.17.3
+    dependencies:
+      '@recoiljs/refine': 0.1.1
+      recoil-sync: 0.2.0(recoil@0.7.7)
+      zod: 3.20.2
+    dev: false
 
   /zod@3.20.2:
     resolution: {integrity: sha512-1MzNQdAvO+54H+EaK5YpyEy0T+Ejo/7YLHS93G3RnYWh5gaotGHwGeN/ZO687qEDU2y4CdStQYXVHIgrUl5UVQ==}

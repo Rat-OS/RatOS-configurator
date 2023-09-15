@@ -1,60 +1,114 @@
+'use client';
+
 import { atom, selector, useRecoilValue } from 'recoil';
-import { set, z } from 'zod';
+import { z } from 'zod';
 import { Board, Toolboard } from '../zods/boards';
-import type { Hotend, Thermistor, Extruder, Probe, Endstop } from '../zods/hardware';
+import { Hotend, Thermistor, Extruder, Probe, Endstop } from '../zods/hardware';
 import { Printer } from '../zods/printer';
 import { PrinterConfiguration } from '../zods/printer-configuration';
 import { useRecoilState } from 'recoil';
 import { trpc } from '../helpers/trpc';
+import { syncEffect } from 'recoil-sync';
+import { getRefineCheckerForZodSchema } from 'zod-refine';
 
-export const PrinterState = atom<z.infer<typeof Printer> | null>({
+export const PrinterState = atom({
 	key: 'Printer',
 	default: null,
+	effects: [
+		syncEffect({
+			refine: getRefineCheckerForZodSchema(Printer.nullable()),
+		}),
+	],
 });
 
-export const PrinterSizeState = atom<Unpacked<z.infer<typeof Printer>['sizes']>>({
+export const PrinterSizeState = atom({
 	key: 'PrinterOption',
 	default: undefined,
+	effects: [
+		syncEffect({
+			refine: getRefineCheckerForZodSchema(Printer.shape.sizes.unwrap().element.optional()),
+		}),
+	],
 });
 
-export const HotendState = atom<z.infer<typeof Hotend> | null>({
+export const HotendState = atom({
 	key: 'Hotend',
 	default: null,
+	effects: [
+		syncEffect({
+			refine: getRefineCheckerForZodSchema(Hotend.nullable()),
+		}),
+	],
 });
 
-export const ThermistorState = atom<z.infer<typeof Thermistor> | null>({
+export const ThermistorState = atom({
 	key: 'Thermistor',
 	default: null,
+	effects: [
+		syncEffect({
+			refine: getRefineCheckerForZodSchema(Thermistor.nullable()),
+		}),
+	],
 });
 
-export const ExtruderState = atom<z.infer<typeof Extruder> | null>({
+export const ExtruderState = atom({
 	key: 'Extruder',
 	default: null,
+	effects: [
+		syncEffect({
+			refine: getRefineCheckerForZodSchema(Extruder.nullable()),
+		}),
+	],
 });
 
-export const ProbeState = atom<z.infer<typeof Probe> | null>({
+export const ProbeState = atom({
 	key: 'Probe',
 	default: null,
+	effects: [
+		syncEffect({
+			refine: getRefineCheckerForZodSchema(Probe.nullable()),
+		}),
+	],
 });
 
-export const XEndstopState = atom<z.infer<typeof Endstop> | null>({
+export const XEndstopState = atom({
 	key: 'XEndstop',
 	default: null,
+	effects: [
+		syncEffect({
+			refine: getRefineCheckerForZodSchema(Endstop.nullable()),
+		}),
+	],
 });
 
-export const YEndstopState = atom<z.infer<typeof Endstop> | null>({
+export const YEndstopState = atom({
 	key: 'YEndstop',
 	default: null,
+	effects: [
+		syncEffect({
+			refine: getRefineCheckerForZodSchema(Endstop.nullable()),
+		}),
+	],
 });
 
-export const ControlboardState = atom<Board | null>({
+export const ControlboardState = atom({
 	key: 'Board',
 	default: null,
+	effects: [
+		syncEffect({
+			refine: getRefineCheckerForZodSchema(Board.nullable()),
+		}),
+	],
 });
 
-export const ToolboardState = atom<Toolboard | null>({
+export const ToolboardState = atom({
 	key: 'Toolboard',
 	default: null,
+	effects: [
+		syncEffect({
+			refine: getRefineCheckerForZodSchema(Toolboard.nullable()),
+		}),
+	],
 });
 
 export const PrinterConfigurationState = selector<z.infer<typeof PrinterConfiguration> | null>({
