@@ -20,20 +20,30 @@ interface StepNavButtonsProps {
 
 export const StepNavButtons: React.FC<StepNavButtonsProps> = (props) => {
 	const leftIcon = props.left.isLoading ? (
-		<Spinner />
+		<Spinner noMargin={true} className="mr-3 dark:text-black" />
 	) : (
 		<PlayIcon className="mr-3 h-5 w-5 rotate-180" aria-hidden="true" />
 	);
 	const left = props.left.onClick ? (
 		<div className="flex flex-1 justify-start">
-			<Button color="gray" disabled={props.left.disabled} onClick={props.left.onClick} title={props.left.title}>
+			<Button
+				color="gray"
+				disabled={props.left.disabled}
+				onClick={!props.left.isLoading ? props.left.onClick : undefined}
+				title={props.left.title}
+				className={props.left.isLoading ? 'cursor-wait' : 'cursor-pointer'}
+			>
 				{leftIcon}
 				{props.left.label ?? 'Back'}
 			</Button>
 		</div>
 	) : null;
 
-	const rightIcon = props.right.isLoading ? <Spinner /> : <PlayIcon className="ml-3 h-5 w-5" aria-hidden="true" />;
+	const rightIcon = props.right.isLoading ? (
+		<Spinner noMargin={true} className="ml-3 dark:text-black" />
+	) : (
+		<PlayIcon className="ml-3 h-5 w-5" aria-hidden="true" />
+	);
 
 	const right = props.right.onClick ? (
 		<div className="flex flex-1 justify-end space-x-4">
@@ -43,7 +53,13 @@ export const StepNavButtons: React.FC<StepNavButtonsProps> = (props) => {
 					<ForwardIcon className="ml-3 h-5 w-5" aria-hidden="true" />
 				</Button>
 			)}
-			<Button color="brand" disabled={props.right.disabled} onClick={props.right.onClick} title={props.right.title}>
+			<Button
+				color="brand"
+				disabled={props.right.disabled}
+				onClick={!props.right.isLoading ? props.right.onClick : undefined}
+				title={props.right.title}
+				className={props.right.isLoading ? 'cursor-wait' : 'cursor-pointer'}
+			>
 				{props.right.label ?? 'Next'}
 				{rightIcon}
 			</Button>

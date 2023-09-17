@@ -5,11 +5,12 @@ import { z } from 'zod';
 import { Board, Toolboard } from '../zods/boards';
 import { Hotend, Thermistor, Extruder, Probe, Endstop } from '../zods/hardware';
 import { Printer } from '../zods/printer';
-import { PrinterConfiguration } from '../zods/printer-configuration';
+import { PartialPrinterConfiguration, PrinterConfiguration } from '../zods/printer-configuration';
 import { useRecoilState } from 'recoil';
 import { trpc } from '../helpers/trpc';
 import { syncEffect } from 'recoil-sync';
 import { getRefineCheckerForZodSchema } from 'zod-refine';
+import { defaultXEndstop, xEndstopOptions } from '../data/endstops';
 
 export const PrinterState = atom({
 	key: 'Printer',
@@ -101,7 +102,7 @@ export const ControlboardState = atom({
 	],
 });
 
-export const ToolboardState = atom({
+const _ToolboardState = atom({
 	key: 'Toolboard',
 	default: null,
 	effects: [
@@ -111,7 +112,21 @@ export const ToolboardState = atom({
 	],
 });
 
-export const PrinterConfigurationState = selector<z.infer<typeof PrinterConfiguration> | null>({
+export const ToolboardState = selector<z.infer<typeof Toolboard> | null>({
+	key: 'ToolboardSelector',
+	set: ({ set, get }, newValue) => {
+		const xEndstop = get(XEndstopState);
+		if (newValue == null && xEndstop?.id === 'endstop-toolboard') {
+			set(XEndstopState, defaultXEndstop);
+		}
+		set(_ToolboardState, newValue);
+	},
+	get: ({ get }) => {
+		return get(_ToolboardState);
+	},
+});
+
+export const PrinterConfigurationState = selector<z.infer<typeof PartialPrinterConfiguration> | null>({
 	key: 'PrinterConfiguration',
 	get: ({ get }) => {
 		const printer = get(PrinterState);
@@ -125,7 +140,7 @@ export const PrinterConfigurationState = selector<z.infer<typeof PrinterConfigur
 		const controlboard = get(ControlboardState);
 		const toolboard = get(ToolboardState);
 
-		const printerConfig = PrinterConfiguration.safeParse({
+		const printerConfig = PartialPrinterConfiguration.safeParse({
 			printer,
 			hotend,
 			thermistor,
@@ -159,8 +174,8 @@ export const usePrinterConfiguration = () => {
 	const extruders = trpc.useQuery(['printer.extruders']);
 	const thermistors = trpc.useQuery(['printer.thermistors']);
 	const probes = trpc.useQuery(['printer.probes']);
-	const xEndstops = trpc.useQuery(['printer.x-endstops']);
-	const yEndstops = trpc.useQuery(['printer.y-endstops']);
+	const xEndstops = trpc.useQuery(['printer.x-endstops', printerConfiguration]);
+	const yEndstops = trpc.useQuery(['printer.y-endstops', printerConfiguration]);
 
 	const setPrinterDefaults = (printer: z.infer<typeof Printer>) => {
 		const board = boards.data?.find((board) => board.serialPath === '/dev/' + printer.defaults?.board);
@@ -262,6 +277,10 @@ export const usePrinterConfiguration = () => {
 		setSelectedXEndstop,
 		selectedYEndstop,
 		setSelectedYEndstop,
+		selectedBoard,
+		setSelectedBoard,
+		selectedToolboard,
+		setSelectedToolboard,
 		hotends,
 		extruders,
 		thermistors,
@@ -269,7 +288,7 @@ export const usePrinterConfiguration = () => {
 		xEndstops,
 		yEndstops,
 		setPrinterDefaults,
-		printerConfiguration,
+		partialPrinterConfiguration: printerConfiguration,
 		parsedPrinterConfiguration,
 		isReady:
 			hotends.data != null &&

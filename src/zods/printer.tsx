@@ -24,6 +24,10 @@ export const Printer = z
 					.string()
 					.describe('Default extruder for this printer. Should be the name of the config without the file extension.'),
 				board: z.string().describe('Default board for this printer. Should be the name of the board directory.'),
+				toolboard: z
+					.string()
+					.describe('Default toolboard for this printer. Should be the name of the board directory.')
+					.optional(),
 				hotend: z
 					.string()
 					.describe('Default hotend for this printer. Should be the name of the config without the file extension.'),

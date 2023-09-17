@@ -23,6 +23,10 @@ export const Board = z.object({
 	path: z.string(),
 });
 
+export const BoardWithDetectionStatus = Board.extend({
+	detected: z.boolean(),
+});
+
 export const AutoFlashableBoard = z.object({
 	serialPath: z.string(),
 	isToolboard: z.boolean().optional(),
@@ -33,9 +37,10 @@ export const AutoFlashableBoard = z.object({
 
 export const Toolboard = Board.extend({
 	isToolboard: z.literal(true),
-	isHost: z.literal(false),
+	isHost: z.literal(false).optional(),
 });
 
 export type Board = z.infer<typeof Board>;
+export type BoardWithDetectionStatus = z.infer<typeof BoardWithDetectionStatus>;
 export type Toolboard = z.infer<typeof Toolboard>;
 export type AutoFlashableBoard = z.infer<typeof AutoFlashableBoard>;

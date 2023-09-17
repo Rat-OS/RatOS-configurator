@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { usePrinterConfiguration } from '../../hooks/usePrinterConfiguration';
 import { Hotend, Thermistor } from '../../zods/hardware';
 import { ShowWhenReady } from '../common/show-when-ready';
+import { ErrorMessage } from '../error-message';
 
 const stringToTitleObject = <Item extends string>(data: Item): { id: Item; title: Item } => {
 	return { id: data, title: data };
@@ -52,8 +53,13 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 		setHasManuallySelectedThermistor(true);
 	};
 
+	const errors = queryErrors.slice();
+
 	if (parsedPrinterConfiguration.success === false) {
 		// console.error(parsedPrinterConfiguration.error);
+		parsedPrinterConfiguration.error.flatten().formErrors.forEach((message) => {
+			errors.push(message);
+		});
 	}
 
 	return (
@@ -68,6 +74,15 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 						If your hardware isn't listed, pick the one closest to it and modify it in printer.cfg later
 					</p>
 				</div>
+				{errors.length > 0 && (
+					<ErrorMessage>
+						{errors.map((e) => (
+							<div className="mt-2" key={e}>
+								{e}
+							</div>
+						))}
+					</ErrorMessage>
+				)}
 				<ShowWhenReady isReady={isReady} queryErrors={queryErrors}>
 					<div className="grid grid-cols-2 gap-4">
 						<div>

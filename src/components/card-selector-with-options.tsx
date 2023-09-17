@@ -94,24 +94,22 @@ export const CardSelectorWithOptions = <
 							twJoin(
 								checked ? 'border-transparent' : 'border-zinc-300 dark:border-zinc-700',
 								active ? 'ring-2 ring-brand-600 dark:ring-brand-500' : '',
-								'relative cursor-pointer rounded-lg border bg-white px-6 py-4 shadow-sm focus:outline-none dark:bg-zinc-800',
+								'relative cursor-pointer rounded-lg border bg-white px-4 py-4 shadow-sm focus:outline-none dark:bg-zinc-800',
 							)
 						}
 					>
 						{({ active, checked }) => (
 							<>
 								<div className="flex justify-between">
-									<div className="flex items-center">
-										<div>
-											<RadioGroup.Label as="p" className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-												{card.name}
-											</RadioGroup.Label>
-											<RadioGroup.Description as="div" className="text-xs text-zinc-500 dark:text-zinc-400">
-												<p className="sm:inline">{card.details}</p>
-											</RadioGroup.Description>
-										</div>
+									<div className="flex-1">
+										<RadioGroup.Label as="p" className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+											{card.name}
+										</RadioGroup.Label>
+										<RadioGroup.Description as="div" className="text-xs text-zinc-500 dark:text-zinc-400">
+											<p className="sm:inline">{card.details}</p>
+										</RadioGroup.Description>
 									</div>
-									<RadioGroup.Description as="div" className="mt-2 flex text-sm sm:ml-4 sm:mt-0 sm:block sm:text-right">
+									<RadioGroup.Description as="div" className="mb-2 flex text-sm ml-4 sm:block sm:text-right">
 										{card.right}
 									</RadioGroup.Description>
 								</div>

@@ -8,6 +8,8 @@ import { parseMetadata } from '../../helpers/parseMetadata';
 import { Hotend, Extruder, Probe, thermistors, Endstop } from '../../zods/hardware';
 import { readFileSync } from 'fs';
 import { Printer } from '../../zods/printer';
+import { PartialPrinterConfiguration, PrinterConfiguration } from '../../zods/printer-configuration';
+import { xEndstopOptions, yEndstopOptions } from '../../data/endstops';
 
 export const parseDirectory = async <T extends z.ZodType>(directory: string, zod: T) => {
 	const defs = await promisify(exec)(`ls ${process.env.RATOS_CONFIGURATION_PATH}/${directory}/*.cfg`);
@@ -47,17 +49,6 @@ export const getPrinters = async () => {
 	);
 };
 
-export const xEndstopOptions = [
-	{ id: 'endstop' as const, title: 'Physical Endstop' },
-	{ id: 'endstop-toolboard' as const, title: 'Physical Endstop (toolboard)' },
-	{ id: 'sensorless' as const, title: 'Sensorless Homing' },
-];
-
-export const yEndstopOptions = [
-	{ id: 'endstop' as const, title: 'Physical Endstop' },
-	{ id: 'sensorless' as const, title: 'Sensorless Homing' },
-];
-
 export const printerRouter = trpc
 	.router()
 	.query('printers', {
@@ -85,10 +76,19 @@ export const printerRouter = trpc
 		resolve: () => thermistors,
 	})
 	.query('x-endstops', {
+		input: PartialPrinterConfiguration,
 		output: z.array(Endstop),
-		resolve: () => xEndstopOptions,
+		resolve: (ctx) => xEndstopOptions(ctx.input),
 	})
 	.query('y-endstops', {
+		input: PartialPrinterConfiguration,
 		output: z.array(Endstop),
-		resolve: () => yEndstopOptions,
+		resolve: (ctx) => yEndstopOptions(ctx.input),
+	})
+	.mutation('save-configuration', {
+		input: PrinterConfiguration,
+		resolve: async (ctx) => {
+			await new Promise((resolve) => setTimeout(resolve, 1000));
+			return true;
+		},
 	});

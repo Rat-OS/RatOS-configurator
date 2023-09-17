@@ -1,19 +1,17 @@
 import { CpuChipIcon } from '@heroicons/react/24/outline';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useMutation, useQuery } from 'react-query';
-import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
-import { z } from 'zod';
+import React, { useCallback, useMemo } from 'react';
+import { useRecoilState } from 'recoil';
 import { trpc } from '../../helpers/trpc';
-import { ControlboardState, ToolboardState } from '../../hooks/usePrinterConfiguration';
+import { ControlboardState, ToolboardState, usePrinterConfiguration } from '../../hooks/usePrinterConfiguration';
 import { StepScreen, StepScreenProps, useSteps } from '../../hooks/useSteps';
-import { Board, Toolboard } from '../../zods/boards';
+import { Board, BoardWithDetectionStatus, Toolboard } from '../../zods/boards';
 import { SelectableCard } from '../card-selector';
 import { QueryStatus } from '../common/query-status';
 import { MCUFlashing } from './mcu/flash';
 import { MCUPicker } from './mcu/pick';
 
 export interface SelectableBoard extends SelectableCard {
-	board: Board;
+	board: BoardWithDetectionStatus;
 }
 
 interface ExtraStepProps {
@@ -38,7 +36,7 @@ const MCUSteps: StepScreen<ExtraStepProps>[] = [
 				screenProps.toolboards ? 'toolboard' : 'control board. If you also use a toolboard, you can add that later.'
 			}`,
 		href: '#',
-		renderScreen: (screenProps) => <MCUPicker {...screenProps} />,
+		renderScreen: (screenProps) => <MCUPicker {...screenProps} key={screenProps.key} />,
 	},
 	{
 		id: '02',
@@ -46,7 +44,7 @@ const MCUSteps: StepScreen<ExtraStepProps>[] = [
 		description: (screenProps) =>
 			`Make sure your ${screenProps.toolboards ? 'toolboard' : 'control board'} is flashed and up to date`,
 		href: '#',
-		renderScreen: (screenProps) => <MCUFlashing {...screenProps} />,
+		renderScreen: (screenProps) => <MCUFlashing {...screenProps} key={screenProps.key} />,
 	},
 ];
 
@@ -68,20 +66,21 @@ export const MCUPreparation: React.FC<StepScreenProps & ExtraProps> = (props) =>
 		}));
 	}, [boardsQuery.isError, boardsQuery.data]);
 
-	const [_controlBoard, _setControlboard] = useRecoilState(ControlboardState);
-	const [_toolBoard, _setToolboard] = useRecoilState(ToolboardState);
+	const {
+		selectedToolboard: _toolBoard,
+		selectedBoard: _controlBoard,
+		setSelectedBoard: _setControlboard,
+		setSelectedToolboard: _setToolboard,
+	} = usePrinterConfiguration();
 	const selectedBoard =
 		cards.find((c) => c.board.serialPath == (props.toolboards ? _toolBoard?.serialPath : _controlBoard?.serialPath)) ??
 		null;
 
 	const setSelectedBoard = useCallback(
 		(newBoard: SelectableBoard | null) => {
-			if (newBoard == null) {
-				return;
-			}
 			if (props.toolboards) {
-				_setToolboard(Toolboard.parse(newBoard.board));
-			} else {
+				_setToolboard(newBoard == null ? null : Toolboard.parse(newBoard.board));
+			} else if (newBoard != null) {
 				_setControlboard(Board.parse(newBoard.board));
 			}
 		},
@@ -100,13 +99,9 @@ export const MCUPreparation: React.FC<StepScreenProps & ExtraProps> = (props) =>
 		extraScreenProps: extraScreenProps,
 	});
 
-	return (
-		<>
-			{currentStep.renderScreen({
-				...screenProps,
-				...extraScreenProps,
-			})}
-			<QueryStatus {...boardsQuery} />
-		</>
-	);
+	return currentStep.renderScreen({
+		...screenProps,
+		...extraScreenProps,
+		children: <QueryStatus {...boardsQuery} />,
+	});
 };

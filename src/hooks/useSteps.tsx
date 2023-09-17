@@ -1,8 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
-export interface StepScreenProps {
+export interface StepScreenProps extends React.PropsWithChildren<{}> {
 	nextScreen?: () => void;
 	previousScreen?: () => void;
 	hasNextScreen: boolean;
@@ -28,38 +28,44 @@ export interface StepScreen<P extends NoExtraProps | Object = NoExtraProps> {
 }
 
 type UseStepProps<P extends NoExtraProps | Object = NoExtraProps> = {
-	onIncrementStep?: (step: number) => void;
-	onDecrementStep?: (step: number) => void;
+	onStepChange?: (step: number, action: 'set' | 'increment' | 'decrement') => void;
 	steps: StepScreen<P>[];
 	step?: number;
 	parentScreenProps?: StepScreenProps;
 } & ExtraStepProps<P>;
 
 export const useSteps = <P extends NoExtraProps | Object>(props: UseStepProps<P>) => {
-	const { onIncrementStep, onDecrementStep } = props;
-	const [currentStepIndex, setCurrentStepIndex] = useState(props.step != null && !isNaN(props.step) ? props.step : 0);
+	const { onStepChange } = props;
+	const [currentStepIndex, _setCurrentStepIndex] = useState(props.step != null && !isNaN(props.step) ? props.step : 0);
 	const currentStep = props.steps[currentStepIndex];
 	const currentStepRef = useRef(currentStepIndex);
 	currentStepRef.current = currentStepIndex;
+	const setCurrentStepIndex = useCallback(
+		(stepIndex: number) => {
+			onStepChange?.(stepIndex, 'set');
+			_setCurrentStepIndex(stepIndex);
+		},
+		[onStepChange],
+	);
 	useEffect(() => {
 		if (props.step && !isNaN(props.step) && props.step !== currentStepRef.current) {
-			setCurrentStepIndex(props.step);
+			_setCurrentStepIndex(props.step);
 		}
 	}, [props.step]);
 	const hasNextScreen = currentStepIndex < props.steps.length - 1;
 	const hasPreviousScreen = currentStepIndex > 0;
 	const incrementStep = useCallback(() => {
-		setCurrentStepIndex((csi) => {
-			onIncrementStep?.(csi + 1);
+		_setCurrentStepIndex((csi) => {
+			onStepChange?.(csi + 1, 'increment');
 			return csi + 1;
 		});
-	}, [onIncrementStep]);
+	}, [onStepChange]);
 	const decrementStep = useCallback(() => {
-		setCurrentStepIndex((csi) => {
-			onDecrementStep?.(csi - 1);
+		_setCurrentStepIndex((csi) => {
+			onStepChange?.(csi - 1, 'decrement');
 			return csi - 1;
 		});
-	}, [onDecrementStep]);
+	}, [onStepChange]);
 	const partialScreenProps: Omit<StepScreenProps, 'name' | 'description'> & NormalizedGeneric<P> = {
 		...(('extraScreenProps' in props ? props.extraScreenProps : {}) as NormalizedGeneric<P>),
 		key: 'step-' + currentStepIndex,
@@ -91,6 +97,7 @@ export const useSteps = <P extends NoExtraProps | Object>(props: UseStepProps<P>
 	return {
 		screenProps,
 		currentStepIndex,
+		setCurrentStepIndex: setCurrentStepIndex,
 		currentStep: props.steps[currentStepIndex],
 	};
 };

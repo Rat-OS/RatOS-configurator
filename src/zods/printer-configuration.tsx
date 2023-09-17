@@ -18,5 +18,11 @@ export const PrinterConfiguration = z
 	})
 	.refine(
 		(data) => data.size == null || ((data.printer.sizes?.length ?? 0) > 0 && data.size != null),
-		'Printer size must be selected if printer has size options, otherwise it must be omitted',
+		'Printer size must be provided if printer has size options, otherwise it must be omitted',
+	)
+	.refine(
+		(data) => data.toolboard !== null || data.xEndstop.id !== 'endstop-toolboard',
+		'Cannot use toolboard endstop without a toolboard',
 	);
+
+export const PartialPrinterConfiguration = PrinterConfiguration.innerType().innerType().partial().optional();

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import * as trpc from '@trpc/server';
-import fs from 'fs';
+import fs, { exists } from 'fs';
 import { exec } from 'child_process';
 import { existsSync, readFileSync } from 'fs';
 import { promisify } from 'util';
@@ -9,7 +9,7 @@ import { TRPCError } from '@trpc/server';
 import { getScriptRoot } from '../../helpers/util';
 import path from 'path';
 import { runSudoScript } from '../../helpers/run-script';
-import { AutoFlashableBoard, Board } from '../../zods/boards';
+import { AutoFlashableBoard, Board, BoardWithDetectionStatus } from '../../zods/boards';
 
 const inputSchema = z.object({
 	boardPath: z.string(),
@@ -17,19 +17,26 @@ const inputSchema = z.object({
 
 export const getBoards = async () => {
 	const defs = await promisify(exec)(`ls ${process.env.RATOS_CONFIGURATION_PATH}/boards/*/board-definition.json`);
-	return z.array(Board).parse(
+	return z.array(BoardWithDetectionStatus).parse(
 		defs.stdout
 			.split('\n')
 			.map((f) =>
 				f.trim() === ''
 					? null
-					: { ...(JSON.parse(readFileSync(f).toString()) as {}), path: f.replace('board-definition.json', '') },
+					: {
+							...(JSON.parse(readFileSync(f).toString()) as BoardWithDetectionStatus),
+							path: f.replace('board-definition.json', ''),
+					  },
 			)
-			.filter((f) => f != null),
+			.filter((b) => b != null)
+			.map((b) => {
+				b!.detected = b != null && 'serialPath' in b && b.serialPath != null ? existsSync(b.serialPath) : false;
+				return b;
+			}),
 	);
 };
 
-export const getBoardsWithoutHost = (boards: Board[]) => {
+export const getBoardsWithoutHost = (boards: BoardWithDetectionStatus[]) => {
 	return boards.filter((b) => !b.isHost);
 };
 
@@ -74,7 +81,7 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 		});
 	})
 	.query('boards', {
-		output: z.array(Board),
+		output: z.array(BoardWithDetectionStatus),
 		resolve: ({ ctx }) => {
 			return ctx.boards;
 		},

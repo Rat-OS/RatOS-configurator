@@ -188,7 +188,10 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 					<h3 className="text-lg leading-6 font-medium text-zinc-900 dark:text-zinc-100">{props.name}</h3>
 					<p className="mt-2 max-w-4xl text-sm text-zinc-500 dark:text-zinc-400">{props.description}</p>
 				</div>
-				<div className="space-y-4">{content}</div>
+				<div className="space-y-4">
+					{props.children}
+					{content}
+				</div>
 			</div>
 			<StepNavButtons right={rightButton} left={leftButton} />
 		</Fragment>

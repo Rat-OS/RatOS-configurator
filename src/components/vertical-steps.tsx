@@ -7,6 +7,7 @@ interface StepProps {
 	steps: StepScreen[];
 	screenProps: StepScreenProps;
 	currentStepIndex: number;
+	setCurrentStepIndex: (index: number) => void;
 }
 
 export const VerticalSteps: React.FC<StepProps> = (props) => {
@@ -27,7 +28,10 @@ export const VerticalSteps: React.FC<StepProps> = (props) => {
 											aria-hidden="true"
 										/>
 									) : null}
-									<span className="group relative flex items-start">
+									<span
+										className="group relative flex items-start cursor-pointer"
+										onClick={() => props.setCurrentStepIndex(stepIdx)}
+									>
 										<span className="flex h-9 items-center">
 											<span className="relative z-10 flex h-8 w-8 items-center justify-center rounded-full bg-brand-600 dark:bg-brand-500">
 												<CheckIcon className="h-5 w-5 text-brand-100 dark:text-brand-900" aria-hidden="true" />

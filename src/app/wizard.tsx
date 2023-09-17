@@ -20,6 +20,7 @@ import { SyncWithMoonraker } from '../components/sync-with-moonraker';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useIsClient } from '../hooks/isClient';
 import { Spinner } from '../components/spinner';
+import { usePrinterConfiguration } from '../hooks/usePrinterConfiguration';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -101,12 +102,9 @@ export const Wizard: React.FC<WizardProps> = (props) => {
 	const defaultStep = props.hasWifiInterface && !props.isConnectedToWifi ? 0 : 1;
 	const { data: version } = trpc.useQuery(['version']);
 	const { data: ip } = trpc.useQuery(['ip-address']);
-	const { currentStepIndex, screenProps, currentStep } = useSteps({
+	const { currentStepIndex, setCurrentStepIndex, screenProps, currentStep } = useSteps({
 		step: uriStep != null ? uriStep : defaultStep,
-		onIncrementStep: (step) => {
-			router.push('/?step=' + step, undefined, { shallow: true });
-		},
-		onDecrementStep: (step) => {
+		onStepChange: (step) => {
 			router.push('/?step=' + step, undefined, { shallow: true });
 		},
 		steps,
@@ -155,7 +153,12 @@ export const Wizard: React.FC<WizardProps> = (props) => {
 									<div className="mb-5 border-b border-zinc-200 pb-5 dark:border-zinc-800">
 										<h3 className="text-lg font-medium leading-6 text-zinc-900 dark:text-zinc-100">Setup Progress</h3>
 									</div>
-									<VerticalSteps steps={steps} screenProps={screenProps} currentStepIndex={currentStepIndex} />
+									<VerticalSteps
+										steps={steps}
+										screenProps={screenProps}
+										currentStepIndex={currentStepIndex}
+										setCurrentStepIndex={setCurrentStepIndex}
+									/>
 								</div>
 							</div>
 						</div>

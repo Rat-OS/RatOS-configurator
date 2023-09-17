@@ -1,4 +1,4 @@
-import { getPrinters, parseDirectory, xEndstopOptions, yEndstopOptions } from '../server/router/printer';
+import { getPrinters, parseDirectory, printerRouter } from '../server/router/printer';
 import { Extruder, Hotend, Probe } from '../zods/hardware';
 import { getBoards } from '../server/router/mcu';
 import fs from 'fs';
@@ -7,6 +7,8 @@ import { promisify } from 'util';
 import { serverSchema } from '../env/schema.mjs';
 const environment = serverSchema.parse(process.env);
 import { describe, expect, test } from 'vitest';
+import { PartialPrinterConfiguration } from '../zods/printer-configuration';
+import { xEndstopOptions, yEndstopOptions } from '../data/endstops';
 
 describe('configuration', async () => {
 	const parsedHotends = await parseDirectory('hotends', Hotend);
@@ -73,20 +75,39 @@ describe('configuration', async () => {
 			).toBeTruthy();
 		});
 		test('has valid defaults', async () => {
-			printer.defaults.board &&
-				expect(parsedBoards.filter((board) => board.serialPath === '/dev/' + printer.defaults?.board).length).toBe(1);
-			printer.defaults.hotend &&
-				expect(parsedHotends.filter((hotend) => hotend.id === printer.defaults?.hotend + '.cfg').length).toBe(1);
-			printer.defaults.extruder &&
-				expect(parsedExtruders.filter((extruder) => extruder.id === printer.defaults?.extruder + '.cfg').length).toBe(
-					1,
-				);
-			printer.defaults.probe &&
-				expect(parsedProbes.filter((probe) => probe.id === printer.defaults?.probe + '.cfg').length).toBe(1);
+			const defaultBoard = parsedBoards.find((board) => board.serialPath === '/dev/' + printer.defaults?.board);
+			const defaultHotend = parsedHotends.find((hotend) => hotend.id === printer.defaults?.hotend + '.cfg');
+			const defaultExtruder = parsedExtruders.find((extruder) => extruder.id === printer.defaults?.extruder + '.cfg');
+			const defaultProbe = parsedProbes.find((probe) => probe.id === printer.defaults?.probe + '.cfg');
+			const defaultXEndstop = xEndstopOptions().find((option) => option.id === printer.defaults?.xEndstop);
+			const defaultYEndstop = yEndstopOptions().find((option) => option.id === printer.defaults?.yEndstop);
+			const defaultToolboard = parsedBoards.find((board) => board.serialPath === '/dev/' + printer.defaults?.toolboard);
+			const partialConfigResult = PartialPrinterConfiguration.safeParse({
+				printer: printer,
+				board: defaultBoard,
+				hotend: defaultHotend,
+				extruder: defaultExtruder,
+				probe: defaultProbe,
+				xEndstop: defaultXEndstop,
+				yEndstop: defaultYEndstop,
+				toolboard: defaultToolboard,
+			});
+			const partialConfig = partialConfigResult.success ? partialConfigResult.data : undefined;
+
+			printer.defaults.board && expect(defaultBoard).not.toBeNull();
+
+			printer.defaults.toolboard && expect(defaultToolboard).not.toBeNull();
+			printer.defaults.hotend && expect(defaultHotend).not.toBeNull();
+			printer.defaults.extruder && expect(defaultExtruder).not.toBeNull();
+			printer.defaults.probe && expect(defaultProbe).not.toBeNull();
 			printer.defaults.xEndstop &&
-				expect(xEndstopOptions.find((option) => option.id === printer.defaults?.xEndstop)).not.toBeNull();
+				expect(
+					xEndstopOptions(partialConfig).find((option) => option.id === printer.defaults?.xEndstop),
+				).not.toBeNull();
 			printer.defaults.yEndstop &&
-				expect(yEndstopOptions.find((option) => option.id === printer.defaults?.yEndstop)).not.toBeNull();
+				expect(
+					yEndstopOptions(partialConfig).find((option) => option.id === printer.defaults?.yEndstop),
+				).not.toBeNull();
 		});
 	});
 });

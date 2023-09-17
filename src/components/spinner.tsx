@@ -1,9 +1,9 @@
-import clsx from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
 export const Spinner: React.FC<{ className?: string; noMargin?: boolean }> = (props) => {
 	return (
 		<svg
-			className={clsx(
+			className={twMerge(
 				'h-5 w-5 animate-spin text-black dark:text-white',
 				!props.noMargin ? '-ml-1 mr-3' : '',
 				props.className,

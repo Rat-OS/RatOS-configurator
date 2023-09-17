@@ -15,7 +15,6 @@ export async function getServerSideProps() {
 }
 
 const Home: NextPage<Awaited<ReturnType<typeof getServerSideProps>>['props']> = (props) => {
-	console.log(props);
 	return (
 		<>
 			<Head>
