@@ -35,6 +35,7 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 			}
 			return 1000;
 		},
+		retry: false,
 	});
 	const hostnameMutation = trpc.useMutation(['wifi.hostname']);
 	const wifiMutation = trpc.useMutation(['wifi.join']);
@@ -160,7 +161,7 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 			/>
 		) : isError ? (
 			<div className="mb-4 h-48">
-				<ErrorMessage>{error?.message}</ErrorMessage>
+				<ErrorMessage title="Unable to scan for wifi access points">{error?.message}</ErrorMessage>
 			</div>
 		) : Object.keys(apList).length === 0 ? (
 			<div className="mb-4 flex h-48 items-center justify-center">

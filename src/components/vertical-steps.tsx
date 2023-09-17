@@ -1,6 +1,6 @@
 import { CheckIcon } from '@heroicons/react/24/solid';
 import React from 'react';
-import { classNames } from '../helpers/classNames';
+import { twJoin } from 'tailwind-merge';
 import { StepScreen, StepScreenProps } from '../hooks/useSteps';
 
 interface StepProps {
@@ -18,16 +18,19 @@ export const VerticalSteps: React.FC<StepProps> = (props) => {
 					const description =
 						typeof step.description === 'function' ? step.description(props.screenProps) : step.description;
 					return (
-						<li key={name} className={classNames(stepIdx !== props.steps.length - 1 ? 'pb-10' : '', 'relative')}>
+						<li key={name} className={twJoin(stepIdx !== props.steps.length - 1 ? 'pb-10' : '', 'relative')}>
 							{props.currentStepIndex > stepIdx ? (
 								<>
 									{stepIdx !== props.steps.length - 1 ? (
-										<div className="absolute left-4 top-4 -ml-px mt-0.5 h-full w-0.5 bg-brand-500" aria-hidden="true" />
+										<div
+											className="absolute left-4 top-4 -ml-px mt-0.5 h-full w-0.5 bg-brand-600 dark:bg-brand-500"
+											aria-hidden="true"
+										/>
 									) : null}
 									<span className="group relative flex items-start">
 										<span className="flex h-9 items-center">
-											<span className="relative z-10 flex h-8 w-8 items-center justify-center rounded-full bg-brand-600 group-hover:bg-brand-600">
-												<CheckIcon className="h-5 w-5 text-white" aria-hidden="true" />
+											<span className="relative z-10 flex h-8 w-8 items-center justify-center rounded-full bg-brand-600 dark:bg-brand-500">
+												<CheckIcon className="h-5 w-5 text-brand-100 dark:text-brand-900" aria-hidden="true" />
 											</span>
 										</span>
 										<span className="ml-4 flex min-w-0 flex-col">
@@ -51,7 +54,9 @@ export const VerticalSteps: React.FC<StepProps> = (props) => {
 											</span>
 										</span>
 										<span className="ml-4 flex min-w-0 flex-col">
-											<span className="text-xs font-semibold uppercase tracking-wide text-brand-500">{name}</span>
+											<span className="text-xs font-semibold uppercase tracking-wide text-brand-600 dark:text-brand-500">
+												{name}
+											</span>
 											<span className="text-sm text-zinc-500 dark:text-zinc-400">{description}</span>
 										</span>
 									</span>

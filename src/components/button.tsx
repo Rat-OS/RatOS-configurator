@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { classNames } from '../helpers/classNames';
+import { twJoin } from 'tailwind-merge';
 import React from 'react';
 
 interface ButtonProps extends React.PropsWithChildren {
@@ -13,7 +13,7 @@ interface ButtonProps extends React.PropsWithChildren {
 }
 
 export const Button: React.FC<ButtonProps> = (props) => {
-	const buttonClassName = classNames(
+	const buttonClassName = twJoin(
 		props.className ? props.className : '',
 		props.color === 'gray'
 			? 'border-zinc-300 bg-zinc-100 hover:bg-zinc-200 text-black dark:text-zinc-300 dark:bg-zinc-900 dark:border-zinc-700 dark:hover:bg-zinc-800 dark:hover:border-zinc-600 focus:ring-offset-2 focus:ring-brand-600 dark:focus:ring-offset-slate-900'

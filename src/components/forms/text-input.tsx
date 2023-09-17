@@ -1,7 +1,7 @@
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { ExclamationCircleIcon } from '@heroicons/react/24/solid';
 import React, { ChangeEvent, useCallback, useRef, useState } from 'react';
-import { classNames } from '../../helpers/classNames';
+import { twJoin } from 'tailwind-merge';
 
 interface TextInputProps {
 	type: 'text' | 'password';
@@ -20,7 +20,7 @@ export const TextInput: React.FC<TextInputProps> = (props) => {
 	const { onChange: _onChange } = props;
 	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
-	let iconClass = classNames('h-5 w-5', props.error ? 'text-red-500' : 'text-red-500');
+	let iconClass = twJoin('h-5 w-5', props.error ? 'text-red-500' : 'text-red-500');
 
 	const icon = props.error ? (
 		<div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
@@ -28,7 +28,7 @@ export const TextInput: React.FC<TextInputProps> = (props) => {
 		</div>
 	) : null;
 
-	const inputClass = classNames(
+	const inputClass = twJoin(
 		props.error
 			? 'border-red-300 text-red-900 placeholder-red-300 focus:ring-red-500 focus:border-red-500'
 			: 'border-zinc-300 text-zinc-900 placeholder-zinc-300 focus:ring-brand-600 focus:border-brand-600',

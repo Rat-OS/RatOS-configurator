@@ -1,10 +1,11 @@
 'use client';
 import React, { useCallback, useEffect, useState } from 'react';
 import { RadioGroup } from '@headlessui/react';
-import { classNames } from '../helpers/classNames';
-import Image from 'next/image';
+import { twJoin } from 'tailwind-merge';
+import { useAutoAnimate } from '@formkit/auto-animate/react';
 
 export interface SelectableCard {
+	id: string | number;
 	name: string;
 	right: JSX.Element | null;
 	details: JSX.Element | string;
@@ -22,6 +23,7 @@ export const CardSelector = <Selectable extends SelectableCard = SelectableCard>
 ) => {
 	const [selected, setSelected] = useState<Selectable | null>(null);
 	const { onSelect: _onSelect } = props;
+	const [parent] = useAutoAnimate();
 
 	const onSelect = useCallback(
 		(card: Selectable) => {
@@ -42,13 +44,13 @@ export const CardSelector = <Selectable extends SelectableCard = SelectableCard>
 	return (
 		<RadioGroup value={selected} onChange={onSelect}>
 			<RadioGroup.Label className="sr-only">Selector</RadioGroup.Label>
-			<div className="space-y-4">
+			<div className="space-y-4" ref={parent}>
 				{props.cards.map((card, i) => (
 					<RadioGroup.Option
-						key={card.name + i}
+						key={card.id}
 						value={card}
 						className={({ checked, active }) =>
-							classNames(
+							twJoin(
 								checked ? 'border-transparent' : 'border-zinc-300 dark:border-zinc-700',
 								active ? 'ring-2 ring-brand-600' : '',
 								'relative flex cursor-pointer justify-between rounded-lg border bg-white px-6 py-4 shadow-sm focus:outline-none dark:bg-zinc-900',
@@ -71,7 +73,7 @@ export const CardSelector = <Selectable extends SelectableCard = SelectableCard>
 									{card.right}
 								</RadioGroup.Description>
 								<div
-									className={classNames(
+									className={twJoin(
 										active ? 'border' : 'border-2',
 										checked ? 'border-brand-600' : 'border-transparent',
 										'pointer-events-none absolute -inset-px rounded-lg',

@@ -19,6 +19,7 @@ import { RecoilRoot } from 'recoil';
 import { SyncWithMoonraker } from '../components/sync-with-moonraker';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useIsClient } from '../hooks/isClient';
+import { Spinner } from '../components/spinner';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -26,45 +27,45 @@ const queryClient = new QueryClient();
 const steps: StepScreen[] = [
 	{
 		id: '00',
-		name: 'Wifi Setup',
-		description: 'Setup Wifi Connectivity',
+		name: 'Network connectivity',
+		description: 'Setup Wifi or Ethernet',
 		href: '#',
-		renderScreen: (screenProps) => <WifiSetup {...screenProps} />,
+		renderScreen: (screenProps) => <WifiSetup {...screenProps} key={screenProps.key} />,
 	},
 	{
 		id: '01',
 		name: 'Printer Selection',
 		description: 'Select your printer',
 		href: '#',
-		renderScreen: (screenProps) => <PrinterSelection {...screenProps} />,
+		renderScreen: (screenProps) => <PrinterSelection {...screenProps} key={screenProps.key} />,
 	},
 	{
 		id: '04',
 		name: 'Hardware Selection',
 		description: 'Select your printer',
 		href: '#',
-		renderScreen: (screenProps) => <HardwareSelection {...screenProps} />,
+		renderScreen: (screenProps) => <HardwareSelection {...screenProps} key={screenProps.key} />,
 	},
 	{
 		id: '02',
 		name: 'Control board preparation',
 		description: 'Firmware flashing and connectivity',
 		href: '#',
-		renderScreen: (screenProps) => <MCUPreparation {...screenProps} />,
+		renderScreen: (screenProps) => <MCUPreparation {...screenProps} key={screenProps.key} />,
 	},
 	{
 		id: '03',
 		name: 'Toolboard Preparation',
 		description: 'Firmware flashing and connectivity',
 		href: '#',
-		renderScreen: (screenProps) => <MCUPreparation {...screenProps} toolboards={true} />,
+		renderScreen: (screenProps) => <MCUPreparation {...screenProps} key={screenProps.key} toolboards={true} />,
 	},
 	{
 		id: '05',
-		name: 'Configure printer in Mainsail',
-		description: 'Choose your hardware and start calibrating your printer',
+		name: 'Confirm your setup',
+		description: 'Confirm your setup and start printing',
 		href: '#',
-		renderScreen: (screenProps) => <WizardComplete {...screenProps} />,
+		renderScreen: (screenProps) => <WizardComplete {...screenProps} key={screenProps.key} />,
 	},
 	// {
 	// 	id: '03',
@@ -89,13 +90,19 @@ const steps: StepScreen[] = [
 	// },
 ];
 
-export const Wizard = () => {
+interface WizardProps {
+	isConnectedToWifi?: boolean;
+	hasWifiInterface?: boolean;
+}
+
+export const Wizard: React.FC<WizardProps> = (props) => {
 	const router = useRouter();
 	const uriStep = router.query.step ? parseInt(router.query.step as string, 10) : null;
+	const defaultStep = props.hasWifiInterface && !props.isConnectedToWifi ? 0 : 1;
 	const { data: version } = trpc.useQuery(['version']);
 	const { data: ip } = trpc.useQuery(['ip-address']);
 	const { currentStepIndex, screenProps, currentStep } = useSteps({
-		step: uriStep ?? undefined,
+		step: uriStep != null ? uriStep : defaultStep,
 		onIncrementStep: (step) => {
 			router.push('/?step=' + step, undefined, { shallow: true });
 		},
@@ -109,7 +116,13 @@ export const Wizard = () => {
 		<QueryClientProvider client={queryClient}>
 			<RecoilRoot>
 				<SyncWithMoonraker>
-					<React.Suspense fallback={<div>Loading...</div>}>
+					<React.Suspense
+						fallback={
+							<div className="mb-4 flex h-96 items-center justify-center">
+								<Spinner />
+							</div>
+						}
+					>
 						{/* Page header */}
 						<div className="mx-auto max-w-3xl px-4 sm:px-6 md:flex md:items-center md:justify-between md:space-x-5 lg:max-w-7xl lg:px-8">
 							<div className="flex items-center space-x-5">

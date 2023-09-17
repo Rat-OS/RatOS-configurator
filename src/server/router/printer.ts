@@ -62,7 +62,12 @@ export const printerRouter = trpc
 	.router()
 	.query('printers', {
 		output: z.array(Printer),
-		resolve: getPrinters,
+		resolve: async () =>
+			(await getPrinters()).sort((a, b) =>
+				a.manufacturer === 'Rat Rig' && (b.manufacturer !== 'Rat Rig' || b.description.indexOf('Discontinued') > -1)
+					? -1
+					: a.name.localeCompare(b.name),
+			),
 	})
 	.query('hotends', {
 		output: z.array(Hotend),

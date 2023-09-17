@@ -2,7 +2,7 @@
 /* This example requires Tailwind CSS v2.0+ */
 import { CheckIcon } from '@heroicons/react/24/solid';
 import React, { useCallback, useEffect, useRef } from 'react';
-import { classNames } from '../helpers/classNames';
+import { twMerge } from 'tailwind-merge';
 
 export interface Step {
 	id: string;

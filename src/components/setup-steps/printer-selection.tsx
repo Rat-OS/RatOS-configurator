@@ -3,7 +3,12 @@ import React from 'react';
 import Image from 'next/image';
 import { StepNavButtons } from '../step-nav-buttons';
 import { StepScreenProps } from '../../hooks/useSteps';
-import { CardSelectorWithOptions, SelectableCard, SelectableOption, SelectedCard } from '../card-selector-with-options';
+import {
+	CardSelectorWithOptions,
+	SelectableCardWithOptions,
+	SelectableOption,
+	SelectedCard,
+} from '../card-selector-with-options';
 import { trpc } from '../../helpers/trpc';
 import { usePrinterConfiguration } from '../../hooks/usePrinterConfiguration';
 import { ShowWhenReady } from '../common/show-when-ready';
@@ -38,7 +43,7 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 					),
 					options: p.sizes ? p.sizes.map((s) => ({ id: s, name: s + '' })) : undefined,
 				};
-		  }) satisfies SelectableCard[])
+		  }) satisfies SelectableCardWithOptions[])
 		: [];
 
 	const selectedCard = cards.find((c) => c.id === selectedPrinter?.id);

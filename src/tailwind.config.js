@@ -20,6 +20,10 @@ module.exports = {
 					900: '#123300',
 				},
 			},
+			fontSize: {
+				'2xs': '0.6rem',
+				s: '0.8125rem',
+			},
 		},
 	},
 	plugins: [require('@tailwindcss/forms'), require('tailwind-scrollbar')({ nocompatible: true })],

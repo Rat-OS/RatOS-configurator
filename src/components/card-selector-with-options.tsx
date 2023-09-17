@@ -1,14 +1,16 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { RadioGroup } from '@headlessui/react';
-import { classNames } from '../helpers/classNames';
+import { twJoin, twMerge } from 'tailwind-merge';
+import { badgeBackgroundColorStyle, badgeBorderColorStyle, badgeTextColorStyle } from './common/badge';
+import { useAutoAnimate } from '@formkit/auto-animate/react';
 
 export interface SelectableOption {
 	name: string;
 	id: string | number;
 }
 
-export interface SelectableCard<Option extends SelectableOption = SelectableOption> {
+export interface SelectableCardWithOptions<Option extends SelectableOption = SelectableOption> {
 	id: string | number;
 	name: string;
 	right: JSX.Element | null;
@@ -20,7 +22,7 @@ export type SelectedCard<Selectable> = Selectable;
 
 interface CardSelectorProps<
 	Option extends SelectableOption = SelectableOption,
-	Selectable extends SelectableCard<Option> = SelectableCard<Option>,
+	Selectable extends SelectableCardWithOptions<Option> = SelectableCardWithOptions<Option>,
 > {
 	cards: Selectable[];
 	onSelect?: (card: SelectedCard<Selectable>, option: Option | null) => void;
@@ -30,7 +32,7 @@ interface CardSelectorProps<
 
 export const CardSelectorWithOptions = <
 	Option extends SelectableOption = SelectableOption,
-	Selectable extends SelectableCard<Option> = SelectableCard<Option>,
+	Selectable extends SelectableCardWithOptions<Option> = SelectableCardWithOptions<Option>,
 >(
 	props: CardSelectorProps<Option, Selectable>,
 ) => {
@@ -38,6 +40,7 @@ export const CardSelectorWithOptions = <
 	const [selectedOption, setSelectedOption] = useState<Option | null>(null);
 	const selectedRef = useRef({ selected, selectedOption });
 	const { onSelect: _onSelect } = props;
+	const [parent] = useAutoAnimate();
 
 	const onSelect = useCallback(
 		(card: Selectable) => {
@@ -54,7 +57,7 @@ export const CardSelectorWithOptions = <
 				_onSelect?.(card, card.options?.[0] ?? null);
 			}
 		},
-		[_onSelect, props.value],
+		[_onSelect, props.value, props.optionValue],
 	);
 
 	const onSelectOption = useCallback(
@@ -82,13 +85,13 @@ export const CardSelectorWithOptions = <
 	return (
 		<RadioGroup value={selected} onChange={onSelect}>
 			<RadioGroup.Label className="sr-only">Selector</RadioGroup.Label>
-			<div className="space-y-4">
+			<div className="space-y-4" ref={parent}>
 				{props.cards.map((card, i) => (
 					<RadioGroup.Option
-						key={card.name + i}
+						key={card.id}
 						value={card}
 						className={({ checked, active }) =>
-							classNames(
+							twJoin(
 								checked ? 'border-transparent' : 'border-zinc-300 dark:border-zinc-700',
 								active ? 'ring-2 ring-brand-600 dark:ring-brand-500' : '',
 								'relative cursor-pointer rounded-lg border bg-white px-6 py-4 shadow-sm focus:outline-none dark:bg-zinc-800',
@@ -125,13 +128,12 @@ export const CardSelectorWithOptions = <
 													key={option.name}
 													value={option}
 													className={({ active, checked }) =>
-														classNames(
-															'cursor-pointer focus:outline-none',
-															active ? 'ring-2 ring-brand-600 ring-offset-2 dark:ring-brand-500' : '',
-															checked
-																? 'bg-brand-500 text-white hover:bg-brand-300 dark:text-zinc-900'
-																: 'bg-white text-zinc-900 ring-1 ring-inset ring-zinc-300 hover:bg-zinc-50 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700 dark:hover:bg-zinc-800',
-															'flex items-center justify-center rounded-md px-3 py-3 text-sm font-semibold uppercase sm:flex-1',
+														twMerge(
+															active || checked ? 'ring-2' : 'ring-1',
+															'ring-inset flex items-center justify-center rounded-md px-3 py-3 text-sm font-semibold uppercase sm:flex-1',
+															badgeBackgroundColorStyle({ color: checked ? 'brand' : 'gray' }),
+															badgeBorderColorStyle({ color: active || checked ? 'brand' : 'gray' }),
+															badgeTextColorStyle({ color: active || checked ? 'brand' : 'gray' }),
 														)
 													}
 												>
@@ -142,7 +144,7 @@ export const CardSelectorWithOptions = <
 									</RadioGroup>
 								)}
 								<div
-									className={classNames(
+									className={twJoin(
 										active ? 'border' : 'border-2',
 										checked ? 'border-brand-600' : 'border-transparent',
 										'pointer-events-none absolute -inset-px rounded-lg',

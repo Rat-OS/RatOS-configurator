@@ -56,6 +56,7 @@ export const MCUPreparation: React.FC<StepScreenProps & ExtraProps> = (props) =>
 	const cards: SelectableBoard[] = useMemo(() => {
 		if (boardsQuery.isError || boardsQuery.data == null) return [];
 		return boardsQuery.data.map((b) => ({
+			id: b.serialPath,
 			board: b,
 			name: `${b.manufacturer} ${b.name}`,
 			details: (

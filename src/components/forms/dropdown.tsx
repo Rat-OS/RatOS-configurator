@@ -1,7 +1,7 @@
 import React, { Fragment, useCallback, useState } from 'react';
 import { Listbox, Transition } from '@headlessui/react';
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
-import { classNames } from '../../helpers/classNames';
+import { twJoin } from 'tailwind-merge';
 
 type Option = {
 	id: number | string;
@@ -19,7 +19,7 @@ export const Dropdown = <DropdownOption extends Option = Option>(props: Dropdown
 	const { onSelect, value } = props;
 
 	const onSelected = useCallback(
-		(newSelection) => {
+		(newSelection: DropdownOption) => {
 			onSelect?.(newSelection);
 		},
 		[onSelect],
@@ -57,7 +57,7 @@ export const Dropdown = <DropdownOption extends Option = Option>(props: Dropdown
 									<Listbox.Option
 										key={option.id}
 										className={({ active }) =>
-											classNames(
+											twJoin(
 												active ? 'bg-brand-600 text-white' : 'text-zinc-900 dark:text-zinc-300',
 												'relative cursor-default select-none py-2 pl-3 pr-9',
 											)
@@ -66,13 +66,13 @@ export const Dropdown = <DropdownOption extends Option = Option>(props: Dropdown
 									>
 										{({ selected, active }) => (
 											<>
-												<span className={classNames(selected ? 'font-semibold' : 'font-normal', 'block truncate')}>
+												<span className={twJoin(selected ? 'font-semibold' : 'font-normal', 'block truncate')}>
 													{option.title}
 												</span>
 
 												{selected ? (
 													<span
-														className={classNames(
+														className={twJoin(
 															active ? 'text-white' : 'text-brand-600',
 															'absolute inset-y-0 right-0 flex items-center pr-4',
 														)}

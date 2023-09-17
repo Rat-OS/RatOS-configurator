@@ -58,7 +58,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 		if (firstBoard == null) return;
 		setFlashStrategy('path');
 		flashViaPath.mutate({ boardPath: firstBoard.path });
-	}, [flashViaPath, firstBoard?.path]);
+	}, [flashViaPath, firstBoard]);
 
 	let content = null;
 	if (mcuBoardVersion.error && !forceReflash) {
@@ -156,7 +156,9 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 		if (firstBoard == null) {
 			content = (
 				<div>
-					<div className="mt-4 prose text-base text-red-700">You have to select a board before navigating to this screen.</div>
+					<div className="mt-4 prose text-base text-red-700">
+						You have to select a board before navigating to this screen.
+					</div>
 				</div>
 			);
 		} else {
@@ -176,7 +178,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 						</div>
 					);
 			}
-		};
+		}
 	}
 	return (
 		<Fragment>

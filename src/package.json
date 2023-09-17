@@ -10,6 +10,7 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
+		"@formkit/auto-animate": "^0.8.0",
 		"@headlessui/react": "^1.7.8",
 		"@heroicons/react": "^2.0.14",
 		"@loofkid/wireless-tools": "^1.5.0",
@@ -21,6 +22,7 @@
 		"@trpc/server": "9.27.3",
 		"axios": "^0.26.1",
 		"babel-plugin-superjson-next": "^0.4.5",
+		"class-variance-authority": "^0.7.0",
 		"clsx": "^1.2.1",
 		"file-type": "^17.1.6",
 		"next": "13.2.4",
@@ -34,6 +36,7 @@
 		"recoil": "^0.7.7",
 		"recoil-sync": "^0.2.0",
 		"superjson": "^1.12.2",
+		"tailwind-merge": "^1.14.0",
 		"zod": "^3.20.2",
 		"zod-refine": "^1.1.1"
 	},
