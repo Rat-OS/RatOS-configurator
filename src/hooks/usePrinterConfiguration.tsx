@@ -93,7 +93,7 @@ export const YEndstopState = atom({
 });
 
 export const ControlboardState = atom({
-	key: 'Board',
+	key: 'Controlboard',
 	default: null,
 	effects: [
 		syncEffect({
@@ -129,16 +129,16 @@ export const ToolboardState = selector<z.infer<typeof Toolboard> | null>({
 export const PrinterConfigurationState = selector<z.infer<typeof PartialPrinterConfiguration> | null>({
 	key: 'PrinterConfiguration',
 	get: ({ get }) => {
-		const printer = get(PrinterState);
-		const printerSize = get(PrinterSizeState);
-		const hotend = get(HotendState);
-		const thermistor = get(ThermistorState);
-		const extruder = get(ExtruderState);
-		const probe = get(ProbeState);
-		const xEndstop = get(XEndstopState);
-		const yEndstop = get(YEndstopState);
-		const controlboard = get(ControlboardState);
-		const toolboard = get(ToolboardState);
+		const printer = get(PrinterState) ?? undefined;
+		const printerSize = get(PrinterSizeState) ?? undefined;
+		const hotend = get(HotendState) ?? undefined;
+		const thermistor = get(ThermistorState) ?? undefined;
+		const extruder = get(ExtruderState) ?? undefined;
+		const probe = get(ProbeState) ?? undefined;
+		const xEndstop = get(XEndstopState) ?? undefined;
+		const yEndstop = get(YEndstopState) ?? undefined;
+		const controlboard = get(ControlboardState) ?? undefined;
+		const toolboard = get(ToolboardState) ?? undefined;
 
 		const printerConfig = PartialPrinterConfiguration.safeParse({
 			printer,
@@ -152,6 +152,9 @@ export const PrinterConfigurationState = selector<z.infer<typeof PartialPrinterC
 			toolboard,
 			size: printerSize,
 		});
+		if (printerConfig.success === false) {
+			console.log(printerConfig.error);
+		}
 		return printerConfig.success ? printerConfig.data : null;
 	},
 });
@@ -170,12 +173,16 @@ export const usePrinterConfiguration = () => {
 	const printerConfiguration = useRecoilValue(PrinterConfigurationState);
 
 	const hotends = trpc.useQuery(['printer.hotends']);
-	const boards = trpc.useQuery(['mcu.boards']);
+	const boards = trpc.useQuery(['mcu.boards', {}]);
 	const extruders = trpc.useQuery(['printer.extruders']);
 	const thermistors = trpc.useQuery(['printer.thermistors']);
 	const probes = trpc.useQuery(['printer.probes']);
-	const xEndstops = trpc.useQuery(['printer.x-endstops', printerConfiguration]);
-	const yEndstops = trpc.useQuery(['printer.y-endstops', printerConfiguration]);
+	const xEndstops = trpc.useQuery(['printer.x-endstops', printerConfiguration], {
+		keepPreviousData: true,
+	});
+	const yEndstops = trpc.useQuery(['printer.y-endstops', printerConfiguration], {
+		keepPreviousData: true,
+	});
 
 	const setPrinterDefaults = (printer: z.infer<typeof Printer>) => {
 		const board = boards.data?.find((board) => board.serialPath === '/dev/' + printer.defaults?.board);
@@ -291,7 +298,6 @@ export const usePrinterConfiguration = () => {
 		partialPrinterConfiguration: printerConfiguration,
 		parsedPrinterConfiguration,
 		isReady:
-			hotends.data != null &&
 			hotends.data != null &&
 			extruders.data != null &&
 			thermistors.data != null &&

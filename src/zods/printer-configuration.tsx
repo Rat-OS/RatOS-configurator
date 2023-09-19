@@ -23,6 +23,17 @@ export const PrinterConfiguration = z
 	.refine(
 		(data) => data.toolboard !== null || data.xEndstop.id !== 'endstop-toolboard',
 		'Cannot use toolboard endstop without a toolboard',
+	)
+	.refine(
+		(data) => data.controlboard.driverCount >= data.printer.driverCountRequired || data.toolboard != null,
+		'You have to select a toolboard to use this printer and controlboard combo',
 	);
 
-export const PartialPrinterConfiguration = PrinterConfiguration.innerType().innerType().partial().optional();
+export const PartialPrinterConfiguration = PrinterConfiguration.innerType()
+	.innerType()
+	.innerType()
+	.partial()
+	.optional();
+
+export type PrinterConfiguration = z.infer<typeof PrinterConfiguration>;
+export type PartialPrinterConfiguration = z.infer<typeof PartialPrinterConfiguration>;

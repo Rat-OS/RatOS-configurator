@@ -41,13 +41,6 @@ const steps: StepScreen[] = [
 		renderScreen: (screenProps) => <PrinterSelection {...screenProps} key={screenProps.key} />,
 	},
 	{
-		id: '04',
-		name: 'Hardware Selection',
-		description: 'Select your printer',
-		href: '#',
-		renderScreen: (screenProps) => <HardwareSelection {...screenProps} key={screenProps.key} />,
-	},
-	{
 		id: '02',
 		name: 'Control board preparation',
 		description: 'Firmware flashing and connectivity',
@@ -60,6 +53,13 @@ const steps: StepScreen[] = [
 		description: 'Firmware flashing and connectivity',
 		href: '#',
 		renderScreen: (screenProps) => <MCUPreparation {...screenProps} key={screenProps.key} toolboards={true} />,
+	},
+	{
+		id: '04',
+		name: 'Hardware Selection',
+		description: 'Select your printer',
+		href: '#',
+		renderScreen: (screenProps) => <HardwareSelection {...screenProps} key={screenProps.key} />,
 	},
 	{
 		id: '05',

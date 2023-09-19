@@ -56,7 +56,6 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 	const errors = queryErrors.slice();
 
 	if (parsedPrinterConfiguration.success === false) {
-		// console.error(parsedPrinterConfiguration.error);
 		parsedPrinterConfiguration.error.flatten().formErrors.forEach((message) => {
 			errors.push(message);
 		});
@@ -75,7 +74,7 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 					</p>
 				</div>
 				{errors.length > 0 && (
-					<ErrorMessage>
+					<ErrorMessage className="mb-4">
 						{errors.map((e) => (
 							<div className="mt-2" key={e}>
 								{e}

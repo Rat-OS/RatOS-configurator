@@ -39,10 +39,19 @@ export const getBoards = async () => {
 export const getBoardsWithoutHost = (boards: BoardWithDetectionStatus[]) => {
 	return boards.filter((b) => !b.isHost);
 };
+export const getToolboards = (boards: BoardWithDetectionStatus[]) => {
+	return boards.filter((b) => b.isToolboard);
+};
+export const getBoardsWithDriverCount = (boards: BoardWithDetectionStatus[], driverCount: number) => {
+	return boards.filter(
+		(b) => b.driverCount >= driverCount || (b.extruderlessConfig != null && b.driverCount >= driverCount - 1),
+	);
+};
 
 export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: boolean }>()
 	.middleware(async ({ ctx, next, meta, rawInput }) => {
 		let boards = null;
+		const parsedInput = inputSchema.safeParse(rawInput);
 		try {
 			boards = await getBoards();
 			if (meta?.includeHost !== true) {
@@ -56,19 +65,18 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 			});
 		}
 		let board = null;
-		const boardPath = inputSchema.safeParse(rawInput);
-		if (meta?.boardRequired && !boardPath.success) {
+		if (meta?.boardRequired && !parsedInput.success) {
 			throw new trpc.TRPCError({
 				code: 'PRECONDITION_FAILED',
 				message: `boardPath parameter missing.`,
 			});
 		}
-		if (boardPath.success) {
-			board = boards.find((b) => b.path === boardPath.data.boardPath);
+		if (parsedInput.success) {
+			board = boards.find((b) => b.path === parsedInput.data.boardPath);
 			if (board == null) {
 				throw new trpc.TRPCError({
 					code: 'PRECONDITION_FAILED',
-					message: `No supported board exists for the path ${boardPath.data.boardPath}`,
+					message: `No supported board exists for the path ${parsedInput.data.boardPath}`,
 				});
 			}
 		}
@@ -82,8 +90,23 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 	})
 	.query('boards', {
 		output: z.array(BoardWithDetectionStatus),
-		resolve: ({ ctx }) => {
-			return ctx.boards;
+		input: z.object({
+			boardFilters: z
+				.object({
+					toolboard: z.boolean().optional(),
+					driverCountRequired: z.number().optional(),
+				})
+				.optional(),
+		}),
+		resolve: ({ ctx, input }) => {
+			let boards = ctx.boards;
+			if (input.boardFilters?.toolboard === true) {
+				boards = getToolboards(boards);
+			}
+			if (input.boardFilters?.driverCountRequired != null) {
+				boards = getBoardsWithDriverCount(boards, input.boardFilters.driverCountRequired);
+			}
+			return boards;
 		},
 	})
 	.query('detect', {

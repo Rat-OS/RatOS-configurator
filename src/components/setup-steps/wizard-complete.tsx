@@ -1,12 +1,17 @@
 'use client';
-import React, { useCallback } from 'react';
-import { usePrinterConfiguration } from '../../hooks/usePrinterConfiguration';
+import React, { useCallback, useState } from 'react';
+import { PrinterConfigurationState, XEndstopState, usePrinterConfiguration } from '../../hooks/usePrinterConfiguration';
 import { StepScreen, StepScreenProps, useSteps } from '../../hooks/useSteps';
 import { StepNavButtons } from '../step-nav-buttons';
 import { ErrorMessage } from '../error-message';
 import { trpc } from '../../helpers/trpc';
 import { Badge } from '../common/badge';
 import { InfoMessage } from '../info-message';
+import { WarningMessage } from '../warning-message';
+import { Button } from '../button';
+import { useRecoilCallback } from 'recoil';
+import { xEndstopOptions } from '../../data/endstops';
+import { PrinterConfiguration } from '../../zods/printer-configuration';
 
 const CompletionSteps: StepScreen[] = [
 	{
@@ -26,21 +31,42 @@ const CompletionSteps: StepScreen[] = [
 ];
 
 export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
-	const { parsedPrinterConfiguration, queryErrors } = usePrinterConfiguration();
+	const { parsedPrinterConfiguration, partialPrinterConfiguration, queryErrors } = usePrinterConfiguration();
+	const [ignoreEndstopWarning, setIgnoreEndstopWarning] = useState(false);
 
-	const errors = queryErrors.slice();
+	const setToolboardEndstop = useRecoilCallback(
+		({ snapshot, set }) =>
+			async () => {
+				const printerConfig = await snapshot.getPromise(PrinterConfigurationState);
+				if (printerConfig == null) {
+					return;
+				}
+				const toolboardEndstop = xEndstopOptions(printerConfig).find((x) => x.id === 'endstop-toolboard');
+				if (toolboardEndstop != null) {
+					set(XEndstopState, toolboardEndstop);
+				}
+			},
+		[],
+	);
 
-	const controlboardDetected = trpc.useQuery([
-		'mcu.detect',
-		{ boardPath: parsedPrinterConfiguration.success ? parsedPrinterConfiguration.data.controlboard.path ?? '' : '' },
-	]);
+	const errors: React.ReactNode[] = queryErrors.slice();
+
+	const controlboardDetected = trpc.useQuery(
+		[
+			'mcu.detect',
+			{ boardPath: partialPrinterConfiguration != null ? partialPrinterConfiguration.controlboard?.path ?? '' : '' },
+		],
+		{
+			enabled: partialPrinterConfiguration?.controlboard != null,
+		},
+	);
 	const toolboardDetected = trpc.useQuery(
 		[
 			'mcu.detect',
-			{ boardPath: parsedPrinterConfiguration.success ? parsedPrinterConfiguration.data.toolboard?.path ?? '' : '' },
+			{ boardPath: partialPrinterConfiguration != null ? partialPrinterConfiguration.toolboard?.path ?? '' : '' },
 		],
 		{
-			enabled: parsedPrinterConfiguration.success && parsedPrinterConfiguration.data.toolboard != null,
+			enabled: partialPrinterConfiguration != null && partialPrinterConfiguration.toolboard != null,
 		},
 	);
 
@@ -58,9 +84,21 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 	}
 	if (parsedPrinterConfiguration.success === false) {
 		// console.error(parsedPrinterConfiguration.error);
-		parsedPrinterConfiguration.error.flatten().formErrors.forEach((message) => {
-			errors.push(message);
-		});
+		const formErrors = parsedPrinterConfiguration.error.flatten().formErrors;
+		const fieldErrors = parsedPrinterConfiguration.error.flatten().fieldErrors;
+		if (formErrors.length) {
+			formErrors.forEach((message) => {
+				errors.push(message);
+			});
+		} else {
+			for (const field in fieldErrors) {
+				errors.push(
+					<>
+						<span className="capitalize">{field}</span>: {fieldErrors[field as keyof PrinterConfiguration]?.[0]}
+					</>,
+				);
+			}
+		}
 	}
 
 	return (
@@ -72,98 +110,143 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 					<p className="mt-2 max-w-4xl text-sm text-zinc-500 dark:text-zinc-400">{props.description}</p>
 				</div>
 				<div className="space-y-4 text-zinc-700 dark:text-zinc-300">
-					{errors.length > 0 && (
-						<ErrorMessage>
-							{errors.map((e) => (
-								<div className="mt-2" key={e}>
-									{e}
-								</div>
-							))}
-						</ErrorMessage>
-					)}
-					{parsedPrinterConfiguration.success && (
+					{partialPrinterConfiguration != null && (
 						<div>
 							<div className="">
 								<h3 className="text-base font-medium leading-7 text-zinc-900 dark:text-zinc-100">
 									The following setup will be written to the klipper config
 								</h3>
 							</div>
+							{errors.length > 0 && (
+								<div className="mt-2">
+									<ErrorMessage>
+										{errors.map((e, i) => (
+											<div className="mt-2" key={i}>
+												{e}
+											</div>
+										))}
+									</ErrorMessage>
+								</div>
+							)}
 							<div className="mt-4">
-								<dl className="grid grid-cols-1 border-t border-zinc-100 dark:border-zinc-700 sm:grid-cols-2">
-									<div className="py-4 sm:col-span-1">
+								<dl className="grid grid-cols-1 gap-y-4 gap-x-4 border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
+									<div className="sm:col-span-2">
 										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Printer</dt>
 										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
-											{parsedPrinterConfiguration.data.printer.manufacturer}{' '}
-											{parsedPrinterConfiguration.data.printer.name} {parsedPrinterConfiguration.data.size}
+											{partialPrinterConfiguration.printer != null
+												? `${partialPrinterConfiguration.printer.manufacturer} ${partialPrinterConfiguration.printer.name} ${partialPrinterConfiguration.size}`
+												: 'None selected'}
 										</dd>
 									</div>
-									<div className="py-4 sm:col-span-1">
+									<div className="sm:col-span-1">
 										<dt className="space-x-2 text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">
 											<span>Controlboard</span>
-											<Badge color={controlboardDetected.data === true ? 'green' : 'red'}>
-												{controlboardDetected.data === true ? 'Detected' : 'Not detected'}
-											</Badge>
+											{partialPrinterConfiguration.controlboard && (
+												<Badge color={controlboardDetected.data === true ? 'green' : 'red'}>
+													{controlboardDetected.data === true ? 'Detected' : 'Not detected'}
+												</Badge>
+											)}
 										</dt>
 										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
-											{parsedPrinterConfiguration.data.controlboard.manufacturer}{' '}
-											{parsedPrinterConfiguration.data.controlboard.name}
+											{partialPrinterConfiguration.controlboard != null
+												? `${partialPrinterConfiguration.controlboard.manufacturer} ${partialPrinterConfiguration.controlboard.name}`
+												: 'None selected'}
 										</dd>
 									</div>
-									<div className="py-4 sm:col-span-1">
+									<div className="sm:col-span-1">
 										<dt className="space-x-2 text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">
 											<span>Toolboard</span>{' '}
-											{parsedPrinterConfiguration.data.toolboard && (
+											{partialPrinterConfiguration.toolboard && (
 												<Badge color={toolboardDetected.data === true ? 'green' : 'red'}>
 													{toolboardDetected.data === true ? 'Detected' : 'Not detected'}
 												</Badge>
 											)}
 										</dt>
 										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
-											{parsedPrinterConfiguration.data.toolboard == null
-												? 'None'
-												: `${parsedPrinterConfiguration.data.toolboard?.manufacturer} ${parsedPrinterConfiguration.data.toolboard?.name}`}
+											{partialPrinterConfiguration.toolboard == null
+												? 'None selected'
+												: `${partialPrinterConfiguration.toolboard?.manufacturer} ${partialPrinterConfiguration.toolboard?.name}`}
 										</dd>
 									</div>
+									{((partialPrinterConfiguration.toolboard != null && !toolboardDetected.data) ||
+										(partialPrinterConfiguration.controlboard != null && !controlboardDetected.data)) && (
+										<div className="sm:col-span-2">
+											<WarningMessage className="mt-1 sm:mt-2">
+												<div className="space-y-2">
+													{partialPrinterConfiguration.toolboard != null && !toolboardDetected.data && (
+														<div>
+															The toolboard you have selected does not seem to be connected, you can still save the
+															config and proceed to mainsail, but you will get an 'mcu' connection error.
+														</div>
+													)}
+													{partialPrinterConfiguration.controlboard != null && !controlboardDetected.data && (
+														<div>
+															The controlboard you have selected does not seem to be connected, you can still save the
+															config and proceed to mainsail, but you will get an 'mcu' connection error.
+														</div>
+													)}
+												</div>
+											</WarningMessage>
+										</div>
+									)}
 								</dl>
-								<dl className="grid grid-cols-1 border-t border-zinc-100 dark:border-zinc-700 sm:grid-cols-2">
-									<div className="py-4 sm:col-span-1">
+								<dl className="grid grid-cols-1 gap-y-4 gap-x-4 border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
+									<div className="sm:col-span-1">
 										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Hotend</dt>
 										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
-											{parsedPrinterConfiguration.data.hotend.title}
+											{partialPrinterConfiguration.hotend?.title ?? 'None selected'}
 										</dd>
 									</div>
-									<div className="py-4 sm:col-span-1">
+									<div className="sm:col-span-1">
 										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Thermistor</dt>
 										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
-											{parsedPrinterConfiguration.data.thermistor}
+											{partialPrinterConfiguration.thermistor ?? 'None selected'}
 										</dd>
 									</div>
-									<div className="py-4 sm:col-span-1">
+									<div className="sm:col-span-1">
 										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Extruder</dt>
 										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
-											{parsedPrinterConfiguration.data.extruder.title}
+											{partialPrinterConfiguration.extruder?.title ?? 'None selected'}
 										</dd>
 									</div>
-									<div className="py-4 sm:col-span-1">
+									<div className="sm:col-span-1">
 										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Probe</dt>
 										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
-											{parsedPrinterConfiguration.data.probe?.title ?? 'None'}
+											{partialPrinterConfiguration.probe?.title ?? 'None selected'}
 										</dd>
 									</div>
 								</dl>
-								<dl className="grid grid-cols-1 border-t border-zinc-100 dark:border-zinc-700 sm:grid-cols-2">
-									<div className="py-4 sm:col-span-1">
+								<dl className="grid grid-cols-1 gap-y-4 gap-x-4  border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
+									<div className="sm:col-span-1">
 										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">X Endstop</dt>
 										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
-											{parsedPrinterConfiguration.data.xEndstop.title}
+											{partialPrinterConfiguration.xEndstop?.title ?? 'None selected'}
 										</dd>
 									</div>
-									<div className="py-4 sm:col-span-1">
+									<div className="sm:col-span-1">
 										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Y Endstop</dt>
 										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
-											{parsedPrinterConfiguration.data.yEndstop.title}
+											{partialPrinterConfiguration.yEndstop?.title ?? 'None selected'}
 										</dd>
 									</div>
+									{partialPrinterConfiguration.toolboard != null &&
+										partialPrinterConfiguration.xEndstop?.id === 'endstop' &&
+										!ignoreEndstopWarning && (
+											<div className="sm:col-span-2">
+												<WarningMessage className="mt-1 sm:mt-2">
+													The current configuration assumes the X endstop is connected to your controlboard, do you want
+													to use an endstop connected to the toolboard instead?
+													<div className="mt-4 flex justify-end space-x-2">
+														<Button onClick={setToolboardEndstop} color="warning">
+															Yes, use the toolboard connection
+														</Button>
+														<Button onClick={() => setIgnoreEndstopWarning(true)} color="plain">
+															No, use the controlboard connection
+														</Button>
+													</div>
+												</WarningMessage>
+											</div>
+										)}
 									<div className="border-t border-zinc-100 pt-5 dark:border-zinc-700 sm:col-span-2">
 										<InfoMessage className="mt-1 sm:mt-2">
 											If the above information is correct, go ahead and save the configuration. If not, go back and

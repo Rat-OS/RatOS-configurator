@@ -12,6 +12,9 @@ export const Board = z.object({
 	flashInstructions: z.string().optional(),
 	disableAutoFlash: z.boolean().optional(),
 	documentationLink: z.string().optional(),
+	hasQuirksFiles: z.boolean().optional(),
+	driverCount: z.number(),
+	extruderlessConfig: z.string().optional(),
 	dfu: z
 		.object({
 			dfuBootImage: z.string(),

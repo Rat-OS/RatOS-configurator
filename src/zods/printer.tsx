@@ -18,6 +18,7 @@ export const Printer = z
 		sizes: z.array(z.number()).describe('Size options for this printer').optional(),
 		template: z.string().describe('Printer.cfg template for this printer'),
 		path: z.string().startsWith(startsWithServerValidation),
+		driverCountRequired: z.number().describe('Number of drivers required for this printer'),
 		defaults: z
 			.object({
 				extruder: z

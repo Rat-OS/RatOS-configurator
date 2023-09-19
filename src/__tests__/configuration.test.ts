@@ -52,12 +52,47 @@ describe('configuration', async () => {
 					}),
 				);
 			});
-			test.skipIf(board.isHost)('has a single unique udev rule', async () => {
+			test.skipIf(board.isHost)('has a valid single unique udev rule', async () => {
 				const boardFiles = await promisify(fs.readdir)(`${board.path}`);
 				const boardRules = boardFiles.filter((f) => f.substring(f.length - 6) === '.rules');
 				expect(boardRules.length).toBe(1);
 				expect(rules.filter((r) => r === boardRules[0]).length).toBe(0);
 				rules.push(boardRules[0]);
+				expect(fs.existsSync(`${board.path}/${boardRules[0]}`)).toBeTruthy();
+				const ruleContents = await promisify(fs.readFile)(`${board.path}/${boardRules[0]}`, 'utf8');
+				const firmwareConfig = path.join(board.path, 'firmware.config');
+				expect(fs.existsSync(firmwareConfig)).toBeTruthy();
+				const firmwareConfigContents = await promisify(fs.readFile)(firmwareConfig, 'utf8');
+				if (firmwareConfigContents.includes(`CONFIG_MCU="atmega2560"`)) {
+					// can't override serial numbers on atmega2560 boards. Don't look for it.
+					return;
+				}
+				const attr = `ATTRS{serial}=="${board.serialPath.replace('/dev/', '')}"`;
+				const symlink = `SYMLINK+="${board.serialPath.replace('/dev/', '')}"`;
+				const devlink = `ENV{DEVLINKS}=="${board.serialPath}"`;
+				expect(ruleContents.includes(attr)).toBeTruthy();
+				expect(ruleContents.includes(symlink)).toBeTruthy();
+				expect(ruleContents.includes(devlink)).toBeTruthy();
+			});
+			test('has config file', async () => {
+				expect(
+					fs.existsSync(path.join(board.path, board.isToolboard ? 'toolboard-config.cfg' : 'config.cfg')),
+				).toBeTruthy();
+			});
+			test.skipIf(board.extruderlessConfig == null)('has extruderless config file', async () => {
+				expect(fs.existsSync(path.join(board.path, board.extruderlessConfig ?? ''))).toBeTruthy();
+			});
+			test.skipIf(board.isHost)('has firmware config file with correct USB Serial number', async () => {
+				const firmwareConfig = path.join(board.path, 'firmware.config');
+				expect(fs.existsSync(firmwareConfig)).toBeTruthy();
+				const firmwareConfigContents = await promisify(fs.readFile)(firmwareConfig, 'utf8');
+				if (firmwareConfigContents.includes(`CONFIG_MCU="atmega2560"`)) {
+					// can't override serial numbers on atmega2560 boards. Don't look for it.
+					return;
+				}
+				expect(
+					firmwareConfigContents.includes(`CONFIG_USB_SERIAL_NUMBER="${board.serialPath.replace('/dev/', '')}"`),
+				).toBeTruthy();
 			});
 		});
 	});

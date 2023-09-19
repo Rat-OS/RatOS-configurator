@@ -9,6 +9,7 @@ import { SelectableCard } from '../card-selector';
 import { QueryStatus } from '../common/query-status';
 import { MCUFlashing } from './mcu/flash';
 import { MCUPicker } from './mcu/pick';
+import { Printer } from '../../zods/printer';
 
 export interface SelectableBoard extends SelectableCard {
 	board: BoardWithDetectionStatus;
@@ -18,6 +19,7 @@ interface ExtraStepProps {
 	selectedBoard: SelectableBoard | null;
 	cards: SelectableBoard[];
 	setSelectedBoard: (board: SelectableBoard | null) => void;
+	selectedPrinter: Printer | null;
 	toolboards?: boolean;
 }
 
@@ -33,7 +35,9 @@ const MCUSteps: StepScreen<ExtraStepProps>[] = [
 		name: (screenProps) => (screenProps.toolboards ? 'Toolboard' : 'Control board'),
 		description: (screenProps) =>
 			`Pick your ${
-				screenProps.toolboards ? 'toolboard' : 'control board. If you also use a toolboard, you can add that later.'
+				screenProps.toolboards
+					? 'toolboard.'
+					: 'control board. If you also use a toolboard, you can add that in a later step.'
 			}`,
 		href: '#',
 		renderScreen: (screenProps) => <MCUPicker {...screenProps} key={screenProps.key} />,
@@ -49,7 +53,23 @@ const MCUSteps: StepScreen<ExtraStepProps>[] = [
 ];
 
 export const MCUPreparation: React.FC<StepScreenProps & ExtraProps> = (props) => {
-	const boardsQuery = trpc.useQuery(['mcu.boards']);
+	const {
+		selectedPrinter,
+		selectedToolboard: _toolBoard,
+		selectedBoard: _controlBoard,
+		setSelectedBoard: _setControlboard,
+		setSelectedToolboard: _setToolboard,
+	} = usePrinterConfiguration();
+
+	const boardsQuery = trpc.useQuery([
+		'mcu.boards',
+		{
+			boardFilters: {
+				toolboard: props.toolboards,
+				driverCountRequired: props.toolboards ? undefined : selectedPrinter?.driverCountRequired,
+			},
+		},
+	]);
 
 	const cards: SelectableBoard[] = useMemo(() => {
 		if (boardsQuery.isError || boardsQuery.data == null) return [];
@@ -59,19 +79,14 @@ export const MCUPreparation: React.FC<StepScreenProps & ExtraProps> = (props) =>
 			name: `${b.manufacturer} ${b.name}`,
 			details: (
 				<span>
-					<span className="font-semibold">Automatic flashing:</span> {b.flashScript ? 'Yes' : 'No'}
+					<span className="font-semibold">Automatic flashing:</span>{' '}
+					{b.flashScript && !b.disableAutoFlash ? 'Yes' : 'No'}
 				</span>
 			),
 			right: <CpuChipIcon className="h-8 w-8 text-zinc-500" />,
 		}));
 	}, [boardsQuery.isError, boardsQuery.data]);
 
-	const {
-		selectedToolboard: _toolBoard,
-		selectedBoard: _controlBoard,
-		setSelectedBoard: _setControlboard,
-		setSelectedToolboard: _setToolboard,
-	} = usePrinterConfiguration();
 	const selectedBoard =
 		cards.find((c) => c.board.serialPath == (props.toolboards ? _toolBoard?.serialPath : _controlBoard?.serialPath)) ??
 		null;
@@ -91,6 +106,7 @@ export const MCUPreparation: React.FC<StepScreenProps & ExtraProps> = (props) =>
 		selectedBoard: selectedBoard ?? null,
 		cards,
 		setSelectedBoard,
+		selectedPrinter,
 		toolboards: props.toolboards,
 	};
 	const { currentStep, screenProps } = useSteps<ExtraStepProps>({

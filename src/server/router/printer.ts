@@ -10,6 +10,7 @@ import { readFileSync } from 'fs';
 import { Printer } from '../../zods/printer';
 import { PartialPrinterConfiguration, PrinterConfiguration } from '../../zods/printer-configuration';
 import { xEndstopOptions, yEndstopOptions } from '../../data/endstops';
+import { constructKlipperConfigHelpers } from '../../helpers/klipper-config';
 
 export const parseDirectory = async <T extends z.ZodType>(directory: string, zod: T) => {
 	const defs = await promisify(exec)(`ls ${process.env.RATOS_CONFIGURATION_PATH}/${directory}/*.cfg`);
@@ -76,19 +77,29 @@ export const printerRouter = trpc
 		resolve: () => thermistors,
 	})
 	.query('x-endstops', {
-		input: PartialPrinterConfiguration,
+		input: PartialPrinterConfiguration.nullable(),
 		output: z.array(Endstop),
 		resolve: (ctx) => xEndstopOptions(ctx.input),
 	})
 	.query('y-endstops', {
-		input: PartialPrinterConfiguration,
+		input: PartialPrinterConfiguration.nullable(),
 		output: z.array(Endstop),
 		resolve: (ctx) => yEndstopOptions(ctx.input),
 	})
 	.mutation('save-configuration', {
 		input: PrinterConfiguration,
 		resolve: async (ctx) => {
-			await new Promise((resolve) => setTimeout(resolve, 1000));
-			return true;
+			const config = ctx.input;
+			const helper = constructKlipperConfigHelpers(config);
+			const { template, initialPrinterCfg } = await import(
+				`../../templates/${config.printer.template.replace('-printer.template.cfg', '.ts')}`
+			);
+			const ratosCfg = template(config, helper);
+			const printerCfg = initialPrinterCfg(config, helper);
+			// Todo: write to disk
+			return {
+				ratosCfg: ratosCfg,
+				printerCfg: printerCfg,
+			};
 		},
 	});

@@ -10,11 +10,16 @@ interface MCUPickProps extends MCUStepScreenProps {
 }
 
 export const MCUPicker: React.FC<MCUPickProps> = (props) => {
-	const { toolboards, skipSteps, setSelectedBoard } = props;
+	const { toolboards, skipSteps, setSelectedBoard, selectedPrinter, cards } = props;
 
-	const cards = useMemo(() => {
-		return props.cards.filter((card) => (toolboards === true ? card.board.isToolboard : !card.board.isToolboard));
-	}, [toolboards, props.cards]);
+	const isToolboardRequired = useCallback(
+		(selectedBoard: SelectableBoard) => {
+			return (
+				selectedPrinter != null && !toolboards && selectedBoard.board.driverCount < selectedPrinter.driverCountRequired
+			);
+		},
+		[selectedPrinter, toolboards],
+	);
 
 	let content = (
 		<CardSelector<SelectableBoard>
@@ -27,6 +32,11 @@ export const MCUPicker: React.FC<MCUPickProps> = (props) => {
 					{card.board.detected && (
 						<Badge color="green" size="sm">
 							Detected
+						</Badge>
+					)}
+					{isToolboardRequired(card) && (
+						<Badge color="yellow" size="sm">
+							Toolboard required
 						</Badge>
 					)}
 				</>
@@ -51,7 +61,7 @@ export const MCUPicker: React.FC<MCUPickProps> = (props) => {
 	}, [toolboards, skipSteps, setSelectedBoard]);
 
 	let skipButton: StepNavButton | undefined =
-		toolboards && props.skipSteps
+		toolboards && props.selectedBoard && !isToolboardRequired(props.selectedBoard) && props.skipSteps
 			? {
 					onClick: skip,
 					label: 'Skip',
@@ -69,9 +79,9 @@ export const MCUPicker: React.FC<MCUPickProps> = (props) => {
 		<Fragment>
 			<div className="p-8">
 				{' '}
-				<div className="pb-5 mb-5 border-b border-zinc-200 dark:border-zinc-700 flex">
+				<div className="mb-5 flex border-b border-zinc-200 pb-5 dark:border-zinc-700">
 					<div className="flex-1">
-						<h3 className="text-lg leading-6 font-medium text-zinc-900 dark:text-zinc-100">{props.name}</h3>
+						<h3 className="text-lg font-medium leading-6 text-zinc-900 dark:text-zinc-100">{props.name}</h3>
 						<p className="mt-2 max-w-4xl text-sm text-zinc-500 dark:text-zinc-400">{props.description}</p>
 					</div>
 					{toolboards && props.selectedBoard != null && (
