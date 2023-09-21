@@ -1,6 +1,12 @@
 'use client';
 import React, { useCallback, useState } from 'react';
-import { PrinterConfigurationState, XEndstopState, usePrinterConfiguration } from '../../hooks/usePrinterConfiguration';
+import {
+	PrinterConfigurationState,
+	XEndstopState,
+	serializePartialPrinterConfiguration,
+	serializePrinterConfiguration,
+	usePrinterConfiguration,
+} from '../../hooks/usePrinterConfiguration';
 import { StepScreen, StepScreenProps, useSteps } from '../../hooks/useSteps';
 import { StepNavButtons } from '../step-nav-buttons';
 import { ErrorMessage } from '../error-message';
@@ -41,7 +47,9 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 				if (printerConfig == null) {
 					return;
 				}
-				const toolboardEndstop = xEndstopOptions(printerConfig).find((x) => x.id === 'endstop-toolboard');
+				const toolboardEndstop = xEndstopOptions(serializePartialPrinterConfiguration(printerConfig)).find(
+					(x) => x.id === 'endstop-toolboard',
+				);
 				if (toolboardEndstop != null) {
 					set(XEndstopState, toolboardEndstop);
 				}
@@ -69,13 +77,15 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 			enabled: partialPrinterConfiguration != null && partialPrinterConfiguration.toolboard != null,
 		},
 	);
-
 	const saveConfigurationMutation = trpc.useMutation('printer.save-configuration');
 	const saveConfiguration = useCallback(async () => {
 		if (parsedPrinterConfiguration.success) {
-			const lol = saveConfigurationMutation.mutate(parsedPrinterConfiguration.data, {
-				onSuccess: props.nextScreen,
-			});
+			saveConfigurationMutation.mutate(
+				{ config: serializePrinterConfiguration(parsedPrinterConfiguration.data) },
+				{
+					onSuccess: props.nextScreen,
+				},
+			);
 		}
 	}, [parsedPrinterConfiguration, saveConfigurationMutation, props.nextScreen]);
 
@@ -171,7 +181,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 									{((partialPrinterConfiguration.toolboard != null && !toolboardDetected.data) ||
 										(partialPrinterConfiguration.controlboard != null && !controlboardDetected.data)) && (
 										<div className="sm:col-span-2">
-											<WarningMessage className="mt-1 sm:mt-2">
+											<WarningMessage>
 												<div className="space-y-2">
 													{partialPrinterConfiguration.toolboard != null && !toolboardDetected.data && (
 														<div>
@@ -233,7 +243,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 										partialPrinterConfiguration.xEndstop?.id === 'endstop' &&
 										!ignoreEndstopWarning && (
 											<div className="sm:col-span-2">
-												<WarningMessage className="mt-1 sm:mt-2">
+												<WarningMessage>
 													The current configuration assumes the X endstop is connected to your controlboard, do you want
 													to use an endstop connected to the toolboard instead?
 													<div className="mt-4 flex justify-end space-x-2">
@@ -247,8 +257,10 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 												</WarningMessage>
 											</div>
 										)}
+								</dl>
+								<dl className="grid grid-cols-1 gap-y-4 gap-x-4 border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
 									<div className="border-t border-zinc-100 pt-5 dark:border-zinc-700 sm:col-span-2">
-										<InfoMessage className="mt-1 sm:mt-2">
+										<InfoMessage>
 											If the above information is correct, go ahead and save the configuration. If not, go back and
 											change the configuration by clicking the steps in the "Setup Progress" panel.
 										</InfoMessage>

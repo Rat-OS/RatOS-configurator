@@ -15,6 +15,7 @@ export const Board = z.object({
 	hasQuirksFiles: z.boolean().optional(),
 	driverCount: z.number(),
 	extruderlessConfig: z.string().optional(),
+	fourPinFanConnectorCount: z.number().optional(),
 	dfu: z
 		.object({
 			dfuBootImage: z.string(),

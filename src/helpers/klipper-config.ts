@@ -1,6 +1,70 @@
 import { PrinterConfiguration } from '../zods/printer-configuration';
+import { sensorlessXTemplate, sensorlessYTemplate } from '../templates/extras/sensorless-homing';
 
-export const constructKlipperConfigHelpers = (config: PrinterConfiguration) => {
+type WritableFiles = { fileName: string; content: string; overwrite: boolean }[];
+
+export const constructKlipperConfigExtrasGenerator = (config: PrinterConfiguration) => {
+	const _filesToWrite: WritableFiles = [];
+	const _reminders: string[] = [];
+	return {
+		getFilesToWrite() {
+			return _filesToWrite;
+		},
+		addFileToRender(fileToRender: Unpacked<WritableFiles>) {
+			_filesToWrite.push(fileToRender);
+		},
+		getReminders() {
+			return _reminders;
+		},
+		generateSensorlessHomingIncludes() {
+			const filesToWrite: WritableFiles = [];
+			if (config.xEndstop.id === 'sensorless') {
+				filesToWrite.push({
+					fileName: 'sensorless-homing-x.cfg',
+					content: sensorlessXTemplate(config),
+					overwrite: false,
+				});
+			}
+			if (config.yEndstop.id === 'sensorless') {
+				filesToWrite.push({
+					fileName: 'sensorless-homing-y.cfg',
+					content: sensorlessYTemplate(config),
+					overwrite: false,
+				});
+			}
+			if (filesToWrite.length > 0) {
+				const reminder: string[] = [];
+				reminder.push('# REMEMBER TO TUNE SENSORLESS HOMING BEFORE ATTEMPTING TO HOME X/Y!');
+				reminder.push(
+					`You'll find instructions in the generated sensorless-homing-*.cfg file(s), where you should keep your sensorless homing settings.`,
+				);
+				this.addReminder(reminder.join('\n'));
+			}
+			return filesToWrite
+				.map((f) => {
+					this.addFileToRender(f);
+					return `[include ${f.fileName}]`;
+				})
+				.join('\n');
+		},
+		addReminder(reminder: string) {
+			_reminders.push(reminder);
+		},
+	};
+};
+
+export type KlipperConfigExtrasGenerator = ReturnType<typeof constructKlipperConfigExtrasGenerator>;
+
+/**
+ * Constructs a printer agnostic helper object for generating klipper config files.
+ * @param config the printer configuration to generate helpers for
+ * @param extrasGenerator an extras generator for handling non-explicit template functionality
+ * @returns
+ */
+export const constructKlipperConfigHelpers = (
+	config: PrinterConfiguration,
+	extrasGenerator: KlipperConfigExtrasGenerator,
+) => {
 	return {
 		renderBoardIncludes() {
 			const result: string[] = [];
@@ -29,7 +93,7 @@ export const constructKlipperConfigHelpers = (config: PrinterConfiguration) => {
 			}
 			return result.join('\n');
 		},
-		renderToolboardDriverOverrides() {
+		renderDriverOverrides() {
 			let result: string[] = [];
 			if (config.toolboard != null) {
 				result.push('# Use toolboard driver for extruder');
@@ -38,7 +102,7 @@ export const constructKlipperConfigHelpers = (config: PrinterConfiguration) => {
 			}
 			return result.join('\n');
 		},
-		renderToolboardStepperOverrides() {
+		renderStepperOverrides() {
 			let result: string[] = [];
 			if (config.toolboard != null) {
 				result.push('# Use toolboard driver for extruder');
@@ -49,19 +113,25 @@ export const constructKlipperConfigHelpers = (config: PrinterConfiguration) => {
 			}
 			return result.join('\n');
 		},
-		renderToolboardHotendOverrides() {
+		renderHotend() {
 			let result: string[] = [];
+			result.push(`[include RatOS/hotends/${config.hotend.id}]`);
+			result.push('[extruder]');
+			result.push('sensor_type: ' + config.thermistor);
 			if (config.toolboard != null) {
-				result.push('# Use toolboard driver for extruder');
-				result.push('[extruder]');
+				result.push('# Use toolboard pins for heater and thermistor');
 				result.push('heater_pin: toolboard:e_heater_pin');
 				result.push('sensor_pin: toolboard:e_sensor_pin');
 			}
 			return result.join('\n');
 		},
+		renderExtruder() {
+			let result: string[] = [];
+			result.push(`[include RatOS/extruders/${config.extruder.id}]`);
+			return result.push('\n');
+		},
 		renderInputShaper(printerSize: number) {
 			let result: string[] = [];
-			result.push('# ADXL345 resonance testing configuration');
 			result.push('[resonance_tester]');
 			if (config.toolboard != null) {
 				result.push('accel_chip: adxl345 toolboard');
@@ -93,10 +163,12 @@ export const constructKlipperConfigHelpers = (config: PrinterConfiguration) => {
 						break;
 					case 'beacon.cfg':
 						// print reminder about beacon calibration
-						result.push('# REMEMBER TO CALIBRATE YOUR BEACON!');
-						result.push(
-							'# Follow from step 6 in the official beacon guide https://docs.beacon3d.com/quickstart/#6-calibrate-beacon',
+						const reminder: string[] = [];
+						reminder.push('# REMEMBER TO CALIBRATE YOUR BEACON!');
+						reminder.push(
+							'# Follow along from step 6 in the official beacon guide https://docs.beacon3d.com/quickstart/#6-calibrate-beacon',
 						);
+						extrasGenerator.addReminder(reminder.join('\n'));
 						break;
 					default:
 						const pinPrefix = this.getProbePinPrefix();
@@ -128,23 +200,7 @@ export const constructKlipperConfigHelpers = (config: PrinterConfiguration) => {
 			}
 
 			if (config.xEndstop.id === 'sensorless' || config.yEndstop.id === 'sensorless') {
-				result.push('# Sensorless homing.');
-				result.push(
-					'# Tune the current variable and the SGTHRS value in the included file(s) untill you get reliable homing.',
-				);
-				result.push(
-					'# Read the klipper documentation for more info: https://www.klipper3d.org/TMC_Drivers.html#sensorless-homing',
-				);
-				result.push(
-					'# Note: if your board has diag jumpers, you would need to insert them for the specific drivers you want to use for sensorless homing on.',
-				);
-				result.push('# Note: Sensorless homing does NOT work if you drivers have a missing DIAG pins.');
-			}
-			if (config.xEndstop.id === 'sensorless') {
-				result.push(`[include sensorless-x-homing-tmc2209.cfg]`);
-			}
-			if (config.yEndstop.id === 'sensorless') {
-				result.push(`[include sensorless-y-homing-tmc2209.cfg]`);
+				result.push(extrasGenerator.generateSensorlessHomingIncludes());
 			}
 			return result.join('\n');
 		},

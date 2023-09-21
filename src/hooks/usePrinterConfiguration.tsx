@@ -3,9 +3,14 @@
 import { atom, selector, useRecoilValue } from 'recoil';
 import { z } from 'zod';
 import { Board, Toolboard } from '../zods/boards';
-import { Hotend, Thermistor, Extruder, Probe, Endstop } from '../zods/hardware';
+import { Hotend, Thermistor, Extruder, Probe, Endstop, Fan } from '../zods/hardware';
 import { Printer } from '../zods/printer';
-import { PartialPrinterConfiguration, PrinterConfiguration } from '../zods/printer-configuration';
+import {
+	PartialPrinterConfiguration,
+	PrinterConfiguration,
+	SerializedPartialPrinterConfiguration,
+	SerializedPrinterConfiguration,
+} from '../zods/printer-configuration';
 import { useRecoilState } from 'recoil';
 import { trpc } from '../helpers/trpc';
 import { syncEffect } from 'recoil-sync';
@@ -112,6 +117,46 @@ const _ToolboardState = atom({
 	],
 });
 
+const PerformanceModeState = atom({
+	key: 'PerformanceMode',
+	default: false,
+});
+
+const StealthchopState = atom({
+	key: 'Stealchop',
+	default: false,
+});
+
+const PartFanState = atom({
+	key: 'PartFan',
+	default: null,
+	effects: [
+		syncEffect({
+			refine: getRefineCheckerForZodSchema(Fan.nullable()),
+		}),
+	],
+});
+
+const HotendFanState = atom({
+	key: 'HotendFan',
+	default: null,
+	effects: [
+		syncEffect({
+			refine: getRefineCheckerForZodSchema(Fan.nullable()),
+		}),
+	],
+});
+
+const ControllerFanState = atom({
+	key: 'ControllerFan',
+	default: null,
+	effects: [
+		syncEffect({
+			refine: getRefineCheckerForZodSchema(Fan.nullable()),
+		}),
+	],
+});
+
 export const ToolboardState = selector<z.infer<typeof Toolboard> | null>({
 	key: 'ToolboardSelector',
 	set: ({ set, get }, newValue) => {
@@ -139,6 +184,9 @@ export const PrinterConfigurationState = selector<z.infer<typeof PartialPrinterC
 		const yEndstop = get(YEndstopState) ?? undefined;
 		const controlboard = get(ControlboardState) ?? undefined;
 		const toolboard = get(ToolboardState) ?? undefined;
+		const partFan = get(PartFanState) ?? undefined;
+		const hotendFan = get(HotendFanState) ?? undefined;
+		const controllerFan = get(ControllerFanState) ?? undefined;
 
 		const printerConfig = PartialPrinterConfiguration.safeParse({
 			printer,
@@ -150,6 +198,9 @@ export const PrinterConfigurationState = selector<z.infer<typeof PartialPrinterC
 			yEndstop,
 			controlboard,
 			toolboard,
+			partFan,
+			hotendFan,
+			controllerFan,
 			size: printerSize,
 		});
 		if (printerConfig.success === false) {
@@ -158,6 +209,43 @@ export const PrinterConfigurationState = selector<z.infer<typeof PartialPrinterC
 		return printerConfig.success ? printerConfig.data : null;
 	},
 });
+
+export const serializePrinterConfiguration = (config: PrinterConfiguration): SerializedPrinterConfiguration => {
+	const serializedConfig: SerializedPrinterConfiguration = {
+		printer: config.printer.id,
+		hotend: config.hotend.id,
+		thermistor: config.thermistor,
+		extruder: config.extruder.id,
+		probe: config.probe?.id,
+		xEndstop: config.xEndstop.id,
+		yEndstop: config.yEndstop.id,
+		controlboard: config.controlboard.serialPath,
+		toolboard: config.toolboard?.serialPath,
+		partFan: config.partFan.id,
+		hotendFan: config.hotendFan.id,
+		controllerFan: config.controllerFan.id,
+	};
+	return SerializedPrinterConfiguration.parse(serializedConfig);
+};
+export const serializePartialPrinterConfiguration = (
+	config: PartialPrinterConfiguration,
+): SerializedPartialPrinterConfiguration => {
+	const serializedConfig: SerializedPartialPrinterConfiguration = {
+		printer: config?.printer?.id,
+		hotend: config?.hotend?.id,
+		thermistor: config?.thermistor,
+		extruder: config?.extruder?.id,
+		probe: config?.probe?.id,
+		xEndstop: config?.xEndstop?.id,
+		yEndstop: config?.yEndstop?.id,
+		controlboard: config?.controlboard?.serialPath,
+		toolboard: config?.toolboard?.serialPath,
+		partFan: config?.partFan?.id,
+		hotendFan: config?.hotendFan?.id,
+		controllerFan: config?.controllerFan?.id,
+	};
+	return SerializedPartialPrinterConfiguration.parse(serializedConfig);
+};
 
 export const usePrinterConfiguration = () => {
 	const [selectedPrinter, setSelectedPrinter] = useRecoilState(PrinterState);
@@ -170,17 +258,32 @@ export const usePrinterConfiguration = () => {
 	const [selectedYEndstop, setSelectedYEndstop] = useRecoilState(YEndstopState);
 	const [selectedBoard, setSelectedBoard] = useRecoilState(ControlboardState);
 	const [selectedToolboard, setSelectedToolboard] = useRecoilState(ToolboardState);
+	const [performanceMode, setPerformanceMode] = useRecoilState(PerformanceModeState);
+	const [stealtchop, setStealthchop] = useRecoilState(StealthchopState);
+	const [partFan, setPartFan] = useRecoilState(PartFanState);
+	const [hotendFan, setHotendFan] = useRecoilState(HotendFanState);
+	const [controllerFan, setControllerFan] = useRecoilState(ControllerFanState);
 	const printerConfiguration = useRecoilValue(PrinterConfigurationState);
+	const serializedPrinterConfiguration = serializePartialPrinterConfiguration(printerConfiguration ?? {});
 
 	const hotends = trpc.useQuery(['printer.hotends']);
 	const boards = trpc.useQuery(['mcu.boards', {}]);
 	const extruders = trpc.useQuery(['printer.extruders']);
 	const thermistors = trpc.useQuery(['printer.thermistors']);
 	const probes = trpc.useQuery(['printer.probes']);
-	const xEndstops = trpc.useQuery(['printer.x-endstops', printerConfiguration], {
+	const xEndstops = trpc.useQuery(['printer.x-endstops', serializedPrinterConfiguration], {
 		keepPreviousData: true,
 	});
-	const yEndstops = trpc.useQuery(['printer.y-endstops', printerConfiguration], {
+	const yEndstops = trpc.useQuery(['printer.y-endstops', serializedPrinterConfiguration], {
+		keepPreviousData: true,
+	});
+	const partFanOptions = trpc.useQuery(['printer.part-fan-options', serializedPrinterConfiguration], {
+		keepPreviousData: true,
+	});
+	const hotendFanOptions = trpc.useQuery(['printer.hotend-fan-options', serializedPrinterConfiguration], {
+		keepPreviousData: true,
+	});
+	const controllerFanOptions = trpc.useQuery(['printer.controller-fan-options', serializedPrinterConfiguration], {
 		keepPreviousData: true,
 	});
 
@@ -193,6 +296,9 @@ export const usePrinterConfiguration = () => {
 		const probe = probes.data?.find((p) => p.id === printer.defaults.probe + '.cfg');
 		const xEndstop = xEndstops.data?.find((e) => e.id === printer.defaults.xEndstop);
 		const yEndstop = yEndstops.data?.find((e) => e.id === printer.defaults.yEndstop);
+		const partFan = partFanOptions.data?.[0];
+		const hotendFan = hotendFanOptions.data?.[0];
+		const controllerFan = controllerFanOptions.data?.[0];
 
 		if (board) {
 			setSelectedBoard(board);
@@ -228,6 +334,18 @@ export const usePrinterConfiguration = () => {
 		if (yEndstop) {
 			setSelectedYEndstop(yEndstop);
 		}
+
+		if (partFan) {
+			setPartFan(partFan);
+		}
+
+		if (hotendFan) {
+			setHotendFan(hotendFan);
+		}
+
+		if (controllerFan) {
+			setControllerFan(controllerFan);
+		}
 	};
 
 	const parsedPrinterConfiguration = PrinterConfiguration.safeParse({
@@ -240,6 +358,9 @@ export const usePrinterConfiguration = () => {
 		probe: selectedProbe,
 		xEndstop: selectedXEndstop,
 		yEndstop: selectedYEndstop,
+		partFan,
+		hotendFan,
+		controllerFan,
 		size: selectedPrinterOption,
 	});
 
@@ -288,12 +409,25 @@ export const usePrinterConfiguration = () => {
 		setSelectedBoard,
 		selectedToolboard,
 		setSelectedToolboard,
+		performanceMode,
+		setPerformanceMode,
+		stealtchop,
+		setStealthchop,
+		partFan,
+		setPartFan,
+		hotendFan,
+		setHotendFan,
+		controllerFan,
+		setControllerFan,
 		hotends,
 		extruders,
 		thermistors,
 		probes,
 		xEndstops,
 		yEndstops,
+		partFanOptions,
+		hotendFanOptions,
+		controllerFanOptions,
 		setPrinterDefaults,
 		partialPrinterConfiguration: printerConfiguration,
 		parsedPrinterConfiguration,

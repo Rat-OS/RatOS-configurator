@@ -45,3 +45,8 @@ export const Endstop = z.object({
 	id: z.enum(['endstop', 'endstop-toolboard', 'sensorless']),
 	title: z.string(),
 });
+
+export const Fan = z.object({
+	id: z.enum(['2pin', '4pin', '4pin-dedicated']),
+	title: z.string(),
+});

@@ -7,6 +7,7 @@ import { usePrinterConfiguration } from '../../hooks/usePrinterConfiguration';
 import { Hotend, Thermistor } from '../../zods/hardware';
 import { ShowWhenReady } from '../common/show-when-ready';
 import { ErrorMessage } from '../error-message';
+import { Toggle } from '../forms/toggle';
 
 const stringToTitleObject = <Item extends string>(data: Item): { id: Item; title: Item } => {
 	return { id: data, title: data };
@@ -23,6 +24,9 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 		xEndstops,
 		yEndstops,
 		thermistors,
+		partFanOptions,
+		hotendFanOptions,
+		controllerFanOptions,
 		selectedHotend,
 		setSelectedHotend,
 		selectedExtruder,
@@ -36,6 +40,16 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 		selectedThermistor,
 		setSelectedThermistor,
 		parsedPrinterConfiguration,
+		performanceMode,
+		setPerformanceMode,
+		stealtchop,
+		setStealthchop,
+		partFan,
+		setPartFan,
+		hotendFan,
+		setHotendFan,
+		controllerFan,
+		setControllerFan,
 	} = usePrinterConfiguration();
 
 	const onSelectHotend = useCallback(
@@ -70,7 +84,7 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 						Select your printer hardware
 					</h3>
 					<p className="mt-2 max-w-4xl text-sm text-zinc-500 dark:text-zinc-400">
-						If your hardware isn't listed, pick the one closest to it and modify it in printer.cfg later
+						If your hardware isn't listed, pick the one closest to it and override as necessary in printer.cfg later
 					</p>
 				</div>
 				{errors.length > 0 && (
@@ -83,7 +97,11 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 					</ErrorMessage>
 				)}
 				<ShowWhenReady isReady={isReady} queryErrors={queryErrors}>
-					<div className="grid grid-cols-2 gap-4">
+					<div className="mt-4">
+						<h3 className="text-base font-medium leading-7 text-zinc-900 dark:text-zinc-100">Toolhead</h3>
+						<p className="mt-2 max-w-4xl text-sm text-zinc-500 dark:text-zinc-400">Describe your toolhead hardware</p>
+					</div>
+					<div className="mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 dark:border-zinc-700 sm:grid-cols-2">
 						<div>
 							<Dropdown label="Hotend" options={hotends.data ?? []} onSelect={onSelectHotend} value={selectedHotend} />
 						</div>
@@ -95,7 +113,7 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 								value={selectedThermistor ? stringToTitleObject(selectedThermistor) : null}
 							/>
 						</div>
-						<div className="col-span-2">
+						<div>
 							<Dropdown
 								label="Extruder"
 								options={extruders.data ?? []}
@@ -103,9 +121,16 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 								value={selectedExtruder}
 							/>
 						</div>
-						<div className="col-span-2">
+						<div>
 							<Dropdown label="Probe" options={probes.data ?? []} onSelect={setSelectedProbe} value={selectedProbe} />
 						</div>
+					</div>
+
+					<div className="mt-4 border-t border-zinc-100 pt-8 dark:border-zinc-700">
+						<h3 className="text-base font-medium leading-7 text-zinc-900 dark:text-zinc-100">Endstops</h3>
+						<p className="mt-2 max-w-4xl text-sm text-zinc-500 dark:text-zinc-400">Define your endstop setup</p>
+					</div>
+					<div className="mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 dark:border-zinc-700 sm:grid-cols-2">
 						<div>
 							<Dropdown
 								label="X Endstop"
@@ -117,6 +142,86 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 						<div>
 							<Dropdown
 								label="Y Endstop"
+								options={yEndstops.data ?? []}
+								onSelect={setSelectedYEndstop}
+								value={selectedYEndstop}
+							/>
+						</div>
+					</div>
+					<div className="mt-4 border-t border-zinc-100 pt-8 dark:border-zinc-700">
+						<h3 className="text-base font-medium leading-7 text-zinc-900 dark:text-zinc-100">Fans</h3>
+						<p className="mt-2 max-w-4xl text-sm text-zinc-500 dark:text-zinc-400">Select your fan types.</p>
+					</div>
+					<div className="mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 dark:border-zinc-700 sm:grid-cols-2">
+						<div>
+							<Dropdown
+								label="Part cooling fan"
+								options={partFanOptions.data ?? []}
+								onSelect={setPartFan}
+								value={partFan}
+							/>
+						</div>
+						<div>
+							<Dropdown
+								label="Hotend fan"
+								options={hotendFanOptions.data ?? []}
+								onSelect={setHotendFan}
+								value={hotendFan}
+							/>
+						</div>
+						<div>
+							<Dropdown
+								label="Controller fan"
+								options={controllerFanOptions.data ?? []}
+								onSelect={setControllerFan}
+								value={controllerFan}
+							/>
+						</div>
+					</div>
+					<div className="mt-4 border-t border-zinc-100 pt-8 dark:border-zinc-700">
+						<h3 className="text-base font-medium leading-7 text-zinc-900 dark:text-zinc-100">Steppers</h3>
+						<p className="mt-2 max-w-4xl text-sm text-zinc-500 dark:text-zinc-400">
+							You can use the same accelerometer for both axes. If you don't plan on using an accelerometer, you can
+							skip this and come back later if you change your mind.
+						</p>
+					</div>
+					<div className="mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 dark:border-zinc-700 sm:grid-cols-2">
+						<div className="col-span-2">
+							<Toggle
+								label="Performance mode"
+								description="Increases the stepper power, max acceleration and velocity. Not recommended for initial setup."
+								onChange={setPerformanceMode}
+								value={performanceMode}
+							/>
+						</div>
+						<div className="col-span-2">
+							<Toggle
+								label="Stealtchop"
+								description="Silent operation at the cost of a 135 mm/s velocity limit and less positional accuracy. Not recommended unless absolutely necessary."
+								onChange={setStealthchop}
+								value={stealtchop}
+							/>
+						</div>
+					</div>
+					<div className="mt-4 border-t border-zinc-100 pt-8 dark:border-zinc-700">
+						<h3 className="text-base font-medium leading-7 text-zinc-900 dark:text-zinc-100">Accelerometer</h3>
+						<p className="mt-2 max-w-4xl text-sm text-zinc-500 dark:text-zinc-400">
+							You can use the same accelerometer for both axes. If you don't plan on using an accelerometer, you can
+							skip this and come back later if you change your mind.
+						</p>
+					</div>
+					<div className="mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 dark:border-zinc-700 sm:grid-cols-2">
+						<div>
+							<Dropdown
+								label="X axis accelerometer"
+								options={yEndstops.data ?? []}
+								onSelect={setSelectedYEndstop}
+								value={selectedYEndstop}
+							/>
+						</div>
+						<div>
+							<Dropdown
+								label="Y axis accelerometer"
 								options={yEndstops.data ?? []}
 								onSelect={setSelectedYEndstop}
 								value={selectedYEndstop}

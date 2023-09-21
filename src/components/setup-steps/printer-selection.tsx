@@ -22,7 +22,6 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 		setSelectedPrinterOption,
 		selectedPrinter,
 		selectedPrinterOption,
-		parsedPrinterConfiguration,
 		isReady,
 		queryErrors,
 	} = usePrinterConfiguration();
@@ -95,8 +94,8 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 				left={{ onClick: props.previousScreen }}
 				right={{
 					onClick: props.nextScreen,
-					disabled: !parsedPrinterConfiguration.success,
-					title: parsedPrinterConfiguration.success === false ? 'Invalid printer configuration selected' : undefined,
+					disabled: selectedPrinter == null,
+					title: selectedPrinter == null ? 'You have to select a printer' : undefined,
 				}}
 			/>
 		</>

@@ -9,6 +9,12 @@ export const serverSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]),
   RATOS_CONFIGURATION_PATH: z.string(),
   RATOS_SCRIPT_DIR: z.string(),
+  KLIPPER_CONFIG_PATH: z.string(),
+  KLIPPER_DIR: z.string(),
+  KLIPPER_ENV: z.string(),
+  LOG_FILE: z.string(),
+  KLIPPY_EXTENSIONS: z.string(),
+  MOONRAKER_EXTENSIONS: z.string(),
 });
 
 /**

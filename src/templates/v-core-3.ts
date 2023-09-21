@@ -32,11 +32,10 @@ ${helper.renderBoardIncludes()}
 [include RatOS/printers/v-core-3/${config.size}.cfg]
 
 # Extruder
-[include RatOS/extruders/${config.extruder.id}]
+${helper.renderExtruder()}
 
 # Hotend
-[include RatOS/hotends/${config.hotend.id}]
-${helper.renderToolboardHotendOverrides()}
+${helper.renderHotend()}
 
 # ADXL345 resonance testing configuration
 ${helper.renderInputShaper(config.size ?? 300)}
@@ -73,9 +72,9 @@ ${helper.renderInputShaper(config.size ?? 300)}
 #[include RatOS/printers/v-core-3/speed-limits-stealth.cfg]
 #[include RatOS/printers/v-core-3/tmc2209-stealth.cfg]
 
-${helper.renderToolboardDriverOverrides()}
+${helper.renderDriverOverrides()}
 
-${helper.renderToolboardStepperOverrides()}
+${helper.renderStepperOverrides()}
 
 #############################################################################################################
 ### HOMING

@@ -5,12 +5,27 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 
 import { parseMetadata } from '../../helpers/parseMetadata';
-import { Hotend, Extruder, Probe, thermistors, Endstop } from '../../zods/hardware';
-import { readFileSync } from 'fs';
+import { Hotend, Extruder, Probe, thermistors, Endstop, Fan } from '../../zods/hardware';
+import { writeFile, readFileSync, access, constants, copyFile, readFile } from 'fs';
 import { Printer } from '../../zods/printer';
-import { PartialPrinterConfiguration, PrinterConfiguration } from '../../zods/printer-configuration';
+import {
+	PartialPrinterConfiguration,
+	PrinterConfiguration,
+	SerializedPartialPrinterConfiguration,
+	SerializedPrinterConfiguration,
+} from '../../zods/printer-configuration';
 import { xEndstopOptions, yEndstopOptions } from '../../data/endstops';
-import { constructKlipperConfigHelpers } from '../../helpers/klipper-config';
+import { constructKlipperConfigExtrasGenerator, constructKlipperConfigHelpers } from '../../helpers/klipper-config';
+import path from 'path';
+import { serverSchema } from '../../env/schema.mjs';
+import { controllerFanOptions, hotendFanOptions, partFanOptions } from '../../data/fans';
+import { getBoards } from './mcu';
+
+function isNodeError(error: any): error is NodeJS.ErrnoException {
+	return error instanceof Error;
+}
+
+type FileAction = 'created' | 'overwritten' | 'skipped' | 'error';
 
 export const parseDirectory = async <T extends z.ZodType>(directory: string, zod: T) => {
 	const defs = await promisify(exec)(`ls ${process.env.RATOS_CONFIGURATION_PATH}/${directory}/*.cfg`);
@@ -50,6 +65,67 @@ export const getPrinters = async () => {
 	);
 };
 
+const isPrinterCfgInitialized = async () => {
+	const environment = serverSchema.parse(process.env);
+	try {
+		await promisify(access)(path.join(environment.KLIPPER_CONFIG_PATH, 'printer.cfg'), constants.F_OK);
+	} catch (e) {
+		if (isNodeError(e) && e.code === 'ENOENT') {
+			// File does not exist, resume as normal.
+		} else {
+			throw e;
+		}
+	}
+	const currentcfg = await promisify(readFile)(path.join(environment.KLIPPER_CONFIG_PATH, 'printer.cfg'));
+	return currentcfg.indexOf('[include RatOS/printers/initial-setup.cfg]') === -1;
+};
+
+export const deserializePartialPrinterConfiguration = async (
+	config: SerializedPartialPrinterConfiguration,
+): Promise<PartialPrinterConfiguration> => {
+	const boards = await getBoards();
+
+	const controlboard = boards.find((b) => b.serialPath === config?.controlboard);
+	const toolboard = boards.find((b) => b.serialPath === config?.toolboard);
+	return PartialPrinterConfiguration.parse({
+		printer: (await getPrinters()).find((p) => p.id === config?.printer),
+		hotend: (await parseDirectory('hotends', Hotend)).find((h) => h.id === config?.hotend),
+		extruder: (await parseDirectory('extruders', Extruder)).find((e) => e.id === config?.extruder),
+		probe: (await parseDirectory('z-probe', Probe)).find((p) => p.id === config?.probe),
+		thermistor: thermistors.find((t) => t === config?.thermistor),
+		xEndstop: xEndstopOptions(config).find((e) => e.id === config?.xEndstop),
+		yEndstop: yEndstopOptions(config).find((e) => e.id === config?.yEndstop),
+		partFan: partFanOptions({ controlboard, toolboard }).find((f) => f.id === config?.partFan),
+		hotendFan: hotendFanOptions({ controlboard, toolboard }).find((f) => f.id === config?.hotendFan),
+		controllerFan: controllerFanOptions({ controlboard, toolboard }).find((f) => f.id === config?.controllerFan),
+		controlboard: controlboard,
+		toolboard: toolboard,
+	});
+};
+
+export const deserializePrinterConfiguration = async (
+	config: SerializedPrinterConfiguration,
+): Promise<PrinterConfiguration> => {
+	const boards = await getBoards();
+
+	const controlboard = boards.find((b) => b.serialPath === config?.controlboard);
+	const toolboard = boards.find((b) => b.serialPath === config?.toolboard);
+	return PrinterConfiguration.parse({
+		printer: (await getPrinters()).find((p) => p.id === config?.printer),
+		hotend: (await parseDirectory('hotends', Hotend)).find((h) => h.id === config?.hotend),
+		extruder: (await parseDirectory('extruders', Extruder)).find((e) => e.id === config?.extruder),
+		probe: (await parseDirectory('z-probe', Probe)).find((p) => p.id === config?.probe),
+		thermistor: thermistors.find((t) => t === config?.thermistor),
+		xEndstop: xEndstopOptions(config).find((e) => e.id === config?.xEndstop),
+		yEndstop: yEndstopOptions(config).find((e) => e.id === config?.yEndstop),
+		partFan: partFanOptions({ controlboard, toolboard }).find((f) => f.id === config?.partFan),
+		hotendFan: hotendFanOptions({ controlboard, toolboard }).find((f) => f.id === config?.hotendFan),
+		controllerFan: controllerFanOptions({ controlboard, toolboard }).find((f) => f.id === config?.controllerFan),
+		controlboard: controlboard,
+		toolboard: toolboard,
+	});
+};
+
 export const printerRouter = trpc
 	.router()
 	.query('printers', {
@@ -77,29 +153,108 @@ export const printerRouter = trpc
 		resolve: () => thermistors,
 	})
 	.query('x-endstops', {
-		input: PartialPrinterConfiguration.nullable(),
+		input: SerializedPartialPrinterConfiguration.nullable(),
 		output: z.array(Endstop),
 		resolve: (ctx) => xEndstopOptions(ctx.input),
 	})
 	.query('y-endstops', {
-		input: PartialPrinterConfiguration.nullable(),
+		input: SerializedPartialPrinterConfiguration.nullable(),
 		output: z.array(Endstop),
 		resolve: (ctx) => yEndstopOptions(ctx.input),
 	})
-	.mutation('save-configuration', {
-		input: PrinterConfiguration,
+	.query('part-fan-options', {
+		input: SerializedPartialPrinterConfiguration.nullable(),
+		output: z.array(Fan),
+		resolve: async (ctx) => partFanOptions(await deserializePartialPrinterConfiguration(ctx.input ?? {})),
+	})
+	.query('hotend-fan-options', {
+		input: SerializedPartialPrinterConfiguration.nullable(),
+		output: z.array(Fan),
+		resolve: async (ctx) => hotendFanOptions(await deserializePartialPrinterConfiguration(ctx.input ?? {})),
+	})
+	.query('controller-fan-options', {
+		input: SerializedPartialPrinterConfiguration.nullable(),
+		output: z.array(Fan),
+		resolve: async (ctx) => controllerFanOptions(await deserializePartialPrinterConfiguration(ctx.input ?? {})),
+	})
+	.query('printercfg-status', {
 		resolve: async (ctx) => {
-			const config = ctx.input;
-			const helper = constructKlipperConfigHelpers(config);
+			return {
+				isInitialized: await isPrinterCfgInitialized(),
+			};
+		},
+	})
+	.mutation('save-configuration', {
+		input: z.object({
+			config: SerializedPrinterConfiguration,
+			overwritePrinterCfg: z.boolean().optional().default(false),
+		}),
+		resolve: async (ctx) => {
+			const { config: serializedConfig, overwritePrinterCfg } = ctx.input;
+			const config = await deserializePrinterConfiguration(serializedConfig);
+			const extrasGenerator = constructKlipperConfigExtrasGenerator(config);
+			const helper = constructKlipperConfigHelpers(config, extrasGenerator);
 			const { template, initialPrinterCfg } = await import(
 				`../../templates/${config.printer.template.replace('-printer.template.cfg', '.ts')}`
 			);
-			const ratosCfg = template(config, helper);
-			const printerCfg = initialPrinterCfg(config, helper);
-			// Todo: write to disk
-			return {
-				ratosCfg: ratosCfg,
-				printerCfg: printerCfg,
-			};
+			const extras = extrasGenerator.getFilesToWrite();
+
+			const environment = serverSchema.parse(process.env);
+			const currentcfg = readFileSync(path.join(environment.KLIPPER_CONFIG_PATH, 'printer.cfg')).toString();
+			const filesToWrite = extras.concat([
+				{ fileName: 'RatOS.cfg', content: template(config, helper).trim(), overwrite: true },
+				{
+					fileName: 'printer.cfg',
+					content: initialPrinterCfg(config, helper).trim(),
+					overwrite: !(await isPrinterCfgInitialized()) || overwritePrinterCfg,
+				},
+			]);
+			const results: { fileName: string; action: FileAction; err?: unknown }[] = await Promise.all(
+				filesToWrite.map(async (file) => {
+					let action: FileAction = 'created';
+					console.log('processing', file.fileName);
+					try {
+						await promisify(access)(path.join(environment.KLIPPER_CONFIG_PATH, file.fileName), constants.F_OK);
+						// At this point we know the file exists;
+						if (file.overwrite) {
+							const backupFilename = `${file.fileName.split('.').slice(0, -1).join('.')}-${Date.now()}.cfg.bak`;
+							try {
+								await promisify(copyFile)(
+									path.join(environment.KLIPPER_CONFIG_PATH, file.fileName),
+									path.join(environment.KLIPPER_CONFIG_PATH, backupFilename),
+								);
+							} catch (e) {
+								return { fileName: file.fileName, action: 'error', err: e };
+							}
+							action = 'overwritten';
+						} else {
+							// Skip this file.
+							return { fileName: file.fileName, action: 'skipped' };
+						}
+					} catch (e) {
+						if (isNodeError(e) && e.code === 'ENOENT') {
+							// File does not exist, resume as normal.
+						} else {
+							// Unknown error, abort.
+							return { fileName: file.fileName, action: 'error', err: e };
+						}
+					}
+					try {
+						await promisify(writeFile)(path.join(environment.KLIPPER_CONFIG_PATH, file.fileName), file.content);
+						return { fileName: file.fileName, action: action };
+					} catch (e) {
+						return { fileName: file.fileName, action: 'error', err: e };
+					}
+				}),
+			);
+			const errors = results.filter((r) => r.action === 'error');
+			if (errors.length > 0) {
+				throw new Error(
+					"Something went wrong when saving the configuration. The following files couldn't be written: " +
+						errors.map((e) => e.fileName).join(', '),
+				);
+			}
+
+			return results;
 		},
 	});
