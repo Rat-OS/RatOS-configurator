@@ -5,7 +5,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 
 import { parseMetadata } from '../../helpers/parseMetadata';
-import { Hotend, Extruder, Probe, thermistors, Endstop, Fan } from '../../zods/hardware';
+import { Hotend, Extruder, Probe, thermistors, Endstop, Fan, Accelerometer } from '../../zods/hardware';
 import { writeFile, readFileSync, access, constants, copyFile, readFile } from 'fs';
 import { Printer } from '../../zods/printer';
 import {
@@ -20,6 +20,7 @@ import path from 'path';
 import { serverSchema } from '../../env/schema.mjs';
 import { controllerFanOptions, hotendFanOptions, partFanOptions } from '../../data/fans';
 import { getBoards } from './mcu';
+import { xAccelerometerOptions, yAccelerometerOptions } from '../../data/accelerometers';
 
 function isNodeError(error: any): error is NodeJS.ErrnoException {
 	return error instanceof Error;
@@ -176,6 +177,16 @@ export const printerRouter = trpc
 		input: SerializedPartialPrinterConfiguration.nullable(),
 		output: z.array(Fan),
 		resolve: async (ctx) => controllerFanOptions(await deserializePartialPrinterConfiguration(ctx.input ?? {})),
+	})
+	.query('x-accelerometer-options', {
+		input: SerializedPartialPrinterConfiguration.nullable(),
+		output: z.array(Accelerometer),
+		resolve: async (ctx) => xAccelerometerOptions(ctx.input),
+	})
+	.query('y-accelerometer-options', {
+		input: SerializedPartialPrinterConfiguration.nullable(),
+		output: z.array(Accelerometer),
+		resolve: async (ctx) => yAccelerometerOptions(ctx.input),
 	})
 	.query('printercfg-status', {
 		resolve: async (ctx) => {

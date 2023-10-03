@@ -23,6 +23,8 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 		probes,
 		xEndstops,
 		yEndstops,
+		xAccelerometerOptions,
+		yAccelerometerOptions,
 		thermistors,
 		partFanOptions,
 		hotendFanOptions,
@@ -44,12 +46,16 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 		setPerformanceMode,
 		stealtchop,
 		setStealthchop,
-		partFan,
-		setPartFan,
-		hotendFan,
-		setHotendFan,
-		controllerFan,
-		setControllerFan,
+		selectedXAccelerometer,
+		setSelectedXAccelerometer,
+		selectedYAccelerometer,
+		setSelectedYAccelerometer,
+		selectedPartFan: partFan,
+		setSelectedPartFan: setPartFan,
+		selectedHotendFan: hotendFan,
+		setSelectedHotendFan: setHotendFan,
+		selectedControllerFan: controllerFan,
+		setSelectedControllerFan: setControllerFan,
 	} = usePrinterConfiguration();
 
 	const onSelectHotend = useCallback(
@@ -96,7 +102,7 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 						))}
 					</ErrorMessage>
 				)}
-				<ShowWhenReady isReady={isReady} queryErrors={queryErrors}>
+				<ShowWhenReady isReady={isReady} queryErrors={queryErrors} showErrors={false}>
 					<div className="mt-4">
 						<h3 className="text-base font-medium leading-7 text-zinc-900 dark:text-zinc-100">Toolhead</h3>
 						<p className="mt-2 max-w-4xl text-sm text-zinc-500 dark:text-zinc-400">Describe your toolhead hardware</p>
@@ -191,15 +197,15 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 								label="Performance mode"
 								description="Increases the stepper power, max acceleration and velocity. Not recommended for initial setup."
 								onChange={setPerformanceMode}
-								value={performanceMode}
+								value={!!performanceMode}
 							/>
 						</div>
 						<div className="col-span-2">
 							<Toggle
 								label="Stealtchop"
-								description="Silent operation at the cost of a 135 mm/s velocity limit and less positional accuracy. Not recommended unless absolutely necessary."
+								description="Silent operation at the cost of a 135 mm/s velocity limit and less positional accuracy. Not recommended unless quiteness is absolutely necessary."
 								onChange={setStealthchop}
-								value={stealtchop}
+								value={!!stealtchop}
 							/>
 						</div>
 					</div>
@@ -214,17 +220,19 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 						<div>
 							<Dropdown
 								label="X axis accelerometer"
-								options={yEndstops.data ?? []}
-								onSelect={setSelectedYEndstop}
-								value={selectedYEndstop}
+								options={xAccelerometerOptions.data ?? []}
+								onSelect={setSelectedXAccelerometer}
+								value={selectedXAccelerometer}
+								sort={false}
 							/>
 						</div>
 						<div>
 							<Dropdown
 								label="Y axis accelerometer"
-								options={yEndstops.data ?? []}
-								onSelect={setSelectedYEndstop}
-								value={selectedYEndstop}
+								options={yAccelerometerOptions.data ?? []}
+								onSelect={setSelectedYAccelerometer}
+								value={selectedYAccelerometer}
+								sort={false}
 							/>
 						</div>
 					</div>

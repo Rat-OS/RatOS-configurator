@@ -46,6 +46,11 @@ export const Endstop = z.object({
 	title: z.string(),
 });
 
+export const Accelerometer = z.object({
+	id: z.enum(['toolboard', 'controlboard', 'sbc', 'none']),
+	title: z.string(),
+});
+
 export const Fan = z.object({
 	id: z.enum(['2pin', '4pin', '4pin-dedicated']),
 	title: z.string(),

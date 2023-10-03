@@ -3,7 +3,7 @@
 import { atom, selector, useRecoilValue } from 'recoil';
 import { z } from 'zod';
 import { Board, Toolboard } from '../zods/boards';
-import { Hotend, Thermistor, Extruder, Probe, Endstop, Fan } from '../zods/hardware';
+import { Hotend, Thermistor, Extruder, Probe, Endstop, Fan, Accelerometer } from '../zods/hardware';
 import { Printer } from '../zods/printer';
 import {
 	PartialPrinterConfiguration,
@@ -16,6 +16,7 @@ import { trpc } from '../helpers/trpc';
 import { syncEffect } from 'recoil-sync';
 import { getRefineCheckerForZodSchema } from 'zod-refine';
 import { defaultXEndstop, xEndstopOptions } from '../data/endstops';
+import { useCallback } from 'react';
 
 export const PrinterState = atom({
 	key: 'Printer',
@@ -120,11 +121,40 @@ const _ToolboardState = atom({
 const PerformanceModeState = atom({
 	key: 'PerformanceMode',
 	default: false,
+	effects: [
+		syncEffect({
+			refine: getRefineCheckerForZodSchema(z.boolean().optional().nullable()),
+		}),
+	],
 });
 
 const StealthchopState = atom({
 	key: 'Stealchop',
 	default: false,
+	effects: [
+		syncEffect({
+			refine: getRefineCheckerForZodSchema(z.boolean().optional().nullable()),
+		}),
+	],
+});
+
+const XAccelerometerState = atom({
+	key: 'XAccelerometer',
+	default: null,
+	effects: [
+		syncEffect({
+			refine: getRefineCheckerForZodSchema(Accelerometer.nullable()),
+		}),
+	],
+});
+const YAccelerometerState = atom({
+	key: 'YAccelerometer',
+	default: null,
+	effects: [
+		syncEffect({
+			refine: getRefineCheckerForZodSchema(Accelerometer.nullable()),
+		}),
+	],
 });
 
 const PartFanState = atom({
@@ -187,6 +217,10 @@ export const PrinterConfigurationState = selector<z.infer<typeof PartialPrinterC
 		const partFan = get(PartFanState) ?? undefined;
 		const hotendFan = get(HotendFanState) ?? undefined;
 		const controllerFan = get(ControllerFanState) ?? undefined;
+		const xAccelerometer = get(XAccelerometerState) ?? undefined;
+		const yAccelerometer = get(YAccelerometerState) ?? undefined;
+		const performanceMode = get(PerformanceModeState) ?? undefined;
+		const stealthchop = get(StealthchopState) ?? undefined;
 
 		const printerConfig = PartialPrinterConfiguration.safeParse({
 			printer,
@@ -202,6 +236,10 @@ export const PrinterConfigurationState = selector<z.infer<typeof PartialPrinterC
 			hotendFan,
 			controllerFan,
 			size: printerSize,
+			xAccelerometer,
+			yAccelerometer,
+			performanceMode,
+			stealthchop,
 		});
 		if (printerConfig.success === false) {
 			console.log(printerConfig.error);
@@ -258,11 +296,13 @@ export const usePrinterConfiguration = () => {
 	const [selectedYEndstop, setSelectedYEndstop] = useRecoilState(YEndstopState);
 	const [selectedBoard, setSelectedBoard] = useRecoilState(ControlboardState);
 	const [selectedToolboard, setSelectedToolboard] = useRecoilState(ToolboardState);
+	const [selectedXAccelerometer, setSelectedXAccelerometer] = useRecoilState(XAccelerometerState);
+	const [selectedYAccelerometer, setSelectedYAccelerometer] = useRecoilState(YAccelerometerState);
 	const [performanceMode, setPerformanceMode] = useRecoilState(PerformanceModeState);
-	const [stealtchop, setStealthchop] = useRecoilState(StealthchopState);
-	const [partFan, setPartFan] = useRecoilState(PartFanState);
-	const [hotendFan, setHotendFan] = useRecoilState(HotendFanState);
-	const [controllerFan, setControllerFan] = useRecoilState(ControllerFanState);
+	const [stealthchop, setStealthchop] = useRecoilState(StealthchopState);
+	const [selectedPartFan, setSelectedPartFan] = useRecoilState(PartFanState);
+	const [selectedHotendFan, setSelectedHotendFan] = useRecoilState(HotendFanState);
+	const [selectedControllerFan, setSelectedControllerFan] = useRecoilState(ControllerFanState);
 	const printerConfiguration = useRecoilValue(PrinterConfigurationState);
 	const serializedPrinterConfiguration = serializePartialPrinterConfiguration(printerConfiguration ?? {});
 
@@ -286,67 +326,110 @@ export const usePrinterConfiguration = () => {
 	const controllerFanOptions = trpc.useQuery(['printer.controller-fan-options', serializedPrinterConfiguration], {
 		keepPreviousData: true,
 	});
+	const xAccelerometerOptions = trpc.useQuery(['printer.x-accelerometer-options', serializedPrinterConfiguration], {
+		keepPreviousData: true,
+	});
+	const yAccelerometerOptions = trpc.useQuery(['printer.y-accelerometer-options', serializedPrinterConfiguration], {
+		keepPreviousData: true,
+	});
 
-	const setPrinterDefaults = (printer: z.infer<typeof Printer>) => {
-		const board = boards.data?.find((board) => board.serialPath === '/dev/' + printer.defaults?.board);
-		const toolboard = boards.data?.find((board) => board.serialPath === '/dev/' + printer.defaults?.board);
-		const hotend = hotends.data?.find((h) => h.id === printer.defaults.hotend + '.cfg');
-		const extruder = extruders.data?.find((e) => e.id === printer.defaults.extruder + '.cfg');
-		const thermistor = thermistors.data?.find((t) => t === hotend?.thermistor);
-		const probe = probes.data?.find((p) => p.id === printer.defaults.probe + '.cfg');
-		const xEndstop = xEndstops.data?.find((e) => e.id === printer.defaults.xEndstop);
-		const yEndstop = yEndstops.data?.find((e) => e.id === printer.defaults.yEndstop);
-		const partFan = partFanOptions.data?.[0];
-		const hotendFan = hotendFanOptions.data?.[0];
-		const controllerFan = controllerFanOptions.data?.[0];
+	const setPrinterDefaults = useCallback(
+		(printer: z.infer<typeof Printer>) => {
+			const board = boards.data?.find((board) => board.serialPath === '/dev/' + printer.defaults?.board);
+			const toolboard = boards.data?.find((board) => board.serialPath === '/dev/' + printer.defaults?.board);
+			const hotend = hotends.data?.find((h) => h.id === printer.defaults.hotend + '.cfg');
+			const extruder = extruders.data?.find((e) => e.id === printer.defaults.extruder + '.cfg');
+			const thermistor = thermistors.data?.find((t) => t === hotend?.thermistor);
+			const probe = probes.data?.find((p) => p.id === printer.defaults.probe + '.cfg');
+			const xEndstop = xEndstops.data?.find((e) => e.id === printer.defaults.xEndstop);
+			const yEndstop = yEndstops.data?.find((e) => e.id === printer.defaults.yEndstop);
+			const partFan = partFanOptions.data?.[0];
+			const hotendFan = hotendFanOptions.data?.[0];
+			const controllerFan = controllerFanOptions.data?.[0];
+			const xAccelerometer = xAccelerometerOptions.data?.[0];
+			const yAccelerometer = yAccelerometerOptions.data?.[0];
 
-		if (board) {
-			setSelectedBoard(board);
-		}
-
-		if (toolboard) {
-			const _toolboard = Toolboard.safeParse(toolboard);
-			if (_toolboard.success) {
-				setSelectedToolboard(_toolboard.data);
+			if (board) {
+				setSelectedBoard(board);
 			}
-		}
 
-		if (hotend) {
-			setSelectedHotend(hotend);
-		}
+			if (toolboard) {
+				const _toolboard = Toolboard.safeParse(toolboard);
+				if (_toolboard.success) {
+					setSelectedToolboard(_toolboard.data);
+				}
+			}
 
-		if (extruder) {
-			setSelectedExtruder(extruder);
-		}
+			if (hotend) {
+				setSelectedHotend(hotend);
+			}
 
-		if (thermistor) {
-			setSelectedThermistor(thermistor);
-		}
+			if (extruder) {
+				setSelectedExtruder(extruder);
+			}
 
-		if (probe) {
-			setSelectedProbe(probe);
-		}
+			if (thermistor) {
+				setSelectedThermistor(thermistor);
+			}
 
-		if (xEndstop) {
-			setSelectedXEndstop(xEndstop);
-		}
+			if (probe) {
+				setSelectedProbe(probe);
+			}
 
-		if (yEndstop) {
-			setSelectedYEndstop(yEndstop);
-		}
+			if (xEndstop) {
+				setSelectedXEndstop(xEndstop);
+			}
 
-		if (partFan) {
-			setPartFan(partFan);
-		}
+			if (yEndstop) {
+				setSelectedYEndstop(yEndstop);
+			}
 
-		if (hotendFan) {
-			setHotendFan(hotendFan);
-		}
+			if (partFan) {
+				setSelectedPartFan(partFan);
+			}
 
-		if (controllerFan) {
-			setControllerFan(controllerFan);
-		}
-	};
+			if (hotendFan) {
+				setSelectedHotendFan(hotendFan);
+			}
+
+			if (controllerFan) {
+				setSelectedControllerFan(controllerFan);
+			}
+			if (xAccelerometer) {
+				setSelectedXAccelerometer(xAccelerometer);
+			}
+			if (yAccelerometer) {
+				setSelectedYAccelerometer(yAccelerometer);
+			}
+		},
+		[
+			boards.data,
+			hotends.data,
+			extruders.data,
+			thermistors.data,
+			probes.data,
+			xEndstops.data,
+			yEndstops.data,
+			partFanOptions.data,
+			hotendFanOptions.data,
+			controllerFanOptions.data,
+			xAccelerometerOptions.data,
+			yAccelerometerOptions.data,
+			setSelectedBoard,
+			setSelectedToolboard,
+			setSelectedHotend,
+			setSelectedExtruder,
+			setSelectedThermistor,
+			setSelectedProbe,
+			setSelectedXEndstop,
+			setSelectedYEndstop,
+			setSelectedPartFan,
+			setSelectedHotendFan,
+			setSelectedControllerFan,
+			setSelectedXAccelerometer,
+			setSelectedYAccelerometer,
+		],
+	);
 
 	const parsedPrinterConfiguration = PrinterConfiguration.safeParse({
 		controlboard: selectedBoard,
@@ -358,10 +441,14 @@ export const usePrinterConfiguration = () => {
 		probe: selectedProbe,
 		xEndstop: selectedXEndstop,
 		yEndstop: selectedYEndstop,
-		partFan,
-		hotendFan,
-		controllerFan,
+		partFan: selectedPartFan,
+		hotendFan: selectedHotendFan,
+		controllerFan: selectedControllerFan,
 		size: selectedPrinterOption,
+		xAccelerometer: selectedXAccelerometer,
+		yAccelerometer: selectedYAccelerometer,
+		performanceMode,
+		stealthchop,
 	});
 
 	const queryErrors: string[] = [];
@@ -409,16 +496,20 @@ export const usePrinterConfiguration = () => {
 		setSelectedBoard,
 		selectedToolboard,
 		setSelectedToolboard,
+		selectedXAccelerometer,
+		setSelectedXAccelerometer,
+		selectedYAccelerometer,
+		setSelectedYAccelerometer,
 		performanceMode,
 		setPerformanceMode,
-		stealtchop,
+		stealtchop: stealthchop,
 		setStealthchop,
-		partFan,
-		setPartFan,
-		hotendFan,
-		setHotendFan,
-		controllerFan,
-		setControllerFan,
+		selectedPartFan: selectedPartFan,
+		setSelectedPartFan: setSelectedPartFan,
+		selectedHotendFan: selectedHotendFan,
+		setSelectedHotendFan: setSelectedHotendFan,
+		selectedControllerFan: selectedControllerFan,
+		setSelectedControllerFan: setSelectedControllerFan,
 		hotends,
 		extruders,
 		thermistors,
@@ -428,6 +519,8 @@ export const usePrinterConfiguration = () => {
 		partFanOptions,
 		hotendFanOptions,
 		controllerFanOptions,
+		xAccelerometerOptions,
+		yAccelerometerOptions,
 		setPrinterDefaults,
 		partialPrinterConfiguration: printerConfiguration,
 		parsedPrinterConfiguration,

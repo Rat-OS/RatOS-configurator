@@ -1,4 +1,4 @@
-import { getPrinters, parseDirectory, printerRouter } from '../server/router/printer';
+import { getPrinters, parseDirectory } from '../server/router/printer';
 import { Extruder, Hotend, Probe } from '../zods/hardware';
 import { getBoards } from '../server/router/mcu';
 import fs from 'fs';
@@ -9,6 +9,7 @@ const environment = serverSchema.parse(process.env);
 import { describe, expect, test } from 'vitest';
 import { PartialPrinterConfiguration } from '../zods/printer-configuration';
 import { xEndstopOptions, yEndstopOptions } from '../data/endstops';
+import { serializePartialPrinterConfiguration } from '../hooks/usePrinterConfiguration';
 
 describe('configuration', async () => {
 	const parsedHotends = await parseDirectory('hotends', Hotend);
@@ -127,7 +128,10 @@ describe('configuration', async () => {
 				yEndstop: defaultYEndstop,
 				toolboard: defaultToolboard,
 			});
-			const partialConfig = partialConfigResult.success ? partialConfigResult.data : undefined;
+			const partialConfig =
+				partialConfigResult.success && partialConfigResult.data != null
+					? serializePartialPrinterConfiguration(partialConfigResult.data)
+					: undefined;
 
 			printer.defaults.board && expect(defaultBoard).not.toBeNull();
 

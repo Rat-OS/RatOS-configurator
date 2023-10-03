@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { Board } from './boards';
-import { Hotend, Thermistor, Extruder, Probe, Endstop, Fan } from './hardware';
+import { Hotend, Thermistor, Extruder, Probe, Endstop, Fan, Accelerometer } from './hardware';
 import { Printer } from './printer';
 
 export const PrinterConfiguration = z
@@ -18,6 +18,10 @@ export const PrinterConfiguration = z
 		partFan: Fan,
 		controllerFan: Fan,
 		hotendFan: Fan,
+		xAccelerometer: Accelerometer.optional().nullable(),
+		yAccelerometer: Accelerometer.optional().nullable(),
+		performanceMode: z.boolean().optional(),
+		stealthchop: z.boolean().optional(),
 	})
 	.refine(
 		(data) => data.size == null || ((data.printer.sizes?.length ?? 0) > 0 && data.size != null),
@@ -46,6 +50,10 @@ export const SerializedPrinterConfiguration = z.object({
 	partFan: Fan.shape.id,
 	controllerFan: Fan.shape.id,
 	hotendFan: Fan.shape.id,
+	xAccelerometer: Accelerometer.shape.id.optional().nullable(),
+	yAccelerometer: Accelerometer.shape.id.optional().nullable(),
+	performanceMode: z.boolean().optional(),
+	stealthchop: z.boolean().optional(),
 });
 
 export const PartialPrinterConfiguration = PrinterConfiguration.innerType()

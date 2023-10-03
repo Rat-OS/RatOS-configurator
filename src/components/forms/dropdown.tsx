@@ -13,6 +13,7 @@ interface DropdownProps<DropdownOption extends Option = Option> {
 	value: DropdownOption | null;
 	onSelect?: (option: DropdownOption) => void;
 	label: string;
+	sort?: boolean;
 }
 
 export const Dropdown = <DropdownOption extends Option = Option>(props: DropdownProps<DropdownOption>) => {
@@ -25,7 +26,8 @@ export const Dropdown = <DropdownOption extends Option = Option>(props: Dropdown
 		[onSelect],
 	);
 
-	const options = props.options.slice(0).sort((a, b) => a.title.localeCompare(b.title));
+	const options =
+		props.sort == false ? props.options : props.options.slice(0).sort((a, b) => a.title.localeCompare(b.title));
 
 	return (
 		<Listbox value={value} onChange={onSelected}>
