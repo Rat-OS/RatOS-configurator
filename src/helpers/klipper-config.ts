@@ -128,15 +128,42 @@ export const constructKlipperConfigHelpers = (
 		renderExtruder() {
 			let result: string[] = [];
 			result.push(`[include RatOS/extruders/${config.extruder.id}]`);
-			return result.push('\n');
+			return result.join('\n');
 		},
 		renderInputShaper(printerSize: number) {
 			let result: string[] = [];
 			result.push('[resonance_tester]');
-			if (config.toolboard != null) {
-				result.push('accel_chip: adxl345 toolboard');
-			} else {
-				result.push('accel_chip: adxl345');
+			switch (config.xAccelerometer?.id) {
+				case 'controlboard':
+					result.push('accel_chip_x: adxl345');
+					break;
+				case 'toolboard':
+					if (config.toolboard != null) {
+						result.push('accel_chip_x: adxl345 toolboard');
+						break;
+					}
+				case 'sbc':
+					result.push('accel_chip_x: adxl345 rpi');
+					break;
+				default:
+					result.push('accel_chip_x: adxl345');
+					break;
+			}
+			switch (config.yAccelerometer?.id) {
+				case 'controlboard':
+					result.push('accel_chip_y: adxl345');
+					break;
+				case 'toolboard':
+					if (config.toolboard != null) {
+						result.push('accel_chip_y: adxl345 toolboard');
+						break;
+					}
+				case 'sbc':
+					result.push('accel_chip_y: adxl345 rpi');
+					break;
+				default:
+					result.push('accel_chip_y: adxl345');
+					break;
 			}
 			result.push('probe_points:');
 			result.push(`\t${printerSize / 2},${printerSize / 2},20`);
@@ -207,13 +234,37 @@ export const constructKlipperConfigHelpers = (
 		renderFanOverrides() {
 			const result: string[] = [];
 			if (config.toolboard != null) {
-				result.push('# Use toolboard fan for part cooling');
-				result.push('[fan]');
-				result.push('pin: toolboard:fan_part_cooling_pin');
-				result.push('');
-				result.push('# Use toolboard fan for hotend cooling');
-				result.push('[heater_fan toolhead_cooling_fan]');
-				result.push('pin: toolboard:fan_toolhead_cooling_pin');
+				if (config.partFan.id !== '4pin-dedicated') {
+					result.push('# Use toolboard fan for part cooling');
+					result.push('[fan]');
+					if (config.partFan.id === '4pin') {
+						result.push('pin: !toolboard:fan_part_cooling_pin # 4-pin pwm controlled fan');
+					} else {
+						result.push('pin: toolboard:fan_part_cooling_pin');
+					}
+				}
+				if (config.hotendFan.id !== '4pin-dedicated') {
+					result.push('# Use toolboard fan for hotend cooling');
+					result.push('[heater_fan toolhead_cooling_fan]');
+					if (config.hotendFan.id === '4pin') {
+						result.push('pin: !toolboard:fan_toolhead_cooling_pin # 4-pin pwm controlled fan');
+					} else {
+						result.push('pin: toolboard:fan_toolhead_cooling_pin');
+					}
+				}
+			} else {
+				if (config.partFan.id === '4pin') {
+					result.push('[fan]');
+					result.push('pin: !fan_part_cooling_pin # 4-pin pwm controlled fan');
+				}
+				if (config.hotendFan.id === '4pin') {
+					result.push('[heater_fan toolhead_cooling_fan]');
+					result.push('pin: !fan_toolhead_cooling_pin # 4-pin pwm controlled fan');
+				}
+			}
+			if (config.controllerFan.id === '4pin') {
+				result.push('[controller_fan controller_Fan]');
+				result.push('pin: !fan_controller_bard_pin # 4-pin pwm controlled fan');
 			}
 			return result.join('\n');
 		},

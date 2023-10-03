@@ -251,6 +251,7 @@ export const PrinterConfigurationState = selector<z.infer<typeof PartialPrinterC
 export const serializePrinterConfiguration = (config: PrinterConfiguration): SerializedPrinterConfiguration => {
 	const serializedConfig: SerializedPrinterConfiguration = {
 		printer: config.printer.id,
+		size: config.size,
 		hotend: config.hotend.id,
 		thermistor: config.thermistor,
 		extruder: config.extruder.id,
@@ -262,6 +263,10 @@ export const serializePrinterConfiguration = (config: PrinterConfiguration): Ser
 		partFan: config.partFan.id,
 		hotendFan: config.hotendFan.id,
 		controllerFan: config.controllerFan.id,
+		xAccelerometer: config.xAccelerometer?.id,
+		yAccelerometer: config.yAccelerometer?.id,
+		performanceMode: config.performanceMode,
+		stealthchop: config.stealthchop,
 	};
 	return SerializedPrinterConfiguration.parse(serializedConfig);
 };
@@ -270,6 +275,7 @@ export const serializePartialPrinterConfiguration = (
 ): SerializedPartialPrinterConfiguration => {
 	const serializedConfig: SerializedPartialPrinterConfiguration = {
 		printer: config?.printer?.id,
+		size: config?.size,
 		hotend: config?.hotend?.id,
 		thermistor: config?.thermistor,
 		extruder: config?.extruder?.id,
@@ -281,6 +287,10 @@ export const serializePartialPrinterConfiguration = (
 		partFan: config?.partFan?.id,
 		hotendFan: config?.hotendFan?.id,
 		controllerFan: config?.controllerFan?.id,
+		xAccelerometer: config?.xAccelerometer?.id,
+		yAccelerometer: config?.yAccelerometer?.id,
+		performanceMode: config?.performanceMode,
+		stealthchop: config?.stealthchop,
 	};
 	return SerializedPartialPrinterConfiguration.parse(serializedConfig);
 };

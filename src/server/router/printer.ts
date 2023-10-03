@@ -90,6 +90,7 @@ export const deserializePartialPrinterConfiguration = async (
 	const toolboard = boards.find((b) => b.serialPath === config?.toolboard);
 	return PartialPrinterConfiguration.parse({
 		printer: (await getPrinters()).find((p) => p.id === config?.printer),
+		size: config?.size,
 		hotend: (await parseDirectory('hotends', Hotend)).find((h) => h.id === config?.hotend),
 		extruder: (await parseDirectory('extruders', Extruder)).find((e) => e.id === config?.extruder),
 		probe: (await parseDirectory('z-probe', Probe)).find((p) => p.id === config?.probe),
@@ -101,6 +102,10 @@ export const deserializePartialPrinterConfiguration = async (
 		controllerFan: controllerFanOptions({ controlboard, toolboard }).find((f) => f.id === config?.controllerFan),
 		controlboard: controlboard,
 		toolboard: toolboard,
+		xAccelerometer: xAccelerometerOptions(config).find((a) => a.id === config?.xAccelerometer),
+		yAccelerometer: yAccelerometerOptions(config).find((a) => a.id === config?.yAccelerometer),
+		performanceMode: config?.performanceMode,
+		stealthchop: config?.stealthchop,
 	});
 };
 
@@ -113,6 +118,7 @@ export const deserializePrinterConfiguration = async (
 	const toolboard = boards.find((b) => b.serialPath === config?.toolboard);
 	return PrinterConfiguration.parse({
 		printer: (await getPrinters()).find((p) => p.id === config?.printer),
+		size: config?.size,
 		hotend: (await parseDirectory('hotends', Hotend)).find((h) => h.id === config?.hotend),
 		extruder: (await parseDirectory('extruders', Extruder)).find((e) => e.id === config?.extruder),
 		probe: (await parseDirectory('z-probe', Probe)).find((p) => p.id === config?.probe),
@@ -124,6 +130,10 @@ export const deserializePrinterConfiguration = async (
 		controllerFan: controllerFanOptions({ controlboard, toolboard }).find((f) => f.id === config?.controllerFan),
 		controlboard: controlboard,
 		toolboard: toolboard,
+		xAccelerometer: xAccelerometerOptions(config).find((a) => a.id === config?.xAccelerometer),
+		yAccelerometer: yAccelerometerOptions(config).find((a) => a.id === config?.yAccelerometer),
+		performanceMode: config?.performanceMode,
+		stealthchop: config?.stealthchop,
 	});
 };
 

@@ -258,6 +258,58 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 											</div>
 										)}
 								</dl>
+								<dl className="grid grid-cols-1 gap-y-4 gap-x-4  border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
+									<div className="sm:col-span-1">
+										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Part cooling fan</dt>
+										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
+											{partialPrinterConfiguration.partFan?.title ?? 'None selected'}
+										</dd>
+									</div>
+									<div className="sm:col-span-1">
+										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">
+											Hotend cooling fan
+										</dt>
+										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
+											{partialPrinterConfiguration.hotendFan?.title ?? 'None selected'}
+										</dd>
+									</div>
+									<div className="sm:col-span-1">
+										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">
+											Controller cooling fan
+										</dt>
+										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
+											{partialPrinterConfiguration.controllerFan?.title ?? 'None selected'}
+										</dd>
+									</div>
+								</dl>
+								<dl className="grid grid-cols-1 gap-y-4 gap-x-4  border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
+									<div className="sm:col-span-1">
+										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Performance mode</dt>
+										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
+											{partialPrinterConfiguration.performanceMode ? 'Enabled' : 'Disabled'}
+										</dd>
+									</div>
+									<div className="sm:col-span-1">
+										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Stealtchop</dt>
+										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
+											{partialPrinterConfiguration.stealthchop ? 'Enabled' : 'Disabled'}
+										</dd>
+									</div>
+								</dl>
+								<dl className="grid grid-cols-1 gap-y-4 gap-x-4  border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
+									<div className="sm:col-span-1">
+										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">X Accelerometer</dt>
+										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
+											{partialPrinterConfiguration.xAccelerometer?.title ?? 'None'}
+										</dd>
+									</div>
+									<div className="sm:col-span-1">
+										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Y Accelerometer</dt>
+										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
+											{partialPrinterConfiguration.yAccelerometer?.title ?? 'None'}
+										</dd>
+									</div>
+								</dl>
 								<dl className="grid grid-cols-1 gap-y-4 gap-x-4 border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
 									<div className="border-t border-zinc-100 pt-5 dark:border-zinc-700 sm:col-span-2">
 										<InfoMessage>
