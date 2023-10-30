@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { Voltage } from './hardware';
 
 export const Board = z.object({
 	serialPath: z.string(),
@@ -14,8 +15,19 @@ export const Board = z.object({
 	documentationLink: z.string().optional(),
 	hasQuirksFiles: z.boolean().optional(),
 	driverCount: z.number(),
+	integratedDrivers: z
+		.object({
+			x: z.string(),
+			y: z.string(),
+			z: z.string(),
+			z1: z.string().optional(),
+			z2: z.string().optional(),
+			extruder: z.string(),
+		})
+		.optional(),
 	extruderlessConfig: z.string().optional(),
 	fourPinFanConnectorCount: z.number().optional(),
+	driverVoltages: Voltage.array().default([24]).optional(),
 	dfu: z
 		.object({
 			dfuBootImage: z.string(),

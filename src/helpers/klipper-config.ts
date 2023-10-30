@@ -8,13 +8,13 @@ export const constructKlipperConfigExtrasGenerator = (config: PrinterConfigurati
 	const _reminders: string[] = [];
 	return {
 		getFilesToWrite() {
-			return _filesToWrite;
+			return _filesToWrite.slice();
 		},
 		addFileToRender(fileToRender: Unpacked<WritableFiles>) {
 			_filesToWrite.push(fileToRender);
 		},
 		getReminders() {
-			return _reminders;
+			return _reminders.slice();
 		},
 		generateSensorlessHomingIncludes() {
 			const filesToWrite: WritableFiles = [];
@@ -67,7 +67,9 @@ export const constructKlipperConfigHelpers = (
 ) => {
 	return {
 		renderBoardIncludes() {
-			const result: string[] = [];
+			const result: string[] = [
+				'[include RatOS/boards/rpi/config.cfg]', // Always include RPi.
+			];
 			if (config.printer.driverCountRequired > config.controlboard.driverCount) {
 				if (config.controlboard.extruderlessConfig == null) {
 					throw new Error(
@@ -99,6 +101,20 @@ export const constructKlipperConfigHelpers = (
 				result.push('# Use toolboard driver for extruder');
 				result.push('[tmc2209 extruder]');
 				result.push('uart_pin: toolboard:e_uart_pin');
+			}
+			if (config.controlboard.hasQuirksFiles) {
+				result.push('# Include controlboard quirk file');
+				if (config.toolboard != null) {
+					result.push(
+						`[include RatOS/boards/${config.controlboard.serialPath.replace('/dev/', '')}/quirks-toolboard.cfg]`,
+					);
+				} else {
+					result.push(`[include RatOS/boards/${config.controlboard.serialPath.replace('/dev/', '')}/quirks.cfg]`);
+				}
+			}
+			if (config.toolboard?.hasQuirksFiles) {
+				result.push('# Include toolboard quirk file');
+				result.push(`[include RatOS/boards/${config.toolboard.serialPath.replace('/dev/', '')}/quirks.cfg]`);
 			}
 			return result.join('\n');
 		},
@@ -216,14 +232,18 @@ export const constructKlipperConfigHelpers = (
 		renderEndstopSection() {
 			const result: string[] = [];
 			if (config.xEndstop.id !== 'sensorless') {
-				result.push(`# Endstop configuration`);
+				result.push(`# Physical endstop configuration for X`);
 				result.push(`[stepper_x]`);
 				result.push(`endstop_pin: ${this.getXEndstopPinPrefix()}x_endstop_pin`);
+				result.push(`[gcode_macro RatOS]`);
+				result.push(`variable_homing_x: "endstop"`);
 			}
 			if (config.yEndstop.id !== 'sensorless') {
-				result.push(`# Endstop configuration`);
+				result.push(`# Physical endstop configuration Y`);
 				result.push(`[stepper_y]`);
 				result.push(`endstop_pin: ${this.getYEndstopPinPrefix()}y_endstop_pin`);
+				result.push(`[gcode_macro RatOS]`);
+				result.push(`variable_homing_y: "endstop"`);
 			}
 
 			if (config.xEndstop.id === 'sensorless' || config.yEndstop.id === 'sensorless') {
@@ -267,6 +287,9 @@ export const constructKlipperConfigHelpers = (
 				result.push('pin: !fan_controller_bard_pin # 4-pin pwm controlled fan');
 			}
 			return result.join('\n');
+		},
+		uncommentIf(condition: boolean | undefined | null) {
+			return condition === true ? '' : '#';
 		},
 		getExtruderPinPrefix() {
 			if (config.toolboard != null) {

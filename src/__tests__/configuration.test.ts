@@ -1,5 +1,5 @@
 import { getPrinters, parseDirectory } from '../server/router/printer';
-import { Extruder, Hotend, Probe } from '../zods/hardware';
+import { Extruder, Hotend, Probe, deserializePrinterRail } from '../zods/hardware';
 import { getBoards } from '../server/router/mcu';
 import fs from 'fs';
 import path from 'path';
@@ -10,6 +10,7 @@ import { describe, expect, test } from 'vitest';
 import { PartialPrinterConfiguration } from '../zods/printer-configuration';
 import { xEndstopOptions, yEndstopOptions } from '../data/endstops';
 import { serializePartialPrinterConfiguration } from '../hooks/usePrinterConfiguration';
+import { Steppers } from '../data/steppers';
 
 describe('configuration', async () => {
 	const parsedHotends = await parseDirectory('hotends', Hotend);
@@ -118,6 +119,9 @@ describe('configuration', async () => {
 			const defaultXEndstop = xEndstopOptions().find((option) => option.id === printer.defaults?.xEndstop);
 			const defaultYEndstop = yEndstopOptions().find((option) => option.id === printer.defaults?.yEndstop);
 			const defaultToolboard = parsedBoards.find((board) => board.serialPath === '/dev/' + printer.defaults?.toolboard);
+			const defaultRails = printer.defaults?.rails?.map((r) => {
+				return deserializePrinterRail(r);
+			});
 			const partialConfigResult = PartialPrinterConfiguration.safeParse({
 				printer: printer,
 				board: defaultBoard,
@@ -127,6 +131,7 @@ describe('configuration', async () => {
 				xEndstop: defaultXEndstop,
 				yEndstop: defaultYEndstop,
 				toolboard: defaultToolboard,
+				rails: defaultRails,
 			});
 			const partialConfig =
 				partialConfigResult.success && partialConfigResult.data != null
@@ -147,6 +152,7 @@ describe('configuration', async () => {
 				expect(
 					yEndstopOptions(partialConfig).find((option) => option.id === printer.defaults?.yEndstop),
 				).not.toBeNull();
+			printer.defaults.rails && expect(defaultRails?.length).toBeGreaterThan(0);
 		});
 	});
 });

@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import { getLogger } from '../../helpers/logger';
 import * as trpc from '@trpc/server';
-import { exec } from 'child_process';
 import { promisify } from 'util';
 
 import { parseMetadata } from '../../helpers/parseMetadata';
@@ -21,6 +20,7 @@ import { serverSchema } from '../../env/schema.mjs';
 import { controllerFanOptions, hotendFanOptions, partFanOptions } from '../../data/fans';
 import { getBoards } from './mcu';
 import { xAccelerometerOptions, yAccelerometerOptions } from '../../data/accelerometers';
+import { glob } from 'glob';
 
 function isNodeError(error: any): error is NodeJS.ErrnoException {
 	return error instanceof Error;
@@ -29,11 +29,10 @@ function isNodeError(error: any): error is NodeJS.ErrnoException {
 type FileAction = 'created' | 'overwritten' | 'skipped' | 'error';
 
 export const parseDirectory = async <T extends z.ZodType>(directory: string, zod: T) => {
-	const defs = await promisify(exec)(`ls ${process.env.RATOS_CONFIGURATION_PATH}/${directory}/*.cfg`);
+	const defs = await glob(`${process.env.RATOS_CONFIGURATION_PATH}/${directory}/*.cfg`);
 	return (
 		await Promise.all(
-			defs.stdout
-				.split('\n')
+			defs
 				.map((f) => f.trim())
 				.filter((f) => f !== '')
 				.map(async (f) => {
@@ -49,10 +48,9 @@ export const parseDirectory = async <T extends z.ZodType>(directory: string, zod
 };
 
 export const getPrinters = async () => {
-	const defs = await promisify(exec)(`ls ${process.env.RATOS_CONFIGURATION_PATH}/printers/*/printer-definition.json`);
+	const defs = await glob(`${process.env.RATOS_CONFIGURATION_PATH}/printers/*/printer-definition.json`);
 	return z.array(Printer).parse(
-		defs.stdout
-			.split('\n')
+		defs
 			.map((f) =>
 				f.trim() === ''
 					? null
@@ -218,15 +216,16 @@ export const printerRouter = trpc
 			const { template, initialPrinterCfg } = await import(
 				`../../templates/${config.printer.template.replace('-printer.template.cfg', '.ts')}`
 			);
-			const extras = extrasGenerator.getFilesToWrite();
 
 			const environment = serverSchema.parse(process.env);
-			const currentcfg = readFileSync(path.join(environment.KLIPPER_CONFIG_PATH, 'printer.cfg')).toString();
+			const renderedTemplate = template(config, helper).trim();
+			const renderedPrinterCfg = initialPrinterCfg(config, helper).trim();
+			const extras = extrasGenerator.getFilesToWrite();
 			const filesToWrite = extras.concat([
-				{ fileName: 'RatOS.cfg', content: template(config, helper).trim(), overwrite: true },
+				{ fileName: 'RatOS.cfg', content: renderedTemplate, overwrite: true },
 				{
 					fileName: 'printer.cfg',
-					content: initialPrinterCfg(config, helper).trim(),
+					content: renderedPrinterCfg,
 					overwrite: !(await isPrinterCfgInitialized()) || overwritePrinterCfg,
 				},
 			]);

@@ -14,12 +14,12 @@ ${helper.renderBoardIncludes()}
 #############################################################################################################
 ### BASE SETUP
 #############################################################################################################
-[include RatOS/printers/v-core-3/v-core-3.cfg]
+[include RatOS/printers/v-core-pro/v-core-pro.cfg]
 [include RatOS/homing.cfg]
 [include RatOS/macros.cfg]
 [include RatOS/shell-macros.cfg]
-[include RatOS/printers/v-core-3/macros.cfg]
-[include RatOS/printers/v-core-3/${config.size}.cfg]
+[include RatOS/printers/v-core-pro/macros.cfg]
+[include RatOS/printers/v-core-pro/${config.size}.cfg]
 
 # Extruder
 ${helper.renderExtruder()}
@@ -34,20 +34,19 @@ ${helper.renderInputShaper(config.size ?? 300)}
 ### STEPPER MOTORS, DRIVERS & SPEED LIMITS
 ### Pick the drivers and stepper motors you're using. See the RatOS documentation for custom combinations.
 #############################################################################################################
-[include RatOS/printers/v-core-3/steppers.cfg]
+[include RatOS/printers/v-core-pro/steppers.cfg]
 
 # UNCOOLED TMC 2209 + LDO-42STH48-2504AC
-${helper.uncommentIf(!config.performanceMode)}[include RatOS/printers/v-core-3/tmc2209.cfg]
-${helper.uncommentIf(!config.performanceMode)}[include RatOS/printers/v-core-3/speed-limits-basic.cfg]
+${helper.uncommentIf(!config.performanceMode)}[include RatOS/printers/v-core-pro/tmc2209.cfg]
+${helper.uncommentIf(!config.performanceMode)}[include RatOS/printers/v-core-pro/speed-limits-basic.cfg]
 ${helper.uncommentIf(!config.performanceMode)}[include RatOS/steppers/ldo/42sth48-2504ac/2209/24v-1.1a-x.cfg]
 ${helper.uncommentIf(!config.performanceMode)}[include RatOS/steppers/ldo/42sth48-2504ac/2209/24v-1.1a-y.cfg]
 ${helper.uncommentIf(!config.performanceMode)}[include RatOS/steppers/ldo/42sth48-2504ac/2209/24v-1.1a-z.cfg]
 ${helper.uncommentIf(!config.performanceMode)}[include RatOS/steppers/ldo/42sth48-2504ac/2209/24v-1.1a-z1.cfg]
 ${helper.uncommentIf(!config.performanceMode)}[include RatOS/steppers/ldo/42sth48-2504ac/2209/24v-1.1a-z2.cfg]
-
 # PERFORMANCE MODE: COOLED TMC 2209 + LDO-42STH48-2504AC
-${helper.uncommentIf(config.performanceMode)}[include RatOS/printers/v-core-3/tmc2209-performance.cfg]
-${helper.uncommentIf(config.performanceMode)}[include RatOS/printers/v-core-3/speed-limits-performance.cfg]
+${helper.uncommentIf(config.performanceMode)}[include RatOS/printers/v-core-pro/tmc2209-performance.cfg]
+${helper.uncommentIf(config.performanceMode)}[include RatOS/printers/v-core-pro/speed-limits-performance.cfg]
 ${helper.uncommentIf(config.performanceMode)}[include RatOS/steppers/ldo/42sth48-2504ac/2209/24v-1.6a-x.cfg]
 ${helper.uncommentIf(config.performanceMode)}[include RatOS/steppers/ldo/42sth48-2504ac/2209/24v-1.6a-y.cfg]
 ${helper.uncommentIf(config.performanceMode)}[include RatOS/steppers/ldo/42sth48-2504ac/2209/24v-1.6a-z.cfg]
@@ -55,8 +54,8 @@ ${helper.uncommentIf(config.performanceMode)}[include RatOS/steppers/ldo/42sth48
 ${helper.uncommentIf(config.performanceMode)}[include RatOS/steppers/ldo/42sth48-2504ac/2209/24v-1.6a-z2.cfg]
 
 # STEALTH MODE (Enables stealthchop and limits velocity and acceleration)
-${helper.uncommentIf(config.stealthchop)}[include RatOS/printers/v-core-3/speed-limits-stealth.cfg]
-${helper.uncommentIf(config.stealthchop)}[include RatOS/printers/v-core-3/tmc2209-stealth.cfg]
+${helper.uncommentIf(config.stealthchop)}[include RatOS/printers/v-core-pro/speed-limits-stealth.cfg]
+${helper.uncommentIf(config.stealthchop)}[include RatOS/printers/v-core-pro/tmc2209-stealth.cfg]
 
 ${helper.renderDriverOverrides()}
 

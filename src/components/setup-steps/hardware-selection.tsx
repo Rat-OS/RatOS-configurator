@@ -195,7 +195,7 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 						<div className="col-span-2">
 							<Toggle
 								label="Performance mode"
-								description="Increases the stepper power, max acceleration and velocity. Not recommended for initial setup."
+								description="Increases the stepper power, max acceleration and velocity. Not recommended for initial setup. Requires actively cooled drivers (controller fan)."
 								onChange={setPerformanceMode}
 								value={!!performanceMode}
 							/>
