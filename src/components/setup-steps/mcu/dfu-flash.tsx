@@ -1,9 +1,9 @@
 /* eslint-disable @next/next/no-img-element */
-import Image from 'next/image';
 import React, { useCallback, useState } from 'react';
 import { trpc } from '../../../helpers/trpc';
 import { Board } from '../../../server/router/mcu';
 import { Button } from '../../button';
+import { InfoMessage } from '../../info-message';
 import { ErrorMessage } from '../../error-message';
 
 interface DFUFlashProps {
@@ -51,6 +51,7 @@ export const DFUFlash: React.FC<DFUFlashProps> = (props) => {
 				<ol className="list-decimal pl-4 mb-4">{instructions}</ol>
 				<img src={'/configure/api/dfu-image?' + boardPathUri} alt="DFU boot buttons and or jumper visualization" />
 			</div>
+			{props.board.dfu?.reminder && <InfoMessage title="Reminder">{props.board.dfu?.reminder}</InfoMessage>}
 		</div>
 	);
 };
