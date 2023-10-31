@@ -93,7 +93,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 		const versionMismatch =
 			boardVersion != null && klipperVersion != null && boardVersion !== klipperVersion ? (
 				<WarningMessage title="Version mismatch">
-					The board is running version {boardVersion} but you your pi is on version {klipperVersion}. If you want to
+					The board is running version {boardVersion} but your pi is on version {klipperVersion}. If you want to
 					update your board click 'flash again' below.
 				</WarningMessage>
 			) : null;
