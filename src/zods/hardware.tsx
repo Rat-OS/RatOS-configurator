@@ -142,7 +142,7 @@ export const Stepper = z.object({
 const BasePrinterRail = z.object({
 	axis: z.enum(['x', 'x1', 'y', 'y1', 'z', 'z1', 'z2', 'z3', 'extruder']).describe('Axis of the rail'),
 	driver: Driver.describe('Stepper driver used on this axis'),
-	voltage: Voltage.describe('Voltage of the stepper driver'),
+	voltage: Voltage.default(24).optional().describe('Voltage of the stepper driver'),
 	stepper: Stepper.describe('Stepper motor connected to this axis'),
 	current: z.number().min(0),
 	performanceMode: z.boolean().optional(),

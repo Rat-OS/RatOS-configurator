@@ -114,4 +114,14 @@ export const Drivers: z.infer<typeof Driver>[] = [
 		voltages: [24],
 		maxCurrent: 2.0,
 	},
+	{
+		id: 'PRUSA-BUDDY-TMC2209',
+		title: 'Prusa Buddy TMC2209',
+		type: 'TMC2209',
+		protocol: 'UART',
+		senseResistor: 0.11,
+		coolingCurrentThreshold: 1.1,
+		voltages: [24],
+		maxCurrent: 2.0,
+	},
 ];

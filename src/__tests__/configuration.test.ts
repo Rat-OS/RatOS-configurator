@@ -7,7 +7,7 @@ import { promisify } from 'util';
 import { serverSchema } from '../env/schema.mjs';
 const environment = serverSchema.parse(process.env);
 import { describe, expect, test } from 'vitest';
-import { PartialPrinterConfiguration } from '../zods/printer-configuration';
+import { PartialPrinterConfiguration, SerializedPartialPrinterConfiguration } from '../zods/printer-configuration';
 import { xEndstopOptions, yEndstopOptions } from '../data/endstops';
 import { serializePartialPrinterConfiguration } from '../hooks/usePrinterConfiguration';
 import { Steppers } from '../data/steppers';
@@ -103,6 +103,34 @@ describe('configuration', async () => {
 		expect(parsedPrinters.length).toBeGreaterThan(0);
 	});
 	describe.each(printerConfigs)('has valid $manufacturer $name definition', async (printer) => {
+		const defaultBoard = parsedBoards.find((board) => board.serialPath === '/dev/' + printer.defaults.board);
+		const defaultHotend = parsedHotends.find((hotend) => hotend.id === printer.defaults.hotend + '.cfg');
+		const defaultExtruder = parsedExtruders.find((extruder) => extruder.id === printer.defaults.extruder + '.cfg');
+		const defaultProbe = parsedProbes.find((probe) => probe.id === printer.defaults.probe + '.cfg');
+		const defaultXEndstop = xEndstopOptions().find((option) => option.id === printer.defaults.xEndstop);
+		const defaultYEndstop = yEndstopOptions().find((option) => option.id === printer.defaults.yEndstop);
+		const defaultToolboard = parsedBoards.find((board) => board.serialPath === '/dev/' + printer.defaults.toolboard);
+		const defaultRails = printer.defaults.rails.map((r) => {
+			return deserializePrinterRail(r);
+		});
+		const partialConfigResult = PartialPrinterConfiguration.safeParse({
+			printer: printer,
+			board: defaultBoard,
+			hotend: defaultHotend,
+			extruder: defaultExtruder,
+			probe: defaultProbe,
+			xEndstop: defaultXEndstop,
+			yEndstop: defaultYEndstop,
+			toolboard: defaultToolboard,
+			rails: defaultRails,
+		});
+		let partialConfig: undefined | SerializedPartialPrinterConfiguration;
+		test('has serializable config', async () => {
+			partialConfig =
+				partialConfigResult.success && partialConfigResult.data != null
+					? serializePartialPrinterConfiguration(partialConfigResult.data)
+					: undefined;
+		});
 		test('has a valid image', async () => {
 			expect(fs.existsSync(path.join(printer.path, printer.image))).toBeTruthy();
 		});
@@ -111,48 +139,38 @@ describe('configuration', async () => {
 				fs.existsSync(path.join(environment.RATOS_CONFIGURATION_PATH, 'templates', printer.template)),
 			).toBeTruthy();
 		});
-		test('has valid defaults', async () => {
-			const defaultBoard = parsedBoards.find((board) => board.serialPath === '/dev/' + printer.defaults?.board);
-			const defaultHotend = parsedHotends.find((hotend) => hotend.id === printer.defaults?.hotend + '.cfg');
-			const defaultExtruder = parsedExtruders.find((extruder) => extruder.id === printer.defaults?.extruder + '.cfg');
-			const defaultProbe = parsedProbes.find((probe) => probe.id === printer.defaults?.probe + '.cfg');
-			const defaultXEndstop = xEndstopOptions().find((option) => option.id === printer.defaults?.xEndstop);
-			const defaultYEndstop = yEndstopOptions().find((option) => option.id === printer.defaults?.yEndstop);
-			const defaultToolboard = parsedBoards.find((board) => board.serialPath === '/dev/' + printer.defaults?.toolboard);
-			const defaultRails = printer.defaults?.rails?.map((r) => {
-				return deserializePrinterRail(r);
-			});
-			const partialConfigResult = PartialPrinterConfiguration.safeParse({
-				printer: printer,
-				board: defaultBoard,
-				hotend: defaultHotend,
-				extruder: defaultExtruder,
-				probe: defaultProbe,
-				xEndstop: defaultXEndstop,
-				yEndstop: defaultYEndstop,
-				toolboard: defaultToolboard,
-				rails: defaultRails,
-			});
-			const partialConfig =
-				partialConfigResult.success && partialConfigResult.data != null
-					? serializePartialPrinterConfiguration(partialConfigResult.data)
-					: undefined;
-
-			printer.defaults.board && expect(defaultBoard).not.toBeNull();
-
-			printer.defaults.toolboard && expect(defaultToolboard).not.toBeNull();
-			printer.defaults.hotend && expect(defaultHotend).not.toBeNull();
-			printer.defaults.extruder && expect(defaultExtruder).not.toBeNull();
-			printer.defaults.probe && expect(defaultProbe).not.toBeNull();
-			printer.defaults.xEndstop &&
-				expect(
-					xEndstopOptions(partialConfig).find((option) => option.id === printer.defaults?.xEndstop),
-				).not.toBeNull();
-			printer.defaults.yEndstop &&
-				expect(
-					yEndstopOptions(partialConfig).find((option) => option.id === printer.defaults?.yEndstop),
-				).not.toBeNull();
-			printer.defaults.rails && expect(defaultRails?.length).toBeGreaterThan(0);
+		test('has valid board default', () => {
+			expect(defaultBoard).not.toBeNull();
+		});
+		test.skipIf(!printer.defaults.toolboard)('has valid toolboard default', () => {
+			expect(defaultToolboard).not.toBeNull();
+		});
+		test.skipIf(!printer.defaults.probe)('has valid probe default', () => {
+			expect(defaultProbe).not.toBeNull();
+		});
+		test('has valid hotend default', () => {
+			expect(defaultHotend).not.toBeNull();
+		});
+		test('has valid extruder default', () => {
+			expect(defaultExtruder).not.toBeNull();
+		});
+		test('has valid x endstop default', () => {
+			expect(xEndstopOptions(partialConfig).find((option) => option.id === printer.defaults.xEndstop)).not.toBeNull();
+		});
+		test('has valid x endstop default', () => {
+			expect(yEndstopOptions(partialConfig).find((option) => option.id === printer.defaults.yEndstop)).not.toBeNull();
+		});
+		test('has valid rail defaults', () => {
+			// Rail definitions required for printer definition
+			expect(defaultRails.length ?? 0).toBeGreaterThanOrEqual(printer.driverCountRequired);
+		});
+		test('has one non-performance mode default and no more than one performance mode default per rail', () => {
+			const railModes = defaultRails.map((r) => r.axis + (r.performanceMode ? 'performance' : 'non-performance'));
+			console.log(defaultRails);
+			expect(defaultRails.filter((r) => !r.performanceMode).length ?? 0).toBeGreaterThanOrEqual(
+				printer.driverCountRequired,
+			);
+			expect(railModes.length).toBe(new Set(railModes).size);
 		});
 	});
 });

@@ -8,6 +8,15 @@ if (process.env.RATOS_CONFIGURATION_PATH) {
 	const environment = serverSchema.parse(process.env);
 	startsWithServerValidation = path.join(environment.RATOS_CONFIGURATION_PATH, 'printers');
 }
+
+const SpeedLimits = z.object({
+	velocity: z.number().min(0).describe('Maximum velocity for this printer'),
+	accel: z.number().min(0).describe('Maximum acceleration for this printer'),
+	z_velocity: z.number().min(0).describe('Maximum z velocity for this printer'),
+	z_accel: z.number().min(0).describe('Maximum z acceleration for this printer'),
+	square_corner_velocity: z.number().min(0).default(5).describe('Maximum square corner velocity for this printer'),
+});
+
 export const Printer = z
 	.object({
 		id: z.string(),
@@ -20,6 +29,12 @@ export const Printer = z
 		template: z.string().describe('Printer.cfg template for this printer'),
 		path: z.string().startsWith(startsWithServerValidation),
 		driverCountRequired: z.number().describe('Number of drivers required for this printer'),
+		speedLimits: z
+			.object({
+				basic: SpeedLimits,
+				performance: SpeedLimits.optional(),
+			})
+			.describe('Speed limits for this printer'),
 		defaults: z
 			.object({
 				extruder: z
@@ -39,7 +54,7 @@ export const Printer = z
 					.optional(),
 				xEndstop: z.enum(['endstop', 'endstop-toolboard', 'sensorless']).describe('Default x endstop for this printer'),
 				yEndstop: z.enum(['sensorless', 'endstop']).describe('Default y endstop for this printer'),
-				rails: z.array(SerializedPrinterRail).describe('Default rails for this printer').optional(),
+				rails: z.array(SerializedPrinterRail).describe('Default rails for this printer'),
 			})
 			.describe('Default hardware for this printer'),
 	})
