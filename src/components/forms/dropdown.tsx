@@ -51,6 +51,7 @@ export const Dropdown = <DropdownOption extends Option = Option>(props: Dropdown
 									{...props.badge}
 									color={props.badge.color ?? (props.disabled ? 'plain' : props.badge.color)}
 									size="sm"
+									className="-mr-1.5"
 								/>
 							)}
 							{!props.disabled && (
@@ -63,9 +64,12 @@ export const Dropdown = <DropdownOption extends Option = Option>(props: Dropdown
 						<Transition
 							show={open}
 							as={Fragment}
-							leave="transition ease-in duration-100"
-							leaveFrom="opacity-100"
-							leaveTo="opacity-0"
+							enter="transition duration-150 ease-out"
+							enterFrom="transform translate-y-1 opacity-0"
+							enterTo="transform translate-y-0 opacity-100"
+							leave="transition duration-200 ease-out"
+							leaveFrom="transform translate-y-0 opacity-100"
+							leaveTo="transform translate-y-1 opacity-0"
 						>
 							<Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-zinc-400 scrollbar-thumb-rounded-md focus:outline-none dark:bg-zinc-900 dark:scrollbar-thumb-zinc-600 sm:text-sm">
 								{options.length === 0 && (

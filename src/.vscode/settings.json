@@ -6,5 +6,16 @@
       ["cx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"],
       ["twMerge\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"],
       ["twJoin\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+  ],
+  "tailwindCSS.classAttributes": [
+    "class",
+    "className",
+    "ngClass",
+    "enterFrom",
+    "enterTo",
+    "enter",
+    "leaveFrom",
+    "leaveTo",
+    "leave"
   ]
 }
