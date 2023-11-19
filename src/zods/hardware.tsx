@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { serverSchema } from '../env/schema.mjs';
 import { Steppers } from '../data/steppers';
 import { Drivers } from '../data/drivers';
+import { Board, Toolboard } from './boards.jsx';
 
 export const thermistors = [
 	'EPCOS 100K B57560G104F',
@@ -58,13 +59,33 @@ export const Fan = z.object({
 	title: z.string(),
 });
 
-enum StepperVoltage {
+export enum StepperVoltage {
 	'24V' = 24,
 	'36V' = 36,
 	'48V' = 48,
 	'56V' = 56,
 	'60V' = 60,
 }
+
+export const Voltages: { id: StepperVoltage; title: string }[] = [
+	{ id: StepperVoltage['24V'], title: '24V' },
+	{ id: StepperVoltage['36V'], title: '36V' },
+	{ id: StepperVoltage['48V'], title: '48V' },
+	{ id: StepperVoltage['56V'], title: '56V' },
+	{ id: StepperVoltage['60V'], title: '60V' },
+];
+
+export const getSupportedVoltages = (
+	board: Board | Toolboard | null,
+	driver?: z.infer<typeof Driver>,
+): typeof Voltages => {
+	if (driver?.external) {
+		return Voltages.filter((v) => driver?.voltages?.includes(v.id) || v.id === StepperVoltage['24V']);
+	}
+	return Voltages.filter((v) => board?.driverVoltages?.includes(v.id) || v.id === StepperVoltage['24V']).filter(
+		(v) => driver?.voltages?.includes(v.id) || v.id === StepperVoltage['24V'],
+	);
+};
 
 export const Voltage = z.nativeEnum(StepperVoltage);
 
@@ -139,8 +160,21 @@ export const Stepper = z.object({
 		.describe('Stepper presets are tightly coupled to the driver type, sense_resistor, stepper, voltage and current.'),
 });
 
-const BasePrinterRail = z.object({
-	axis: z.enum(['x', 'x1', 'y', 'y1', 'z', 'z1', 'z2', 'z3', 'extruder']).describe('Axis of the rail'),
+export enum PrinterAxis {
+	'x' = 'x',
+	'x1' = 'x1',
+	'y' = 'y',
+	'y1' = 'y1',
+	'z' = 'z',
+	'z1' = 'z1',
+	'z2' = 'z2',
+	'z3' = 'z3',
+	'extruder' = 'extruder',
+}
+
+export const BasePrinterRail = z.object({
+	axis: z.nativeEnum(PrinterAxis).describe('Axis of the rail'),
+	axisDescription: z.string().optional().describe('Description of the axis'),
 	driver: Driver.describe('Stepper driver used on this axis'),
 	voltage: Voltage.default(24).optional().describe('Voltage of the stepper driver'),
 	stepper: Stepper.describe('Stepper motor connected to this axis'),
@@ -170,9 +204,16 @@ export const SerializedPrinterRail = BasePrinterRail.extend({
 	stepper: Stepper.shape.id,
 });
 
+export const deserializeDriver = (driverId: z.infer<typeof Driver.shape.id>): z.infer<typeof Driver> | null => {
+	return Drivers.find((d) => d.id === driverId) ?? null;
+};
+export const deserializeStepper = (stepperId: z.infer<typeof Stepper.shape.id>): z.infer<typeof Stepper> | null => {
+	return Steppers.find((d) => d.id === stepperId) ?? null;
+};
+
 export const deserializePrinterRail = (rail: z.infer<typeof SerializedPrinterRail>): z.infer<typeof PrinterRail> => {
-	const stepper = Steppers.find((s) => s.id === rail.stepper);
-	const driver = Drivers.find((d) => d.id === rail.driver);
+	const stepper = deserializeStepper(rail.stepper);
+	const driver = deserializeDriver(rail.driver);
 	if (stepper == null) {
 		throw new Error(`Stepper ${rail.stepper} not found in database`);
 	}
@@ -181,7 +222,7 @@ export const deserializePrinterRail = (rail: z.infer<typeof SerializedPrinterRai
 	}
 	return PrinterRail.parse({
 		...rail,
-		stepper: Steppers.find((s) => s.id === rail.stepper),
-		driver: Drivers.find((d) => d.id === rail.driver),
+		stepper,
+		driver,
 	});
 };

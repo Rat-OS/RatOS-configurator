@@ -166,7 +166,6 @@ describe('configuration', async () => {
 		});
 		test('has one non-performance mode default and no more than one performance mode default per rail', () => {
 			const railModes = defaultRails.map((r) => r.axis + (r.performanceMode ? 'performance' : 'non-performance'));
-			console.log(defaultRails);
 			expect(defaultRails.filter((r) => !r.performanceMode).length ?? 0).toBeGreaterThanOrEqual(
 				printer.driverCountRequired,
 			);

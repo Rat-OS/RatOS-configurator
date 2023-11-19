@@ -1,6 +1,6 @@
 'use client';
 
-import { atom, selector, useRecoilValue } from 'recoil';
+import { atom, DefaultValue, selector, useRecoilValue } from 'recoil';
 import { z } from 'zod';
 import { Board, Toolboard } from '../zods/boards';
 import { Hotend, Thermistor, Extruder, Probe, Endstop, Fan, Accelerometer } from '../zods/hardware';
@@ -12,18 +12,31 @@ import {
 	SerializedPrinterConfiguration,
 } from '../zods/printer-configuration';
 import { useRecoilState } from 'recoil';
-import { trpc } from '../helpers/trpc';
+import { trpc, trpcClient } from '../helpers/trpc';
 import { syncEffect } from 'recoil-sync';
 import { getRefineCheckerForZodSchema } from 'zod-refine';
 import { defaultXEndstop, xEndstopOptions } from '../data/endstops';
 import { useCallback } from 'react';
+import { asType, match } from '@recoiljs/refine';
 
 export const PrinterState = atom({
 	key: 'Printer',
 	default: null,
 	effects: [
 		syncEffect({
-			refine: getRefineCheckerForZodSchema(Printer.nullable()),
+			read: async ({ read }) => {
+				const printer = await read(PrinterState.key);
+				if (printer != null) {
+					const printerId = z.object({ id: Printer.shape.id }).safeParse(printer);
+					if (printerId.success) {
+						const printerReq = await trpcClient.query('printer.printers');
+						const newPrinter = printerReq.find((p) => p.id === printerId.data.id);
+						return newPrinter ?? null;
+					}
+				}
+				return null;
+			},
+			refine: match(getRefineCheckerForZodSchema(Printer.nullable())),
 		}),
 	],
 });
@@ -103,6 +116,18 @@ export const ControlboardState = atom({
 	default: null,
 	effects: [
 		syncEffect({
+			read: async ({ read }) => {
+				const board = await read(ControlboardState.key);
+				if (board != null) {
+					const boardId = z.object({ path: Board.shape.path }).safeParse(board);
+					if (boardId.success) {
+						const boardReq = await trpcClient.query('mcu.boards', { boardFilters: { toolboard: false } });
+						const newBoard = boardReq.find((b) => b.path === boardId.data.path);
+						return newBoard ?? null;
+					}
+				}
+				return null;
+			},
 			refine: getRefineCheckerForZodSchema(Board.nullable()),
 		}),
 	],
@@ -113,6 +138,19 @@ const _ToolboardState = atom({
 	default: null,
 	effects: [
 		syncEffect({
+			read: async ({ read }) => {
+				const board = await read(_ToolboardState.key);
+				if (board != null) {
+					const boardId = z.object({ path: Board.shape.path }).safeParse(board);
+					if (boardId.success) {
+						const boardReq = await trpcClient.query('mcu.boards', { boardFilters: { toolboard: true } });
+						const newBoard = boardReq.find((b) => b.path === boardId.data.path);
+						console.log(newBoard);
+						return newBoard ?? null;
+					}
+				}
+				return null;
+			},
 			refine: getRefineCheckerForZodSchema(Toolboard.nullable()),
 		}),
 	],
@@ -267,6 +305,7 @@ export const serializePrinterConfiguration = (config: PrinterConfiguration): Ser
 		yAccelerometer: config.yAccelerometer?.id,
 		performanceMode: config.performanceMode,
 		stealthchop: config.stealthchop,
+		rails: config.rails.map((rail) => ({ ...rail, driver: rail.driver.id, stepper: rail.stepper.id })),
 	};
 	return SerializedPrinterConfiguration.parse(serializedConfig);
 };
@@ -291,6 +330,7 @@ export const serializePartialPrinterConfiguration = (
 		yAccelerometer: config?.yAccelerometer?.id,
 		performanceMode: config?.performanceMode,
 		stealthchop: config?.stealthchop,
+		rails: config?.rails?.map((rail) => ({ ...rail, driver: rail.driver.id, stepper: rail.stepper.id })),
 	};
 	return SerializedPartialPrinterConfiguration.parse(serializedConfig);
 };

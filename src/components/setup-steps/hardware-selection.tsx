@@ -4,10 +4,12 @@ import { StepScreenProps } from '../../hooks/useSteps';
 import { Dropdown } from '../forms/dropdown';
 import { z } from 'zod';
 import { usePrinterConfiguration } from '../../hooks/usePrinterConfiguration';
-import { Hotend, Thermistor } from '../../zods/hardware';
+import { deserializePrinterRail, Hotend, PrinterAxis, Thermistor } from '../../zods/hardware';
 import { ShowWhenReady } from '../common/show-when-ready';
 import { ErrorMessage } from '../error-message';
 import { Toggle } from '../forms/toggle';
+import { PrinterRailSettings } from './printer-rail-settings';
+import { useAutoAnimate } from '@formkit/auto-animate/react';
 
 const stringToTitleObject = <Item extends string>(data: Item): { id: Item; title: Item } => {
 	return { id: data, title: data };
@@ -15,6 +17,7 @@ const stringToTitleObject = <Item extends string>(data: Item): { id: Item; title
 
 export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 	const [hasManuallySelectedThermistor, setHasManuallySelectedThermistor] = useState(false);
+	const [advancedSteppers, setAdvancedSteppers] = useState(false);
 	const {
 		isReady,
 		queryErrors,
@@ -29,6 +32,9 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 		partFanOptions,
 		hotendFanOptions,
 		controllerFanOptions,
+		selectedBoard,
+		selectedToolboard,
+		selectedPrinter,
 		selectedHotend,
 		setSelectedHotend,
 		selectedExtruder,
@@ -81,9 +87,13 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 		});
 	}
 
+	const [animate] = useAutoAnimate();
+
+	console.log('boards!', selectedBoard?.path, selectedToolboard?.path);
+
 	return (
 		<>
-			<div className="p-8">
+			<div className="p-8" ref={animate}>
 				{' '}
 				<div className="mb-5 border-b border-zinc-200 pb-5 dark:border-zinc-700">
 					<h3 className="text-lg font-medium leading-6 text-zinc-900 dark:text-zinc-100">
@@ -185,31 +195,6 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 						</div>
 					</div>
 					<div className="mt-4 border-t border-zinc-100 pt-8 dark:border-zinc-700">
-						<h3 className="text-base font-medium leading-7 text-zinc-900 dark:text-zinc-100">Steppers</h3>
-						<p className="mt-2 max-w-4xl text-sm text-zinc-500 dark:text-zinc-400">
-							You can use the same accelerometer for both axes. If you don't plan on using an accelerometer, you can
-							skip this and come back later if you change your mind.
-						</p>
-					</div>
-					<div className="mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 dark:border-zinc-700 sm:grid-cols-2">
-						<div className="col-span-2">
-							<Toggle
-								label="Performance mode"
-								description="Increases the stepper power, max acceleration and velocity. Not recommended for initial setup. Requires actively cooled drivers (controller fan)."
-								onChange={setPerformanceMode}
-								value={!!performanceMode}
-							/>
-						</div>
-						<div className="col-span-2">
-							<Toggle
-								label="Stealtchop"
-								description="Silent operation at the cost of a 135 mm/s velocity limit and less positional accuracy. Not recommended unless quiteness is absolutely necessary."
-								onChange={setStealthchop}
-								value={!!stealtchop}
-							/>
-						</div>
-					</div>
-					<div className="mt-4 border-t border-zinc-100 pt-8 dark:border-zinc-700">
 						<h3 className="text-base font-medium leading-7 text-zinc-900 dark:text-zinc-100">Accelerometer</h3>
 						<p className="mt-2 max-w-4xl text-sm text-zinc-500 dark:text-zinc-400">
 							You can use the same accelerometer for both axes. If you don't plan on using an accelerometer, you can
@@ -236,6 +221,58 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 							/>
 						</div>
 					</div>
+					<div className="mt-4 border-t border-zinc-100 pt-8 dark:border-zinc-700">
+						<div className="flex">
+							<h3 className="flex-1 text-base font-medium leading-7 text-zinc-900 dark:text-zinc-100">Steppers</h3>
+							<div>
+								<Toggle label="Simple" onLabel="Advanced" onChange={setAdvancedSteppers} value={!!advancedSteppers} />
+							</div>
+						</div>
+						<p className="mt-2 max-w-4xl text-sm text-zinc-500 dark:text-zinc-400">
+							Configure your stepper drivers and acceleration settings
+						</p>
+					</div>
+					<div className="mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 dark:border-zinc-700 sm:grid-cols-2">
+						{selectedPrinter?.speedLimits.performance && (
+							<div className="col-span-2">
+								<Toggle
+									label="Performance mode"
+									description="Increases the stepper power, max acceleration and velocity. Not recommended for initial setup. Requires actively cooled drivers (controller fan)."
+									onChange={setPerformanceMode}
+									value={!!performanceMode}
+								/>
+							</div>
+						)}
+						<div className="col-span-2">
+							<Toggle
+								label="Stealtchop"
+								description="Silent operation at the cost of a 135 mm/s velocity limit and less positional accuracy. Not recommended unless quiteness is absolutely necessary."
+								onChange={setStealthchop}
+								value={!!stealtchop}
+							/>
+						</div>
+					</div>
+					{advancedSteppers && selectedPrinter && (
+						<div className="columns-2 gap-4 space-y-4 py-4">
+							{selectedPrinter.defaults.rails
+								.filter((r) => !r.performanceMode)
+								.map((rail) => (
+									<div className="break-inside-avoid-column" key={rail.axis}>
+										<PrinterRailSettings
+											selectedBoard={
+												rail.axis === PrinterAxis.extruder && selectedToolboard ? selectedToolboard : selectedBoard
+											}
+											printerRail={deserializePrinterRail(
+												selectedPrinter.defaults.rails.find(
+													(r) => r.performanceMode === performanceMode && r.axis === rail.axis,
+												) ?? rail,
+											)}
+											performanceMode={performanceMode}
+										/>
+									</div>
+								))}
+						</div>
+					)}
 				</ShowWhenReady>
 			</div>
 			<StepNavButtons

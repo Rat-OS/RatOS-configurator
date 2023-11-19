@@ -23,5 +23,5 @@ export const ShowWhenReady: React.FC<
 			</div>
 		);
 	}
-	return props.children;
+	return props.children as React.ReactElement;
 };

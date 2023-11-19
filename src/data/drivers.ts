@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { Driver } from '../zods/hardware';
-
+import { Driver, StepperVoltage } from '../zods/hardware';
+import { Board } from '../zods/boards';
 export const Drivers: z.infer<typeof Driver>[] = [
 	{
 		id: 'BTT-TMC2209-13',
@@ -103,6 +103,16 @@ export const Drivers: z.infer<typeof Driver>[] = [
 		voltages: [24, 36, 48],
 		maxCurrent: 4.25,
 		external: true,
+	},
+	{
+		id: 'MELLOW-FLY-TMC2209',
+		title: 'Mellow FLY TMC2209',
+		type: 'TMC2209',
+		protocol: 'UART',
+		senseResistor: 0.11,
+		coolingCurrentThreshold: 1.1,
+		voltages: [24],
+		maxCurrent: 2.0,
 	},
 	{
 		id: 'PRUSA-EINSY-RAMBO-TMC2130',

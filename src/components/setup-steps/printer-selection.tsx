@@ -26,24 +26,32 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 		queryErrors,
 	} = usePrinterConfiguration();
 	const cards = printerQuery.data
-		? (printerQuery.data.map((p) => {
-				const printerImgUri = 'printerId=' + encodeURIComponent(p.id);
-				return {
-					id: p.id,
-					name: `${p.manufacturer} ${p.name}`,
-					details: p.description,
-					right: (
-						<Image
-							src={'/configure/api/printer-image?' + printerImgUri}
-							width={50}
-							className="rounded-lg bg-white p-1 shadow-md dark:shadow-zinc-900"
-							height={50}
-							alt={`${p.manufacturer} ${p.name}`}
-						/>
-					),
-					options: p.sizes ? p.sizes.map((s) => ({ id: s, name: s + '' })) : undefined,
-				};
-		  }) satisfies SelectableCardWithOptions[])
+		? (printerQuery.data
+				.slice()
+				.sort((a, b) =>
+					a.manufacturer === 'Rat Rig' && (b.manufacturer !== 'Rat Rig' || b.description.indexOf('Discontinued') > -1)
+						? -1
+						: a.name.localeCompare(b.name),
+				)
+				.map((p) => {
+					const printerImgUri = 'printerId=' + encodeURIComponent(p.id);
+					console.log(p.name);
+					return {
+						id: p.id,
+						name: `${p.manufacturer} ${p.name}`,
+						details: p.description,
+						right: (
+							<Image
+								src={'/configure/api/printer-image?' + printerImgUri}
+								width={50}
+								className="rounded-lg bg-white p-1 shadow-md dark:shadow-zinc-900"
+								height={50}
+								alt={`${p.manufacturer} ${p.name}`}
+							/>
+						),
+						options: p.sizes ? p.sizes.map((s) => ({ id: s, name: s + '' })) : undefined,
+					};
+				}) satisfies SelectableCardWithOptions[])
 		: [];
 
 	const selectedCard = cards.find((c) => c.id === selectedPrinter?.id);

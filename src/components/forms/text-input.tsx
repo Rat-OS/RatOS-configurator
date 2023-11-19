@@ -3,19 +3,18 @@ import { ExclamationCircleIcon } from '@heroicons/react/24/solid';
 import React, { ChangeEvent, useCallback, useRef, useState } from 'react';
 import { twJoin } from 'tailwind-merge';
 
-interface TextInputProps {
-	type: 'text' | 'password';
+interface TextInputProps<T extends string | number>
+	extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
 	error?: string;
-	placeholder?: string;
-	defaultValue?: string;
 	label: string;
 	help?: string;
-	onChange?: (val: string) => void;
+	value?: T;
+	onChange?: (val: T) => void;
 }
 
 let uid = 0;
 
-export const TextInput: React.FC<TextInputProps> = (props) => {
+export const TextInput = <T extends string | number>(props: TextInputProps<T>) => {
 	const fieldId = useRef(uid++);
 	const { onChange: _onChange } = props;
 	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -23,16 +22,16 @@ export const TextInput: React.FC<TextInputProps> = (props) => {
 	let iconClass = twJoin('h-5 w-5', props.error ? 'text-red-500' : 'text-red-500');
 
 	const icon = props.error ? (
-		<div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+		<div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
 			<ExclamationCircleIcon className="h-5 w-5 text-red-500" aria-hidden="true" />
 		</div>
 	) : null;
 
 	const inputClass = twJoin(
 		props.error
-			? 'border-red-300 text-red-900 placeholder-red-300 focus:ring-red-500 focus:border-red-500'
-			: 'border-zinc-300 text-zinc-900 placeholder-zinc-300 focus:ring-brand-600 focus:border-brand-600',
-		'block w-full pr-10 focus:outline-none sm:text-sm rounded-md shadow-sm',
+			? 'ring-red-300 text-red-900 placeholder-red-300 focus:ring-red-500 dark:ring-red-500 dark:text-red-400 dark:placeholder-red-700'
+			: 'ring-zinc-300 text-zinc-900 placeholder-zinc-300 focus:ring-brand-600 dark:ring-zinc-700 dark:text-zinc-100 dark:placeholder-zinc-700 dark:focus:ring-brand-400 ',
+		'block w-full rounded-md bg-white py-1.5 pl-3 pr-3 text-leftshadow-sm ring-1 ring-inset focus:outline-none dark:bg-zinc-900 sm:text-sm sm:leading-6 border-0',
 	);
 
 	const error = props.error ? (
@@ -49,9 +48,9 @@ export const TextInput: React.FC<TextInputProps> = (props) => {
 
 	const onChange = useCallback(
 		(e: ChangeEvent<HTMLInputElement>) => {
-			_onChange?.(e.currentTarget.value);
+			_onChange?.(props.type === 'number' ? (parseFloat(e.currentTarget.value) as T) : (e.currentTarget.value as T));
 		},
-		[_onChange],
+		[_onChange, props.type],
 	);
 
 	const togglePasswordVisibility = useCallback(() => {
@@ -63,7 +62,7 @@ export const TextInput: React.FC<TextInputProps> = (props) => {
 		props.type === 'password' ? (
 			<div
 				onClick={togglePasswordVisibility}
-				className={`absolute inset-y-0 ${iconRight} pr-3 flex items-center cursor-pointer`}
+				className={`absolute inset-y-0 ${iconRight} flex cursor-pointer items-center pr-3`}
 			>
 				{isPasswordVisible ? (
 					<EyeSlashIcon className="h-5 w-5 text-zinc-400" />
@@ -75,15 +74,15 @@ export const TextInput: React.FC<TextInputProps> = (props) => {
 
 	return (
 		<div>
-			<label htmlFor="email" className="block text-sm font-medium text-zinc-700">
-				{props.label}
-			</label>
-			<div className="mt-1 relative rounded-md shadow-sm">
+			<label className="block text-sm font-semibold leading-6 text-zinc-700 dark:text-zinc-300">{props.label}</label>
+			<div className="relative mt-1 rounded-md shadow-sm">
 				<input
+					{...props}
 					type={isPasswordVisible ? 'text' : props.type}
 					className={inputClass}
 					placeholder={props.placeholder}
 					defaultValue={props.defaultValue}
+					value={props.value}
 					onChange={onChange}
 					aria-invalid={!!props.error}
 					aria-describedby={props.error ? fieldId.current + '-error' : undefined}

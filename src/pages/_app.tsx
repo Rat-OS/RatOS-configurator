@@ -11,6 +11,7 @@ import { AppRouter } from './api/trpc/[trpc]';
 import { Inter } from 'next/font/google';
 import { useEffect, useState } from 'react';
 import { SyncWithMoonraker } from '../components/sync-with-moonraker';
+import { getTRPCClientOpts } from '../helpers/trpc';
 
 function classNames(...classes: string[]) {
 	return classes.filter(Boolean).join(' ');
@@ -121,7 +122,7 @@ function App(props: AppProps<Props>) {
 												href="https://github.com/sponsors/miklschmidt"
 												target="_blank"
 												rel="noreferrer"
-												className="inline-flex items-center justify-center rounded-md border border-transparent bg-zinc-300 px-4 py-2 text-sm font-medium text-black shadow-sm focus:outline-none hover:bg-zinc-400"
+												className="inline-flex items-center justify-center rounded-md border border-transparent bg-zinc-300 px-4 py-2 text-sm font-medium text-black shadow-sm hover:bg-zinc-400 focus:outline-none"
 											>
 												Donate
 											</a>
@@ -129,7 +130,7 @@ function App(props: AppProps<Props>) {
 												href="https://os.ratrig.com/docs/introduction"
 												target="_blank"
 												rel="noreferrer"
-												className="inline-flex items-center justify-center rounded-md border border-transparent bg-transparent px-4 py-2 text-sm font-medium text-zinc-300 shadow-sm focus:outline-none hover:bg-zinc-700 hover:text-white"
+												className="inline-flex items-center justify-center rounded-md border border-transparent bg-transparent px-4 py-2 text-sm font-medium text-zinc-300 shadow-sm hover:bg-zinc-700 hover:text-white focus:outline-none"
 											>
 												Documentation
 											</a>
@@ -147,7 +148,7 @@ function App(props: AppProps<Props>) {
 										</div>
 										<div className="-mr-2 flex md:hidden">
 											{/* Mobile menu button */}
-											<Disclosure.Button className="inline-flex items-center justify-center rounded-md bg-zinc-800 p-2 text-zinc-400 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-zinc-800 hover:bg-zinc-700 hover:text-white">
+											<Disclosure.Button className="inline-flex items-center justify-center rounded-md bg-zinc-800 p-2 text-zinc-400 hover:bg-zinc-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-zinc-800">
 												<span className="sr-only">Open main menu</span>
 												{open ? (
 													<XMarkIcon className="block h-6 w-6" aria-hidden="true" />
@@ -215,30 +216,7 @@ function App(props: AppProps<Props>) {
 
 export default withTRPC<AppRouter>({
 	config({ ctx }) {
-		if (typeof window !== 'undefined') {
-			// during client requests
-			return {
-				url: '/configure/api/trpc',
-			};
-		}
-		/**
-		 * SSR
-		 * @link https://trpc.io/docs/ssr
-		 */
-		const url =
-			process.env.NODE_ENV === 'development'
-				? `http://localhost:3000/configure/api/trpc`
-				: 'http://localhost/configure/api/trpc';
-
-		return {
-			url,
-			headers: {
-				'x-ssr': '1',
-			},
-			/**
-			 * @link https://react-query-v3.tanstack.com/reference/QueryClient
-			 */
-		};
+		return getTRPCClientOpts();
 	},
 	/**
 	 * @link https://trpc.io/docs/ssr

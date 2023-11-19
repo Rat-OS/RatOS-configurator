@@ -2,10 +2,12 @@ import React, { Fragment, useCallback, useState } from 'react';
 import { Listbox, Transition } from '@headlessui/react';
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
 import { twJoin } from 'tailwind-merge';
+import { Badge, BadgeProps } from '../common/badge';
 
 type Option = {
 	id: number | string;
 	title: string;
+	badge?: BadgeProps;
 };
 
 interface DropdownProps<DropdownOption extends Option = Option> {
@@ -14,6 +16,8 @@ interface DropdownProps<DropdownOption extends Option = Option> {
 	onSelect?: (option: DropdownOption) => void;
 	label: string;
 	sort?: boolean;
+	disabled?: boolean;
+	badge?: BadgeProps;
 }
 
 export const Dropdown = <DropdownOption extends Option = Option>(props: DropdownProps<DropdownOption>) => {
@@ -30,18 +34,30 @@ export const Dropdown = <DropdownOption extends Option = Option>(props: Dropdown
 		props.sort == false ? props.options : props.options.slice(0).sort((a, b) => a.title.localeCompare(b.title));
 
 	return (
-		<Listbox value={value} onChange={onSelected}>
+		<Listbox value={value} onChange={onSelected} disabled={props.disabled}>
 			{({ open }) => (
 				<>
 					<Listbox.Label className="block text-sm font-semibold leading-6 text-zinc-700 dark:text-zinc-300">
 						{props.label}
 					</Listbox.Label>
 					<div className="relative mt-1">
-						<Listbox.Button className="relative w-full cursor-default rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-zinc-900 shadow-sm ring-1 ring-inset ring-zinc-300 focus:outline-none focus:ring-2 focus:ring-brand-600 dark:bg-zinc-900 dark:text-zinc-300 dark:ring-zinc-700 sm:text-sm sm:leading-6">
-							<span className="block truncate">{value?.title ?? 'Pick from the list...'}</span>
-							<span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-								<ChevronUpDownIcon className="h-5 w-5 text-zinc-400" aria-hidden="true" />
-							</span>
+						<Listbox.Button
+							className="relative flex w-full cursor-default items-center justify-between rounded-md bg-white py-1.5 pl-3 pr-3 text-left text-zinc-900 shadow-sm ring-1 ring-inset ring-zinc-300 focus:outline-none focus:ring-2 focus:ring-brand-600 dark:bg-zinc-900 dark:text-zinc-300 dark:ring-zinc-700 dark:focus:ring-brand-400 sm:text-sm sm:leading-6"
+							disabled={props.disabled}
+						>
+							<span className="flex-1 truncate">{value?.title ?? 'Pick from the list...'}</span>
+							{props.badge && (
+								<Badge
+									{...props.badge}
+									color={props.badge.color ?? (props.disabled ? 'plain' : props.badge.color)}
+									size="sm"
+								/>
+							)}
+							{!props.disabled && (
+								<span className="pointer-events-none -mr-4 flex items-center pr-2">
+									<ChevronUpDownIcon className="h-5 w-5 text-zinc-400" aria-hidden="true" />
+								</span>
+							)}
 						</Listbox.Button>
 
 						<Transition
@@ -60,7 +76,7 @@ export const Dropdown = <DropdownOption extends Option = Option>(props: Dropdown
 										key={option.id}
 										className={({ active }) =>
 											twJoin(
-												active ? 'bg-brand-600 text-white' : 'text-zinc-900 dark:text-zinc-300',
+												active ? 'dark bg-brand-600 text-white' : 'text-zinc-900 dark:text-zinc-300',
 												'relative cursor-default select-none py-2 pl-3 pr-9',
 											)
 										}
@@ -68,8 +84,16 @@ export const Dropdown = <DropdownOption extends Option = Option>(props: Dropdown
 									>
 										{({ selected, active }) => (
 											<>
-												<span className={twJoin(selected ? 'font-semibold' : 'font-normal', 'block truncate')}>
-													{option.title}
+												<span
+													className={twJoin(
+														selected ? 'font-semibold' : 'font-normal',
+														'flex items-center space-x-2 truncate',
+													)}
+												>
+													<span>{option.title}</span>{' '}
+													{option.badge && (
+														<Badge {...option.badge} color={active ? 'plain' : option.badge.color} size="sm" />
+													)}
 												</span>
 
 												{selected ? (

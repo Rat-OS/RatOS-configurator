@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Voltage } from './hardware';
+import { PrinterAxis, Voltage } from './hardware';
 
 export const Board = z.object({
 	serialPath: z.string(),
@@ -15,16 +15,7 @@ export const Board = z.object({
 	documentationLink: z.string().optional(),
 	hasQuirksFiles: z.boolean().optional(),
 	driverCount: z.number(),
-	integratedDrivers: z
-		.object({
-			x: z.string(),
-			y: z.string(),
-			z: z.string(),
-			z1: z.string().optional(),
-			z2: z.string().optional(),
-			extruder: z.string(),
-		})
-		.optional(),
+	integratedDrivers: z.record(z.nativeEnum(PrinterAxis), z.string()).optional(),
 	extruderlessConfig: z.string().optional(),
 	fourPinFanConnectorCount: z.number().optional(),
 	driverVoltages: Voltage.array().default([24]).optional(),
@@ -54,6 +45,11 @@ export const AutoFlashableBoard = z.object({
 export const Toolboard = Board.extend({
 	isToolboard: z.literal(true),
 	isHost: z.literal(false).optional(),
+	integratedDrivers: Board.shape.integratedDrivers.and(
+		z.object({
+			extruder: z.string(),
+		}),
+	),
 });
 
 export type Board = z.infer<typeof Board>;

@@ -3,7 +3,7 @@ import { badgeBackgroundColorStyle, badgeBorderColorStyle, badgeTextColorStyle }
 import { twJoin, twMerge } from 'tailwind-merge';
 import { VariantProps, cva } from 'class-variance-authority';
 
-const bannerStyle = cva('rounded-md p-4 ring-1', {
+const bannerStyle = cva('rounded-md p-4 border', {
 	variants: {
 		color: {
 			red: [
