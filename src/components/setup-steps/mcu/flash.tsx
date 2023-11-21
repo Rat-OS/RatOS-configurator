@@ -89,7 +89,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 			</Fragment>
 		);
 	} else if (boardVersion || (isBoardDetected && !forceReflash)) {
-		const jumperReminder =
+		const dfuReminder =
 			flashStrategy === 'dfu' && firstBoard?.dfu?.reminder ? (
 				<InfoMessage title="Reminder">{firstBoard?.dfu?.reminder}</InfoMessage>
 			) : null;
@@ -105,7 +105,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 				<h3 className="text-xl font-medium text-zinc-900 dark:text-zinc-100">
 					<CheckCircleIcon className="text-brand-700 h-7 w-7 inline relative -top-0.5" /> {firstBoard?.name} detected
 				</h3>
-				{jumperReminder}
+				{dfuReminder}
 				{versionMismatch}
 				<p>
 					Proceed to the next step or{' '}
