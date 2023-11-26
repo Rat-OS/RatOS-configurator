@@ -140,7 +140,6 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 		// If current rail configuration matches the default rail configuration, adapt current and voltage
 		// to match the performance mode when performance mode changes.
 		if (matchesDefaultRail(props.printerRail, props.printerRailDefault, !props.performanceMode)) {
-			console.log('default rail matched');
 			if (props.performanceMode && props.printerRailDefault.performanceMode) {
 				setHomingSpeed(props.printerRailDefault.performanceMode.homingSpeed ?? props.printerRail.homingSpeed);
 				if (props.printerRailDefault.performanceMode.voltage != null) {
@@ -158,8 +157,6 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 				setVoltage(supportedVoltages.find((sv) => sv.id === props.printerRailDefault.voltage) ?? supportedVoltages[0]);
 				setCurrent(props.printerRailDefault.current);
 			}
-		} else {
-			console.log('default rail NOT matched', props.printerRail, props.printerRailDefault);
 		}
 		// We don't want to react to anything other than performance mode changes.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
