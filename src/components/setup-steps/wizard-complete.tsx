@@ -18,6 +18,7 @@ import { Button } from '../button';
 import { useRecoilCallback } from 'recoil';
 import { xEndstopOptions } from '../../data/endstops';
 import { PrinterConfiguration } from '../../zods/printer-configuration';
+import { PrinterAxis } from '../../zods/hardware';
 
 const CompletionSteps: StepScreen[] = [
 	{
@@ -120,7 +121,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 					<p className="mt-2 max-w-4xl text-sm text-zinc-500 dark:text-zinc-400">{props.description}</p>
 				</div>
 				<div className="space-y-4 text-zinc-700 dark:text-zinc-300">
-					{partialPrinterConfiguration != null && (
+					{parsedPrinterConfiguration.success && (
 						<div>
 							<div className="">
 								<h3 className="text-base font-medium leading-7 text-zinc-900 dark:text-zinc-100">
@@ -139,57 +140,57 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 								</div>
 							)}
 							<div className="mt-4">
-								<dl className="grid grid-cols-1 gap-y-4 gap-x-4 border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
+								<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
 									<div className="sm:col-span-2">
 										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Printer</dt>
 										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
-											{partialPrinterConfiguration.printer != null
-												? `${partialPrinterConfiguration.printer.manufacturer} ${partialPrinterConfiguration.printer.name} ${partialPrinterConfiguration.size}`
+											{parsedPrinterConfiguration.data.printer != null
+												? `${parsedPrinterConfiguration.data.printer.manufacturer} ${parsedPrinterConfiguration.data.printer.name} ${parsedPrinterConfiguration.data.size}`
 												: 'None selected'}
 										</dd>
 									</div>
 									<div className="sm:col-span-1">
 										<dt className="space-x-2 text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">
 											<span>Controlboard</span>
-											{partialPrinterConfiguration.controlboard && (
+											{parsedPrinterConfiguration.data.controlboard && (
 												<Badge color={controlboardDetected.data === true ? 'green' : 'red'}>
 													{controlboardDetected.data === true ? 'Detected' : 'Not detected'}
 												</Badge>
 											)}
 										</dt>
 										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
-											{partialPrinterConfiguration.controlboard != null
-												? `${partialPrinterConfiguration.controlboard.manufacturer} ${partialPrinterConfiguration.controlboard.name}`
+											{parsedPrinterConfiguration.data.controlboard != null
+												? `${parsedPrinterConfiguration.data.controlboard.manufacturer} ${parsedPrinterConfiguration.data.controlboard.name}`
 												: 'None selected'}
 										</dd>
 									</div>
 									<div className="sm:col-span-1">
 										<dt className="space-x-2 text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">
 											<span>Toolboard</span>{' '}
-											{partialPrinterConfiguration.toolboard && (
+											{parsedPrinterConfiguration.data.toolboard && (
 												<Badge color={toolboardDetected.data === true ? 'green' : 'red'}>
 													{toolboardDetected.data === true ? 'Detected' : 'Not detected'}
 												</Badge>
 											)}
 										</dt>
 										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
-											{partialPrinterConfiguration.toolboard == null
+											{parsedPrinterConfiguration.data.toolboard == null
 												? 'None selected'
-												: `${partialPrinterConfiguration.toolboard?.manufacturer} ${partialPrinterConfiguration.toolboard?.name}`}
+												: `${parsedPrinterConfiguration.data.toolboard?.manufacturer} ${parsedPrinterConfiguration.data.toolboard?.name}`}
 										</dd>
 									</div>
-									{((partialPrinterConfiguration.toolboard != null && !toolboardDetected.data) ||
-										(partialPrinterConfiguration.controlboard != null && !controlboardDetected.data)) && (
+									{((parsedPrinterConfiguration.data.toolboard != null && !toolboardDetected.data) ||
+										(parsedPrinterConfiguration.data.controlboard != null && !controlboardDetected.data)) && (
 										<div className="sm:col-span-2">
 											<WarningMessage>
 												<div className="space-y-2">
-													{partialPrinterConfiguration.toolboard != null && !toolboardDetected.data && (
+													{parsedPrinterConfiguration.data.toolboard != null && !toolboardDetected.data && (
 														<div>
 															The toolboard you have selected does not seem to be connected, you can still save the
 															config and proceed to mainsail, but you will get an 'mcu' connection error.
 														</div>
 													)}
-													{partialPrinterConfiguration.controlboard != null && !controlboardDetected.data && (
+													{parsedPrinterConfiguration.data.controlboard != null && !controlboardDetected.data && (
 														<div>
 															The controlboard you have selected does not seem to be connected, you can still save the
 															config and proceed to mainsail, but you will get an 'mcu' connection error.
@@ -200,47 +201,47 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 										</div>
 									)}
 								</dl>
-								<dl className="grid grid-cols-1 gap-y-4 gap-x-4 border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
+								<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
 									<div className="sm:col-span-1">
 										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Hotend</dt>
 										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
-											{partialPrinterConfiguration.hotend?.title ?? 'None selected'}
+											{parsedPrinterConfiguration.data.hotend?.title ?? 'None selected'}
 										</dd>
 									</div>
 									<div className="sm:col-span-1">
 										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Thermistor</dt>
 										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
-											{partialPrinterConfiguration.thermistor ?? 'None selected'}
+											{parsedPrinterConfiguration.data.thermistor ?? 'None selected'}
 										</dd>
 									</div>
 									<div className="sm:col-span-1">
 										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Extruder</dt>
 										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
-											{partialPrinterConfiguration.extruder?.title ?? 'None selected'}
+											{parsedPrinterConfiguration.data.extruder?.title ?? 'None selected'}
 										</dd>
 									</div>
 									<div className="sm:col-span-1">
 										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Probe</dt>
 										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
-											{partialPrinterConfiguration.probe?.title ?? 'None selected'}
+											{parsedPrinterConfiguration.data.probe?.title ?? 'None selected'}
 										</dd>
 									</div>
 								</dl>
-								<dl className="grid grid-cols-1 gap-y-4 gap-x-4  border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
+								<dl className="grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
 									<div className="sm:col-span-1">
 										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">X Endstop</dt>
 										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
-											{partialPrinterConfiguration.xEndstop?.title ?? 'None selected'}
+											{parsedPrinterConfiguration.data.xEndstop?.title ?? 'None selected'}
 										</dd>
 									</div>
 									<div className="sm:col-span-1">
 										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Y Endstop</dt>
 										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
-											{partialPrinterConfiguration.yEndstop?.title ?? 'None selected'}
+											{parsedPrinterConfiguration.data.yEndstop?.title ?? 'None selected'}
 										</dd>
 									</div>
-									{partialPrinterConfiguration.toolboard != null &&
-										partialPrinterConfiguration.xEndstop?.id === 'endstop' &&
+									{parsedPrinterConfiguration.data.toolboard != null &&
+										parsedPrinterConfiguration.data.xEndstop?.id === 'endstop' &&
 										!ignoreEndstopWarning && (
 											<div className="sm:col-span-2">
 												<WarningMessage>
@@ -258,11 +259,11 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 											</div>
 										)}
 								</dl>
-								<dl className="grid grid-cols-1 gap-y-4 gap-x-4  border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
+								<dl className="grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
 									<div className="sm:col-span-1">
 										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Part cooling fan</dt>
 										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
-											{partialPrinterConfiguration.partFan?.title ?? 'None selected'}
+											{parsedPrinterConfiguration.data.partFan?.title ?? 'None selected'}
 										</dd>
 									</div>
 									<div className="sm:col-span-1">
@@ -270,7 +271,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 											Hotend cooling fan
 										</dt>
 										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
-											{partialPrinterConfiguration.hotendFan?.title ?? 'None selected'}
+											{parsedPrinterConfiguration.data.hotendFan?.title ?? 'None selected'}
 										</dd>
 									</div>
 									<div className="sm:col-span-1">
@@ -278,39 +279,58 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 											Controller cooling fan
 										</dt>
 										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
-											{partialPrinterConfiguration.controllerFan?.title ?? 'None selected'}
+											{parsedPrinterConfiguration.data.controllerFan?.title ?? 'None selected'}
 										</dd>
 									</div>
 								</dl>
-								<dl className="grid grid-cols-1 gap-y-4 gap-x-4  border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
-									<div className="sm:col-span-1">
-										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Performance mode</dt>
-										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
-											{partialPrinterConfiguration.performanceMode ? 'Enabled' : 'Disabled'}
-										</dd>
-									</div>
-									<div className="sm:col-span-1">
-										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Stealtchop</dt>
-										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
-											{partialPrinterConfiguration.stealthchop ? 'Enabled' : 'Disabled'}
-										</dd>
-									</div>
-								</dl>
-								<dl className="grid grid-cols-1 gap-y-4 gap-x-4  border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
+								<dl className="grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
 									<div className="sm:col-span-1">
 										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">X Accelerometer</dt>
 										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
-											{partialPrinterConfiguration.xAccelerometer?.title ?? 'None'}
+											{parsedPrinterConfiguration.data.xAccelerometer?.title ?? 'None'}
 										</dd>
 									</div>
 									<div className="sm:col-span-1">
 										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Y Accelerometer</dt>
 										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
-											{partialPrinterConfiguration.yAccelerometer?.title ?? 'None'}
+											{parsedPrinterConfiguration.data.yAccelerometer?.title ?? 'None'}
 										</dd>
 									</div>
 								</dl>
-								<dl className="grid grid-cols-1 gap-y-4 gap-x-4 border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
+								<dl className="grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
+									<div className="sm:col-span-1">
+										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Performance mode</dt>
+										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
+											{parsedPrinterConfiguration.data.performanceMode ? 'Enabled' : 'Disabled'}
+										</dd>
+									</div>
+									<div className="sm:col-span-1">
+										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Stealtchop</dt>
+										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
+											{parsedPrinterConfiguration.data.stealthchop ? 'Enabled' : 'Disabled'}
+										</dd>
+									</div>
+								</dl>
+								<dl className="grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
+									{parsedPrinterConfiguration.data.rails?.map((rail, i) => (
+										<div className="sm:col-span-1" key={i}>
+											<dt className="text-sm font-medium capitalize leading-6 text-zinc-900 dark:text-zinc-100">
+												{rail.axis === PrinterAxis.extruder ? rail.axis : rail.axis.toLocaleUpperCase()} Motion
+												Configuration
+											</dt>
+											<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
+												<div className="font-medium">
+													{rail.driver.title} @ {rail.voltage}V
+												</div>
+												<div className="font-medium">
+													{rail.stepper.title} @ {rail.current}A RMS
+												</div>
+												<div className="font-medium">{rail.microstepping} microsteps</div>
+											</dd>
+										</div>
+									))}
+								</dl>
+								<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
 									<div className="border-t border-zinc-100 pt-5 dark:border-zinc-700 sm:col-span-2">
 										<InfoMessage>
 											If the above information is correct, go ahead and save the configuration. If not, go back and

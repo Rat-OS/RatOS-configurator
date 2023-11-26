@@ -22,7 +22,6 @@ export const Modal: React.FC<ModalProps> = (props) => {
 	}, [onClick]);
 
 	const onDialogClose = useCallback(() => {
-		console.log(onDialogClose);
 		onClose?.();
 		setOpen(false);
 	}, [onClose]);
@@ -81,7 +80,7 @@ export const Modal: React.FC<ModalProps> = (props) => {
 							<div className="mt-5 sm:mt-6">
 								<button
 									type="button"
-									className="inline-flex w-full justify-center rounded-md border border-transparent bg-brand-600 px-4 py-2 text-base font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 hover:bg-brand-700 sm:text-sm"
+									className="inline-flex w-full justify-center rounded-md border border-transparent bg-brand-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 sm:text-sm"
 									onClick={onButtonClick}
 								>
 									{props.buttonLabel}

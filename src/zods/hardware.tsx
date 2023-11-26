@@ -111,7 +111,7 @@ const BaseStepperPreset = z.object({
 export const Stepper = z.object({
 	id: z.string(),
 	title: z.string(),
-	fullStepsPerRotation: z.number().default(200).optional(),
+	fullStepsPerRotation: z.number().default(200),
 	maxPeakCurrent: z.number().min(0),
 	presets: z
 		.array(
@@ -176,7 +176,7 @@ export const BasePrinterRail = z.object({
 	axis: z.nativeEnum(PrinterAxis).describe('Axis of the rail'),
 	axisDescription: z.string().optional().describe('Description of the axis'),
 	driver: Driver.describe('Stepper driver used on this axis'),
-	voltage: Voltage.default(24).optional().describe('Voltage of the stepper driver'),
+	voltage: Voltage.default(StepperVoltage['24V']).describe('Voltage of the stepper driver'),
 	stepper: Stepper.describe('Stepper motor connected to this axis'),
 	current: z.number().min(0),
 	performanceMode: z.boolean().optional(),
@@ -185,7 +185,6 @@ export const BasePrinterRail = z.object({
 		.min(16)
 		.max(256)
 		.default(64)
-		.optional()
 		.describe(
 			'Microstepping of the stepper driver, higher values increase resolution and lower noise but increases load on the MCU',
 		),
@@ -204,14 +203,14 @@ export const SerializedPrinterRail = BasePrinterRail.extend({
 	stepper: Stepper.shape.id,
 });
 
-export const deserializeDriver = (driverId: z.infer<typeof Driver.shape.id>): z.infer<typeof Driver> | null => {
+export const deserializeDriver = (driverId: z.input<typeof Driver.shape.id>): z.infer<typeof Driver> | null => {
 	return Drivers.find((d) => d.id === driverId) ?? null;
 };
-export const deserializeStepper = (stepperId: z.infer<typeof Stepper.shape.id>): z.infer<typeof Stepper> | null => {
+export const deserializeStepper = (stepperId: z.input<typeof Stepper.shape.id>): z.infer<typeof Stepper> | null => {
 	return Steppers.find((d) => d.id === stepperId) ?? null;
 };
 
-export const deserializePrinterRail = (rail: z.infer<typeof SerializedPrinterRail>): z.infer<typeof PrinterRail> => {
+export const deserializePrinterRail = (rail: z.input<typeof SerializedPrinterRail>): z.infer<typeof PrinterRail> => {
 	const stepper = deserializeStepper(rail.stepper);
 	const driver = deserializeDriver(rail.driver);
 	if (stepper == null) {
@@ -224,5 +223,13 @@ export const deserializePrinterRail = (rail: z.infer<typeof SerializedPrinterRai
 		...rail,
 		stepper,
 		driver,
+	});
+};
+
+export const serializePrinterRail = (rail: z.input<typeof PrinterRail>): z.infer<typeof SerializedPrinterRail> => {
+	return SerializedPrinterRail.parse({
+		...rail,
+		driver: rail.driver.id,
+		stepper: rail.stepper.id,
 	});
 };

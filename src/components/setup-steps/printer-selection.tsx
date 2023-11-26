@@ -35,7 +35,6 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 				)
 				.map((p) => {
 					const printerImgUri = 'printerId=' + encodeURIComponent(p.id);
-					console.log(p.name);
 					return {
 						id: p.id,
 						name: `${p.manufacturer} ${p.name}`,
@@ -70,7 +69,7 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 			}
 			setSelectedPrinterOption(option.id);
 		} else {
-			setSelectedPrinterOption(undefined);
+			setSelectedPrinterOption(null);
 		}
 		setPrinterDefaults(printer);
 	};

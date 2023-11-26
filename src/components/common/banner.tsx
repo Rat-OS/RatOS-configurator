@@ -85,7 +85,7 @@ export const Banner: React.FC<BannerProps> = (props) => {
 				<div className="ml-3">
 					<h3 className={twJoin('text-sm font-bold')}>{props.title}</h3>
 					<div className="mt-2 text-sm">
-						<p>{props.children}</p>
+						<div>{props.children}</div>
 					</div>
 				</div>
 			</div>

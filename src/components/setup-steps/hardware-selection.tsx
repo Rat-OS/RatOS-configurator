@@ -52,6 +52,8 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 		setPerformanceMode,
 		stealtchop,
 		setStealthchop,
+		selectedPrinterRails,
+		setSelectedPrinterRails,
 		selectedXAccelerometer,
 		setSelectedXAccelerometer,
 		selectedYAccelerometer,
@@ -88,8 +90,6 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 	}
 
 	const [animate] = useAutoAnimate();
-
-	console.log('boards!', selectedBoard?.path, selectedToolboard?.path);
 
 	return (
 		<>
@@ -223,13 +223,13 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 					</div>
 					<div className="mt-4 border-t border-zinc-100 pt-8 dark:border-zinc-700">
 						<div className="flex">
-							<h3 className="flex-1 text-base font-medium leading-7 text-zinc-900 dark:text-zinc-100">Steppers</h3>
+							<h3 className="flex-1 text-base font-medium leading-7 text-zinc-900 dark:text-zinc-100">Motion</h3>
 							<div>
 								<Toggle label="Simple" onLabel="Advanced" onChange={setAdvancedSteppers} value={!!advancedSteppers} />
 							</div>
 						</div>
 						<p className="mt-2 max-w-4xl text-sm text-zinc-500 dark:text-zinc-400">
-							Configure your stepper drivers and acceleration settings
+							Configure your stepper motor and driver settings
 						</p>
 					</div>
 					<div className="mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 dark:border-zinc-700 sm:grid-cols-2">
@@ -254,23 +254,17 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 					</div>
 					{advancedSteppers && selectedPrinter && (
 						<div className="gap-4 space-y-4 py-4 sm:columns-2">
-							{selectedPrinter.defaults.rails
-								.filter((r) => !r.performanceMode)
-								.map((rail) => (
-									<div className="break-inside-avoid-column" key={rail.axis}>
-										<PrinterRailSettings
-											selectedBoard={
-												rail.axis === PrinterAxis.extruder && selectedToolboard ? selectedToolboard : selectedBoard
-											}
-											printerRail={deserializePrinterRail(
-												selectedPrinter.defaults.rails.find(
-													(r) => r.performanceMode === performanceMode && r.axis === rail.axis,
-												) ?? rail,
-											)}
-											performanceMode={performanceMode}
-										/>
-									</div>
-								))}
+							{selectedPrinterRails.map((rail) => (
+								<div className="break-inside-avoid-column" key={rail.axis}>
+									<PrinterRailSettings
+										selectedBoard={
+											rail.axis === PrinterAxis.extruder && selectedToolboard ? selectedToolboard : selectedBoard
+										}
+										printerRail={rail}
+										performanceMode={performanceMode}
+									/>
+								</div>
+							))}
 						</div>
 					)}
 				</ShowWhenReady>

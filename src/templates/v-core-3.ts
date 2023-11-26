@@ -19,7 +19,7 @@ ${helper.renderBoardIncludes()}
 [include RatOS/macros.cfg]
 [include RatOS/shell-macros.cfg]
 [include RatOS/printers/v-core-3/macros.cfg]
-[include RatOS/printers/v-core-3/${config.size}.cfg]
+[include RatOS/printers/v-core-3/${config.size ?? 300}.cfg]
 
 # Extruder
 ${helper.renderExtruder()}

@@ -1,5 +1,12 @@
 import { Dropdown } from '../forms/dropdown';
-import { BasePrinterRail, deserializeDriver, getSupportedVoltages, Stepper, Voltages } from '../../zods/hardware';
+import {
+	BasePrinterRail,
+	deserializeDriver,
+	getSupportedVoltages,
+	serializePrinterRail,
+	Stepper,
+	Voltages,
+} from '../../zods/hardware';
 import { Board, Toolboard } from '../../zods/boards';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Drivers } from '../../data/drivers';
@@ -9,6 +16,9 @@ import { TextInput } from '../forms/text-input';
 import { Banner } from '../common/banner';
 import { ExclamationTriangleIcon, LightBulbIcon } from '@heroicons/react/24/outline';
 import { Printer } from '../../zods/printer';
+import { useSetRecoilState } from 'recoil';
+import { PrinterRailState } from '../../hooks/usePrinterConfiguration';
+import { serialize } from 'v8';
 
 interface PrinterRailSettingsProps {
 	selectedBoard: Board | Toolboard | null;
@@ -24,7 +34,8 @@ const findPreset = (
 	performanceMode?: boolean | null,
 ) => {
 	return stepper.presets
-		?.sort((a, b) => (performanceMode ? b.run_current - a.run_current : a.run_current - b.run_current))
+		?.slice()
+		.sort((a, b) => (performanceMode ? b.run_current - a.run_current : a.run_current - b.run_current))
 		.find(
 			(p) =>
 				p.driver === driver.type &&
@@ -35,6 +46,7 @@ const findPreset = (
 };
 
 export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) => {
+	const setPrinterRail = useSetRecoilState(PrinterRailState(props.printerRail.axis));
 	const integratedDriver =
 		props.selectedBoard?.integratedDrivers && props.selectedBoard.integratedDrivers[props.printerRail.axis];
 	const [driver, setDriver] = useState(
@@ -62,9 +74,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 		() => findPreset(stepper, driver, voltage, undefined, props.performanceMode),
 		[stepper, driver, voltage, props.performanceMode],
 	);
-	const [current, setCurrent] = useState(
-		preset?.run_current ?? Math.min(driver.coolingCurrentThreshold, stepper.maxPeakCurrent / 1.41),
-	);
+	const [current, setCurrent] = useState(props.printerRail.current);
 
 	const supportedDrivers = Drivers.map((d) => {
 		return {
@@ -110,6 +120,19 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 			}
 		}
 	}, [supportedVoltages, voltage, preset]);
+
+	useEffect(() => {
+		setPrinterRail(
+			serializePrinterRail({
+				axis: props.printerRail.axis,
+				axisDescription: props.printerRail.axisDescription,
+				driver,
+				voltage: voltage.id,
+				stepper,
+				current,
+			}),
+		);
+	}, [current, driver, props.printerRail.axis, props.printerRail.axisDescription, setPrinterRail, stepper, voltage.id]);
 
 	const isPresetCompatible = preset && preset.run_current === current;
 

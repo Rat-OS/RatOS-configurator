@@ -13,31 +13,31 @@ import {
 } from './hardware';
 import { Printer } from './printer';
 
-export const PrinterConfiguration = z
-	.object({
-		printer: Printer,
-		hotend: Hotend,
-		thermistor: Thermistor,
-		extruder: Extruder,
-		probe: Probe.optional(),
-		xEndstop: Endstop,
-		yEndstop: Endstop,
-		controlboard: Board,
-		toolboard: Board.optional().nullable(),
-		size: z.number().optional(),
-		partFan: Fan,
-		controllerFan: Fan,
-		hotendFan: Fan,
-		xAccelerometer: Accelerometer.optional().nullable(),
-		yAccelerometer: Accelerometer.optional().nullable(),
-		performanceMode: z.boolean().optional(),
-		stealthchop: z.boolean().optional(),
-		rails: z.array(PrinterRail),
-	})
-	.refine(
-		(data) => data.size == null || ((data.printer.sizes?.length ?? 0) > 0 && data.size != null),
-		'Printer size must be provided if printer has size options, otherwise it must be omitted',
-	)
+const BasePrinterConfiguration = z.object({
+	printer: Printer,
+	hotend: Hotend,
+	thermistor: Thermistor,
+	extruder: Extruder,
+	probe: Probe.optional(),
+	xEndstop: Endstop,
+	yEndstop: Endstop,
+	controlboard: Board,
+	toolboard: Board.optional().nullable(),
+	size: z.number().optional().nullable(),
+	partFan: Fan,
+	controllerFan: Fan,
+	hotendFan: Fan,
+	xAccelerometer: Accelerometer.optional().nullable(),
+	yAccelerometer: Accelerometer.optional().nullable(),
+	performanceMode: z.boolean().optional(),
+	stealthchop: z.boolean().optional(),
+	rails: z.array(PrinterRail),
+});
+
+export const PrinterConfiguration = BasePrinterConfiguration.refine(
+	(data) => data.size == null || ((data.printer.sizes?.length ?? 0) > 0 && data.size != null),
+	'Printer size must be provided if printer has size options, otherwise it must be omitted',
+)
 	.refine(
 		(data) => data.toolboard !== null || data.xEndstop.id !== 'endstop-toolboard',
 		'Cannot use toolboard endstop without a toolboard',
@@ -47,24 +47,21 @@ export const PrinterConfiguration = z
 		'You have to select a toolboard to use this printer and controlboard combo',
 	);
 
-export const SerializedPrinterConfiguration = z.object({
+export const SerializedPrinterConfiguration = BasePrinterConfiguration.extend({
 	printer: Printer.shape.id,
 	hotend: Hotend.shape.id,
 	thermistor: Thermistor,
 	extruder: Extruder.shape.id,
-	probe: Probe.shape.id.optional(),
+	probe: Probe.shape.id.optional().nullable(),
 	xEndstop: Endstop.shape.id,
 	yEndstop: Endstop.shape.id,
 	controlboard: Board.shape.serialPath,
 	toolboard: Board.shape.serialPath.optional().nullable(),
-	size: z.number().optional(),
 	partFan: Fan.shape.id,
 	controllerFan: Fan.shape.id,
 	hotendFan: Fan.shape.id,
 	xAccelerometer: Accelerometer.shape.id.optional().nullable(),
 	yAccelerometer: Accelerometer.shape.id.optional().nullable(),
-	performanceMode: z.boolean().optional(),
-	stealthchop: z.boolean().optional(),
 	rails: z.array(SerializedPrinterRail),
 });
 

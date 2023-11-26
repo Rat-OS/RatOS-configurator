@@ -18,7 +18,7 @@ export const Board = z.object({
 	integratedDrivers: z.record(z.nativeEnum(PrinterAxis), z.string()).optional(),
 	extruderlessConfig: z.string().optional(),
 	fourPinFanConnectorCount: z.number().optional(),
-	driverVoltages: Voltage.array().default([24]).optional(),
+	driverVoltages: Voltage.array().default([24]),
 	dfu: z
 		.object({
 			dfuBootImage: z.string(),

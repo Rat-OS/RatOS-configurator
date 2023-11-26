@@ -176,7 +176,6 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 				});
 			}
 			const versionRegEx = /Version:\s(v\d+\.\d+\.\d+-\d+-\w{9})/;
-			console.log(version.stdout.match(versionRegEx));
 			return version.stdout.match(versionRegEx)?.[1];
 		},
 	})

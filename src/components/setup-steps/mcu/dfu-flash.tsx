@@ -56,7 +56,7 @@ export const DFUFlash: React.FC<DFUFlashProps> = (props) => {
 			<h4 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">DFU Boot Instructions</h4>
 			<div className="prose mt-4 text-base text-zinc-500 dark:text-zinc-400">
 				<ol className="mb-4 list-decimal pl-4">{instructions}</ol>
-				<img src={'/configure/api/dfu-image?' + boardPathUri} alt="DFU boot buttons and or jumper visualization" />
+				<img src={'/configure/api/dfu-image?' + boardPathUri} alt="DFU boot buttons and/or jumper visualization" />
 			</div>
 		</div>
 	);

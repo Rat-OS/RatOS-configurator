@@ -206,7 +206,7 @@ export const printerRouter = trpc
 	.mutation('save-configuration', {
 		input: z.object({
 			config: SerializedPrinterConfiguration,
-			overwritePrinterCfg: z.boolean().optional().default(false),
+			overwritePrinterCfg: z.boolean().default(false),
 		}),
 		resolve: async (ctx) => {
 			const { config: serializedConfig, overwritePrinterCfg } = ctx.input;
@@ -232,7 +232,6 @@ export const printerRouter = trpc
 			const results: { fileName: string; action: FileAction; err?: unknown }[] = await Promise.all(
 				filesToWrite.map(async (file) => {
 					let action: FileAction = 'created';
-					console.log('processing', file.fileName);
 					try {
 						await promisify(access)(path.join(environment.KLIPPER_CONFIG_PATH, file.fileName), constants.F_OK);
 						// At this point we know the file exists;
