@@ -44,6 +44,7 @@ export const Dropdown = <DropdownOption extends Option = Option>(props: Dropdown
 						<Listbox.Button
 							className="relative flex w-full cursor-default items-center justify-between rounded-md bg-white py-1.5 pl-3 pr-3 text-left text-zinc-900 shadow-sm ring-1 ring-inset ring-zinc-300 focus:outline-none focus:ring-2 focus:ring-brand-600 dark:bg-zinc-900 dark:text-zinc-300 dark:ring-zinc-700 dark:focus:ring-brand-400 sm:text-sm sm:leading-6"
 							disabled={props.disabled}
+							title={value?.title}
 						>
 							<span className="flex-1 truncate">{value?.title ?? 'Pick from the list...'}</span>
 							{props.badge && (

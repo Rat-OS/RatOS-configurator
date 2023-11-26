@@ -253,7 +253,7 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 						</div>
 					</div>
 					{advancedSteppers && selectedPrinter && (
-						<div className="columns-2 gap-4 space-y-4 py-4">
+						<div className="gap-4 space-y-4 py-4 sm:columns-2">
 							{selectedPrinter.defaults.rails
 								.filter((r) => !r.performanceMode)
 								.map((rail) => (
