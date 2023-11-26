@@ -162,14 +162,7 @@ describe('configuration', async () => {
 		});
 		test('has valid rail defaults', () => {
 			// Rail definitions required for printer definition
-			expect(defaultRails.length ?? 0).toBeGreaterThanOrEqual(printer.driverCountRequired);
-		});
-		test('has one non-performance mode default and no more than one performance mode default per rail', () => {
-			const railModes = defaultRails.map((r) => r.axis + (r.performanceMode ? 'performance' : 'non-performance'));
-			expect(defaultRails.filter((r) => !r.performanceMode).length ?? 0).toBeGreaterThanOrEqual(
-				printer.driverCountRequired,
-			);
-			expect(railModes.length).toBe(new Set(railModes).size);
+			expect(defaultRails.length ?? 0).toBe(printer.driverCountRequired);
 		});
 	});
 });

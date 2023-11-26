@@ -26,30 +26,32 @@ import {
 } from '../zods/printer-configuration';
 import { useRecoilState } from 'recoil';
 import { trpc, trpcClient } from '../helpers/trpc';
-import { syncEffect } from 'recoil-sync';
+import { ReadAtom, ReadAtomInterface, syncEffect } from 'recoil-sync';
 import { getRefineCheckerForZodSchema } from 'zod-refine';
 import { defaultXEndstop, xEndstopOptions } from '../data/endstops';
 import { useCallback, useMemo } from 'react';
 import { asType, match } from '@recoiljs/refine';
 import { P } from 'pino';
 
+const readPrinterAtom = async ({ read }: ReadAtomInterface): Promise<z.infer<typeof Printer> | null> => {
+	const printer = await read(PrinterState.key);
+	if (printer != null) {
+		const printerId = z.object({ id: Printer.shape.id }).safeParse(printer);
+		if (printerId.success) {
+			const printerReq = await trpcClient.printer.printers.query();
+			const newPrinter = printerReq.find((p) => p.id === printerId.data.id);
+			return newPrinter ?? null;
+		}
+	}
+	return null;
+};
+
 export const PrinterState = atom({
 	key: 'Printer',
 	default: null,
 	effects: [
 		syncEffect({
-			read: async ({ read }) => {
-				const printer = await read(PrinterState.key);
-				if (printer != null) {
-					const printerId = z.object({ id: Printer.shape.id }).safeParse(printer);
-					if (printerId.success) {
-						const printerReq = await trpcClient.printer.printers.query();
-						const newPrinter = printerReq.find((p) => p.id === printerId.data.id);
-						return newPrinter ?? null;
-					}
-				}
-				return null;
-			},
+			read: readPrinterAtom,
 			refine: match(getRefineCheckerForZodSchema(Printer.nullable())),
 		}),
 	],
@@ -255,8 +257,26 @@ export const ToolboardState = selector<z.infer<typeof Toolboard> | null>({
 export const PrinterRailState = atomFamily<z.infer<typeof SerializedPrinterRail> | null, PrinterAxis>({
 	key: 'PrinterRail',
 	default: null,
-	effects: [
+	effects: (param) => [
 		syncEffect({
+			read: async ({ read }) => {
+				const printerRailState = await read(PrinterRailState(param).key);
+				if (printerRailState != null) {
+					const parsedRail = SerializedPrinterRail.safeParse(printerRailState);
+					if (parsedRail.success) {
+						return parsedRail.data;
+					}
+					const printer = await readPrinterAtom({ read });
+					const printerRailDefault = printer?.defaults.rails.find((r) => r.axis === param);
+					if (printerRailDefault != null) {
+						const parsedRailRepaired = SerializedPrinterRail.safeParse({ ...printerRailDefault, ...printerRailState });
+						if (parsedRailRepaired.success) {
+							return parsedRailRepaired.data;
+						}
+					}
+				}
+				return null;
+			},
 			refine: getRefineCheckerForZodSchema(SerializedPrinterRail.nullable()),
 		}),
 	],
@@ -266,17 +286,10 @@ export const PrinterRailsState = selector<z.infer<typeof PrinterRail>[]>({
 	key: 'PrinterRails',
 	get: ({ get }) => {
 		const printer = get(PrinterState);
-		const perfMode = get(PerformanceModeState);
-		const rails = printer?.defaults.rails
-			.filter((r) => !r.performanceMode)
-			.map((rail) => {
-				const railState = get(PrinterRailState(rail.axis));
-				const actualModeDefault = printer?.defaults.rails.find(
-					(r) => r.axis === rail.axis && r.performanceMode === perfMode,
-				);
-				return deserializePrinterRail(railState ?? actualModeDefault ?? rail);
-			})
-			.filter(Boolean);
+		const rails = printer?.defaults.rails.map((rail) => {
+			const railState = get(PrinterRailState(rail.axis));
+			return deserializePrinterRail(railState ?? rail);
+		});
 		return rails ?? [];
 	},
 	set: ({ set }, newValue) => {

@@ -253,17 +253,24 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 					</div>
 					{advancedSteppers && selectedPrinter && (
 						<div className="grid gap-4 py-4 sm:grid-cols-2">
-							{selectedPrinterRails.map((rail) => (
-								<div className="break-inside-avoid-column" key={rail.axis + (performanceMode ? 'performance' : '')}>
-									<PrinterRailSettings
-										selectedBoard={
-											rail.axis === PrinterAxis.extruder && selectedToolboard ? selectedToolboard : selectedBoard
-										}
-										printerRail={rail}
-										performanceMode={performanceMode}
-									/>
-								</div>
-							))}
+							{selectedPrinterRails.map((rail) => {
+								const defaultRail = selectedPrinter.defaults.rails.find((r) => r.axis === rail.axis);
+								if (defaultRail == null) {
+									throw new Error('No printer default for axis ' + rail.axis);
+								}
+								return (
+									<div className="break-inside-avoid-column" key={rail.axis + (performanceMode ? 'performance' : '')}>
+										<PrinterRailSettings
+											selectedBoard={
+												rail.axis === PrinterAxis.extruder && selectedToolboard ? selectedToolboard : selectedBoard
+											}
+											printerRail={rail}
+											printerRailDefault={deserializePrinterRail(defaultRail)}
+											performanceMode={performanceMode}
+										/>
+									</div>
+								);
+							})}
 						</div>
 					)}
 				</ShowWhenReady>

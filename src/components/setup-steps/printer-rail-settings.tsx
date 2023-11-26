@@ -21,6 +21,7 @@ import { FireIcon } from '@heroicons/react/24/solid';
 interface PrinterRailSettingsProps {
 	selectedBoard: Board | Toolboard | null;
 	printerRail: Zod.infer<typeof BasePrinterRail>;
+	printerRailDefault: Zod.infer<typeof BasePrinterRail>;
 	performanceMode?: boolean | null;
 }
 
@@ -43,6 +44,23 @@ const findPreset = (
 		);
 };
 
+const matchesDefaultRail = (
+	rail: Zod.infer<typeof BasePrinterRail>,
+	defaultRail: Zod.infer<typeof BasePrinterRail>,
+	performanceMode: boolean,
+) => {
+	return (
+		rail.axis === defaultRail.axis &&
+		rail.driver.id === defaultRail.driver.id &&
+		rail.stepper.id === defaultRail.stepper.id &&
+		((performanceMode &&
+			defaultRail.performanceMode &&
+			rail.voltage === defaultRail.performanceMode?.voltage &&
+			rail.current === defaultRail.performanceMode?.current) ||
+			(!performanceMode && rail.voltage === defaultRail.voltage && rail.current === defaultRail.current))
+	);
+};
+
 export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) => {
 	const setPrinterRail = useSetRecoilState(PrinterRailState(props.printerRail.axis));
 	const integratedDriver =
@@ -53,6 +71,11 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 			: props.printerRail.driver,
 	);
 	const [stepper, setStepper] = useState(props.printerRail.stepper);
+	const [homingSpeed, setHomingSpeed] = useState(
+		props.performanceMode
+			? props.printerRailDefault.performanceMode?.homingSpeed ?? props.printerRailDefault.homingSpeed
+			: props.printerRailDefault.homingSpeed,
+	);
 	const supportedVoltages = getSupportedVoltages(props.selectedBoard, driver).map((v) => {
 		return {
 			...v,
@@ -66,13 +89,27 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 		};
 	});
 	const [voltage, setVoltage] = useState(
-		supportedVoltages.find((v) => v.id === props.printerRail.voltage) ?? supportedVoltages[0],
+		supportedVoltages.find(
+			(v) =>
+				v.id ===
+				(props.performanceMode && props.printerRail.performanceMode?.voltage
+					? props.printerRail.performanceMode.voltage
+					: props.printerRail.voltage),
+		) ?? supportedVoltages[0],
 	);
-	const preset = useMemo(
+	const [current, setCurrent] = useState(
+		props.performanceMode && props.printerRail.performanceMode
+			? props.printerRail.performanceMode.current
+			: props.printerRail.current,
+	);
+	const recommendedPreset = useMemo(
 		() => findPreset(stepper, driver, voltage, undefined, props.performanceMode),
 		[stepper, driver, voltage, props.performanceMode],
 	);
-	const [current, setCurrent] = useState(props.printerRail.current);
+	const matchingPreset = useMemo(
+		() => findPreset(stepper, driver, voltage, current, props.performanceMode),
+		[stepper, driver, voltage, props.performanceMode, current],
+	);
 
 	const supportedDrivers = Drivers.map((d) => {
 		return {
@@ -100,39 +137,74 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 	});
 
 	useEffect(() => {
-		if (preset) {
-			setCurrent(preset.run_current);
+		// If current rail configuration matches the default rail configuration, adapt current and voltage
+		// to match the performance mode when performance mode changes.
+		if (matchesDefaultRail(props.printerRail, props.printerRailDefault, !props.performanceMode)) {
+			console.log('default rail matched');
+			if (props.performanceMode && props.printerRailDefault.performanceMode) {
+				setHomingSpeed(props.printerRailDefault.performanceMode.homingSpeed ?? props.printerRail.homingSpeed);
+				if (props.printerRailDefault.performanceMode.voltage != null) {
+					setVoltage(
+						supportedVoltages.find(
+							(sv) => sv.id === (props.printerRailDefault.performanceMode?.voltage ?? props.printerRailDefault.voltage),
+						) ?? supportedVoltages[0],
+					);
+				}
+				if (props.printerRailDefault.performanceMode.current != null) {
+					setCurrent(props.printerRailDefault.performanceMode.current);
+				}
+			} else {
+				setHomingSpeed(props.printerRailDefault.homingSpeed);
+				setVoltage(supportedVoltages.find((sv) => sv.id === props.printerRailDefault.voltage) ?? supportedVoltages[0]);
+				setCurrent(props.printerRailDefault.current);
+			}
+		} else {
+			console.log('default rail NOT matched', props.printerRail, props.printerRailDefault);
 		}
-	}, [preset]);
+		// We don't want to react to anything other than performance mode changes.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [props.performanceMode]);
 
 	useEffect(() => {
 		const currentVoltage = supportedVoltages.find((sv) => sv.id === voltage.id);
 		if (!currentVoltage) {
 			setVoltage(
-				preset
-					? supportedVoltages.find((sv) => sv.id === preset.voltage) ?? supportedVoltages[0]
+				recommendedPreset
+					? supportedVoltages.find((sv) => sv.id === recommendedPreset.voltage) ?? supportedVoltages[0]
 					: supportedVoltages[0],
 			);
-			if (preset) {
-				setCurrent(preset.run_current);
+			if (recommendedPreset) {
+				setCurrent(recommendedPreset.run_current);
 			}
 		}
-	}, [supportedVoltages, voltage, preset]);
+	}, [supportedVoltages, voltage, recommendedPreset]);
 
 	useEffect(() => {
 		setPrinterRail(
 			serializePrinterRail({
 				axis: props.printerRail.axis,
 				axisDescription: props.printerRail.axisDescription,
+				rotationDistance: props.printerRail.rotationDistance,
+				homingSpeed: homingSpeed,
 				driver,
 				voltage: voltage.id,
 				stepper,
 				current,
 			}),
 		);
-	}, [current, driver, props.printerRail.axis, props.printerRail.axisDescription, setPrinterRail, stepper, voltage.id]);
+	}, [
+		current,
+		driver,
+		props.printerRail.axis,
+		props.printerRail.axisDescription,
+		homingSpeed,
+		props.printerRail.rotationDistance,
+		setPrinterRail,
+		stepper,
+		voltage.id,
+	]);
 
-	const isPresetCompatible = preset && preset.run_current === current;
+	const isRecommendedPresetCompatible = recommendedPreset && recommendedPreset.run_current === current;
 
 	return (
 		<div className="rounded-md border border-zinc-300 p-4 shadow-lg dark:border-zinc-700">
@@ -183,25 +255,24 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 						using {current}A.
 					</Banner>
 				)}
-				{isPresetCompatible && (
+				{matchingPreset != null && (
 					<Banner Icon={LightBulbIcon} color="brand" title="Driver tuning applied!" className="col-span-2">
 						RatOS preset applied automatically.
 					</Banner>
 				)}
-				{preset && !isPresetCompatible && (
+				{recommendedPreset && !isRecommendedPresetCompatible && (
 					<Banner
 						Icon={BoltIcon}
 						color="sky"
-						title="Tuning preset available at different current"
+						title="Recommended tuning preset available at different current"
 						className="col-span-2"
 					>
-						These settings have a supported RatOS tuning preset at {preset.run_current}A, but you are using {current}A.
-						You can{' '}
+						RatOS has a recommended preset for your current settings at {recommendedPreset.run_current}A. You can{' '}
 						<span
 							className="cursor-pointer font-bold underline hover:no-underline"
-							onClick={() => setCurrent(preset.run_current)}
+							onClick={() => setCurrent(recommendedPreset.run_current)}
 						>
-							change the current to {preset.run_current}A
+							change the current to {recommendedPreset.run_current}A
 						</span>{' '}
 						to apply the preset automatically.
 					</Banner>

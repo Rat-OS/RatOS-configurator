@@ -179,7 +179,20 @@ export const BasePrinterRail = z.object({
 	voltage: Voltage.default(StepperVoltage['24V']).describe('Voltage of the stepper driver'),
 	stepper: Stepper.describe('Stepper motor connected to this axis'),
 	current: z.number().min(0),
-	performanceMode: z.boolean().optional(),
+	rotationDistance: z.number().min(0).describe('Distance in mm the axis travels per stepper rotation'),
+	gearRatio: z
+		.string()
+		.regex(/^\d+:\d+$/)
+		.optional()
+		.describe('Optional gear ratio of the axis'),
+	homingSpeed: z.number().min(0).default(10).describe('Axis speed during homing in mm/s'),
+	performanceMode: z
+		.object({
+			current: z.number().min(0),
+			voltage: Voltage.default(StepperVoltage['24V']).describe('Voltage of the stepper driver in performance mode'),
+			homingSpeed: z.number().min(0).optional().describe('Axis speed during homing in mm/s in performance mode'),
+		})
+		.optional(),
 	microstepping: z
 		.number()
 		.min(16)

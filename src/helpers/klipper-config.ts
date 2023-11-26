@@ -1,5 +1,6 @@
 import { PrinterConfiguration } from '../zods/printer-configuration';
 import { sensorlessXTemplate, sensorlessYTemplate } from '../templates/extras/sensorless-homing';
+import { PrinterAxis } from '../zods/hardware';
 
 type WritableFiles = { fileName: string; content: string; overwrite: boolean }[];
 
@@ -94,6 +95,43 @@ export const constructKlipperConfigHelpers = (
 				result.push(`[include RatOS/boards/${config.toolboard.serialPath.replace('/dev/', '')}/toolbooard-config.cfg]`);
 			}
 			return result.join('\n');
+		},
+		getAxisPinName(axis: PrinterAxis, alias: string) {
+			return (axis === PrinterAxis.z ? 'z0' : axis === PrinterAxis.extruder ? 'e' : axis) + alias;
+		},
+		getAxisStepperSection(axis: PrinterAxis) {
+			return axis === PrinterAxis.extruder ? 'extruder' : 'stepper' + '_' + axis;
+		},
+		renderStepperSections() {
+			return config.rails
+				.map((r) => {
+					return this.renderStepperSection(r.axis);
+				})
+				.join('\n');
+		},
+		renderStepperSection(axis: PrinterAxis) {
+			const rail = config.rails.find((r) => r.axis === axis);
+			if (rail == null) {
+				throw new Error(`No rail found for axis ${axis}`);
+			}
+			const section = [
+				`[${this.getAxisStepperSection(axis)}]`,
+				`step_pin: ${this.getAxisPinName(axis, '_step_pin')}`,
+				`dir_pin: ${this.getAxisPinName(axis, '_dir_pin')}`,
+				`enable_pin: !${this.getAxisPinName(axis, '_enable_pin')}`,
+				`microsteps: ${rail.microstepping}`,
+			];
+			if (rail.axis === PrinterAxis.z) {
+				if (config.probe != null) {
+					section.push(`endstop_pin: probe:z_virtual_endstop`);
+				} else {
+					section.push(`homing_speed: 10`);
+				}
+			}
+			return section.join('\n');
+		},
+		renderDriverSection() {
+			// if microsteps < 64, use interpolation
 		},
 		renderDriverOverrides() {
 			let result: string[] = [];
