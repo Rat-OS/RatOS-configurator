@@ -3,7 +3,7 @@ import fs from 'fs';
 import { promisify } from 'util';
 import path from 'path';
 import { NextApiRequest, NextApiResponse } from 'next';
-import { getBoards } from '../../server/router/mcu';
+import { getBoards } from '../../server/routers/mcu';
 import { fileTypeFromBuffer } from 'file-type';
 
 type DfuImageSuccessResponseData = Buffer;
@@ -32,10 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 				},
 			});
 		}
-		const imgPath = path.join(
-			board.path,
-			board.dfu.dfuBootImage,
-		);
+		const imgPath = path.join(board.path, board.dfu.dfuBootImage);
 		try {
 			const buf = await promisify(fs.readFile)(imgPath);
 			const fileType = await fileTypeFromBuffer(buf);

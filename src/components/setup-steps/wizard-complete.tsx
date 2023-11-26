@@ -60,25 +60,19 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 
 	const errors: React.ReactNode[] = queryErrors.slice();
 
-	const controlboardDetected = trpc.useQuery(
-		[
-			'mcu.detect',
-			{ boardPath: partialPrinterConfiguration != null ? partialPrinterConfiguration.controlboard?.path ?? '' : '' },
-		],
-		{
-			enabled: partialPrinterConfiguration?.controlboard != null,
-		},
+	const controlboardDetected = trpc.mcu.detect.useQuery(
+		{ boardPath: partialPrinterConfiguration != null ? partialPrinterConfiguration.controlboard?.path ?? '' : '' },
+        {
+            enabled: partialPrinterConfiguration?.controlboard != null,
+        },
 	);
-	const toolboardDetected = trpc.useQuery(
-		[
-			'mcu.detect',
-			{ boardPath: partialPrinterConfiguration != null ? partialPrinterConfiguration.toolboard?.path ?? '' : '' },
-		],
-		{
-			enabled: partialPrinterConfiguration != null && partialPrinterConfiguration.toolboard != null,
-		},
+	const toolboardDetected = trpc.mcu.detect.useQuery(
+		{ boardPath: partialPrinterConfiguration != null ? partialPrinterConfiguration.toolboard?.path ?? '' : '' },
+        {
+            enabled: partialPrinterConfiguration != null && partialPrinterConfiguration.toolboard != null,
+        },
 	);
-	const saveConfigurationMutation = trpc.useMutation('printer.save-configuration');
+	const saveConfigurationMutation = trpc.printer.saveConfiguration.useMutation();
 	const saveConfiguration = useCallback(async () => {
 		if (parsedPrinterConfiguration.success) {
 			saveConfigurationMutation.mutate(

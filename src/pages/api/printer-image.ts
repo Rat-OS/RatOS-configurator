@@ -4,7 +4,7 @@ import { promisify } from 'util';
 import path from 'path';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { fileTypeFromBuffer } from 'file-type';
-import { getPrinters } from '../../server/router/printer';
+import { getPrinters } from '../../server/routers/printer';
 
 type PrinterImageSuccessResponseData = Buffer;
 
@@ -32,10 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 				},
 			});
 		}
-		const imgPath = path.join(
-			printer.path,
-			printer.image,
-		);
+		const imgPath = path.join(printer.path, printer.image);
 		try {
 			const buf = await promisify(fs.readFile)(imgPath);
 			const fileType = await fileTypeFromBuffer(buf);
@@ -62,6 +59,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 		result: 'error',
 		data: {
 			message: 'Method not allowed',
-		}
+		},
 	});
 }

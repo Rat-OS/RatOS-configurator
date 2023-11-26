@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { getLogger } from '../../helpers/logger';
-import * as trpc from '@trpc/server';
 import { promisify } from 'util';
 
 import { parseMetadata } from '../../helpers/parseMetadata';
@@ -15,12 +14,13 @@ import {
 } from '../../zods/printer-configuration';
 import { xEndstopOptions, yEndstopOptions } from '../../data/endstops';
 import { constructKlipperConfigExtrasGenerator, constructKlipperConfigHelpers } from '../../helpers/klipper-config';
-import path from 'path';
 import { serverSchema } from '../../env/schema.mjs';
 import { controllerFanOptions, hotendFanOptions, partFanOptions } from '../../data/fans';
 import { getBoards } from './mcu';
 import { xAccelerometerOptions, yAccelerometerOptions } from '../../data/accelerometers';
 import { glob } from 'glob';
+import path from 'path';
+import { publicProcedure, router } from '../trpc';
 
 function isNodeError(error: any): error is NodeJS.ErrnoException {
 	return error instanceof Error;
@@ -135,80 +135,61 @@ export const deserializePrinterConfiguration = async (
 	});
 };
 
-export const printerRouter = trpc
-	.router()
-	.query('printers', {
-		output: z.array(Printer),
-		resolve: async () =>
+export const printerRouter = router({
+	printers: publicProcedure
+		.output(z.array(Printer))
+		.query(async () =>
 			(await getPrinters()).sort((a, b) =>
 				a.manufacturer === 'Rat Rig' && (b.manufacturer !== 'Rat Rig' || b.description.indexOf('Discontinued') > -1)
 					? -1
 					: a.name.localeCompare(b.name),
 			),
-	})
-	.query('hotends', {
-		output: z.array(Hotend),
-		resolve: () => parseDirectory('hotends', Hotend),
-	})
-	.query('extruders', {
-		output: z.array(Extruder),
-		resolve: () => parseDirectory('extruders', Extruder),
-	})
-	.query('probes', {
-		output: z.array(Probe),
-		resolve: () => parseDirectory('z-probe', Probe),
-	})
-	.query('thermistors', {
-		resolve: () => thermistors,
-	})
-	.query('x-endstops', {
-		input: SerializedPartialPrinterConfiguration.nullable(),
-		output: z.array(Endstop),
-		resolve: (ctx) => xEndstopOptions(ctx.input),
-	})
-	.query('y-endstops', {
-		input: SerializedPartialPrinterConfiguration.nullable(),
-		output: z.array(Endstop),
-		resolve: (ctx) => yEndstopOptions(ctx.input),
-	})
-	.query('part-fan-options', {
-		input: SerializedPartialPrinterConfiguration.nullable(),
-		output: z.array(Fan),
-		resolve: async (ctx) => partFanOptions(await deserializePartialPrinterConfiguration(ctx.input ?? {})),
-	})
-	.query('hotend-fan-options', {
-		input: SerializedPartialPrinterConfiguration.nullable(),
-		output: z.array(Fan),
-		resolve: async (ctx) => hotendFanOptions(await deserializePartialPrinterConfiguration(ctx.input ?? {})),
-	})
-	.query('controller-fan-options', {
-		input: SerializedPartialPrinterConfiguration.nullable(),
-		output: z.array(Fan),
-		resolve: async (ctx) => controllerFanOptions(await deserializePartialPrinterConfiguration(ctx.input ?? {})),
-	})
-	.query('x-accelerometer-options', {
-		input: SerializedPartialPrinterConfiguration.nullable(),
-		output: z.array(Accelerometer),
-		resolve: async (ctx) => xAccelerometerOptions(ctx.input),
-	})
-	.query('y-accelerometer-options', {
-		input: SerializedPartialPrinterConfiguration.nullable(),
-		output: z.array(Accelerometer),
-		resolve: async (ctx) => yAccelerometerOptions(ctx.input),
-	})
-	.query('printercfg-status', {
-		resolve: async (ctx) => {
-			return {
-				isInitialized: await isPrinterCfgInitialized(),
-			};
-		},
-	})
-	.mutation('save-configuration', {
-		input: z.object({
-			config: SerializedPrinterConfiguration,
-			overwritePrinterCfg: z.boolean().default(false),
-		}),
-		resolve: async (ctx) => {
+		),
+	hotends: publicProcedure.output(z.array(Hotend)).query(() => parseDirectory('hotends', Hotend)),
+	extruders: publicProcedure.output(z.array(Extruder)).query(() => parseDirectory('extruders', Extruder)),
+	probes: publicProcedure.output(z.array(Probe)).query(() => parseDirectory('z-probe', Probe)),
+	thermistors: publicProcedure.query(() => thermistors),
+	xEndstops: publicProcedure
+		.input(SerializedPartialPrinterConfiguration.nullable())
+		.output(z.array(Endstop))
+		.query((ctx) => xEndstopOptions(ctx.input)),
+	yEndstops: publicProcedure
+		.input(SerializedPartialPrinterConfiguration.nullable())
+		.output(z.array(Endstop))
+		.query((ctx) => yEndstopOptions(ctx.input)),
+	partFanOptions: publicProcedure
+		.input(SerializedPartialPrinterConfiguration.nullable())
+		.output(z.array(Fan))
+		.query(async (ctx) => partFanOptions(await deserializePartialPrinterConfiguration(ctx.input ?? {}))),
+	hotendFanOptions: publicProcedure
+		.input(SerializedPartialPrinterConfiguration.nullable())
+		.output(z.array(Fan))
+		.query(async (ctx) => hotendFanOptions(await deserializePartialPrinterConfiguration(ctx.input ?? {}))),
+	controllerFanOptions: publicProcedure
+		.input(SerializedPartialPrinterConfiguration.nullable())
+		.output(z.array(Fan))
+		.query(async (ctx) => controllerFanOptions(await deserializePartialPrinterConfiguration(ctx.input ?? {}))),
+	xAccelerometerOptions: publicProcedure
+		.input(SerializedPartialPrinterConfiguration.nullable())
+		.output(z.array(Accelerometer))
+		.query(async (ctx) => xAccelerometerOptions(ctx.input)),
+	yAccelerometerOptions: publicProcedure
+		.input(SerializedPartialPrinterConfiguration.nullable())
+		.output(z.array(Accelerometer))
+		.query(async (ctx) => yAccelerometerOptions(ctx.input)),
+	printercfgStatus: publicProcedure.query(async (ctx) => {
+		return {
+			isInitialized: await isPrinterCfgInitialized(),
+		};
+	}),
+	saveConfiguration: publicProcedure
+		.input(
+			z.object({
+				config: SerializedPrinterConfiguration,
+				overwritePrinterCfg: z.boolean().default(false),
+			}),
+		)
+		.mutation(async (ctx) => {
 			const { config: serializedConfig, overwritePrinterCfg } = ctx.input;
 			const config = await deserializePrinterConfiguration(serializedConfig);
 			const extrasGenerator = constructKlipperConfigExtrasGenerator(config);
@@ -275,5 +256,5 @@ export const printerRouter = trpc
 			}
 
 			return results;
-		},
-	});
+		}),
+});

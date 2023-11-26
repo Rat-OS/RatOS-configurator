@@ -28,17 +28,17 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 	const [hostname, setHostname] = useState('ratos');
 	const [hostnameCompleted, setHostnameCompleted] = useState(false);
 
-	const { isError, error, data } = trpc.useQuery(['wifi.scan'], {
-		refetchInterval: (data, query) => {
-			if (query.state.error) {
-				return false;
-			}
-			return 1000;
-		},
-		retry: false,
-	});
-	const hostnameMutation = trpc.useMutation(['wifi.hostname']);
-	const wifiMutation = trpc.useMutation(['wifi.join']);
+    const { isError, error, data } = trpc.wifi.scan.useQuery(undefined, {
+        refetchInterval: (data, query) => {
+            if (query.state.error) {
+                return false;
+            }
+            return 1000;
+        },
+        retry: false,
+    });
+	const hostnameMutation = trpc.wifi.hostname.useMutation();
+	const wifiMutation = trpc.wifi.join.useMutation();
 
 	useEffect(() => {
 		setApList((apList) => {
@@ -88,7 +88,7 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 		wifiMutation.mutate({ passphrase: password, ssid: selectedNetwork.ssid, country: selectedNetwork.country });
 	}, [password, selectedNetwork, wifiMutation]);
 
-	const rebootMutation = trpc.useMutation('reboot');
+	const rebootMutation = trpc.reboot.useMutation();
 
 	const rebootAndClose = useCallback(async () => {
 		await rebootMutation.mutateAsync();

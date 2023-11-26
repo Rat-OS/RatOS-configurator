@@ -2,7 +2,7 @@
 import Image from 'next/image';
 import React, { useCallback, useState } from 'react';
 import { trpc } from '../../../helpers/trpc';
-import { Board } from '../../../server/router/mcu';
+import { Board } from '../../../server/routers/mcu';
 import { Button } from '../../button';
 import { ErrorMessage } from '../../error-message';
 import { InfoMessage } from '../../info-message';
@@ -13,10 +13,13 @@ interface DFUFlashProps {
 }
 
 export const DFUFlash: React.FC<DFUFlashProps> = (props) => {
-	const { data: dfuDetected, error } = trpc.useQuery(['mcu.dfu-detect', { boardPath: props.board.path }], {
-		refetchInterval: 1000,
-	});
-	const flashDfuMutation = trpc.useMutation('mcu.dfu-flash', { onSuccess: props.onSuccess });
+	const { data: dfuDetected, error } = trpc.mcu.dfuDetect.useQuery(
+		{ boardPath: props.board.path },
+		{
+			refetchInterval: 1000,
+		},
+	);
+	const flashDfuMutation = trpc.mcu.dfuFlash.useMutation({ onSuccess: props.onSuccess });
 	const [isFlashing, setIsFlashing] = useState(false);
 
 	const startFlash = useCallback(async () => {

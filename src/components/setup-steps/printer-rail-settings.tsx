@@ -4,7 +4,6 @@ import {
 	deserializeDriver,
 	getSupportedVoltages,
 	serializePrinterRail,
-	Stepper,
 	Voltages,
 } from '../../zods/hardware';
 import { Board, Toolboard } from '../../zods/boards';
@@ -14,11 +13,10 @@ import { Steppers } from '../../data/steppers';
 import { BadgeProps } from '../common/badge';
 import { TextInput } from '../forms/text-input';
 import { Banner } from '../common/banner';
-import { ExclamationTriangleIcon, LightBulbIcon } from '@heroicons/react/24/outline';
-import { Printer } from '../../zods/printer';
+import { BoltIcon, LightBulbIcon } from '@heroicons/react/24/outline';
 import { useSetRecoilState } from 'recoil';
 import { PrinterRailState } from '../../hooks/usePrinterConfiguration';
-import { serialize } from 'v8';
+import { FireIcon } from '@heroicons/react/24/solid';
 
 interface PrinterRailSettingsProps {
 	selectedBoard: Board | Toolboard | null;
@@ -179,6 +177,12 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 						max={driver.maxCurrent}
 					/>
 				</div>
+				{stepper.maxPeakCurrent / 1.41 < current && (
+					<Banner Icon={FireIcon} color="yellow" title="Stepper overcurrent!" className="col-span-2">
+						Your stepper motor is rated for {Math.floor((stepper.maxPeakCurrent * 100) / 1.41) / 100}A RMS, but you are
+						using {current}A.
+					</Banner>
+				)}
 				{isPresetCompatible && (
 					<Banner Icon={LightBulbIcon} color="brand" title="Driver tuning applied!" className="col-span-2">
 						RatOS preset applied automatically.
@@ -186,8 +190,8 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 				)}
 				{preset && !isPresetCompatible && (
 					<Banner
-						Icon={LightBulbIcon}
-						color="yellow"
+						Icon={BoltIcon}
+						color="sky"
 						title="Tuning preset available at different current"
 						className="col-span-2"
 					>
@@ -200,12 +204,6 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 							change the current to {preset.run_current}A
 						</span>{' '}
 						to apply the preset automatically.
-					</Banner>
-				)}
-				{stepper.maxPeakCurrent / 1.41 < current && (
-					<Banner Icon={ExclamationTriangleIcon} color="yellow" title="Stepper overcurrent!" className="col-span-2">
-						Your stepper motor is rated for {Math.floor((stepper.maxPeakCurrent * 100) / 1.41) / 100}A RMS, but you are
-						using {current}A.
 					</Banner>
 				)}
 			</div>

@@ -15,7 +15,7 @@ import { ShowWhenReady } from '../common/show-when-ready';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
 
 export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
-	const printerQuery = trpc.useQuery(['printer.printers']);
+	const printerQuery = trpc.printer.printers.useQuery();
 	const {
 		setPrinterDefaults,
 		setSelectedPrinter,

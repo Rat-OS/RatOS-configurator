@@ -2,10 +2,8 @@
 
 import { KlippyStateBadge } from '../components/klippy-state-badge';
 import { MoonrakerStateBadge } from '../components/moonraker-state-badge';
-import { Step } from '../components/steps';
 import { VerticalSteps } from '../components/vertical-steps';
 import { PrinterSelection } from '../components/setup-steps/printer-selection';
-import { CoreXYKinematics } from '../components/setup-steps/corexy-kinematics';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { WifiSetup } from '../components/setup-steps/wifi-setup';
 import { MCUPreparation } from '../components/setup-steps/mcu-preparation';
@@ -17,10 +15,9 @@ import { ActionsDropdown } from '../components/common/actions-dropdown';
 import { HardwareSelection } from '../components/setup-steps/hardware-selection';
 import { RecoilRoot } from 'recoil';
 import { SyncWithMoonraker } from '../components/sync-with-moonraker';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React from 'react';
 import { useIsClient } from '../hooks/isClient';
 import { Spinner } from '../components/spinner';
-import { usePrinterConfiguration } from '../hooks/usePrinterConfiguration';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -100,12 +97,13 @@ export const Wizard: React.FC<WizardProps> = (props) => {
 	const router = useRouter();
 	const uriStep = router.query.step ? parseInt(router.query.step as string, 10) : null;
 	const defaultStep = props.hasWifiInterface && !props.isConnectedToWifi ? 0 : 1;
-	const { data: version } = trpc.useQuery(['version']);
-	const { data: ip } = trpc.useQuery(['ip-address']);
+	const { data: version } = trpc.version.useQuery();
+	const { data: ip } = trpc.ipAddress.useQuery();
 	const { currentStepIndex, setCurrentStepIndex, screenProps, currentStep } = useSteps({
 		step: uriStep != null ? uriStep : defaultStep,
 		onStepChange: (step) => {
 			router.push('/?step=' + step, undefined, { shallow: true });
+			window.scrollTo(0, 0);
 		},
 		steps,
 	});

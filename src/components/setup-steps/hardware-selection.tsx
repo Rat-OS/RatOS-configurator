@@ -53,7 +53,6 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 		stealtchop,
 		setStealthchop,
 		selectedPrinterRails,
-		setSelectedPrinterRails,
 		selectedXAccelerometer,
 		setSelectedXAccelerometer,
 		selectedYAccelerometer,
@@ -253,9 +252,9 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 						</div>
 					</div>
 					{advancedSteppers && selectedPrinter && (
-						<div className="gap-4 space-y-4 py-4 sm:columns-2">
+						<div className="grid gap-4 py-4 sm:grid-cols-2">
 							{selectedPrinterRails.map((rail) => (
-								<div className="break-inside-avoid-column" key={rail.axis}>
+								<div className="break-inside-avoid-column" key={rail.axis + (performanceMode ? 'performance' : '')}>
 									<PrinterRailSettings
 										selectedBoard={
 											rail.axis === PrinterAxis.extruder && selectedToolboard ? selectedToolboard : selectedBoard

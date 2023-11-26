@@ -61,15 +61,12 @@ export const MCUPreparation: React.FC<StepScreenProps & ExtraProps> = (props) =>
 		setSelectedToolboard: _setToolboard,
 	} = usePrinterConfiguration();
 
-	const boardsQuery = trpc.useQuery([
-		'mcu.boards',
-		{
-			boardFilters: {
-				toolboard: props.toolboards,
-				driverCountRequired: props.toolboards ? undefined : selectedPrinter?.driverCountRequired,
-			},
-		},
-	]);
+	const boardsQuery = trpc.mcu.boards.useQuery({
+        			boardFilters: {
+        				toolboard: props.toolboards,
+        				driverCountRequired: props.toolboards ? undefined : selectedPrinter?.driverCountRequired,
+        			},
+        		});
 
 	const cards: SelectableBoard[] = useMemo(() => {
 		if (boardsQuery.isError || boardsQuery.data == null) return [];

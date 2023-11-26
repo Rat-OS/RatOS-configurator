@@ -11,7 +11,7 @@ import React, { useState } from 'react';
 import { useMutation } from 'react-query';
 import { useRecoilValue } from 'recoil';
 import { trpc } from '../../../helpers/trpc';
-import { Board } from '../../../server/router/mcu';
+import { Board } from '../../../server/routers/mcu';
 import { Button } from '../../button';
 import { Modal } from '../../modal';
 import { Spinner } from '../../spinner';
@@ -26,7 +26,7 @@ export const SDCardFlashing: React.FC<SDCardFlashingProps> = (props) => {
 	const [shutdownModalVisible, setShutdownModalVisible] = useState(false);
 	const { query: moonrakerQuery, isReady } = useMoonraker();
 	const [isFirmwareReady, setIsFirmwareReady] = useState(false);
-	const compile = trpc.useMutation('mcu.compile', {
+	const compile = trpc.mcu.compile.useMutation({
 		onSuccess: () => setIsFirmwareReady(true),
 		onError: () => setIsFirmwareReady(false),
 	});

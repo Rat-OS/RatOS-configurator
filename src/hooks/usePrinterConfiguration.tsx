@@ -1,6 +1,6 @@
 'use client';
 
-import { atom, atomFamily, DefaultValue, selector, useRecoilValue } from 'recoil';
+import { atom, atomFamily, DefaultValue, selector, useRecoilValue, useResetRecoilState } from 'recoil';
 import { z } from 'zod';
 import { Board, Toolboard } from '../zods/boards';
 import {
@@ -43,7 +43,7 @@ export const PrinterState = atom({
 				if (printer != null) {
 					const printerId = z.object({ id: Printer.shape.id }).safeParse(printer);
 					if (printerId.success) {
-						const printerReq = await trpcClient.query('printer.printers');
+						const printerReq = await trpcClient.printer.printers.query();
 						const newPrinter = printerReq.find((p) => p.id === printerId.data.id);
 						return newPrinter ?? null;
 					}
@@ -135,7 +135,7 @@ export const ControlboardState = atom({
 				if (board != null) {
 					const boardId = z.object({ path: Board.shape.path }).safeParse(board);
 					if (boardId.success) {
-						const boardReq = await trpcClient.query('mcu.boards', { boardFilters: { toolboard: false } });
+						const boardReq = await trpcClient.mcu.boards.query({ boardFilters: { toolboard: false } });
 						const newBoard = boardReq.find((b) => b.path === boardId.data.path);
 						return newBoard ?? null;
 					}
@@ -157,7 +157,7 @@ const _ToolboardState = atom({
 				if (board != null) {
 					const boardId = z.object({ path: Board.shape.path }).safeParse(board);
 					if (boardId.success) {
-						const boardReq = await trpcClient.query('mcu.boards', { boardFilters: { toolboard: true } });
+						const boardReq = await trpcClient.mcu.boards.query({ boardFilters: { toolboard: true } });
 						const newBoard = boardReq.find((b) => b.path === boardId.data.path);
 						return newBoard ?? null;
 					}
@@ -266,8 +266,16 @@ export const PrinterRailsState = selector<z.infer<typeof PrinterRail>[]>({
 	key: 'PrinterRails',
 	get: ({ get }) => {
 		const printer = get(PrinterState);
+		const perfMode = get(PerformanceModeState);
 		const rails = printer?.defaults.rails
-			.map((rail) => deserializePrinterRail(get(PrinterRailState(rail.axis)) ?? rail))
+			.filter((r) => !r.performanceMode)
+			.map((rail) => {
+				const railState = get(PrinterRailState(rail.axis));
+				const actualModeDefault = printer?.defaults.rails.find(
+					(r) => r.axis === rail.axis && r.performanceMode === perfMode,
+				);
+				return deserializePrinterRail(railState ?? actualModeDefault ?? rail);
+			})
 			.filter(Boolean);
 		return rails ?? [];
 	},
@@ -377,7 +385,6 @@ export const serializePartialPrinterConfiguration = (
 		yAccelerometer: config?.yAccelerometer?.id,
 		performanceMode: config?.performanceMode,
 		stealthchop: config?.stealthchop,
-		rails: config?.rails?.map((rail) => ({ ...rail, driver: rail.driver.id, stepper: rail.stepper.id })),
 	};
 	return SerializedPartialPrinterConfiguration.parse(serializedConfig);
 };
@@ -401,36 +408,37 @@ export const usePrinterConfiguration = () => {
 	const [selectedHotendFan, setSelectedHotendFan] = useRecoilState(HotendFanState);
 	const [selectedControllerFan, setSelectedControllerFan] = useRecoilState(ControllerFanState);
 	const [selectedPrinterRails, setSelectedPrinterRails] = useRecoilState(PrinterRailsState);
+	const resetSelectedPrinterRails = useResetRecoilState(PrinterRailsState);
 	const printerConfiguration = useRecoilValue(PrinterConfigurationState);
 	const serializedPrinterConfiguration = useMemo(
 		() => serializePartialPrinterConfiguration(printerConfiguration ?? {}),
 		[printerConfiguration],
 	);
 
-	const hotends = trpc.useQuery(['printer.hotends']);
-	const boards = trpc.useQuery(['mcu.boards', {}]);
-	const extruders = trpc.useQuery(['printer.extruders']);
-	const thermistors = trpc.useQuery(['printer.thermistors']);
-	const probes = trpc.useQuery(['printer.probes']);
-	const xEndstops = trpc.useQuery(['printer.x-endstops', serializedPrinterConfiguration], {
+	const hotends = trpc.printer.hotends.useQuery();
+	const boards = trpc.mcu.boards.useQuery({});
+	const extruders = trpc.printer.extruders.useQuery();
+	const thermistors = trpc.printer.thermistors.useQuery();
+	const probes = trpc.printer.probes.useQuery();
+	const xEndstops = trpc.printer.xEndstops.useQuery(serializedPrinterConfiguration, {
 		keepPreviousData: true,
 	});
-	const yEndstops = trpc.useQuery(['printer.y-endstops', serializedPrinterConfiguration], {
+	const yEndstops = trpc.printer.yEndstops.useQuery(serializedPrinterConfiguration, {
 		keepPreviousData: true,
 	});
-	const partFanOptions = trpc.useQuery(['printer.part-fan-options', serializedPrinterConfiguration], {
+	const partFanOptions = trpc.printer.partFanOptions.useQuery(serializedPrinterConfiguration, {
 		keepPreviousData: true,
 	});
-	const hotendFanOptions = trpc.useQuery(['printer.hotend-fan-options', serializedPrinterConfiguration], {
+	const hotendFanOptions = trpc.printer.hotendFanOptions.useQuery(serializedPrinterConfiguration, {
 		keepPreviousData: true,
 	});
-	const controllerFanOptions = trpc.useQuery(['printer.controller-fan-options', serializedPrinterConfiguration], {
+	const controllerFanOptions = trpc.printer.controllerFanOptions.useQuery(serializedPrinterConfiguration, {
 		keepPreviousData: true,
 	});
-	const xAccelerometerOptions = trpc.useQuery(['printer.x-accelerometer-options', serializedPrinterConfiguration], {
+	const xAccelerometerOptions = trpc.printer.xAccelerometerOptions.useQuery(serializedPrinterConfiguration, {
 		keepPreviousData: true,
 	});
-	const yAccelerometerOptions = trpc.useQuery(['printer.y-accelerometer-options', serializedPrinterConfiguration], {
+	const yAccelerometerOptions = trpc.printer.yAccelerometerOptions.useQuery(serializedPrinterConfiguration, {
 		keepPreviousData: true,
 	});
 
@@ -502,9 +510,7 @@ export const usePrinterConfiguration = () => {
 			if (yAccelerometer) {
 				setSelectedYAccelerometer(yAccelerometer);
 			}
-			setSelectedPrinterRails(
-				printer.defaults.rails.filter((r) => !r.performanceMode).map((rail) => deserializePrinterRail(rail)),
-			);
+			resetSelectedPrinterRails();
 		},
 		[
 			boards.data,
@@ -519,7 +525,7 @@ export const usePrinterConfiguration = () => {
 			controllerFanOptions.data,
 			xAccelerometerOptions.data,
 			yAccelerometerOptions.data,
-			setSelectedPrinterRails,
+			resetSelectedPrinterRails,
 			setSelectedBoard,
 			setSelectedToolboard,
 			setSelectedHotend,

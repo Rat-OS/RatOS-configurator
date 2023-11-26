@@ -36,6 +36,11 @@ const bannerStyle = cva('rounded-md p-4 border', {
 				badgeBorderColorStyle({ color: 'blue' }),
 				badgeTextColorStyle({ color: 'blue' }),
 			],
+			sky: [
+				badgeBackgroundColorStyle({ color: 'sky' }),
+				badgeBorderColorStyle({ color: 'sky' }),
+				badgeTextColorStyle({ color: 'sky' }),
+			],
 			indigo: [
 				badgeBackgroundColorStyle({ color: 'indigo' }),
 				badgeBorderColorStyle({ color: 'indigo' }),

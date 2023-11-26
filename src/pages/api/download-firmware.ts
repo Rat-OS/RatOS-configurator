@@ -3,7 +3,7 @@ import fs from 'fs';
 import { promisify } from 'util';
 import path from 'path';
 import { NextApiRequest, NextApiResponse } from 'next';
-import { getBoards } from '../../server/router/mcu';
+import { getBoards } from '../../server/routers/mcu';
 import { fileTypeFromFile } from 'file-type';
 
 type DownloadFirmwareSuccessResponseData = Buffer;

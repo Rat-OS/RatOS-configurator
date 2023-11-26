@@ -14,27 +14,27 @@ import { SDCardFlashing } from './sd-card-flash';
 export const MCUFlashing = (props: MCUStepScreenProps) => {
 	const [forceReflash, setForceReflash] = useState(false);
 	const [flashStrategy, setFlashStrategy] = useState<null | 'dfu' | 'sdcard' | 'path'>(null);
-	const { data: isBoardDetected, ...mcuDetect } = trpc.useQuery(
-		['mcu.detect', { boardPath: props.selectedBoard?.board.path ?? '' }],
-		{
-			refetchInterval: 1000,
-			enabled: props.selectedBoard !== null,
-		},
+	const { data: isBoardDetected, ...mcuDetect } = trpc.mcu.detect.useQuery(
+		{ boardPath: props.selectedBoard?.board.path ?? '' },
+        {
+            refetchInterval: 1000,
+            enabled: props.selectedBoard !== null,
+        },
 	);
 	const {
 		data: boardVersion,
 		isLoading: isBoardVersionLoading,
 		...mcuBoardVersion
-	} = trpc.useQuery(['mcu.board-version', { boardPath: props.selectedBoard?.board.path ?? '' }], {
-		enabled: props.selectedBoard !== null && !!isBoardDetected && forceReflash === false,
-		refetchOnWindowFocus: false,
-		refetchOnMount: false,
-		refetchOnReconnect: false,
-	});
-	const { data: klipperVersion } = trpc.useQuery(['klipper-version'], {
-		refetchInterval: 60000,
-	});
-	const flashViaPath = trpc.useMutation('mcu.flash-via-path', { onSuccess: () => setForceReflash(false) });
+    } = trpc.mcu.boardVersion.useQuery({ boardPath: props.selectedBoard?.board.path ?? '' }, {
+        enabled: props.selectedBoard !== null && !!isBoardDetected && forceReflash === false,
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
+        refetchOnReconnect: false,
+    });
+    const { data: klipperVersion } = trpc.klipperVersion.useQuery(undefined, {
+        refetchInterval: 60000,
+    });
+	const flashViaPath = trpc.mcu.flashViaPath.useMutation({ onSuccess: () => setForceReflash(false) });
 
 	const reflash = useCallback(() => {
 		setFlashStrategy(null);

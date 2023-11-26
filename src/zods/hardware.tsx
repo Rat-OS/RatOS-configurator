@@ -219,7 +219,7 @@ export const deserializePrinterRail = (rail: z.input<typeof SerializedPrinterRai
 	if (driver == null) {
 		throw new Error(`Driver ${rail.driver} not found in database`);
 	}
-	return PrinterRail.parse({
+	return BasePrinterRail.parse({
 		...rail,
 		stepper,
 		driver,

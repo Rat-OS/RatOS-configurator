@@ -23,8 +23,8 @@ export const ActionsDropdown = () => {
 		dismissText: 'OK',
 	});
 
-	const symlinkExtensions = trpc.useMutation('klippy-extensions.symlink');
-	const flashFirmware = trpc.useMutation('mcu.flash-all-connected');
+	const symlinkExtensions = trpc.klippyExtensions.symlink.useMutation();
+	const flashFirmware = trpc.mcu.flashAllConnected.useMutation();
 
 	const symlinkModal = isSymlinkModalOpen ? (
 		<MutationModal

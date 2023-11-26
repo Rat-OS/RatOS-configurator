@@ -1,6 +1,6 @@
-import { getPrinters, parseDirectory } from '../server/router/printer';
+import { getPrinters, parseDirectory } from '../server/routers/printer';
 import { Extruder, Hotend, Probe, deserializePrinterRail } from '../zods/hardware';
-import { getBoards } from '../server/router/mcu';
+import { getBoards } from '../server/routers/mcu';
 import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';

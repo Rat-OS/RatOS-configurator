@@ -1,15 +1,14 @@
 import { z } from 'zod';
-import * as trpc from '@trpc/server';
 import fs, { exists } from 'fs';
 import { exec } from 'child_process';
 import { existsSync, readFileSync } from 'fs';
 import { promisify } from 'util';
-import { createRouter } from './context';
 import { TRPCError } from '@trpc/server';
 import { getScriptRoot } from '../../helpers/util';
-import path from 'path';
 import { runSudoScript } from '../../helpers/run-script';
 import { AutoFlashableBoard, Board, BoardWithDetectionStatus } from '../../zods/boards';
+import { middleware, publicProcedure, router } from '../trpc';
+import path from 'path';
 
 const inputSchema = z.object({
 	boardPath: z.string(),
@@ -47,58 +46,60 @@ export const getBoardsWithDriverCount = (boards: BoardWithDetectionStatus[], dri
 		(b) => b.driverCount >= driverCount || (b.extruderlessConfig != null && b.driverCount >= driverCount - 1),
 	);
 };
-
-export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: boolean }>()
-	.middleware(async ({ ctx, next, meta, rawInput }) => {
-		let boards = null;
-		const parsedInput = inputSchema.safeParse(rawInput);
-		try {
-			boards = await getBoards();
-			if (meta?.includeHost !== true) {
-				boards = getBoardsWithoutHost(boards);
-			}
-		} catch (e) {
-			throw new trpc.TRPCError({
-				code: 'INTERNAL_SERVER_ERROR',
-				message: `Invalid board definition(s) in ${process.env.RATOS_CONFIGURATION_PATH}/boards.`,
-				cause: e,
-			});
+const mcuMiddleware = middleware(async ({ ctx, next, meta, rawInput }) => {
+	let boards = null;
+	const parsedInput = inputSchema.safeParse(rawInput);
+	try {
+		boards = await getBoards();
+		if (meta?.includeHost !== true) {
+			boards = getBoardsWithoutHost(boards);
 		}
-		let board = null;
-		if (meta?.boardRequired && !parsedInput.success) {
-			throw new trpc.TRPCError({
-				code: 'PRECONDITION_FAILED',
-				message: `boardPath parameter missing.`,
-			});
-		}
-		if (parsedInput.success) {
-			board = boards.find((b) => b.path === parsedInput.data.boardPath);
-			if (board == null) {
-				throw new trpc.TRPCError({
-					code: 'PRECONDITION_FAILED',
-					message: `No supported board exists for the path ${parsedInput.data.boardPath}`,
-				});
-			}
-		}
-		return next({
-			ctx: {
-				...ctx,
-				boards: boards,
-				board: board,
-			},
+	} catch (e) {
+		throw new TRPCError({
+			code: 'INTERNAL_SERVER_ERROR',
+			message: `Invalid board definition(s) in ${process.env.RATOS_CONFIGURATION_PATH}/boards.`,
+			cause: e,
 		});
-	})
-	.query('boards', {
-		output: z.array(BoardWithDetectionStatus),
-		input: z.object({
-			boardFilters: z
-				.object({
-					toolboard: z.boolean().optional(),
-					driverCountRequired: z.number().optional(),
-				})
-				.optional(),
-		}),
-		resolve: ({ ctx, input }) => {
+	}
+	let board = null;
+	if (meta?.boardRequired && !parsedInput.success) {
+		throw new TRPCError({
+			code: 'PRECONDITION_FAILED',
+			message: `boardPath parameter missing.`,
+		});
+	}
+	if (parsedInput.success) {
+		board = boards.find((b) => b.path === parsedInput.data.boardPath);
+		if (board == null) {
+			throw new TRPCError({
+				code: 'PRECONDITION_FAILED',
+				message: `No supported board exists for the path ${parsedInput.data.boardPath}`,
+			});
+		}
+	}
+	return next({
+		ctx: {
+			...ctx,
+			boards: boards,
+			board: board,
+		},
+	});
+});
+const mcuProcedure = publicProcedure.use(mcuMiddleware);
+export const mcuRouter = router({
+	boards: mcuProcedure
+		.input(
+			z.object({
+				boardFilters: z
+					.object({
+						toolboard: z.boolean().optional(),
+						driverCountRequired: z.number().optional(),
+					})
+					.optional(),
+			}),
+		)
+		.output(z.array(BoardWithDetectionStatus))
+		.query(({ ctx, input }) => {
 			let boards = ctx.boards;
 			if (input.boardFilters?.toolboard === true) {
 				boards = getToolboards(boards);
@@ -107,16 +108,15 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 				boards = getBoardsWithDriverCount(boards, input.boardFilters.driverCountRequired);
 			}
 			return boards;
-		},
-	})
-	.query('detect', {
-		meta: {
+		}),
+	detect: mcuProcedure
+		.input(inputSchema)
+		.meta({
 			boardRequired: true,
-		},
-		input: inputSchema,
-		resolve: ({ ctx, input }) => {
+		})
+		.query(({ ctx, input }) => {
 			if (ctx.board == null) {
-				throw new trpc.TRPCError({
+				throw new TRPCError({
 					code: 'PRECONDITION_FAILED',
 					message: `No supported board exists for the path ${input.boardPath}`,
 				});
@@ -125,28 +125,27 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 				return true;
 			}
 			return false;
-		},
-	})
-	.query('board-version', {
-		meta: {
+		}),
+	boardVersion: mcuProcedure
+		.input(inputSchema)
+		.meta({
 			boardRequired: true,
-		},
-		input: inputSchema,
-		resolve: async ({ ctx, input }) => {
+		})
+		.query(async ({ ctx, input }) => {
 			if (ctx.board == null) {
-				throw new trpc.TRPCError({
+				throw new TRPCError({
 					code: 'PRECONDITION_FAILED',
 					message: `No supported board exists for the path ${input.boardPath}`,
 				});
 			}
 			if (process.env.KLIPPER_ENV == null || process.env.KLIPPER_ENV.trim() === '') {
-				throw new trpc.TRPCError({
+				throw new TRPCError({
 					code: 'PRECONDITION_FAILED',
 					message: `Environment variable KLIPPER_ENV is missing`,
 				});
 			}
 			if (process.env.KLIPPER_DIR == null || process.env.KLIPPER_DIR.trim() === '') {
-				throw new trpc.TRPCError({
+				throw new TRPCError({
 					code: 'PRECONDITION_FAILED',
 					message: `Environment variable KLIPPER_DIR is missing`,
 				});
@@ -170,25 +169,26 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 				await fetch('http://localhost:7125/machine/services/start?service=klipper', { method: 'POST' });
 			}
 			if (error) {
-				throw new trpc.TRPCError({
+				throw new TRPCError({
 					code: 'INTERNAL_SERVER_ERROR',
 					cause: error,
 				});
 			}
 			const versionRegEx = /Version:\s(v\d+\.\d+\.\d+-\d+-\w{9})/;
 			return version.stdout.match(versionRegEx)?.[1];
-		},
-	})
-	.mutation('compile', {
-		meta: {
-			boardRequired: true,
-		},
-		input: z.object({
-			boardPath: z.string(),
 		}),
-		resolve: async ({ ctx, input }) => {
+	compile: mcuProcedure
+		.input(
+			z.object({
+				boardPath: z.string(),
+			}),
+		)
+		.meta({
+			boardRequired: true,
+		})
+		.mutation(async ({ ctx, input }) => {
 			if (ctx.board == null) {
-				throw new trpc.TRPCError({
+				throw new TRPCError({
 					code: 'PRECONDITION_FAILED',
 					message: `No supported board exists for the path ${input.boardPath}`,
 				});
@@ -216,20 +216,19 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 				});
 			}
 			if (!fs.existsSync(firmwareBinary)) {
-				throw new trpc.TRPCError({
+				throw new TRPCError({
 					code: 'INTERNAL_SERVER_ERROR',
 					message: `Could not compile firmware for ${ctx.board.name}: ${compileResult.stdout}`,
 				});
 			}
 			return 'success';
-		},
-	})
-	.mutation('flash-all-connected', {
-		meta: {
+		}),
+	flashAllConnected: mcuProcedure
+		.meta({
 			boardRequired: false,
 			includeHost: true,
-		},
-		resolve: async ({ ctx }) => {
+		})
+		.mutation(async ({ ctx }) => {
 			const connectedBoards = ctx.boards.filter(
 				(b) => existsSync(b.serialPath) && b.flashScript && b.compileScript && b.disableAutoFlash !== true,
 			);
@@ -275,24 +274,25 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 				}
 			});
 			return report;
-		},
-	})
-	.mutation('flash-via-path', {
-		meta: {
-			boardRequired: true,
-		},
-		input: z.object({
-			boardPath: z.string(),
 		}),
-		resolve: async ({ ctx, input }) => {
+	flashViaPath: mcuProcedure
+		.input(
+			z.object({
+				boardPath: z.string(),
+			}),
+		)
+		.meta({
+			boardRequired: true,
+		})
+		.mutation(async ({ ctx, input }) => {
 			if (ctx.board == null) {
-				throw new trpc.TRPCError({
+				throw new TRPCError({
 					code: 'PRECONDITION_FAILED',
 					message: `No supported board exists for the path ${input.boardPath}`,
 				});
 			}
 			if (ctx.board.flashScript == null) {
-				throw new trpc.TRPCError({
+				throw new TRPCError({
 					code: 'PRECONDITION_FAILED',
 					message: `${ctx.board.name} does not support automatic flashing via serial path.`,
 				});
@@ -320,7 +320,7 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 				});
 			}
 			if (!fs.existsSync(firmwareBinary)) {
-				throw new trpc.TRPCError({
+				throw new TRPCError({
 					code: 'INTERNAL_SERVER_ERROR',
 					message: `Could not compile firmware for ${ctx.board.name}: ${compileResult.stdout}`,
 				});
@@ -341,39 +341,37 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 				});
 			}
 			if (!fs.existsSync(ctx.board.serialPath)) {
-				throw new trpc.TRPCError({
+				throw new TRPCError({
 					code: 'INTERNAL_SERVER_ERROR',
 					message: `Could not flash firmware to ${ctx.board.name}: ${flashResult.stdout}`,
 				});
 			}
 			return 'success';
-		},
-	})
-	.query('dfu-detect', {
-		meta: {
+		}),
+	dfuDetect: mcuProcedure
+		.input(inputSchema)
+		.meta({
 			boardRequired: true,
-		},
-		input: inputSchema,
-		resolve: async ({ ctx, input }) => {
+		})
+		.query(async ({ ctx, input }) => {
 			const dfuDeviceCount = parseInt((await promisify(exec)('lsusb | grep "0483:df11" | wc -l')).stdout, 10);
 			if (dfuDeviceCount === 1) {
 				return true;
 			}
 			if (dfuDeviceCount > 1) {
-				throw new trpc.TRPCError({
+				throw new TRPCError({
 					code: 'PRECONDITION_FAILED',
 					message: 'Multiple DFU devices detected, please disconnect the other devices.',
 				});
 			}
 			return false;
-		},
-	})
-	.mutation('dfu-flash', {
-		meta: {
+		}),
+	dfuFlash: mcuProcedure
+		.input(inputSchema)
+		.meta({
 			boardRequired: true,
-		},
-		input: inputSchema,
-		resolve: async ({ ctx, input }) => {
+		})
+		.mutation(async ({ ctx, input }) => {
 			if (ctx.board == null) return; // middleware takes care of the error message.
 			if (ctx.board.dfu == null) {
 				throw new TRPCError({
@@ -404,7 +402,7 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 				});
 			}
 			if (!fs.existsSync(firmwareBinary)) {
-				throw new trpc.TRPCError({
+				throw new TRPCError({
 					code: 'INTERNAL_SERVER_ERROR',
 					message: `Could not compile firmware for ${ctx.board.name}: ${compileResult.stdout} ${compileResult.stderr}`,
 				});
@@ -419,6 +417,5 @@ export const mcuRouter = createRouter<{ boardRequired: boolean; includeHost?: bo
 					cause: e,
 				});
 			}
-		},
-	});
-export { Board };
+		}),
+});

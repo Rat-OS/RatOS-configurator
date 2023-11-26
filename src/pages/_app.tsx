@@ -1,6 +1,5 @@
 import '../styles/globals.css';
 import type { AppProps } from 'next/app';
-import { RecoilRoot } from 'recoil';
 
 import { Disclosure } from '@headlessui/react';
 import { Bars3Icon, XMarkIcon, MoonIcon, SunIcon } from '@heroicons/react/24/outline';
@@ -10,8 +9,8 @@ import { withTRPC } from '@trpc/next';
 import { AppRouter } from './api/trpc/[trpc]';
 import { Inter } from 'next/font/google';
 import { useEffect, useState } from 'react';
-import { SyncWithMoonraker } from '../components/sync-with-moonraker';
-import { getTRPCClientOpts } from '../helpers/trpc';
+import { httpBatchLink } from '@trpc/client';
+import { trpc } from '../utils/trpc';
 
 function classNames(...classes: string[]) {
 	return classes.filter(Boolean).join(' ');
@@ -214,12 +213,4 @@ function App(props: AppProps<Props>) {
 	);
 }
 
-export default withTRPC<AppRouter>({
-	config({ ctx }) {
-		return getTRPCClientOpts();
-	},
-	/**
-	 * @link https://trpc.io/docs/ssr
-	 */
-	ssr: false,
-})(App);
+export default trpc.withTRPC(App);

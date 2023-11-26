@@ -1,7 +1,6 @@
-import * as trpcNext from '@trpc/server/adapters/next';
 import { getLogger } from '../../../helpers/logger';
-import { createContext } from '../../../server/router/context';
-import { appRouter } from '../../../server/router/index';
+import { appRouter } from '../../../server/routers/index';
+import * as trpcNext from '@trpc/server/adapters/next';
 
 // export type definition of API
 export type AppRouter = typeof appRouter;
@@ -9,7 +8,9 @@ export type AppRouter = typeof appRouter;
 // export API handler
 export default trpcNext.createNextApiHandler({
 	router: appRouter,
-	createContext: createContext,
+	createContext: () => ({
+		boards: [],
+	}),
 	onError: (ctx) => {
 		getLogger().error(ctx.error);
 	},
