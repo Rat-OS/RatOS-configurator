@@ -25,6 +25,7 @@ export const Board = z.object({
 			flashDevice: z.string(),
 			instructions: z.array(z.string()),
 			reminder: z.string().optional(),
+			hasBoot0Jumper: z.boolean(),
 		})
 		.optional(),
 	path: z.string(),
