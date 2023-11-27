@@ -1,5 +1,5 @@
 import { getPrinters, parseDirectory } from '../server/routers/printer';
-import { Extruder, Hotend, Probe, deserializePrinterRail } from '../zods/hardware';
+import { Extruder, Hotend, Probe } from '../zods/hardware';
 import { getBoards } from '../server/routers/mcu';
 import fs from 'fs';
 import path from 'path';
@@ -10,7 +10,7 @@ import { describe, expect, test } from 'vitest';
 import { PartialPrinterConfiguration, SerializedPartialPrinterConfiguration } from '../zods/printer-configuration';
 import { xEndstopOptions, yEndstopOptions } from '../data/endstops';
 import { serializePartialPrinterConfiguration } from '../hooks/usePrinterConfiguration';
-import { Steppers } from '../data/steppers';
+import { deserializePrinterRail } from '../utils/serialization';
 
 describe('configuration', async () => {
 	const parsedHotends = await parseDirectory('hotends', Hotend);

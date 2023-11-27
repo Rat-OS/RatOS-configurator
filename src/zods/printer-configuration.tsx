@@ -1,17 +1,8 @@
 import { z } from 'zod';
 import { Board } from './boards';
-import {
-	Hotend,
-	Thermistor,
-	Extruder,
-	Probe,
-	Endstop,
-	Fan,
-	Accelerometer,
-	PrinterRail,
-	SerializedPrinterRail,
-} from './hardware';
+import { Hotend, Thermistor, Extruder, Probe, Endstop, Fan, Accelerometer } from './hardware';
 import { Printer } from './printer';
+import { PrinterRail, SerializedPrinterRail } from './motion';
 
 const BasePrinterConfiguration = z.object({
 	printer: Printer,
@@ -29,8 +20,9 @@ const BasePrinterConfiguration = z.object({
 	hotendFan: Fan,
 	xAccelerometer: Accelerometer.optional().nullable(),
 	yAccelerometer: Accelerometer.optional().nullable(),
-	performanceMode: z.boolean().optional(),
-	stealthchop: z.boolean().optional(),
+	performanceMode: z.boolean().default(false),
+	stealthchop: z.boolean().default(false),
+	standstillStealth: z.boolean().default(false),
 	rails: z.array(PrinterRail),
 });
 

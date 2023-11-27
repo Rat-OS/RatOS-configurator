@@ -13,7 +13,11 @@ import {
 	SerializedPrinterConfiguration,
 } from '../../zods/printer-configuration';
 import { xEndstopOptions, yEndstopOptions } from '../../data/endstops';
-import { constructKlipperConfigExtrasGenerator, constructKlipperConfigHelpers } from '../../helpers/klipper-config';
+import {
+	constructKlipperConfigExtrasGenerator,
+	constructKlipperConfigHelpers,
+	constructKlipperConfigUtils,
+} from '../../helpers/klipper-config';
 import { serverSchema } from '../../env/schema.mjs';
 import { controllerFanOptions, hotendFanOptions, partFanOptions } from '../../data/fans';
 import { getBoards } from './mcu';
@@ -21,6 +25,7 @@ import { xAccelerometerOptions, yAccelerometerOptions } from '../../data/acceler
 import { glob } from 'glob';
 import path from 'path';
 import { publicProcedure, router } from '../trpc';
+import { deserializePrinterRail } from '../../utils/serialization';
 
 function isNodeError(error: any): error is NodeJS.ErrnoException {
 	return error instanceof Error;
@@ -104,6 +109,7 @@ export const deserializePartialPrinterConfiguration = async (
 		yAccelerometer: yAccelerometerOptions(config).find((a) => a.id === config?.yAccelerometer),
 		performanceMode: config?.performanceMode,
 		stealthchop: config?.stealthchop,
+		standstillStealth: config?.standstillStealth,
 	});
 };
 
@@ -132,6 +138,8 @@ export const deserializePrinterConfiguration = async (
 		yAccelerometer: yAccelerometerOptions(config).find((a) => a.id === config?.yAccelerometer),
 		performanceMode: config?.performanceMode,
 		stealthchop: config?.stealthchop,
+		standstillStealth: config?.standstillStealth,
+		rails: config?.rails.map((r) => deserializePrinterRail(r)),
 	});
 };
 
@@ -192,8 +200,9 @@ export const printerRouter = router({
 		.mutation(async (ctx) => {
 			const { config: serializedConfig, overwritePrinterCfg } = ctx.input;
 			const config = await deserializePrinterConfiguration(serializedConfig);
-			const extrasGenerator = constructKlipperConfigExtrasGenerator(config);
-			const helper = constructKlipperConfigHelpers(config, extrasGenerator);
+			const utils = constructKlipperConfigUtils(config);
+			const extrasGenerator = constructKlipperConfigExtrasGenerator(config, utils);
+			const helper = constructKlipperConfigHelpers(config, extrasGenerator, utils);
 			const { template, initialPrinterCfg } = await import(
 				`../../templates/${config.printer.template.replace('-printer.template.cfg', '.ts')}`
 			);

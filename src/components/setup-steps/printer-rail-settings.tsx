@@ -1,15 +1,8 @@
 import { Dropdown } from '../forms/dropdown';
-import {
-	BasePrinterRail,
-	deserializeDriver,
-	getSupportedVoltages,
-	serializePrinterRail,
-	Voltages,
-} from '../../zods/hardware';
 import { Board, Toolboard } from '../../zods/boards';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Drivers } from '../../data/drivers';
-import { Steppers } from '../../data/steppers';
+import { findPreset, Steppers } from '../../data/steppers';
 import { BadgeProps } from '../common/badge';
 import { TextInput } from '../forms/text-input';
 import { Banner } from '../common/banner';
@@ -17,49 +10,15 @@ import { BoltIcon, LightBulbIcon } from '@heroicons/react/24/outline';
 import { useSetRecoilState } from 'recoil';
 import { PrinterRailState } from '../../hooks/usePrinterConfiguration';
 import { FireIcon } from '@heroicons/react/24/solid';
+import { BasePrinterRail, PrinterRailDefinition, getSupportedVoltages, matchesDefaultRail } from '../../zods/motion';
+import { deserializeDriver, serializePrinterRail } from '../../utils/serialization';
 
 interface PrinterRailSettingsProps {
 	selectedBoard: Board | Toolboard | null;
 	printerRail: Zod.infer<typeof BasePrinterRail>;
-	printerRailDefault: Zod.infer<typeof BasePrinterRail>;
+	printerRailDefault: Zod.infer<typeof PrinterRailDefinition>;
 	performanceMode?: boolean | null;
 }
-
-const findPreset = (
-	stepper: (typeof Steppers)[number],
-	driver: (typeof Drivers)[number],
-	voltage: (typeof Voltages)[number],
-	current?: number,
-	performanceMode?: boolean | null,
-) => {
-	return stepper.presets
-		?.slice()
-		.sort((a, b) => (performanceMode ? b.run_current - a.run_current : a.run_current - b.run_current))
-		.find(
-			(p) =>
-				p.driver === driver.type &&
-				p.voltage === voltage.id &&
-				p.sense_resistor === driver.senseResistor &&
-				(current == null || p.run_current === current),
-		);
-};
-
-const matchesDefaultRail = (
-	rail: Zod.infer<typeof BasePrinterRail>,
-	defaultRail: Zod.infer<typeof BasePrinterRail>,
-	performanceMode: boolean,
-) => {
-	return (
-		rail.axis === defaultRail.axis &&
-		rail.driver.id === defaultRail.driver.id &&
-		rail.stepper.id === defaultRail.stepper.id &&
-		((performanceMode &&
-			defaultRail.performanceMode &&
-			rail.voltage === defaultRail.performanceMode?.voltage &&
-			rail.current === defaultRail.performanceMode?.current) ||
-			(!performanceMode && rail.voltage === defaultRail.voltage && rail.current === defaultRail.current))
-	);
-};
 
 export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) => {
 	const setPrinterRail = useSetRecoilState(PrinterRailState(props.printerRail.axis));
@@ -80,7 +39,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 		return {
 			...v,
 			badge:
-				findPreset(stepper, driver, v, undefined, props.performanceMode) != null
+				findPreset(stepper, driver, v.id, undefined, props.performanceMode) != null
 					? ({
 							children: 'Tuned Preset',
 							color: 'sky',
@@ -92,22 +51,22 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 		supportedVoltages.find(
 			(v) =>
 				v.id ===
-				(props.performanceMode && props.printerRail.performanceMode?.voltage
-					? props.printerRail.performanceMode.voltage
-					: props.printerRail.voltage),
+				(props.performanceMode && props.printerRailDefault.performanceMode?.voltage
+					? props.printerRailDefault.performanceMode.voltage
+					: props.printerRailDefault.voltage),
 		) ?? supportedVoltages[0],
 	);
 	const [current, setCurrent] = useState(
-		props.performanceMode && props.printerRail.performanceMode
-			? props.printerRail.performanceMode.current
+		props.performanceMode && props.printerRailDefault.performanceMode
+			? props.printerRailDefault.performanceMode.current
 			: props.printerRail.current,
 	);
 	const recommendedPreset = useMemo(
-		() => findPreset(stepper, driver, voltage, undefined, props.performanceMode),
+		() => findPreset(stepper, driver, voltage.id, undefined, props.performanceMode),
 		[stepper, driver, voltage, props.performanceMode],
 	);
 	const matchingPreset = useMemo(
-		() => findPreset(stepper, driver, voltage, current, props.performanceMode),
+		() => findPreset(stepper, driver, voltage.id, current, props.performanceMode),
 		[stepper, driver, voltage, props.performanceMode, current],
 	);
 
@@ -115,7 +74,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 		return {
 			...d,
 			badge:
-				findPreset(stepper, d, voltage, undefined, props.performanceMode) != null
+				findPreset(stepper, d, voltage.id, undefined, props.performanceMode) != null
 					? ({
 							children: 'Tuned Preset',
 							color: 'sky',
@@ -127,7 +86,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 		return {
 			...s,
 			badge:
-				findPreset(s, driver, voltage, undefined, props.performanceMode) != null
+				findPreset(s, driver, voltage.id, undefined, props.performanceMode) != null
 					? ({
 							children: 'Tuned Preset',
 							color: 'sky',

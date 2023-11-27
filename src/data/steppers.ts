@@ -1,7 +1,27 @@
 import { z } from 'zod';
-import { Stepper } from '../zods/hardware';
+import { Drivers } from './drivers';
+import { Stepper, StepperVoltage } from '../zods/motion';
 
-export const Steppers: z.infer<typeof Stepper>[] = [
+export const findPreset = (
+	stepper: (typeof Steppers)[number],
+	driver: (typeof Drivers)[number],
+	voltage: StepperVoltage,
+	current?: number,
+	performanceMode?: boolean | null,
+) => {
+	return stepper.presets
+		?.slice()
+		.sort((a, b) => (performanceMode ? b.run_current - a.run_current : a.run_current - b.run_current))
+		.find(
+			(p) =>
+				p.driver === driver.type &&
+				p.voltage === voltage &&
+				p.sense_resistor === driver.senseResistor &&
+				(current == null || p.run_current === current),
+		);
+};
+
+export const Steppers = z.array(Stepper).parse([
 	{
 		id: 'generic',
 		title: 'Generic Stepper',
@@ -186,4 +206,4 @@ export const Steppers: z.infer<typeof Stepper>[] = [
 		title: 'LDO-35STH48-1684AH',
 		maxPeakCurrent: 1.68,
 	},
-];
+] satisfies z.input<typeof Stepper>[]);

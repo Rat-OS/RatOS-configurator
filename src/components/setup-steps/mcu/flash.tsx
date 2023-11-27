@@ -16,24 +16,27 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 	const [flashStrategy, setFlashStrategy] = useState<null | 'dfu' | 'sdcard' | 'path'>(null);
 	const { data: isBoardDetected, ...mcuDetect } = trpc.mcu.detect.useQuery(
 		{ boardPath: props.selectedBoard?.board.path ?? '' },
-        {
-            refetchInterval: 1000,
-            enabled: props.selectedBoard !== null,
-        },
+		{
+			refetchInterval: 1000,
+			enabled: props.selectedBoard !== null,
+		},
 	);
 	const {
 		data: boardVersion,
-		isLoading: isBoardVersionLoading,
+		isFetching: isBoardVersionLoading,
 		...mcuBoardVersion
-    } = trpc.mcu.boardVersion.useQuery({ boardPath: props.selectedBoard?.board.path ?? '' }, {
-        enabled: props.selectedBoard !== null && !!isBoardDetected && forceReflash === false,
-        refetchOnWindowFocus: false,
-        refetchOnMount: false,
-        refetchOnReconnect: false,
-    });
-    const { data: klipperVersion } = trpc.klipperVersion.useQuery(undefined, {
-        refetchInterval: 60000,
-    });
+	} = trpc.mcu.boardVersion.useQuery(
+		{ boardPath: props.selectedBoard?.board.path ?? '' },
+		{
+			enabled: props.selectedBoard !== null && !!isBoardDetected && forceReflash === false,
+			refetchOnWindowFocus: false,
+			refetchOnMount: false,
+			refetchOnReconnect: false,
+		},
+	);
+	const { data: klipperVersion } = trpc.klipperVersion.useQuery(undefined, {
+		refetchInterval: 60000,
+	});
 	const flashViaPath = trpc.mcu.flashViaPath.useMutation({ onSuccess: () => setForceReflash(false) });
 
 	const reflash = useCallback(() => {
@@ -73,16 +76,16 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 				</p>
 				<p>
 					<button color="gray" className="text-brand-700 hover:text-brand-600" onClick={reflash}>
-						flash again <ArrowPathIcon className="h-5 w-5 inline" />
+						flash again <ArrowPathIcon className="inline h-5 w-5" />
 					</button>
 				</p>
 			</Fragment>
 		);
-	} else if (isBoardVersionLoading && !mcuBoardVersion.isIdle) {
+	} else if (isBoardVersionLoading) {
 		content = (
 			<Fragment>
 				<h3 className="text-xl font-medium text-zinc-900 dark:text-zinc-100">
-					<Spinner className="inline relative -top-0.5 mr-2" noMargin={true} /> {firstBoard?.name} detected, checking
+					<Spinner className="relative -top-0.5 mr-2 inline" noMargin={true} /> {firstBoard?.name} detected, checking
 					version...
 				</h3>
 				<p>Please wait while RatOS queries your board..</p>
@@ -103,14 +106,14 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 		content = (
 			<Fragment>
 				<h3 className="text-xl font-medium text-zinc-900 dark:text-zinc-100">
-					<CheckCircleIcon className="text-brand-700 h-7 w-7 inline relative -top-0.5" /> {firstBoard?.name} detected
+					<CheckCircleIcon className="relative -top-0.5 inline h-7 w-7 text-brand-700" /> {firstBoard?.name} detected
 				</h3>
 				{dfuReminder}
 				{versionMismatch}
 				<p>
 					Proceed to the next step or{' '}
 					<button color="gray" className="text-brand-700 hover:text-brand-600" onClick={reflash}>
-						flash again <ArrowPathIcon className="h-5 w-5 inline" />
+						flash again <ArrowPathIcon className="inline h-5 w-5" />
 					</button>
 				</p>
 			</Fragment>
@@ -156,7 +159,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 		if (firstBoard == null) {
 			content = (
 				<div>
-					<div className="mt-4 prose text-base text-red-700">
+					<div className="prose mt-4 text-base text-red-700">
 						You have to select a board before navigating to this screen.
 					</div>
 				</div>
@@ -173,7 +176,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 					content = (
 						<div>
 							<h3 className="text-xl font-medium text-zinc-900 dark:text-zinc-100">Flashing {firstBoard.name}...</h3>
-							<div className="mt-4 prose text-base text-zinc-500">Please wait while RatOS flashes your board.</div>
+							<div className="prose mt-4 text-base text-zinc-500">Please wait while RatOS flashes your board.</div>
 							<MutationStatus {...flashViaPath} />
 						</div>
 					);
@@ -184,8 +187,8 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 		<Fragment>
 			<div className="p-8">
 				{' '}
-				<div className="pb-5 mb-5 border-b border-zinc-200 dark:border-zinc-700">
-					<h3 className="text-lg leading-6 font-medium text-zinc-900 dark:text-zinc-100">{props.name}</h3>
+				<div className="mb-5 border-b border-zinc-200 pb-5 dark:border-zinc-700">
+					<h3 className="text-lg font-medium leading-6 text-zinc-900 dark:text-zinc-100">{props.name}</h3>
 					<p className="mt-2 max-w-4xl text-sm text-zinc-500 dark:text-zinc-400">{props.description}</p>
 				</div>
 				<div className="space-y-4">

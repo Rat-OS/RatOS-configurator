@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { PrinterAxis, Voltage } from './hardware';
+import { PrinterAxis, Voltage } from './motion';
 
 export const Board = z.object({
 	serialPath: z.string(),

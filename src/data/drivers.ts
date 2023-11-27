@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { Driver, StepperVoltage } from '../zods/hardware';
-import { Board } from '../zods/boards';
-export const Drivers: z.infer<typeof Driver>[] = [
+import { Driver } from '../zods/motion';
+
+export const Drivers = z.array(Driver).parse([
 	{
 		id: 'BTT-TMC2209-13',
 		title: 'BTT TMC2209 v1.3',
@@ -15,7 +15,7 @@ export const Drivers: z.infer<typeof Driver>[] = [
 	{
 		id: 'BTT-TMC2226-10',
 		title: 'BTT TMC2226 v1.0',
-		type: 'TMC2226',
+		type: 'TMC2209',
 		protocol: 'UART',
 		senseResistor: 0.11,
 		coolingCurrentThreshold: 1.1,
@@ -56,7 +56,7 @@ export const Drivers: z.infer<typeof Driver>[] = [
 	{
 		id: 'BTT-EZ2226',
 		title: 'BTT EZ2226',
-		type: 'TMC2226',
+		type: 'TMC2209',
 		protocol: 'UART',
 		senseResistor: 0.11,
 		coolingCurrentThreshold: 1.3,
@@ -134,4 +134,4 @@ export const Drivers: z.infer<typeof Driver>[] = [
 		voltages: [24],
 		maxCurrent: 2.0,
 	},
-];
+] satisfies z.input<typeof Driver>[]);

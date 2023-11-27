@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { serverSchema } from '../env/schema.mjs';
 import path from 'path';
-import { SerializedPrinterRail } from './hardware';
+import { SerializedPrinterRailDefinition } from './motion';
 
 let startsWithServerValidation = '';
 if (process.env.RATOS_CONFIGURATION_PATH) {
@@ -54,7 +54,7 @@ export const Printer = z
 					.optional(),
 				xEndstop: z.enum(['endstop', 'endstop-toolboard', 'sensorless']).describe('Default x endstop for this printer'),
 				yEndstop: z.enum(['sensorless', 'endstop']).describe('Default y endstop for this printer'),
-				rails: z.array(SerializedPrinterRail).describe('Default rails for this printer'),
+				rails: z.array(SerializedPrinterRailDefinition).describe('Default rails for this printer'),
 			})
 			.describe('Default hardware for this printer'),
 	})

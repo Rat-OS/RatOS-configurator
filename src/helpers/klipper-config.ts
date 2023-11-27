@@ -1,10 +1,54 @@
 import { PrinterConfiguration } from '../zods/printer-configuration';
 import { sensorlessXTemplate, sensorlessYTemplate } from '../templates/extras/sensorless-homing';
-import { PrinterAxis } from '../zods/hardware';
+import { PrinterAxis, PrinterRail, matchesDefaultRail } from '../zods/motion';
+import { findPreset } from '../data/steppers';
+import { deserializePrinterRailDefinition } from '../utils/serialization';
 
 type WritableFiles = { fileName: string; content: string; overwrite: boolean }[];
 
-export const constructKlipperConfigExtrasGenerator = (config: PrinterConfiguration) => {
+export const constructKlipperConfigUtils = (config: PrinterConfiguration) => {
+	return {
+		getRail(axis: PrinterAxis) {
+			const rail = config.rails.find((r) => r.axis === axis);
+			if (rail == null) {
+				throw new Error(`No rail found for axis ${axis}`);
+			}
+			return rail;
+		},
+		getAxisPinName(axis: PrinterAxis, alias: string) {
+			return (axis === PrinterAxis.z ? 'z0' : axis === PrinterAxis.extruder ? 'e' : axis) + alias;
+		},
+		getAxisStepperName(axis: PrinterAxis) {
+			return axis === PrinterAxis.extruder ? 'extruder' : 'stepper' + '_' + axis;
+		},
+		getAxisDriverType(axis: PrinterAxis) {
+			return this.getRail(axis).driver.type.toLowerCase();
+		},
+		getAxisDriverSectionName(axis: PrinterAxis) {
+			return `${this.getAxisDriverType(axis)} ${this.getAxisStepperName(axis)}`;
+		},
+		getAxisVirtualEndstop(axis: PrinterAxis) {
+			return `${this.getAxisDriverType(axis)}_${this.getAxisStepperName(axis)}:virtual_endstop`;
+		},
+		getAxisDriverStallGuardThreshold(axis: PrinterAxis, factor: number) {
+			const rail = this.getRail(axis);
+			factor = Math.max(0, Math.min(1, factor));
+			if (['TMC2130', 'TMC5160', 'TMC2240'].includes(rail.driver.type)) {
+				return `driver_SGT: ${Math.round(factor * 127) - 64}`;
+			} else {
+				return `driver_SGTHRS: ${Math.round(factor * 255)}`;
+			}
+		},
+		getAxisDriverHomingCurrent(axis: PrinterAxis, factor: number) {
+			const rail = this.getRail(axis);
+			factor = Math.max(0, Math.min(1, factor));
+			return rail.stepper.maxPeakCurrent * 0.71 * factor;
+		},
+	};
+};
+export type KlipperConfigUtils = ReturnType<typeof constructKlipperConfigUtils>;
+
+export const constructKlipperConfigExtrasGenerator = (config: PrinterConfiguration, utils: KlipperConfigUtils) => {
 	const _filesToWrite: WritableFiles = [];
 	const _reminders: string[] = [];
 	return {
@@ -22,22 +66,23 @@ export const constructKlipperConfigExtrasGenerator = (config: PrinterConfigurati
 			if (config.xEndstop.id === 'sensorless') {
 				filesToWrite.push({
 					fileName: 'sensorless-homing-x.cfg',
-					content: sensorlessXTemplate(config),
+					content: sensorlessXTemplate(config, utils),
 					overwrite: false,
 				});
 			}
 			if (config.yEndstop.id === 'sensorless') {
 				filesToWrite.push({
 					fileName: 'sensorless-homing-y.cfg',
-					content: sensorlessYTemplate(config),
+					content: sensorlessYTemplate(config, utils),
 					overwrite: false,
 				});
 			}
 			if (filesToWrite.length > 0) {
 				const reminder: string[] = [];
-				reminder.push('# REMEMBER TO TUNE SENSORLESS HOMING BEFORE ATTEMPTING TO HOME X/Y!');
+				reminder.push('# REMEMBER TO TUNE SENSORLESS HOMING BEFORE ATTEMPTING TO PRINT!');
 				reminder.push(
-					`You'll find instructions in the generated sensorless-homing-*.cfg file(s), where you should keep your sensorless homing settings.`,
+					`# You'll find instructions in the generated sensorless-homing-*.cfg file(s),`,
+					`# where you should keep your sensorless homing settings.`,
 				);
 				this.addReminder(reminder.join('\n'));
 			}
@@ -65,8 +110,10 @@ export type KlipperConfigExtrasGenerator = ReturnType<typeof constructKlipperCon
 export const constructKlipperConfigHelpers = (
 	config: PrinterConfiguration,
 	extrasGenerator: KlipperConfigExtrasGenerator,
+	utils: KlipperConfigUtils,
 ) => {
 	return {
+		...utils,
 		renderBoardIncludes() {
 			const result: string[] = [
 				'[include RatOS/boards/rpi/config.cfg]', // Always include RPi.
@@ -96,42 +143,98 @@ export const constructKlipperConfigHelpers = (
 			}
 			return result.join('\n');
 		},
-		getAxisPinName(axis: PrinterAxis, alias: string) {
-			return (axis === PrinterAxis.z ? 'z0' : axis === PrinterAxis.extruder ? 'e' : axis) + alias;
-		},
-		getAxisStepperSection(axis: PrinterAxis) {
-			return axis === PrinterAxis.extruder ? 'extruder' : 'stepper' + '_' + axis;
-		},
 		renderStepperSections() {
 			return config.rails
 				.map((r) => {
-					return this.renderStepperSection(r.axis);
+					return this.renderStepperSection(r);
 				})
 				.join('\n');
 		},
-		renderStepperSection(axis: PrinterAxis) {
-			const rail = config.rails.find((r) => r.axis === axis);
+		renderStepperSection(axis: PrinterAxis | Zod.infer<typeof PrinterRail>) {
+			const rail = typeof axis === 'object' ? axis : config.rails.find((r) => r.axis === axis);
 			if (rail == null) {
 				throw new Error(`No rail found for axis ${axis}`);
 			}
 			const section = [
-				`[${this.getAxisStepperSection(axis)}]`,
-				`step_pin: ${this.getAxisPinName(axis, '_step_pin')}`,
-				`dir_pin: ${this.getAxisPinName(axis, '_dir_pin')}`,
-				`enable_pin: !${this.getAxisPinName(axis, '_enable_pin')}`,
+				`[${utils.getAxisStepperName(rail.axis)}]`,
+				`step_pin: ${utils.getAxisPinName(rail.axis, '_step_pin')}`,
+				`dir_pin: ${utils.getAxisPinName(rail.axis, '_dir_pin')}`,
+				`enable_pin: !${utils.getAxisPinName(rail.axis, '_enable_pin')}`,
 				`microsteps: ${rail.microstepping}`,
+				`rotation_distance: ${rail.rotationDistance}`,
+				`homing_speed: ${rail.homingSpeed}`,
 			];
+			if (rail.gearRatio != null) {
+				section.push(`gear_ratio: ${rail.gearRatio}`);
+			}
 			if (rail.axis === PrinterAxis.z) {
 				if (config.probe != null) {
 					section.push(`endstop_pin: probe:z_virtual_endstop`);
-				} else {
-					section.push(`homing_speed: 10`);
 				}
 			}
-			return section.join('\n');
+			return section.join('\n') + '\n';
 		},
-		renderDriverSection() {
-			// if microsteps < 64, use interpolation
+		renderDriverSections() {
+			return config.rails
+				.map((r) => {
+					return this.renderDriverSection(r);
+				})
+				.join('\n');
+		},
+		renderDriverSection(axis: PrinterAxis | Zod.infer<typeof PrinterRail>) {
+			const rail = typeof axis === 'object' ? axis : config.rails.find((r) => r.axis === axis);
+			if (rail == null) {
+				throw new Error(`No rail found for axis ${axis}`);
+			}
+			const preset = findPreset(rail.stepper, rail.driver, rail.voltage, rail.current);
+			const section = [
+				`[${utils.getAxisDriverSectionName(rail.axis)}]`,
+				`stealthchop_threshold: ${config.stealthchop ? '9999999' : config.standstillStealth ? '1' : '0'}`,
+				`interpolate: ${rail.microstepping < 64 || config.stealthchop ? 'True' : 'False'}`,
+			];
+			if (rail.driver.protocol === 'UART') {
+				section.push(`uart_pin: ${utils.getAxisPinName(rail.axis, '_uart_pin')}`);
+			}
+			if (rail.driver.protocol === 'SPI') {
+				section.push(`cs_pin: ${utils.getAxisPinName(rail.axis, '_cs_pin')}`);
+				section.push(`spi_software_mosi_pin: stepper_spi_mosi_pin`);
+				section.push(`spi_software_miso_pin: stepper_spi_miso_pin`);
+				section.push(`spi_software_sclk_pin: stepper_spi_sclk_pin`);
+			}
+			if (preset) {
+				const { driver, voltage, ...rest } = preset;
+				Object.entries(rest).forEach(([key, value]) => {
+					section.push(`${key}: ${value}`);
+				});
+			} else {
+				section.push(`run_current: ${rail.current}`);
+			}
+			return section.join('\n') + '\n';
+		},
+		renderSpeedLimits() {
+			const limits =
+				config.performanceMode && config.printer.speedLimits.performance
+					? config.printer.speedLimits.performance
+					: config.printer.speedLimits.basic;
+			return [
+				`[printer]`,
+				`max_velocity: ${config.stealthchop ? '135' : limits.velocity}`,
+				`max_accel: ${limits.accel / (config.stealthchop ? 2 : 1)}`,
+				`max_accel_to_decel: ${limits.accel / (config.stealthchop ? 4 : 2)}`,
+				`max_z_velocity: ${limits.z_velocity}`,
+				`max_z_accel: ${limits.z_accel}`,
+				`square_corner_velocity: ${limits.square_corner_velocity}`,
+				``,
+				`[gcode_macro RatOS]`,
+				`variable_macro_travel_speed: ${this.getMacroTravelSpeed()}`,
+			].join('\n');
+		},
+		getMacroTravelSpeed() {
+			const limits =
+				config.performanceMode && config.printer.speedLimits.performance
+					? config.printer.speedLimits.performance
+					: config.printer.speedLimits.basic;
+			return config.stealthchop ? '135' : limits.velocity;
 		},
 		renderDriverOverrides() {
 			let result: string[] = [];
@@ -154,7 +257,7 @@ export const constructKlipperConfigHelpers = (
 				result.push('# Include toolboard quirk file');
 				result.push(`[include RatOS/boards/${config.toolboard.serialPath.replace('/dev/', '')}/quirks.cfg]`);
 			}
-			return result.join('\n');
+			return result.join('\n') + '\n';
 		},
 		renderStepperOverrides() {
 			let result: string[] = [];
@@ -165,13 +268,13 @@ export const constructKlipperConfigHelpers = (
 				result.push('enable_pin: !toolboard:e_enable_pin');
 				result.push('dir_pin: toolboard:e_dir_pin');
 			}
-			return result.join('\n');
+			return result.join('\n') + '\n';
 		},
 		renderHotend() {
 			let result: string[] = [];
 			result.push(`[include RatOS/hotends/${config.hotend.id}]`);
 			result.push('[extruder]');
-			result.push('sensor_type: ' + config.thermistor);
+			result.push(`sensor_type: ${config.thermistor}`);
 			if (config.toolboard != null) {
 				result.push('# Use toolboard pins for heater and thermistor');
 				result.push('heater_pin: toolboard:e_heater_pin');
@@ -267,7 +370,7 @@ export const constructKlipperConfigHelpers = (
 			}
 			return result.join('\n');
 		},
-		renderEndstopSection() {
+		renderEndstopSection(pretunedSensorlessConfig?: string) {
 			const result: string[] = [];
 			if (config.xEndstop.id !== 'sensorless') {
 				result.push(`# Physical endstop configuration for X`);
@@ -285,7 +388,27 @@ export const constructKlipperConfigHelpers = (
 			}
 
 			if (config.xEndstop.id === 'sensorless' || config.yEndstop.id === 'sensorless') {
-				result.push(extrasGenerator.generateSensorlessHomingIncludes());
+				const defaultXRail = config.printer.defaults.rails.find((r) => r.axis === PrinterAxis.x);
+				const defaultYRail = config.printer.defaults.rails.find((r) => r.axis === PrinterAxis.y);
+				if (
+					defaultXRail &&
+					defaultYRail &&
+					pretunedSensorlessConfig != null &&
+					matchesDefaultRail(
+						utils.getRail(PrinterAxis.x),
+						deserializePrinterRailDefinition(defaultXRail),
+						config.performanceMode,
+					) &&
+					matchesDefaultRail(
+						utils.getRail(PrinterAxis.y),
+						deserializePrinterRailDefinition(defaultYRail),
+						config.performanceMode,
+					)
+				) {
+					result.push(`[include ${pretunedSensorlessConfig}]`);
+				} else {
+					result.push(extrasGenerator.generateSensorlessHomingIncludes());
+				}
 			}
 			return result.join('\n');
 		},
@@ -325,6 +448,9 @@ export const constructKlipperConfigHelpers = (
 				result.push('pin: !fan_controller_bard_pin # 4-pin pwm controlled fan');
 			}
 			return result.join('\n');
+		},
+		renderReminders() {
+			return extrasGenerator.getReminders().join('\n');
 		},
 		uncommentIf(condition: boolean | undefined | null) {
 			return condition === true ? '' : '#';

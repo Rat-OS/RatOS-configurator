@@ -18,7 +18,7 @@ import { Button } from '../button';
 import { useRecoilCallback } from 'recoil';
 import { xEndstopOptions } from '../../data/endstops';
 import { PrinterConfiguration } from '../../zods/printer-configuration';
-import { PrinterAxis } from '../../zods/hardware';
+import { PrinterAxis } from '../../zods/motion';
 
 const CompletionSteps: StepScreen[] = [
 	{
@@ -62,15 +62,15 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 
 	const controlboardDetected = trpc.mcu.detect.useQuery(
 		{ boardPath: partialPrinterConfiguration != null ? partialPrinterConfiguration.controlboard?.path ?? '' : '' },
-        {
-            enabled: partialPrinterConfiguration?.controlboard != null,
-        },
+		{
+			enabled: partialPrinterConfiguration?.controlboard != null,
+		},
 	);
 	const toolboardDetected = trpc.mcu.detect.useQuery(
 		{ boardPath: partialPrinterConfiguration != null ? partialPrinterConfiguration.toolboard?.path ?? '' : '' },
-        {
-            enabled: partialPrinterConfiguration != null && partialPrinterConfiguration.toolboard != null,
-        },
+		{
+			enabled: partialPrinterConfiguration != null && partialPrinterConfiguration.toolboard != null,
+		},
 	);
 	const saveConfigurationMutation = trpc.printer.saveConfiguration.useMutation();
 	const saveConfiguration = useCallback(async () => {
@@ -304,6 +304,14 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 											{parsedPrinterConfiguration.data.stealthchop ? 'Enabled' : 'Disabled'}
 										</dd>
 									</div>
+									<div className="sm:col-span-1">
+										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">
+											Standstill Stealth
+										</dt>
+										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
+											{parsedPrinterConfiguration.data.standstillStealth ? 'Enabled' : 'Disabled'}
+										</dd>
+									</div>
 								</dl>
 								<dl className="grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
 									{parsedPrinterConfiguration.data.rails?.map((rail, i) => (
@@ -325,7 +333,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 									))}
 								</dl>
 								<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
-									<div className="border-t border-zinc-100 pt-5 dark:border-zinc-700 sm:col-span-2">
+									<div className=" dark:border-zinc-700 sm:col-span-2">
 										<InfoMessage>
 											If the above information is correct, go ahead and save the configuration. If not, go back and
 											change the configuration by clicking the steps in the "Setup Progress" panel.

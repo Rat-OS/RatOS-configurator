@@ -4,12 +4,14 @@ import { StepScreenProps } from '../../hooks/useSteps';
 import { Dropdown } from '../forms/dropdown';
 import { z } from 'zod';
 import { usePrinterConfiguration } from '../../hooks/usePrinterConfiguration';
-import { deserializePrinterRail, Hotend, PrinterAxis, Thermistor } from '../../zods/hardware';
+import { Hotend, Thermistor } from '../../zods/hardware';
 import { ShowWhenReady } from '../common/show-when-ready';
 import { ErrorMessage } from '../error-message';
 import { Toggle } from '../forms/toggle';
 import { PrinterRailSettings } from './printer-rail-settings';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
+import { PrinterAxis } from '../../zods/motion';
+import { deserializePrinterRailDefinition } from '../../utils/serialization';
 
 const stringToTitleObject = <Item extends string>(data: Item): { id: Item; title: Item } => {
 	return { id: data, title: data };
@@ -50,8 +52,10 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 		parsedPrinterConfiguration,
 		performanceMode,
 		setPerformanceMode,
-		stealtchop,
+		stealthchop,
 		setStealthchop,
+		standstillStealth,
+		setStandstillStealth,
 		selectedPrinterRails,
 		selectedXAccelerometer,
 		setSelectedXAccelerometer,
@@ -247,7 +251,15 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 								label="Stealtchop"
 								description="Silent operation at the cost of a 135 mm/s velocity limit and less positional accuracy. Not recommended unless quiteness is absolutely necessary."
 								onChange={setStealthchop}
-								value={!!stealtchop}
+								value={!!stealthchop}
+							/>
+						</div>
+						<div className="col-span-2">
+							<Toggle
+								label="Standstill Stealth"
+								description="Makes steppers stilent when idling, but can cause unpredictable behavior on some drivers. Can result in skipped steps and positional errors, use with caution."
+								onChange={setStandstillStealth}
+								value={!!standstillStealth}
 							/>
 						</div>
 					</div>
@@ -265,7 +277,7 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 												rail.axis === PrinterAxis.extruder && selectedToolboard ? selectedToolboard : selectedBoard
 											}
 											printerRail={rail}
-											printerRailDefault={deserializePrinterRail(defaultRail)}
+											printerRailDefault={deserializePrinterRailDefinition(defaultRail)}
 											performanceMode={performanceMode}
 										/>
 									</div>

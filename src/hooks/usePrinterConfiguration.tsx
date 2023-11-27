@@ -3,20 +3,7 @@
 import { atom, atomFamily, DefaultValue, selector, useRecoilValue, useResetRecoilState } from 'recoil';
 import { z } from 'zod';
 import { Board, Toolboard } from '../zods/boards';
-import {
-	Hotend,
-	Thermistor,
-	Extruder,
-	Probe,
-	Endstop,
-	Fan,
-	Accelerometer,
-	PrinterRail,
-	PrinterAxis,
-	deserializePrinterRail,
-	SerializedPrinterRail,
-	serializePrinterRail,
-} from '../zods/hardware';
+import { Hotend, Thermistor, Extruder, Probe, Endstop, Fan, Accelerometer } from '../zods/hardware';
 import { Printer } from '../zods/printer';
 import {
 	PartialPrinterConfiguration,
@@ -32,6 +19,8 @@ import { defaultXEndstop, xEndstopOptions } from '../data/endstops';
 import { useCallback, useMemo } from 'react';
 import { asType, match } from '@recoiljs/refine';
 import { P } from 'pino';
+import { SerializedPrinterRail, PrinterAxis, PrinterRail } from '../zods/motion';
+import { deserializePrinterRail, serializePrinterRail } from '../utils/serialization';
 
 const readPrinterAtom = async ({ read }: ReadAtomInterface): Promise<z.infer<typeof Printer> | null> => {
 	const printer = await read(PrinterState.key);
@@ -191,6 +180,16 @@ const StealthchopState = atom({
 	],
 });
 
+const StandstillStealthState = atom({
+	key: 'StandstillStealth',
+	default: false,
+	effects: [
+		syncEffect({
+			refine: getRefineCheckerForZodSchema(z.boolean().optional().nullable()),
+		}),
+	],
+});
+
 const XAccelerometerState = atom({
 	key: 'XAccelerometer',
 	default: null,
@@ -325,6 +324,7 @@ export const PrinterConfigurationState = selector<z.infer<typeof PartialPrinterC
 		const yAccelerometer = get(YAccelerometerState) ?? undefined;
 		const performanceMode = get(PerformanceModeState) ?? undefined;
 		const stealthchop = get(StealthchopState) ?? undefined;
+		const standstillStealth = get(StandstillStealthState) ?? undefined;
 		const rails = get(PrinterRailsState);
 
 		const printerConfig = PartialPrinterConfiguration.safeParse({
@@ -345,6 +345,7 @@ export const PrinterConfigurationState = selector<z.infer<typeof PartialPrinterC
 			yAccelerometer,
 			performanceMode,
 			stealthchop,
+			standstillStealth,
 			rails,
 		});
 		if (printerConfig.success === false) {
@@ -373,6 +374,7 @@ export const serializePrinterConfiguration = (config: PrinterConfiguration): Ser
 		yAccelerometer: config.yAccelerometer?.id,
 		performanceMode: config.performanceMode,
 		stealthchop: config.stealthchop,
+		standstillStealth: config.standstillStealth,
 		rails: config.rails.map((rail) => ({ ...rail, driver: rail.driver.id, stepper: rail.stepper.id })),
 	};
 	return SerializedPrinterConfiguration.parse(serializedConfig);
@@ -398,6 +400,7 @@ export const serializePartialPrinterConfiguration = (
 		yAccelerometer: config?.yAccelerometer?.id,
 		performanceMode: config?.performanceMode,
 		stealthchop: config?.stealthchop,
+		standstillStealth: config?.standstillStealth,
 	};
 	return SerializedPartialPrinterConfiguration.parse(serializedConfig);
 };
@@ -417,6 +420,7 @@ export const usePrinterConfiguration = () => {
 	const [selectedYAccelerometer, setSelectedYAccelerometer] = useRecoilState(YAccelerometerState);
 	const [performanceMode, setPerformanceMode] = useRecoilState(PerformanceModeState);
 	const [stealthchop, setStealthchop] = useRecoilState(StealthchopState);
+	const [standstillStealth, setStandstillStealth] = useRecoilState(StandstillStealthState);
 	const [selectedPartFan, setSelectedPartFan] = useRecoilState(PartFanState);
 	const [selectedHotendFan, setSelectedHotendFan] = useRecoilState(HotendFanState);
 	const [selectedControllerFan, setSelectedControllerFan] = useRecoilState(ControllerFanState);
@@ -573,6 +577,7 @@ export const usePrinterConfiguration = () => {
 		yAccelerometer: selectedYAccelerometer,
 		performanceMode,
 		stealthchop,
+		standstillStealth,
 		rails: selectedPrinterRails,
 	});
 
@@ -626,8 +631,10 @@ export const usePrinterConfiguration = () => {
 		setSelectedYAccelerometer,
 		performanceMode,
 		setPerformanceMode,
-		stealtchop: stealthchop,
+		stealthchop,
 		setStealthchop,
+		standstillStealth,
+		setStandstillStealth,
 		selectedPrinterRails,
 		setSelectedPrinterRails,
 		selectedPartFan,
