@@ -14,6 +14,7 @@ import { SDCardFlashing } from './sd-card-flash';
 export const MCUFlashing = (props: MCUStepScreenProps) => {
 	const [forceReflash, setForceReflash] = useState(false);
 	const [flashStrategy, setFlashStrategy] = useState<null | 'dfu' | 'sdcard' | 'path'>(null);
+	const [flashPath, setFlashPath] = useState<string | null>(null);
 	const { data: isBoardDetected, ...mcuDetect } = trpc.mcu.detect.useQuery(
 		{ boardPath: props.selectedBoard?.board.path ?? '' },
 		{
@@ -21,6 +22,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 			enabled: props.selectedBoard !== null,
 		},
 	);
+	const unidentifiedBoards = trpc.mcu.unidentifiedDevices.useQuery();
 	const {
 		data: boardVersion,
 		isFetching: isBoardVersionLoading,
@@ -42,6 +44,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 	const reflash = useCallback(() => {
 		setFlashStrategy(null);
 		setForceReflash(true);
+		setFlashPath(null);
 		mcuDetect.remove();
 		mcuBoardVersion.remove();
 	}, [mcuBoardVersion, mcuDetect]);
@@ -119,30 +122,62 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 			</Fragment>
 		);
 	} else if (flashStrategy == null) {
-		let dfu = null;
-		let sdCard = null;
-		let path = null;
-		if (firstBoard?.dfu != null) {
-			dfu = (
-				<Button color="gray" onClick={() => setFlashStrategy('dfu')} className="justify-center">
-					Flash manually via DFU
-				</Button>
-			);
-		}
-		if (!firstBoard?.isToolboard) {
-			sdCard = (
-				<Button color="gray" onClick={() => setFlashStrategy('sdcard')} className="justify-center">
-					Flash manually via SD card
-				</Button>
-			);
-		}
-		if (isBoardDetected && firstBoard?.flashScript != null) {
-			path = (
-				<Button color="gray" onClick={onFlashViaPath} className="justify-center">
-					Flash automatically
-				</Button>
-			);
-		}
+		const dfuStrategyEnabled = firstBoard?.dfu != null;
+		const sdCardStrategyEnabled = !firstBoard?.isToolboard;
+		const pathStrategyEnabled = isBoardDetected && firstBoard?.flashScript != null;
+		const unidentifiedPathStrategyEnabled = unidentifiedBoards.data?.length;
+		const dfu = (
+			<Button
+				color="gray"
+				onClick={() => setFlashStrategy('dfu')}
+				disabled={!dfuStrategyEnabled}
+				className="justify-center"
+				title={dfuStrategyEnabled ? undefined : 'This board does not support DFU flashing.'}
+			>
+				Flash manually via DFU
+			</Button>
+		);
+		const sdCard = (
+			<Button
+				color="gray"
+				onClick={() => setFlashStrategy('sdcard')}
+				disabled={!sdCardStrategyEnabled}
+				className="justify-center"
+				title={sdCardStrategyEnabled ? undefined : 'This board does not support SD card flashing.'}
+			>
+				Flash manually via SD card
+			</Button>
+		);
+		const path = (
+			<Button
+				color="gray"
+				onClick={onFlashViaPath}
+				disabled={!pathStrategyEnabled}
+				className="justify-center"
+				title={pathStrategyEnabled ? undefined : 'Board was not detected.'}
+			>
+				Flash automatically (recommended)
+			</Button>
+		);
+		const unidentifiedPath = (
+			<Button
+				color="gray"
+				className="justify-center"
+				disabled={!unidentifiedPathStrategyEnabled}
+				title={unidentifiedPathStrategyEnabled ? undefined : 'No unidentified boards detected.'}
+				dropdownItems={unidentifiedBoards.data?.map((ub) => ({
+					onClick: () => {
+						if (firstBoard == null) return;
+						setFlashStrategy('path');
+						setFlashPath(ub);
+						flashViaPath.mutate({ boardPath: firstBoard.path, flashPath: ub });
+					},
+					title: ub,
+				}))}
+			>
+				Flash unidentified board
+			</Button>
+		);
 		content = (
 			<Fragment>
 				<h3 className="text-xl font-medium text-zinc-900 dark:text-zinc-100">
@@ -152,6 +187,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 					{path}
 					{dfu}
 					{sdCard}
+					{unidentifiedPath}
 				</div>
 			</Fragment>
 		);
@@ -175,7 +211,10 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 				case 'path':
 					content = (
 						<div>
-							<h3 className="text-xl font-medium text-zinc-900 dark:text-zinc-100">Flashing {firstBoard.name}...</h3>
+							<h3 className="text-xl font-medium text-zinc-900 dark:text-zinc-100">
+								Flashing {firstBoard.name}
+								{flashPath ? ` at ${flashPath}` : ''}...
+							</h3>
 							<div className="prose mt-4 text-base text-zinc-500">Please wait while RatOS flashes your board.</div>
 							<MutationStatus {...flashViaPath} />
 						</div>

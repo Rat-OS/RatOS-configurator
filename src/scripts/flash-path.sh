@@ -4,14 +4,15 @@ if [ "$EUID" -ne 0 ]
   exit
 fi
 MCU=$1
+FLASH_PATH=${2:-$MCU}
 if [ "$MCU" == "" ]; then
 	echo "ERROR: Please specify a device to flash"
 	exit
 fi
 pushd /home/pi/klipper || exit
 service klipper stop
-echo "Flashing DFU device"
-make flash FLASH_DEVICE=0483:df11
+echo "Flashing $MCU at $FLASH_PATH"
+make flash FLASH_DEVICE="$FLASH_PATH"
 sleep 5
 if [ -h "$MCU" ]; then
     echo "Flashing Successful!"

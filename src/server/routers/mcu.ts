@@ -9,6 +9,7 @@ import { runSudoScript } from '../../helpers/run-script';
 import { AutoFlashableBoard, Board, BoardWithDetectionStatus } from '../../zods/boards';
 import { middleware, publicProcedure, router } from '../trpc';
 import path from 'path';
+import { glob } from 'glob';
 
 const inputSchema = z.object({
 	boardPath: z.string(),
@@ -126,6 +127,10 @@ export const mcuRouter = router({
 			}
 			return false;
 		}),
+	unidentifiedDevices: mcuProcedure.query(async ({ ctx }) => {
+		const detected = ctx.boards.filter((b) => b.detected).map((b) => fs.realpathSync(b.serialPath));
+		return (await glob('/dev/serial/by-id/usb-Klipper*')).filter((d) => !detected.includes(fs.realpathSync(d)));
+	}),
 	boardVersion: mcuProcedure
 		.input(inputSchema)
 		.meta({
@@ -279,6 +284,7 @@ export const mcuRouter = router({
 		.input(
 			z.object({
 				boardPath: z.string(),
+				flashPath: z.string().optional(),
 			}),
 		)
 		.meta({
@@ -295,6 +301,12 @@ export const mcuRouter = router({
 				throw new TRPCError({
 					code: 'PRECONDITION_FAILED',
 					message: `${ctx.board.name} does not support automatic flashing via serial path.`,
+				});
+			}
+			if (input.flashPath && !fs.existsSync(input.flashPath)) {
+				throw new TRPCError({
+					code: 'PRECONDITION_FAILED',
+					message: `The path ${input.flashPath} does not exist.`,
 				});
 			}
 			let compileResult = null;
@@ -331,7 +343,9 @@ export const mcuRouter = router({
 					ctx.board.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''),
 					ctx.board.flashScript,
 				);
-				flashResult = await runSudoScript('board-script.sh', flashScript);
+				flashResult = input.flashPath
+					? await runSudoScript('flash-path.sh', ctx.board.serialPath, input.flashPath)
+					: await runSudoScript('board-script.sh', flashScript);
 			} catch (e) {
 				const message = e instanceof Error ? e.message : e;
 				throw new TRPCError({

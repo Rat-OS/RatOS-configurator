@@ -28,15 +28,15 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 	const [hostname, setHostname] = useState('ratos');
 	const [hostnameCompleted, setHostnameCompleted] = useState(false);
 
-    const { isError, error, data } = trpc.wifi.scan.useQuery(undefined, {
-        refetchInterval: (data, query) => {
-            if (query.state.error) {
-                return false;
-            }
-            return 1000;
-        },
-        retry: false,
-    });
+	const { isError, error, data } = trpc.wifi.scan.useQuery(undefined, {
+		refetchInterval: (data, query) => {
+			if (query.state.error) {
+				return false;
+			}
+			return 1000;
+		},
+		retry: false,
+	});
 	const hostnameMutation = trpc.wifi.hostname.useMutation();
 	const wifiMutation = trpc.wifi.join.useMutation();
 
@@ -142,7 +142,7 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 						? undefined
 						: hostnameValidation.error.issues[0].message
 				}
-				onChange={setHostname}
+				onChange={(val) => setHostname(val as string)}
 				help='Only use characters from a-Z and dashes. For example, entering "RatOS" will make your printer available at http://RatOS.local/'
 			/>
 		) : selectedNetwork ? (
@@ -157,7 +157,7 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 						? undefined
 						: passwordValidation.error.issues[0].message
 				}
-				onChange={setPassword}
+				onChange={(val) => setPassword(val + '')}
 			/>
 		) : isError ? (
 			<div className="mb-4 h-48">

@@ -1,6 +1,6 @@
 import { XCircleIcon } from '@heroicons/react/24/solid';
 import React from 'react';
-import { twJoin } from 'tailwind-merge';
+import { twMerge } from 'tailwind-merge';
 import { Banner } from './common/banner';
 
 export type ErrorMessageProps = React.PropsWithChildren<{
@@ -14,7 +14,7 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = (props) => {
 			color="red"
 			Icon={XCircleIcon}
 			title={props.title ? 'Error: ' + props.title : 'Error'}
-			className={props.className}
+			className={twMerge(props.className, 'whitespace-pre-wrap')}
 		>
 			{props.children}
 		</Banner>

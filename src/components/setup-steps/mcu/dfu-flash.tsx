@@ -2,7 +2,7 @@
 import Image from 'next/image';
 import React, { useCallback, useState } from 'react';
 import { trpc } from '../../../helpers/trpc';
-import { Board } from '../../../server/routers/mcu';
+import { Board } from '../../../zods/boards';
 import { Button } from '../../button';
 import { ErrorMessage } from '../../error-message';
 import { InfoMessage } from '../../info-message';

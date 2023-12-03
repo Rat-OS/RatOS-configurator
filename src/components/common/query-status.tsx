@@ -1,12 +1,12 @@
 'use client';
 import { TRPCClientErrorLike } from '@trpc/client';
-import { UseQueryResult } from 'react-query';
+import { UseTRPCQueryResult } from '@trpc/react-query/src/shared/hooks/types';
 import { AppRouter } from '../../server/routers';
 import { ErrorMessage } from '../error-message';
 import { Spinner } from '../spinner';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
 
-export const QueryStatus = (query: UseQueryResult<any, TRPCClientErrorLike<AppRouter>>) => {
+export const QueryStatus = (query: UseTRPCQueryResult<any, TRPCClientErrorLike<AppRouter>>) => {
 	const [parent] = useAutoAnimate();
 	let content = null;
 	if (query.isError) {
