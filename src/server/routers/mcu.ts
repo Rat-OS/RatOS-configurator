@@ -350,14 +350,14 @@ export const mcuRouter = router({
 				const message = e instanceof Error ? e.message : e;
 				throw new TRPCError({
 					code: 'INTERNAL_SERVER_ERROR',
-					message: `Could not flash firmware to ${ctx.board.name}: ${flashResult?.stdout ?? message}'}`,
+					message: `Could not flash firmware to ${ctx.board.name}: \n\n ${flashResult?.stdout ?? message}'}`,
 					cause: e,
 				});
 			}
 			if (!fs.existsSync(ctx.board.serialPath)) {
 				throw new TRPCError({
 					code: 'INTERNAL_SERVER_ERROR',
-					message: `Could not flash firmware to ${ctx.board.name}: ${flashResult.stdout}`,
+					message: `Could not flash firmware to ${ctx.board.name}: \n\n ${flashResult.stdout}`,
 				});
 			}
 			return 'success';
@@ -411,14 +411,14 @@ export const mcuRouter = router({
 				const message = e instanceof Error ? e.message : e;
 				throw new TRPCError({
 					code: 'INTERNAL_SERVER_ERROR',
-					message: `Could not compile firmware for ${ctx.board.name}: ${message}`,
+					message: `Could not compile firmware for ${ctx.board.name}: \n\n ${message}`,
 					cause: e,
 				});
 			}
 			if (!fs.existsSync(firmwareBinary)) {
 				throw new TRPCError({
 					code: 'INTERNAL_SERVER_ERROR',
-					message: `Could not compile firmware for ${ctx.board.name}: ${compileResult.stdout} ${compileResult.stderr}`,
+					message: `Could not compile firmware for ${ctx.board.name}: \n\n ${compileResult.stdout} ${compileResult.stderr}`,
 				});
 			}
 			try {
@@ -427,7 +427,7 @@ export const mcuRouter = router({
 			} catch (e) {
 				throw new TRPCError({
 					code: 'INTERNAL_SERVER_ERROR',
-					message: 'Failed to flash device.',
+					message: 'Failed to flash device',
 					cause: e,
 				});
 			}
