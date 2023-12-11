@@ -1,0 +1,11 @@
+{
+  "/_app": "pages/_app.js",
+  "/_error": "pages/_error.js",
+  "/_document": "pages/_document.js",
+  "/api/dfu-image": "pages/api/dfu-image.js",
+  "/api/download-firmware": "pages/api/download-firmware.js",
+  "/api/printer-image": "pages/api/printer-image.js",
+  "/api/trpc/[trpc]": "pages/api/trpc/[trpc].js",
+  "/": "pages/index.js",
+  "/404": "pages/404.html"
+}
