@@ -23,7 +23,7 @@ export const ActionsDropdown = () => {
 		dismissText: 'OK',
 	});
 
-	const symlinkExtensions = trpc.klippyExtensions.symlink.useMutation();
+	const symlinkExtensions = trpc['klippy-extensions'].symlink.useMutation();
 	const flashFirmware = trpc.mcu.flashAllConnected.useMutation();
 
 	const symlinkModal = isSymlinkModalOpen ? (
@@ -109,7 +109,7 @@ export const ActionsDropdown = () => {
 		<>
 			<Menu as="div" className="relative inline-block text-left">
 				<div>
-					<Menu.Button className="inline-flex w-full justify-center rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-zinc-100 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400 dark:focus:ring-offset-zinc-600 dark:hover:border-zinc-600 dark:hover:bg-zinc-700 ">
+					<Menu.Button className="inline-flex w-full justify-center rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:border-zinc-600 dark:hover:bg-zinc-700 dark:focus:ring-offset-zinc-600 ">
 						Actions
 						<ChevronDownIcon className="-mr-1 ml-2 h-5 w-5" aria-hidden="true" />
 					</Menu.Button>
