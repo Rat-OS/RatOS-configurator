@@ -4,6 +4,7 @@ import { existsSync, mkdirSync, readFileSync, symlinkSync, writeFileSync } from 
 import { getLogger } from '../../helpers/logger';
 import { publicProcedure, router } from '../trpc';
 import path from 'path';
+import { serverSchema } from '../../env/schema.mjs';
 
 const moonrakerExtension = z.object({
 	fileName: z.string(),
@@ -14,31 +15,27 @@ const moonrakerExtension = z.object({
 const moonrakerExtensions = z.array(moonrakerExtension);
 
 const getExtensions = () => {
-	if (process.env.MOONRAKER_EXTENSIONS == null) {
-		throw new Error('No MOONRAKER_EXTENSIONS specified in environment');
-	}
-	const extensionDir = process.env.MOONRAKER_EXTENSIONS.split('/').slice(0, -1).join('/');
+	const environment = serverSchema.parse(process.env);
+	const extensionDir = environment.RATOS_DATA_DIR;
+	const moonrakerExtensionsFile = path.join(extensionDir, 'moonraker-extensions.json');
 	if (!existsSync(extensionDir)) {
 		mkdirSync(extensionDir);
 	}
-	if (!existsSync(process.env.MOONRAKER_EXTENSIONS)) {
-		writeFileSync(process.env.MOONRAKER_EXTENSIONS, '[]');
+	if (!existsSync(moonrakerExtensionsFile)) {
+		writeFileSync(moonrakerExtensionsFile, '[]');
 	}
-	const currentExtensions = moonrakerExtensions.parse(
-		JSON.parse(readFileSync(process.env.MOONRAKER_EXTENSIONS).toString()),
-	);
+	const currentExtensions = moonrakerExtensions.parse(JSON.parse(readFileSync(moonrakerExtensionsFile).toString()));
 	return currentExtensions;
 };
 
 const saveExtensions = (extensions: z.infer<typeof moonrakerExtensions>) => {
-	if (process.env.MOONRAKER_EXTENSIONS == null) {
-		throw new Error('No MOONRAKER_EXTENSIONS specified in environment');
-	}
-	const extensionDir = process.env.MOONRAKER_EXTENSIONS.split('/').slice(0, -1).join('/');
+	const environment = serverSchema.parse(process.env);
+	const extensionDir = environment.RATOS_DATA_DIR;
+	const moonrakerExtensionsFile = path.join(extensionDir, 'moonraker-extensions.json');
 	if (!existsSync(extensionDir)) {
 		mkdirSync(extensionDir);
 	}
-	writeFileSync(process.env.MOONRAKER_EXTENSIONS, JSON.stringify(extensions));
+	writeFileSync(moonrakerExtensionsFile, JSON.stringify(extensions));
 };
 
 export const moonrakerExtensionsRouter = router({
@@ -68,6 +65,7 @@ export const moonrakerExtensionsRouter = router({
 		return true;
 	}),
 	symlink: publicProcedure.mutation(async () => {
+		const environment = serverSchema.parse(process.env);
 		const currentExtensions = getExtensions();
 		if (currentExtensions.length === 0) {
 			return 'No extensions registered, nothing to do.';
@@ -76,13 +74,7 @@ export const moonrakerExtensionsRouter = router({
 		const symlinkResults = currentExtensions.map((ext) => {
 			if (existsSync(path.resolve(path.join(ext.path, ext.fileName)))) {
 				cleanedUpExtensions.push(ext);
-				if (
-					existsSync(
-						path.resolve(
-							path.join(process.env.MOONRAKER_DIR ?? '/home/pi/moonraker', 'moonraker/components', ext.fileName),
-						),
-					)
-				) {
+				if (existsSync(path.resolve(path.join(environment.MOONRAKER_DIR, 'moonraker/components', ext.fileName)))) {
 					return {
 						result: 'success',
 						message: `Symlink for "${ext.fileName}" already exists`,
@@ -91,9 +83,7 @@ export const moonrakerExtensionsRouter = router({
 				try {
 					symlinkSync(
 						path.resolve(path.join(ext.path, ext.fileName)),
-						path.resolve(
-							path.join(process.env.MOONRAKER_DIR ?? '/home/pi/moonraker', 'moonraker/components', ext.fileName),
-						),
+						path.resolve(path.join(environment.MOONRAKER_DIR, 'moonraker/components', ext.fileName)),
 					);
 					return {
 						result: 'success',

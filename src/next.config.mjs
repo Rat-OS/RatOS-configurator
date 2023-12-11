@@ -23,5 +23,6 @@ export default defineNextConfig({
 	},
 	experimental: {
 		appDir: true,
-	}
+		instrumentationHook: true,
+	},
 });

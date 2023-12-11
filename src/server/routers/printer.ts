@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { getLogger } from '../../helpers/logger';
 import { promisify } from 'util';
 
-import { parseMetadata } from '../../helpers/parseMetadata';
+import { parseMetadata } from '../../helpers/metadata';
 import { Hotend, Extruder, Probe, thermistors, Endstop, Fan, Accelerometer } from '../../zods/hardware';
 import { writeFile, readFileSync, access, constants, copyFile, readFile } from 'fs';
 import { Printer } from '../../zods/printer';
@@ -26,6 +26,7 @@ import { glob } from 'glob';
 import path from 'path';
 import { publicProcedure, router } from '../trpc';
 import { deserializePrinterRail } from '../../utils/serialization';
+import { serializePrinterConfiguration } from '../../hooks/usePrinterConfiguration';
 
 function isNodeError(error: any): error is NodeJS.ErrnoException {
 	return error instanceof Error;
@@ -76,6 +77,7 @@ const isPrinterCfgInitialized = async () => {
 	} catch (e) {
 		if (isNodeError(e) && e.code === 'ENOENT') {
 			// File does not exist, resume as normal.
+			return false;
 		} else {
 			throw e;
 		}
@@ -105,8 +107,8 @@ export const deserializePartialPrinterConfiguration = async (
 		controllerFan: controllerFanOptions({ controlboard, toolboard }).find((f) => f.id === config?.controllerFan),
 		controlboard: controlboard,
 		toolboard: toolboard,
-		xAccelerometer: xAccelerometerOptions(config).find((a) => a.id === config?.xAccelerometer),
-		yAccelerometer: yAccelerometerOptions(config).find((a) => a.id === config?.yAccelerometer),
+		xAccelerometer: xAccelerometerOptions({ controlboard, toolboard }).find((a) => a.id === config?.xAccelerometer),
+		yAccelerometer: yAccelerometerOptions({ controlboard, toolboard }).find((a) => a.id === config?.yAccelerometer),
 		performanceMode: config?.performanceMode,
 		stealthchop: config?.stealthchop,
 		standstillStealth: config?.standstillStealth,
@@ -134,13 +136,113 @@ export const deserializePrinterConfiguration = async (
 		controllerFan: controllerFanOptions({ controlboard, toolboard }).find((f) => f.id === config?.controllerFan),
 		controlboard: controlboard,
 		toolboard: toolboard,
-		xAccelerometer: xAccelerometerOptions(config).find((a) => a.id === config?.xAccelerometer),
-		yAccelerometer: yAccelerometerOptions(config).find((a) => a.id === config?.yAccelerometer),
+		xAccelerometer: xAccelerometerOptions({ controlboard, toolboard }).find((a) => a.id === config?.xAccelerometer),
+		yAccelerometer: yAccelerometerOptions({ controlboard, toolboard }).find((a) => a.id === config?.yAccelerometer),
 		performanceMode: config?.performanceMode,
 		stealthchop: config?.stealthchop,
 		standstillStealth: config?.standstillStealth,
 		rails: config?.rails.map((r) => deserializePrinterRail(r)),
 	});
+};
+
+const getTimeStamp = () => {
+	let today = new Date();
+	let dd = String(today.getDate()).padStart(2, '0');
+	let mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0
+	let yyyy = today.getFullYear();
+	let hh = String(today.getHours()).padStart(2, '0');
+	let min = String(today.getMinutes()).padStart(2, '0');
+	let sec = String(today.getSeconds()).padStart(2, '0');
+	return `${yyyy}${mm}${dd}-${hh}${min}${sec}`;
+};
+
+const generateKlipperConfiguration = async (
+	config: PrinterConfiguration,
+	overwritePrinterCfg = false,
+	overwriteExtras?: boolean,
+) => {
+	const utils = constructKlipperConfigUtils(config);
+	const extrasGenerator = constructKlipperConfigExtrasGenerator(config, utils);
+	const helper = await constructKlipperConfigHelpers(config, extrasGenerator, utils);
+	const { template, initialPrinterCfg } = await import(
+		`../../templates/${config.printer.template.replace('-printer.template.cfg', '.ts')}`
+	);
+
+	const environment = serverSchema.parse(process.env);
+	const renderedTemplate = template(config, helper).trim();
+	const renderedPrinterCfg = initialPrinterCfg(config, helper).trim();
+	const extras = extrasGenerator.getFilesToWrite(overwriteExtras);
+	const filesToWrite = extras.concat([
+		{ fileName: 'RatOS.cfg', content: renderedTemplate, overwrite: true },
+		{
+			fileName: 'printer.cfg',
+			content: renderedPrinterCfg,
+			overwrite: !(await isPrinterCfgInitialized()) || overwritePrinterCfg,
+		},
+	]);
+	const results: { fileName: string; action: FileAction; err?: unknown }[] = await Promise.all(
+		filesToWrite.map(async (file) => {
+			let action: FileAction = 'created';
+			try {
+				await promisify(access)(path.join(environment.KLIPPER_CONFIG_PATH, file.fileName), constants.F_OK);
+				// At this point we know the file exists;
+				if (file.overwrite) {
+					const backupFilename = `${file.fileName.split('.').slice(0, -1).join('.')}-${getTimeStamp()}.cfg`;
+					try {
+						await promisify(copyFile)(
+							path.join(environment.KLIPPER_CONFIG_PATH, file.fileName),
+							path.join(environment.KLIPPER_CONFIG_PATH, backupFilename),
+						);
+					} catch (e) {
+						return { fileName: file.fileName, action: 'error', err: e };
+					}
+					action = 'overwritten';
+				} else {
+					// Skip this file.
+					return { fileName: file.fileName, action: 'skipped' };
+				}
+			} catch (e) {
+				if (isNodeError(e) && e.code === 'ENOENT') {
+					// File does not exist, resume as normal.
+				} else {
+					// Unknown error, abort.
+					return { fileName: file.fileName, action: 'error', err: e };
+				}
+			}
+			try {
+				await promisify(writeFile)(path.join(environment.KLIPPER_CONFIG_PATH, file.fileName), file.content);
+				return { fileName: file.fileName, action: action };
+			} catch (e) {
+				return { fileName: file.fileName, action: 'error', err: e };
+			}
+		}),
+	);
+	const errors = results.filter((r) => r.action === 'error');
+	if (errors.length > 0) {
+		throw new Error(
+			"Something went wrong when saving the configuration. The following files couldn't be written: " +
+				errors.map((e) => e.fileName).join(', '),
+		);
+	}
+
+	try {
+		await promisify(writeFile)(
+			path.join(environment.RATOS_DATA_DIR, 'last-printer-settings.json'),
+			JSON.stringify(serializePrinterConfiguration(config)),
+		);
+	} catch (e) {
+		throw new Error(
+			"Couldn't backup your current printer settings to disk, but your klipper configuration has been generated.",
+		);
+	}
+};
+
+export const regenerateKlipperConfiguration = async () => {
+	const environment = serverSchema.parse(process.env);
+	const configJson = readFileSync(path.join(environment.RATOS_DATA_DIR, 'last-printer-settings.json'));
+	const serializedConfig = SerializedPrinterConfiguration.parse(JSON.parse(configJson.toString()));
+	const config = await deserializePrinterConfiguration(serializedConfig);
+	return await generateKlipperConfiguration(config);
 };
 
 export const printerRouter = router({
@@ -180,15 +282,18 @@ export const printerRouter = router({
 	xAccelerometerOptions: publicProcedure
 		.input(SerializedPartialPrinterConfiguration.nullable())
 		.output(z.array(Accelerometer))
-		.query(async (ctx) => xAccelerometerOptions(ctx.input)),
+		.query(async (ctx) => xAccelerometerOptions(await deserializePartialPrinterConfiguration(ctx.input ?? {}))),
 	yAccelerometerOptions: publicProcedure
 		.input(SerializedPartialPrinterConfiguration.nullable())
 		.output(z.array(Accelerometer))
-		.query(async (ctx) => yAccelerometerOptions(ctx.input)),
+		.query(async (ctx) => yAccelerometerOptions(await deserializePartialPrinterConfiguration(ctx.input ?? {}))),
 	printercfgStatus: publicProcedure.query(async (ctx) => {
 		return {
 			isInitialized: await isPrinterCfgInitialized(),
 		};
+	}),
+	regenerateConfiguration: publicProcedure.mutation(async () => {
+		return await regenerateKlipperConfiguration();
 	}),
 	saveConfiguration: publicProcedure
 		.input(
@@ -200,70 +305,6 @@ export const printerRouter = router({
 		.mutation(async (ctx) => {
 			const { config: serializedConfig, overwritePrinterCfg } = ctx.input;
 			const config = await deserializePrinterConfiguration(serializedConfig);
-			const utils = constructKlipperConfigUtils(config);
-			const extrasGenerator = constructKlipperConfigExtrasGenerator(config, utils);
-			const helper = constructKlipperConfigHelpers(config, extrasGenerator, utils);
-			const { template, initialPrinterCfg } = await import(
-				`../../templates/${config.printer.template.replace('-printer.template.cfg', '.ts')}`
-			);
-
-			const environment = serverSchema.parse(process.env);
-			const renderedTemplate = template(config, helper).trim();
-			const renderedPrinterCfg = initialPrinterCfg(config, helper).trim();
-			const extras = extrasGenerator.getFilesToWrite();
-			const filesToWrite = extras.concat([
-				{ fileName: 'RatOS.cfg', content: renderedTemplate, overwrite: true },
-				{
-					fileName: 'printer.cfg',
-					content: renderedPrinterCfg,
-					overwrite: !(await isPrinterCfgInitialized()) || overwritePrinterCfg,
-				},
-			]);
-			const results: { fileName: string; action: FileAction; err?: unknown }[] = await Promise.all(
-				filesToWrite.map(async (file) => {
-					let action: FileAction = 'created';
-					try {
-						await promisify(access)(path.join(environment.KLIPPER_CONFIG_PATH, file.fileName), constants.F_OK);
-						// At this point we know the file exists;
-						if (file.overwrite) {
-							const backupFilename = `${file.fileName.split('.').slice(0, -1).join('.')}-${Date.now()}.cfg.bak`;
-							try {
-								await promisify(copyFile)(
-									path.join(environment.KLIPPER_CONFIG_PATH, file.fileName),
-									path.join(environment.KLIPPER_CONFIG_PATH, backupFilename),
-								);
-							} catch (e) {
-								return { fileName: file.fileName, action: 'error', err: e };
-							}
-							action = 'overwritten';
-						} else {
-							// Skip this file.
-							return { fileName: file.fileName, action: 'skipped' };
-						}
-					} catch (e) {
-						if (isNodeError(e) && e.code === 'ENOENT') {
-							// File does not exist, resume as normal.
-						} else {
-							// Unknown error, abort.
-							return { fileName: file.fileName, action: 'error', err: e };
-						}
-					}
-					try {
-						await promisify(writeFile)(path.join(environment.KLIPPER_CONFIG_PATH, file.fileName), file.content);
-						return { fileName: file.fileName, action: action };
-					} catch (e) {
-						return { fileName: file.fileName, action: 'error', err: e };
-					}
-				}),
-			);
-			const errors = results.filter((r) => r.action === 'error');
-			if (errors.length > 0) {
-				throw new Error(
-					"Something went wrong when saving the configuration. The following files couldn't be written: " +
-						errors.map((e) => e.fileName).join(', '),
-				);
-			}
-
-			return results;
+			return await generateKlipperConfiguration(config, overwritePrinterCfg);
 		}),
 });

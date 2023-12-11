@@ -15,7 +15,7 @@ export const sensorlessXTemplate = (config: PrinterConfiguration, utils: Klipper
     
 # Check https://www.klipper3d.org/TMC_Drivers.html#sensorless-homing for tuning instructions.
 [${utils.getAxisDriverSectionName(PrinterAxis.x)}]
-diag_pin: ^x_diag_pin
+${utils.getAxisDriverDiagConfig(PrinterAxis.x)}
 ${utils.getAxisDriverStallGuardThreshold(PrinterAxis.x, 0.5)}
 
 [${utils.getAxisStepperName(PrinterAxis.x)}]
@@ -46,7 +46,7 @@ export const sensorlessYTemplate = (config: PrinterConfiguration, utils: Klipper
 
 # Check https://www.klipper3d.org/TMC_Drivers.html#sensorless-homing for tuning instructions.
 [${utils.getAxisDriverSectionName(PrinterAxis.y)}]
-diag_pin: ^y_diag_pin
+${utils.getAxisDriverDiagConfig(PrinterAxis.y)}
 ${utils.getAxisDriverStallGuardThreshold(PrinterAxis.y, 0.5)}
 
 [stepper_y]

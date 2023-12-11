@@ -1,6 +1,14 @@
 'use client';
 
-import { atom, atomFamily, DefaultValue, selector, useRecoilValue, useResetRecoilState } from 'recoil';
+import {
+	atom,
+	atomFamily,
+	DefaultValue,
+	selector,
+	useRecoilValue,
+	useResetRecoilState,
+	useSetRecoilState,
+} from 'recoil';
 import { z } from 'zod';
 import { Board, Toolboard } from '../zods/boards';
 import { Hotend, Thermistor, Extruder, Probe, Endstop, Fan, Accelerometer } from '../zods/hardware';
@@ -20,7 +28,7 @@ import { useCallback, useMemo } from 'react';
 import { asType, match } from '@recoiljs/refine';
 import { P } from 'pino';
 import { SerializedPrinterRail, PrinterAxis, PrinterRail } from '../zods/motion';
-import { deserializePrinterRail, serializePrinterRail } from '../utils/serialization';
+import { deserializePrinterRail, deserializeStepper, serializePrinterRail } from '../utils/serialization';
 
 const readPrinterAtom = async ({ read }: ReadAtomInterface): Promise<z.infer<typeof Printer> | null> => {
 	const printer = await read(PrinterState.key);
@@ -409,7 +417,7 @@ export const usePrinterConfiguration = () => {
 	const [selectedPrinter, setSelectedPrinter] = useRecoilState(PrinterState);
 	const [selectedPrinterOption, setSelectedPrinterOption] = useRecoilState(PrinterSizeState);
 	const [selectedHotend, setSelectedHotend] = useRecoilState(HotendState);
-	const [selectedExtruder, setSelectedExtruder] = useRecoilState(ExtruderState);
+	const [selectedExtruder, _setSelectedExtruder] = useRecoilState(ExtruderState);
 	const [selectedThermistor, setSelectedThermistor] = useRecoilState(ThermistorState);
 	const [selectedProbe, setSelectedProbe] = useRecoilState(ProbeState);
 	const [selectedXEndstop, setSelectedXEndstop] = useRecoilState(XEndstopState);
@@ -431,6 +439,7 @@ export const usePrinterConfiguration = () => {
 		() => serializePartialPrinterConfiguration(printerConfiguration ?? {}),
 		[printerConfiguration],
 	);
+	const setExtruderRail = useSetRecoilState(PrinterRailState(PrinterAxis.extruder));
 
 	const hotends = trpc.printer.hotends.useQuery();
 	const boards = trpc.mcu.boards.useQuery({});
@@ -458,6 +467,29 @@ export const usePrinterConfiguration = () => {
 	const yAccelerometerOptions = trpc.printer.yAccelerometerOptions.useQuery(serializedPrinterConfiguration, {
 		keepPreviousData: true,
 	});
+	const setSelectedExtruder = useCallback(
+		(extruder: z.infer<typeof Extruder> | null) => {
+			_setSelectedExtruder(extruder);
+			// If the extruder has a stepper, set the extruder rail to use that stepper
+			if (extruder != null) {
+				if (extruder.stepper != null) {
+					const stepper = deserializeStepper(extruder.stepper);
+					if (stepper != null) {
+						setExtruderRail((rail) => {
+							return rail == null
+								? null
+								: {
+										...rail,
+										stepper: stepper.id,
+										current: extruder.current ?? stepper.maxPeakCurrent * 0.71,
+								  };
+						});
+					}
+				}
+			}
+		},
+		[_setSelectedExtruder, setExtruderRail],
+	);
 
 	const setPrinterDefaults = useCallback(
 		(printer: z.infer<typeof Printer>) => {
@@ -474,6 +506,9 @@ export const usePrinterConfiguration = () => {
 			const controllerFan = controllerFanOptions.data?.[0];
 			const xAccelerometer = xAccelerometerOptions.data?.[0];
 			const yAccelerometer = yAccelerometerOptions.data?.[0];
+
+			setPerformanceMode(false);
+			setStealthchop(false);
 
 			if (board) {
 				setSelectedBoard(board);
@@ -542,6 +577,8 @@ export const usePrinterConfiguration = () => {
 			controllerFanOptions.data,
 			xAccelerometerOptions.data,
 			yAccelerometerOptions.data,
+			setPerformanceMode,
+			setStealthchop,
 			resetSelectedPrinterRails,
 			setSelectedBoard,
 			setSelectedToolboard,

@@ -1,4 +1,5 @@
 import { KlipperConfigHelper } from '../helpers/klipper-config';
+import { PrinterAxis } from '../zods/motion';
 import { PrinterConfiguration } from '../zods/printer-configuration';
 
 export const template = (config: PrinterConfiguration, helper: KlipperConfigHelper) => `
@@ -10,15 +11,13 @@ export const template = (config: PrinterConfiguration, helper: KlipperConfigHelp
 #############################################################################################################
 ### CONTROLBOARD & TOOLBOARD
 #############################################################################################################
-${helper.renderBoardIncludes()}
+${helper.renderBoards()}
 
 #############################################################################################################
 ### BASE SETUP
 #############################################################################################################
+${helper.renderBase()}
 [include RatOS/printers/v-minion/v-minion.cfg]
-[include RatOS/homing.cfg]
-[include RatOS/macros.cfg]
-[include RatOS/shell-macros.cfg]
 [include RatOS/printers/v-minion/macros.cfg]
 
 # Extruder
@@ -30,58 +29,30 @@ ${helper.renderHotend()}
 # ADXL345 resonance testing configuration
 ${helper.renderInputShaper(180)}
 
+
 #############################################################################################################
 ### STEPPER MOTORS, DRIVERS & SPEED LIMITS
-### Pick the drivers and stepper motors you're using. See the RatOS documentation for custom combinations.
 #############################################################################################################
-[include RatOS/printers/v-minion/steppers.cfg]
+${helper.renderStepperSections()}
+${helper.renderDriverSections()}
+${helper.renderSpeedLimits()}
 
-# UNCOOLED TMC 2209 + LDO-42STH40-1684AC
-${helper.uncommentIf(!config.performanceMode)}[include RatOS/printers/v-minion/tmc2209.cfg]
-${helper.uncommentIf(!config.performanceMode)}[include RatOS/printers/v-minion/speed-limits-basic.cfg]
-${helper.uncommentIf(!config.performanceMode)}[include RatOS/steppers/ldo/42sth40-1684ac/2209/24v-0.8a-x.cfg]
-${helper.uncommentIf(!config.performanceMode)}[include RatOS/steppers/ldo/42sth40-1684ac/2209/24v-0.8a-y.cfg]
-${helper.uncommentIf(!config.performanceMode)}[include RatOS/steppers/ldo/42sth40-1684ac/2209/24v-0.8a-z.cfg]
+[bed_mesh]
+speed: ${helper.getMacroTravelSpeed()}
 
-# COOLED TMC 2209 + LDO-42STH40-1684AC
-${helper.uncommentIf(config.performanceMode)}[include RatOS/printers/v-minion/tmc2209.cfg]
-${helper.uncommentIf(config.performanceMode)}[include RatOS/printers/v-minion/speed-limits-performance.cfg]
-${helper.uncommentIf(config.performanceMode)}[include RatOS/steppers/ldo/42sth40-1684ac/2209/24v-1.188a-x.cfg]
-${helper.uncommentIf(config.performanceMode)}[include RatOS/steppers/ldo/42sth40-1684ac/2209/24v-1.188a-y.cfg]
-${helper.uncommentIf(config.performanceMode)}[include RatOS/steppers/ldo/42sth40-1684ac/2209/24v-1.188a-z.cfg]
-
-# STEALTH MODE
-${helper.uncommentIf(config.stealthchop)}[include RatOS/printers/v-minion/speed-limits-stealth.cfg]
-${helper.uncommentIf(config.stealthchop)}[include RatOS/printers/v-minion/tmc2209-stealth.cfg]
-
-${helper.renderDriverOverrides()}
-
-${helper.renderStepperOverrides()}
 
 #############################################################################################################
 ### HOMING
-### Pick your probe and endstops
 #############################################################################################################
 ${helper.renderProbeIncludes()}
-
 ${helper.renderEndstopSection()}
 
 
 #############################################################################################################
 ### FANS
-### If your board has 4 pin fan headers and you want to use them, you can enable them here.
-### NOTE: If none are uncommented, the default 2pin fan headers will be used.
 #############################################################################################################
-# Part cooling
-${helper.uncommentIf(config.partFan.id === '4pin-dedicated')}[include RatOS/4pin-fans/part-cooling-fan-25khz.cfg]
+${helper.renderFans()}
 
-# Hotend / Toolhead cooling
-${helper.uncommentIf(config.hotendFan.id === '4pin-dedicated')}[include RatOS/4pin-fans/toolhead-fan-25khz.cfg]
-
-# Control board cooling
-${helper.uncommentIf(config.controllerFan.id === '4pin-dedicated')}[include RatOS/4pin-fans/controller-fan-25khz.cfg]
-
-${helper.renderFanOverrides()}
 `;
 
 export const initialPrinterCfg = (config: PrinterConfiguration, helper: KlipperConfigHelper) => `
@@ -128,28 +99,32 @@ variable_macro_travel_speed: 300
 
 [stepper_x]
 dir_pin: !x_dir_pin # Add ! in front of pin name to reverse X stepper direction
-rotation_distance: 40 # 40 for 20 tooth 2GT pulleys, 32 for 16 tooth 2GT pulleys
+rotation_distance: ${
+	helper.getRail(PrinterAxis.x).rotationDistance
+} # 40 for 20 tooth 2GT pulleys, 32 for 16 tooth 2GT pulleys
 position_endstop: 0 # Adjust this to your setup
 position_min: 0 # Adjust this to your setup
 position_max: 180 # Adjust this to your setup
 
 [stepper_y]
 dir_pin: y_dir_pin # Add ! in front of pin name to reverse Y stepper direction
-rotation_distance: 40 # 40 for 20 tooth 2GT pulleys, 32 for 16 tooth 2GT pulleys
+rotation_distance: ${
+	helper.getRail(PrinterAxis.y).rotationDistance
+} # 40 for 20 tooth 2GT pulleys, 32 for 16 tooth 2GT pulleys
 position_endstop: 0 # Adjust this to your setup
 position_min: 0 # Adjust this to your setup
 position_max: 180 # Adjust this to your setup
 
 [stepper_z]
 dir_pin: !z0_dir_pin # Add ! in front of pin name to reverse Z stepper direction
-rotation_distance: 4 # 4 for TR8*4 lead screws
+rotation_distance: ${helper.getRail(PrinterAxis.z).rotationDistance} # 4 for TR8*4 lead screws
 
 # Pressure Advance
 # Check https://www.klipper3d.org/Pressure_Advance.html for pressure advance tuning.
 [extruder]
 # pressure_advance: 0.05
-dir_pin: !${helper.getExtruderPinPrefix()}e_dir_pin # Remove ! in front of pin name to reverse extruder direction
 nozzle_diameter: 0.4 # Remember to change this if you change nozzle diameter.
+dir_pin: !${helper.getExtruderPinPrefix()}e_dir_pin # Remove ! in front of pin name to reverse extruder direction
 control: pid
 pid_kp: 21.673
 pid_ki: 1.338
@@ -162,4 +137,6 @@ pid_ki: 2.842
 pid_kd: 409.216
 
 ${helper.renderProbePinSection()}
+
+${helper.renderReminders()}
 `;

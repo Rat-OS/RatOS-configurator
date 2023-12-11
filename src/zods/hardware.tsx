@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { serverSchema } from '../env/schema.mjs';
+import { PrinterRailDefinition, Stepper } from './motion';
 
 export const thermistors = [
 	'EPCOS 100K B57560G104F',
@@ -33,6 +34,8 @@ export const Hotend = hardwareType.extend({
 
 export const Extruder = hardwareType.extend({
 	type: z.literal('extruder'),
+	stepper: Stepper.shape.id.optional(),
+	current: PrinterRailDefinition.shape.current.optional(),
 	title: z.string(),
 });
 
@@ -52,6 +55,6 @@ export const Accelerometer = z.object({
 });
 
 export const Fan = z.object({
-	id: z.enum(['2pin', '4pin', '4pin-dedicated']),
+	id: z.enum(['2pin', '4pin', '4pin-dedicated', '2pin-toolboard', '4pin-toolboard', '4pin-dedicated-toolboard']),
 	title: z.string(),
 });

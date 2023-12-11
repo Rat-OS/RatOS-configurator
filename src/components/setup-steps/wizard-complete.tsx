@@ -79,6 +79,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 				{ config: serializePrinterConfiguration(parsedPrinterConfiguration.data) },
 				{
 					onSuccess: props.nextScreen,
+					onError: (error) => window.scrollTo(0, 0),
 				},
 			);
 		}

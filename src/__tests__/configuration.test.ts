@@ -11,6 +11,7 @@ import { PartialPrinterConfiguration, SerializedPartialPrinterConfiguration } fr
 import { xEndstopOptions, yEndstopOptions } from '../data/endstops';
 import { serializePartialPrinterConfiguration } from '../hooks/usePrinterConfiguration';
 import { deserializePrinterRail } from '../utils/serialization';
+import { parseBoardConfig, exportBoardPinAlias } from '../helpers/metadata';
 
 describe('configuration', async () => {
 	const parsedHotends = await parseDirectory('hotends', Hotend);
@@ -80,6 +81,9 @@ describe('configuration', async () => {
 				expect(
 					fs.existsSync(path.join(board.path, board.isToolboard ? 'toolboard-config.cfg' : 'config.cfg')),
 				).toBeTruthy();
+			});
+			test.skipIf(board.isHost)('can parse board config file', async () => {
+				await expect(parseBoardConfig(board)).resolves.not.toThrow();
 			});
 			test.skipIf(board.extruderlessConfig == null)('has extruderless config file', async () => {
 				expect(fs.existsSync(path.join(board.path, board.extruderlessConfig ?? ''))).toBeTruthy();

@@ -4,6 +4,7 @@ import { existsSync, mkdirSync, symlinkSync, writeFileSync, readFileSync } from 
 import { getLogger } from '../../helpers/logger';
 import { publicProcedure, router } from '../trpc';
 import path from 'path';
+import { serverSchema } from '../../env/schema.mjs';
 
 const klippyExtension = z.object({
 	fileName: z.string(),
@@ -14,29 +15,27 @@ const klippyExtension = z.object({
 const klippyExtensions = z.array(klippyExtension);
 
 const getExtensions = () => {
-	if (process.env.KLIPPY_EXTENSIONS == null) {
-		throw new Error('No KLIPPY_EXTENSIONS specified in environment');
-	}
-	const extensionDir = process.env.KLIPPY_EXTENSIONS.split('/').slice(0, -1).join('/');
+	const environment = serverSchema.parse(process.env);
+	const extensionDir = environment.RATOS_DATA_DIR;
+	const klippyExtensionsFile = path.join(extensionDir, 'klippy-extensions.json');
 	if (!existsSync(extensionDir)) {
 		mkdirSync(extensionDir);
 	}
-	if (!existsSync(process.env.KLIPPY_EXTENSIONS)) {
-		writeFileSync(process.env.KLIPPY_EXTENSIONS, '[]');
+	if (!existsSync(klippyExtensionsFile)) {
+		writeFileSync(klippyExtensionsFile, '[]');
 	}
-	const currentExtensions = klippyExtensions.parse(JSON.parse(readFileSync(process.env.KLIPPY_EXTENSIONS).toString()));
+	const currentExtensions = klippyExtensions.parse(JSON.parse(readFileSync(klippyExtensionsFile).toString()));
 	return currentExtensions;
 };
 
 const saveExtensions = (extensions: z.infer<typeof klippyExtensions>) => {
-	if (process.env.KLIPPY_EXTENSIONS == null) {
-		throw new Error('No KLIPPY_EXTENSIONS specified in environment');
-	}
-	const extensionDir = process.env.KLIPPY_EXTENSIONS.split('/').slice(0, -1).join('/');
+	const environment = serverSchema.parse(process.env);
+	const extensionDir = environment.RATOS_DATA_DIR;
+	const klippyExtensionsFile = path.join(extensionDir, 'klippy-extensions.json');
 	if (!existsSync(extensionDir)) {
 		mkdirSync(extensionDir);
 	}
-	writeFileSync(process.env.KLIPPY_EXTENSIONS, JSON.stringify(extensions));
+	writeFileSync(klippyExtensionsFile, JSON.stringify(extensions));
 };
 
 export const klippyExtensionsRouter = router({
@@ -66,6 +65,7 @@ export const klippyExtensionsRouter = router({
 		return true;
 	}),
 	symlink: publicProcedure.mutation(async () => {
+		const environment = serverSchema.parse(process.env);
 		const currentExtensions = getExtensions();
 		if (currentExtensions.length === 0) {
 			return 'No extensions registered, nothing to do.';
@@ -74,11 +74,7 @@ export const klippyExtensionsRouter = router({
 		const symlinkResults = currentExtensions.map((ext) => {
 			if (existsSync(path.resolve(path.join(ext.path, ext.fileName)))) {
 				cleanedUpExtensions.push(ext);
-				if (
-					existsSync(
-						path.resolve(path.join(process.env.KLIPPER_DIR ?? '/home/pi/klipper', 'klippy/extras', ext.fileName)),
-					)
-				) {
+				if (existsSync(path.resolve(path.join(environment.KLIPPER_DIR, 'klippy/extras', ext.fileName)))) {
 					return {
 						result: 'success',
 						message: `Symlink for "${ext.fileName}" already exists`,
@@ -87,7 +83,7 @@ export const klippyExtensionsRouter = router({
 				try {
 					symlinkSync(
 						path.resolve(path.join(ext.path, ext.fileName)),
-						path.resolve(path.join(process.env.KLIPPER_DIR ?? '/home/pi/klipper', 'klippy/extras', ext.fileName)),
+						path.resolve(path.join(environment.KLIPPER_DIR, 'klippy/extras', ext.fileName)),
 					);
 					return {
 						result: 'success',

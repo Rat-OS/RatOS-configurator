@@ -61,6 +61,16 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 			? props.printerRailDefault.performanceMode.current
 			: props.printerRail.current,
 	);
+	const defaultPreset = useMemo(
+		() =>
+			findPreset(
+				props.printerRailDefault.stepper,
+				props.printerRailDefault.driver,
+				props.printerRailDefault.voltage,
+				props.printerRailDefault.current,
+			),
+		[props.printerRailDefault],
+	);
 	const recommendedPreset = useMemo(
 		() => findPreset(stepper, driver, voltage.id, undefined, props.performanceMode),
 		[stepper, driver, voltage, props.performanceMode],
@@ -70,7 +80,9 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 		[stepper, driver, voltage, props.performanceMode, current],
 	);
 
-	const supportedDrivers = Drivers.map((d) => {
+	const supportedDrivers = Drivers.filter((d) => {
+		return d.protocol === 'UART' || props.selectedBoard?.stepperSPI != null;
+	}).map((d) => {
 		return {
 			...d,
 			badge:
@@ -82,6 +94,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 					: undefined,
 		};
 	});
+	console.log(supportedDrivers, Drivers);
 	const steppers = Steppers.map((s) => {
 		return {
 			...s,
@@ -162,6 +175,8 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 
 	const isRecommendedPresetCompatible = recommendedPreset && recommendedPreset.run_current === current;
 
+	console.log(matchingPreset, defaultPreset, recommendedPreset);
+
 	return (
 		<div className="rounded-md border border-zinc-300 p-4 shadow-lg dark:border-zinc-700">
 			<div className="">
@@ -216,23 +231,25 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 						RatOS preset applied automatically.
 					</Banner>
 				)}
-				{recommendedPreset && !isRecommendedPresetCompatible && (
-					<Banner
-						Icon={BoltIcon}
-						color="sky"
-						title="Recommended tuning preset available at different current"
-						className="col-span-2"
-					>
-						RatOS has a recommended preset for your current settings at {recommendedPreset.run_current}A. You can{' '}
-						<span
-							className="cursor-pointer font-bold underline hover:no-underline"
-							onClick={() => setCurrent(recommendedPreset.run_current)}
+				{matchingPreset?.run_current !== defaultPreset?.run_current &&
+					recommendedPreset &&
+					!isRecommendedPresetCompatible && (
+						<Banner
+							Icon={BoltIcon}
+							color="sky"
+							title="Recommended tuning preset available at different current"
+							className="col-span-2"
 						>
-							change the current to {recommendedPreset.run_current}A
-						</span>{' '}
-						to apply the preset automatically.
-					</Banner>
-				)}
+							RatOS has a recommended preset for your current settings at {recommendedPreset.run_current}A. You can{' '}
+							<span
+								className="cursor-pointer font-bold underline hover:no-underline"
+								onClick={() => setCurrent(recommendedPreset.run_current)}
+							>
+								change the current to {recommendedPreset.run_current}A
+							</span>{' '}
+							to apply the preset automatically.
+						</Banner>
+					)}
 			</div>
 		</div>
 	);
