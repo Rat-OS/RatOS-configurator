@@ -52,8 +52,8 @@ export const appRouter = router({
 	mcu: mcuRouter,
 	printer: printerRouter,
 	wifi: wifiRouter,
-	klippyExtensions: klippyExtensionsRouter,
-	moonrakerExtensions: moonrakerExtensionsRouter,
+	'klippy-extensions': klippyExtensionsRouter,
+	'moonraker-extensions': moonrakerExtensionsRouter,
 });
 
 // export type definition of API

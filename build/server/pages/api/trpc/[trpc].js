@@ -686,8 +686,8 @@ const appRouter = (0,trpc/* router */.Nd)({
     mcu: mcu/* mcuRouter */.px,
     printer: printer/* printerRouter */.Cu,
     wifi: wifiRouter,
-    klippyExtensions: klippyExtensionsRouter,
-    moonrakerExtensions: moonrakerExtensionsRouter
+    "klippy-extensions": klippyExtensionsRouter,
+    "moonraker-extensions": moonrakerExtensionsRouter
 });
 
 ;// CONCATENATED MODULE: external "@trpc/server/adapters/next"

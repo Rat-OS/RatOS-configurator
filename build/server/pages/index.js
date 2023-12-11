@@ -3817,7 +3817,7 @@ const ActionsDropdown = ()=>{
         children: null,
         dismissText: "OK"
     });
-    const symlinkExtensions = trpc/* trpc.klippyExtensions.symlink.useMutation */.S.klippyExtensions.symlink.useMutation();
+    const symlinkExtensions = trpc/* trpc.klippy-extensions.symlink.useMutation */.S["klippy-extensions"].symlink.useMutation();
     const flashFirmware = trpc/* trpc.mcu.flashAllConnected.useMutation */.S.mcu.flashAllConnected.useMutation();
     const symlinkModal = isSymlinkModalOpen ? /*#__PURE__*/ jsx_runtime_.jsx(MutationModal, {
         ...symlinkModalContent,
@@ -3911,7 +3911,7 @@ const ActionsDropdown = ()=>{
                 children: [
                     /*#__PURE__*/ jsx_runtime_.jsx("div", {
                         children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)(external_headlessui_react_.Menu.Button, {
-                            className: "inline-flex w-full justify-center rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-zinc-100 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400 dark:focus:ring-offset-zinc-600 dark:hover:border-zinc-600 dark:hover:bg-zinc-700 ",
+                            className: "inline-flex w-full justify-center rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:border-zinc-600 dark:hover:bg-zinc-700 dark:focus:ring-offset-zinc-600 ",
                             children: [
                                 "Actions",
                                 /*#__PURE__*/ jsx_runtime_.jsx(_20_solid_namespaceObject.ChevronDownIcon, {
