@@ -9,13 +9,12 @@
 import { ArrowDownTrayIcon, PlayIcon } from '@heroicons/react/24/solid';
 import React, { useState } from 'react';
 import { useMutation } from 'react-query';
-import { useRecoilValue } from 'recoil';
 import { trpc } from '../../../helpers/trpc';
-import { Board } from '../../../server/routers/mcu';
 import { Button } from '../../button';
 import { Modal } from '../../modal';
 import { Spinner } from '../../spinner';
 import { useMoonraker } from '../../../hooks/useMoonraker';
+import { Board } from '../../../zods/boards';
 
 interface SDCardFlashingProps {
 	board: Board;

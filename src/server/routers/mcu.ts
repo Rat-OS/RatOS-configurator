@@ -1,7 +1,6 @@
 import { z } from 'zod';
-import fs, { exists } from 'fs';
+import fs from 'fs';
 import { exec } from 'child_process';
-import { existsSync, readFileSync } from 'fs';
 import { promisify } from 'util';
 import { TRPCError } from '@trpc/server';
 import { getScriptRoot } from '../../helpers/util';
@@ -24,13 +23,13 @@ export const getBoards = async () => {
 				f.trim() === ''
 					? null
 					: {
-							...(JSON.parse(readFileSync(f).toString()) as BoardWithDetectionStatus),
+							...(JSON.parse(fs.readFileSync(f).toString()) as BoardWithDetectionStatus),
 							path: f.replace('board-definition.json', ''),
 					  },
 			)
 			.filter((b) => b != null)
 			.map((b) => {
-				b!.detected = b != null && 'serialPath' in b && b.serialPath != null ? existsSync(b.serialPath) : false;
+				b!.detected = b != null && 'serialPath' in b && b.serialPath != null ? fs.existsSync(b.serialPath) : false;
 				return b;
 			}),
 	);
@@ -122,7 +121,7 @@ export const mcuRouter = router({
 					message: `No supported board exists for the path ${input.boardPath}`,
 				});
 			}
-			if (existsSync(ctx.board.serialPath)) {
+			if (fs.existsSync(ctx.board.serialPath)) {
 				return true;
 			}
 			return false;
@@ -235,7 +234,7 @@ export const mcuRouter = router({
 		})
 		.mutation(async ({ ctx }) => {
 			const connectedBoards = ctx.boards.filter(
-				(b) => existsSync(b.serialPath) && b.flashScript && b.compileScript && b.disableAutoFlash !== true,
+				(b) => fs.existsSync(b.serialPath) && b.flashScript && b.compileScript && b.disableAutoFlash !== true,
 			);
 			const flashResults: {
 				board: Board;

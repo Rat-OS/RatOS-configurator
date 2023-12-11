@@ -8,6 +8,8 @@ export type MoonrakerStatus = 'connected' | 'connecting' | 'not-running';
 interface MoonrakerResponse {
 	method: string;
 	params: any[];
+	result?: any;
+	id: number;
 }
 
 let REQ_ID = 0;
@@ -42,14 +44,17 @@ export const useMoonraker = (hostname?: string) => {
 			: typeof window !== 'undefined'
 			? window.location.hostname
 			: '';
-	const { lastJsonMessage, sendJsonMessage, readyState } = useWebSocket(`ws://${_hostname}/websocket`, {
-		shouldReconnect: (closeEvent) => {
-			return true;
+	const { lastJsonMessage, sendJsonMessage, readyState } = useWebSocket<MoonrakerResponse>(
+		`ws://${_hostname}/websocket`,
+		{
+			shouldReconnect: (closeEvent) => {
+				return true;
+			},
+			reconnectAttempts: Infinity,
+			reconnectInterval: 3000,
+			share: true,
 		},
-		reconnectAttempts: Infinity,
-		reconnectInterval: 3000,
-		share: true,
-	});
+	);
 	const readyStateRef = useRef(readyState);
 	readyStateRef.current = readyState;
 	const [moonrakerStatus, setMoonrakerStatus] = useState<null | MoonrakerStatus>(
