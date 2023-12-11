@@ -449,9 +449,12 @@ const saveExtensions = (extensions)=>{
     (0,external_fs_.writeFileSync)(klippyExtensionsFile, JSON.stringify(extensions));
 };
 const klippyExtensionsRouter = (0,trpc/* router */.Nd)({
-    register: trpc/* publicProcedure.input */.$y.input(klippyExtension).mutation(async ({ input  })=>{
+    register: trpc/* publicProcedure.input */.$y.input(external_zod_.z.object({
+        json: klippyExtension
+    })).mutation(async ({ input  })=>{
         const currentExtensions = getExtensions();
-        const extensionPath = external_path_default().join(input.path, input.fileName);
+        const { path: filePath , fileName , errorIfExists  } = input.json;
+        const extensionPath = external_path_default().join(filePath, fileName);
         if (!(0,external_fs_.existsSync)(extensionPath)) {
             (0,logger/* getLogger */.j)().error(`File "${extensionPath}" does not exist`);
             throw new server_.TRPCError({
@@ -459,18 +462,18 @@ const klippyExtensionsRouter = (0,trpc/* router */.Nd)({
                 code: "PRECONDITION_FAILED"
             });
         }
-        if (currentExtensions.find((ext)=>ext.fileName === input.fileName)) {
-            if (input.errorIfExists === true) {
-                (0,logger/* getLogger */.j)().error(`An extension with the fileName "${input.fileName}" is already registered`);
+        if (currentExtensions.find((ext)=>ext.fileName === fileName)) {
+            if (errorIfExists === true) {
+                (0,logger/* getLogger */.j)().error(`An extension with the fileName "${fileName}" is already registered`);
                 throw new server_.TRPCError({
-                    message: `An extension with the fileName "${input.fileName}" is already registered`,
+                    message: `An extension with the fileName "${fileName}" is already registered`,
                     code: "PRECONDITION_FAILED"
                 });
             }
-            (0,logger/* getLogger */.j)().warn(`An extension with the fileName "${input.fileName}" is already registered, ignoring...`);
+            (0,logger/* getLogger */.j)().warn(`An extension with the fileName "${fileName}" is already registered, ignoring...`);
             return true;
         }
-        currentExtensions.push(input);
+        currentExtensions.push(input.json);
         saveExtensions(currentExtensions);
         return true;
     }),
@@ -562,9 +565,12 @@ const moonraker_extensions_saveExtensions = (extensions)=>{
     (0,external_fs_.writeFileSync)(moonrakerExtensionsFile, JSON.stringify(extensions));
 };
 const moonrakerExtensionsRouter = (0,trpc/* router */.Nd)({
-    register: trpc/* publicProcedure.input */.$y.input(moonrakerExtension).mutation(async ({ input  })=>{
+    register: trpc/* publicProcedure.input */.$y.input(external_zod_.z.object({
+        json: moonrakerExtension
+    })).mutation(async ({ input  })=>{
         const currentExtensions = moonraker_extensions_getExtensions();
-        const extensionPath = external_path_default().join(input.path, input.fileName);
+        const { path: filePath , fileName , errorIfExists  } = input.json;
+        const extensionPath = external_path_default().join(filePath, fileName);
         if (!(0,external_fs_.existsSync)(extensionPath)) {
             (0,logger/* getLogger */.j)().error(`File "${extensionPath}" does not exist`);
             throw new server_.TRPCError({
@@ -572,18 +578,18 @@ const moonrakerExtensionsRouter = (0,trpc/* router */.Nd)({
                 code: "PRECONDITION_FAILED"
             });
         }
-        if (currentExtensions.find((ext)=>ext.fileName === input.fileName)) {
-            if (input.errorIfExists === true) {
-                (0,logger/* getLogger */.j)().error(`An extension with the fileName "${input.fileName}" is already registered`);
+        if (currentExtensions.find((ext)=>ext.fileName === fileName)) {
+            if (errorIfExists === true) {
+                (0,logger/* getLogger */.j)().error(`An extension with the fileName "${fileName}" is already registered`);
                 throw new server_.TRPCError({
-                    message: `An extension with the fileName "${input.fileName}" is already registered`,
+                    message: `An extension with the fileName "${fileName}" is already registered`,
                     code: "PRECONDITION_FAILED"
                 });
             }
-            (0,logger/* getLogger */.j)().warn(`An extension with the fileName "${input.fileName}" is already registered, ignoring...`);
+            (0,logger/* getLogger */.j)().warn(`An extension with the fileName "${fileName}" is already registered, ignoring...`);
             return true;
         }
-        currentExtensions.push(input);
+        currentExtensions.push(input.json);
         moonraker_extensions_saveExtensions(currentExtensions);
         return true;
     }),

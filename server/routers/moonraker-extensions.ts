@@ -39,9 +39,10 @@ const saveExtensions = (extensions: z.infer<typeof moonrakerExtensions>) => {
 };
 
 export const moonrakerExtensionsRouter = router({
-	register: publicProcedure.input(moonrakerExtension).mutation(async ({ input }) => {
+	register: publicProcedure.input(z.object({ json: moonrakerExtension })).mutation(async ({ input }) => {
 		const currentExtensions = getExtensions();
-		const extensionPath = path.join(input.path, input.fileName);
+		const { path: filePath, fileName, errorIfExists } = input.json;
+		const extensionPath = path.join(filePath, fileName);
 		if (!existsSync(extensionPath)) {
 			getLogger().error(`File "${extensionPath}" does not exist`);
 			throw new TRPCError({
@@ -49,18 +50,18 @@ export const moonrakerExtensionsRouter = router({
 				code: 'PRECONDITION_FAILED',
 			});
 		}
-		if (currentExtensions.find((ext) => ext.fileName === input.fileName)) {
-			if (input.errorIfExists === true) {
-				getLogger().error(`An extension with the fileName "${input.fileName}" is already registered`);
+		if (currentExtensions.find((ext) => ext.fileName === fileName)) {
+			if (errorIfExists === true) {
+				getLogger().error(`An extension with the fileName "${fileName}" is already registered`);
 				throw new TRPCError({
-					message: `An extension with the fileName "${input.fileName}" is already registered`,
+					message: `An extension with the fileName "${fileName}" is already registered`,
 					code: 'PRECONDITION_FAILED',
 				});
 			}
-			getLogger().warn(`An extension with the fileName "${input.fileName}" is already registered, ignoring...`);
+			getLogger().warn(`An extension with the fileName "${fileName}" is already registered, ignoring...`);
 			return true;
 		}
-		currentExtensions.push(input);
+		currentExtensions.push(input.json);
 		saveExtensions(currentExtensions);
 		return true;
 	}),
