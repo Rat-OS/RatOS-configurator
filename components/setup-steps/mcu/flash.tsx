@@ -95,13 +95,13 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 				<p>Please wait while RatOS queries your board..</p>
 			</Fragment>
 		);
-	} else if (boardVersion || (boardDetected.data && !forceReflash)) {
+	} else if (boardVersion.data || (boardDetected.data && !forceReflash)) {
 		const dfuReminder =
 			flashStrategy === 'dfu' && firstBoard?.dfu?.reminder ? (
 				<InfoMessage title="Reminder">{firstBoard?.dfu?.reminder}</InfoMessage>
 			) : null;
 		const versionMismatch =
-			boardVersion != null && klipperVersion != null && boardVersion.data !== klipperVersion ? (
+			boardVersion.data != null && klipperVersion != null && boardVersion.data !== klipperVersion ? (
 				<WarningMessage title="Version mismatch">
 					The board is running version {boardVersion.data} but you your pi is on version {klipperVersion}. If you want
 					to update your board click 'flash again' below.

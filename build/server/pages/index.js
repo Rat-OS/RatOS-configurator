@@ -2673,12 +2673,12 @@ const MCUFlashing = (props)=>{
                 })
             ]
         });
-    } else if (boardVersion || boardDetected.data && !forceReflash) {
+    } else if (boardVersion.data || boardDetected.data && !forceReflash) {
         const dfuReminder = flashStrategy === "dfu" && firstBoard?.dfu?.reminder ? /*#__PURE__*/ jsx_runtime_.jsx(InfoMessage, {
             title: "Reminder",
             children: firstBoard?.dfu?.reminder
         }) : null;
-        const versionMismatch = boardVersion != null && klipperVersion != null && boardVersion.data !== klipperVersion ? /*#__PURE__*/ (0,jsx_runtime_.jsxs)(WarningMessage, {
+        const versionMismatch = boardVersion.data != null && klipperVersion != null && boardVersion.data !== klipperVersion ? /*#__PURE__*/ (0,jsx_runtime_.jsxs)(WarningMessage, {
             title: "Version mismatch",
             children: [
                 "The board is running version ",
