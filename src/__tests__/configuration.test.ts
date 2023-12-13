@@ -84,6 +84,9 @@ describe('configuration', async () => {
 			});
 			test.skipIf(board.isHost)('can parse board config file', async () => {
 				await expect(parseBoardConfig(board)).resolves.not.toThrow();
+				if (board.extruderlessConfig != null) {
+					await expect(parseBoardConfig(board, true)).resolves.not.toThrow();
+				}
 			});
 			test.skipIf(board.extruderlessConfig == null)('has extruderless config file', async () => {
 				expect(fs.existsSync(path.join(board.path, board.extruderlessConfig ?? ''))).toBeTruthy();

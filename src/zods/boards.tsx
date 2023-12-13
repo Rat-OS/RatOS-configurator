@@ -102,6 +102,47 @@ export const ControlBoardPinMap = PinMap.extend({
 		),
 );
 
+export const ExtruderlessControlBoardPinMap = PinMap.extend({
+	x_step_pin: z.string(),
+	x_dir_pin: z.string(),
+	x_enable_pin: z.string(),
+	x_uart_pin: z.string(),
+	x_endstop_pin: z.string(),
+	y_step_pin: z.string(),
+	y_dir_pin: z.string(),
+	y_enable_pin: z.string(),
+	y_uart_pin: z.string(),
+	y_endstop_pin: z.string(),
+	z0_step_pin: z.string(),
+	z0_dir_pin: z.string(),
+	z0_enable_pin: z.string(),
+	z0_uart_pin: z.string(),
+	z1_step_pin: z.string(),
+	z1_dir_pin: z.string(),
+	z1_enable_pin: z.string(),
+	z1_uart_pin: z.string(),
+	z2_step_pin: z.string(),
+	z2_dir_pin: z.string(),
+	z2_enable_pin: z.string(),
+	z2_uart_pin: z.string(),
+	probe_pin: z.string(),
+	heater_bed_heating_pin: z.string(),
+	heater_bed_sensor_pin: z.string(),
+}).and(
+	z
+		.object({
+			fan_part_cooling_pin: z.string(),
+			fan_toolhead_cooling_pin: z.string(),
+		})
+		.or(
+			z.object({
+				'4p_fan_part_cooling_pin': z.string(),
+				'4p_fan_part_cooling_tach_pin': z.string(),
+				'4p_toolhead_cooling_pin': z.string(),
+				'4p_toolhead_cooling_tach_pin': z.string(),
+			}),
+		),
+);
 export const ToolboardPinMap = PinMap.extend({
 	e_step_pin: z.string(),
 	e_dir_pin: z.string(),

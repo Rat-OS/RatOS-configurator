@@ -2,7 +2,7 @@ import { exec } from 'child_process';
 import path from 'path';
 import { promisify } from 'util';
 import { z, ZodType } from 'zod';
-import { Board, ControlBoardPinMap, PinMap, ToolboardPinMap } from '../zods/boards';
+import { Board, ControlBoardPinMap, ExtruderlessControlBoardPinMap, PinMap, ToolboardPinMap } from '../zods/boards';
 import { getScriptRoot } from './util';
 export const parseMetadata = async <T extends ZodType>(cfgFile: string, zod: T): Promise<z.infer<T> | null> => {
 	if (cfgFile.trim() === '') return null;
@@ -94,6 +94,6 @@ export const parseBoardConfig = async (board: Board, extruderLess?: boolean) => 
 			? board.extruderlessConfig
 			: 'config.cfg',
 	);
-	const zod = board.isToolboard ? ToolboardPinMap : ControlBoardPinMap;
+	const zod = board.isToolboard ? ToolboardPinMap : extruderLess ? ExtruderlessControlBoardPinMap : ControlBoardPinMap;
 	return zod.parse(await _parsePinAlias(file));
 };
