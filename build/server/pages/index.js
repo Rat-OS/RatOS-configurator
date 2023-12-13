@@ -218,12 +218,11 @@ let REQ_ID = 0;
     const inFlightRequests = (0,react_.useRef)({});
     const inFlightRequestTimeouts = (0,react_.useRef)({});
     const onReadyCallbacks = (0,react_.useRef)([]);
-    const _hostname = (0,react_.useMemo)(()=>{
-        return hostname != null && hostname.trim() != "" ? hostname :  true ? "" : 0;
-    }, [
-        hostname
-    ]);
-    const { lastJsonMessage , sendJsonMessage , readyState  } = external_react_use_websocket_default()(`ws://${_hostname}/websocket`, {
+    const { lastJsonMessage , sendJsonMessage , readyState  } = external_react_use_websocket_default()(()=>{
+        return new Promise((resolve)=>{
+            resolve(`ws://${hostname != null && hostname.trim() != "" ? hostname :  true ? "" : 0}/websocket`);
+        });
+    }, {
         shouldReconnect: (closeEvent)=>{
             return true;
         },
