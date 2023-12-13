@@ -2639,9 +2639,8 @@ const MCUFlashing = (props)=>{
                     children: "Klipper doesn't seem to be running on your board, which may indicate faulty firmware or a faulty board. Please check your board and try flashing it again."
                 }),
                 /*#__PURE__*/ jsx_runtime_.jsx("p", {
-                    children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)("button", {
+                    children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)(Button, {
                         color: "gray",
-                        className: "text-brand-700 hover:text-brand-600",
                         onClick: reflash,
                         children: [
                             "flash again ",
@@ -2694,7 +2693,7 @@ const MCUFlashing = (props)=>{
                     className: "text-xl font-medium text-zinc-900 dark:text-zinc-100",
                     children: [
                         /*#__PURE__*/ jsx_runtime_.jsx(outline_.CheckCircleIcon, {
-                            className: "relative -top-0.5 inline h-7 w-7 text-brand-700"
+                            className: "relative -top-0.5 inline h-7 w-7 text-brand-700 dark:text-brand-500"
                         }),
                         " ",
                         firstBoard?.name,
@@ -2707,9 +2706,8 @@ const MCUFlashing = (props)=>{
                     children: [
                         "Proceed to the next step or",
                         " ",
-                        /*#__PURE__*/ (0,jsx_runtime_.jsxs)("button", {
+                        /*#__PURE__*/ (0,jsx_runtime_.jsxs)(Button, {
                             color: "gray",
-                            className: "text-brand-700 hover:text-brand-600",
                             onClick: reflash,
                             children: [
                                 "flash again ",
@@ -2857,7 +2855,7 @@ const MCUFlashing = (props)=>{
                         ]
                     }),
                     /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                        className: "space-y-4",
+                        className: "space-y-4 text-zinc-700 dark:text-zinc-300",
                         children: [
                             props.children,
                             content
