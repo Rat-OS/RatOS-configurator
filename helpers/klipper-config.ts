@@ -610,10 +610,10 @@ export const constructKlipperConfigHelpers = async (
 				result.push(`[controller_fan controller_fan]`);
 				if (config.partFan.id === '4pin') {
 					result.push('# 4 pin fan with PWM connected to controlboard fan terminal');
-					result.push(`pin: !fan_controller_bard_pin`);
+					result.push(`pin: !fan_controller_board_pin`);
 				} else {
 					result.push('# 2 pin fan connected to controlboard fan terminal');
-					result.push(`pin: fan_controller_bard_pin`);
+					result.push(`pin: fan_controller_board_pin`);
 				}
 			}
 			return result.join('\n');
