@@ -2653,7 +2653,7 @@ const MCUFlashing = (props)=>{
                 })
             ]
         });
-    } else if (boardVersion.isLoading) {
+    } else if (boardVersion.isFetching) {
         content = /*#__PURE__*/ (0,jsx_runtime_.jsxs)(react_.Fragment, {
             children: [
                 /*#__PURE__*/ (0,jsx_runtime_.jsxs)("h3", {
