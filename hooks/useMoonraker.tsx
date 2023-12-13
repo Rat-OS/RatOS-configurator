@@ -27,40 +27,37 @@ export type MoonrakerDBItemResponse<Data = unknown> = {
 	value: Data;
 };
 
-/**
- * NOTE: Do not use this hook directly. Use the recoil state.
- * @param hostname
- * @returns
- */
+const getWsURL = (hostname?: string) => {
+	const host =
+		hostname != null && hostname.trim() != ''
+			? hostname
+			: process.env.NEXT_PUBLIC_KLIPPER_HOSTNAME != null && process.env.NEXT_PUBLIC_KLIPPER_HOSTNAME.trim() != ''
+			? process.env.NEXT_PUBLIC_KLIPPER_HOSTNAME
+			: typeof window !== 'undefined'
+			? window.location.hostname
+			: '';
+	if (host == null || host.trim() == '') {
+		return null;
+	}
+	return `ws://${host}/websocket`;
+};
+
 export const useMoonraker = (hostname?: string) => {
 	const inFlightRequests = useRef<InFlightRequestCallbacks>({});
 	const inFlightRequestTimeouts = useRef<InFlightRequestTimeouts>({});
 	const onReadyCallbacks = useRef<(() => void)[]>([]);
-	const { lastJsonMessage, sendJsonMessage, readyState } = useWebSocket<MoonrakerResponse>(
-		() => {
-			return new Promise((resolve) => {
-				resolve(
-					`ws://${
-						hostname != null && hostname.trim() != ''
-							? hostname
-							: process.env.NEXT_PUBLIC_KLIPPER_HOSTNAME != null
-							? process.env.NEXT_PUBLIC_KLIPPER_HOSTNAME
-							: typeof window !== 'undefined'
-							? window.location.hostname
-							: ''
-					}/websocket`,
-				);
-			});
+	const [wsUrl, setWsUrl] = useState(getWsURL(hostname));
+	useEffect(() => {
+		setWsUrl(getWsURL(hostname));
+	}, [hostname]);
+	const { lastJsonMessage, sendJsonMessage, readyState } = useWebSocket<MoonrakerResponse>(wsUrl, {
+		shouldReconnect: (closeEvent) => {
+			return true;
 		},
-		{
-			shouldReconnect: (closeEvent) => {
-				return true;
-			},
-			reconnectAttempts: Infinity,
-			reconnectInterval: 3000,
-			share: true,
-		},
-	);
+		reconnectAttempts: Infinity,
+		reconnectInterval: 3000,
+		share: true,
+	});
 	const readyStateRef = useRef(readyState);
 	readyStateRef.current = readyState;
 	const [moonrakerStatus, setMoonrakerStatus] = useState<null | MoonrakerStatus>(

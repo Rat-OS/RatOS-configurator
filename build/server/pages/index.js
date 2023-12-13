@@ -210,19 +210,24 @@ var external_react_use_websocket_default = /*#__PURE__*/__webpack_require__.n(ex
 
 
 let REQ_ID = 0;
-/**
- * NOTE: Do not use this hook directly. Use the recoil state.
- * @param hostname
- * @returns
- */ const useMoonraker = (hostname)=>{
+const getWsURL = (hostname)=>{
+    const host = hostname != null && hostname.trim() != "" ? hostname :  true && "".trim() != "" ? "" :  false ? 0 : "";
+    if (host == null || host.trim() == "") {
+        return null;
+    }
+    return `ws://${host}/websocket`;
+};
+const useMoonraker = (hostname)=>{
     const inFlightRequests = (0,react_.useRef)({});
     const inFlightRequestTimeouts = (0,react_.useRef)({});
     const onReadyCallbacks = (0,react_.useRef)([]);
-    const { lastJsonMessage , sendJsonMessage , readyState  } = external_react_use_websocket_default()(()=>{
-        return new Promise((resolve)=>{
-            resolve(`ws://${hostname != null && hostname.trim() != "" ? hostname :  true ? "" : 0}/websocket`);
-        });
-    }, {
+    const [wsUrl, setWsUrl] = (0,react_.useState)(getWsURL(hostname));
+    (0,react_.useEffect)(()=>{
+        setWsUrl(getWsURL(hostname));
+    }, [
+        hostname
+    ]);
+    const { lastJsonMessage , sendJsonMessage , readyState  } = external_react_use_websocket_default()(wsUrl, {
         shouldReconnect: (closeEvent)=>{
             return true;
         },
