@@ -2256,7 +2256,7 @@ const QueryStatus = (query)=>{
             })
         });
     }
-    if (query.isFetching) {
+    if (query.isLoading) {
         content = /*#__PURE__*/ jsx_runtime_.jsx("div", {
             className: "mb-4 flex items-center justify-center bg-zinc-800",
             children: /*#__PURE__*/ jsx_runtime_.jsx(Spinner, {})
@@ -2569,17 +2569,17 @@ const MCUFlashing = (props)=>{
     const [forceReflash, setForceReflash] = (0,react_.useState)(false);
     const [flashStrategy, setFlashStrategy] = (0,react_.useState)(null);
     const [flashPath, setFlashPath] = (0,react_.useState)(null);
-    const { data: isBoardDetected , ...mcuDetect } = trpc/* trpc.mcu.detect.useQuery */.S.mcu.detect.useQuery({
+    const boardDetected = trpc/* trpc.mcu.detect.useQuery */.S.mcu.detect.useQuery({
         boardPath: props.selectedBoard?.board.path ?? ""
     }, {
         refetchInterval: 1000,
         enabled: props.selectedBoard !== null
     });
     const unidentifiedBoards = trpc/* trpc.mcu.unidentifiedDevices.useQuery */.S.mcu.unidentifiedDevices.useQuery();
-    const { data: boardVersion , isFetching: isBoardVersionLoading , ...mcuBoardVersion } = trpc/* trpc.mcu.boardVersion.useQuery */.S.mcu.boardVersion.useQuery({
+    const boardVersion = trpc/* trpc.mcu.boardVersion.useQuery */.S.mcu.boardVersion.useQuery({
         boardPath: props.selectedBoard?.board.path ?? ""
     }, {
-        enabled: props.selectedBoard !== null && !!isBoardDetected && forceReflash === false,
+        enabled: props.selectedBoard !== null && !!boardDetected.data && forceReflash === false,
         refetchOnWindowFocus: false,
         refetchOnMount: false,
         refetchOnReconnect: false
@@ -2594,16 +2594,16 @@ const MCUFlashing = (props)=>{
         setFlashStrategy(null);
         setForceReflash(true);
         setFlashPath(null);
-        mcuDetect.remove();
-        mcuBoardVersion.remove();
+        boardDetected.remove();
+        boardVersion.remove();
     }, [
-        mcuBoardVersion,
-        mcuDetect
+        boardVersion,
+        boardDetected
     ]);
     let rightButton = {
         onClick: props.nextScreen,
         label: "Next",
-        disabled: !isBoardDetected || !!mcuBoardVersion.error || forceReflash
+        disabled: !boardDetected.data || forceReflash
     };
     let leftButton = {
         onClick: props.previousScreen
@@ -2620,7 +2620,7 @@ const MCUFlashing = (props)=>{
         firstBoard
     ]);
     let content = null;
-    if (mcuBoardVersion.error && !forceReflash) {
+    if (boardVersion.error && !forceReflash) {
         content = /*#__PURE__*/ (0,jsx_runtime_.jsxs)(react_.Fragment, {
             children: [
                 /*#__PURE__*/ (0,jsx_runtime_.jsxs)("h3", {
@@ -2648,7 +2648,7 @@ const MCUFlashing = (props)=>{
                 })
             ]
         });
-    } else if (isBoardVersionLoading) {
+    } else if (boardVersion.isLoading) {
         content = /*#__PURE__*/ (0,jsx_runtime_.jsxs)(react_.Fragment, {
             children: [
                 /*#__PURE__*/ (0,jsx_runtime_.jsxs)("h3", {
@@ -2668,16 +2668,16 @@ const MCUFlashing = (props)=>{
                 })
             ]
         });
-    } else if (boardVersion || isBoardDetected && !forceReflash) {
+    } else if (boardVersion || boardDetected.data && !forceReflash) {
         const dfuReminder = flashStrategy === "dfu" && firstBoard?.dfu?.reminder ? /*#__PURE__*/ jsx_runtime_.jsx(InfoMessage, {
             title: "Reminder",
             children: firstBoard?.dfu?.reminder
         }) : null;
-        const versionMismatch = boardVersion != null && klipperVersion != null && boardVersion !== klipperVersion ? /*#__PURE__*/ (0,jsx_runtime_.jsxs)(WarningMessage, {
+        const versionMismatch = boardVersion != null && klipperVersion != null && boardVersion.data !== klipperVersion ? /*#__PURE__*/ (0,jsx_runtime_.jsxs)(WarningMessage, {
             title: "Version mismatch",
             children: [
                 "The board is running version ",
-                boardVersion,
+                boardVersion.data,
                 " but you your pi is on version ",
                 klipperVersion,
                 ". If you want to update your board click 'flash again' below."
@@ -2720,7 +2720,7 @@ const MCUFlashing = (props)=>{
     } else if (flashStrategy == null) {
         const dfuStrategyEnabled = firstBoard?.dfu != null;
         const sdCardStrategyEnabled = !firstBoard?.isToolboard;
-        const pathStrategyEnabled = isBoardDetected && firstBoard?.flashScript != null;
+        const pathStrategyEnabled = boardDetected.data && firstBoard?.flashScript != null;
         const unidentifiedPathStrategyEnabled = unidentifiedBoards.data?.length;
         const dfu = /*#__PURE__*/ jsx_runtime_.jsx(Button, {
             color: "gray",

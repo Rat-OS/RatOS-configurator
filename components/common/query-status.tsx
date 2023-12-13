@@ -16,7 +16,7 @@ export const QueryStatus = (query: UseTRPCQueryResult<any, TRPCClientErrorLike<A
 			</div>
 		);
 	}
-	if (query.isFetching) {
+	if (query.isLoading) {
 		content = (
 			<div className="mb-4 flex items-center justify-center bg-zinc-800">
 				<Spinner />
