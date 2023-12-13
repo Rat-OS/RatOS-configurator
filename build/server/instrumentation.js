@@ -17,6 +17,8 @@ const register = async ()=>{
         const { existsSync , mkdirSync  } = await Promise.resolve(/* import() */).then(__webpack_require__.t.bind(__webpack_require__, 7147, 23));
         const { regenerateKlipperConfiguration  } = await Promise.all(/* import() */[__webpack_require__.e(323), __webpack_require__.e(680), __webpack_require__.e(876), __webpack_require__.e(945), __webpack_require__.e(312), __webpack_require__.e(96), __webpack_require__.e(103)]).then(__webpack_require__.bind(__webpack_require__, 3103));
         const { serverSchema  } = await __webpack_require__.e(/* import() */ 876).then(__webpack_require__.bind(__webpack_require__, 6165));
+        const dns = await Promise.resolve(/* import() */).then(__webpack_require__.t.bind(__webpack_require__, 9523, 23));
+        dns.setDefaultResultOrder("ipv4first");
         const environment = serverSchema.parse(process.env);
         const dataDir = environment.RATOS_DATA_DIR;
         if (!existsSync(dataDir)) {
@@ -146,6 +148,13 @@ module.exports = require("zod-refine");
 /***/ ((module) => {
 
 module.exports = require("child_process");
+
+/***/ }),
+
+/***/ 9523:
+/***/ ((module) => {
+
+module.exports = require("dns");
 
 /***/ }),
 

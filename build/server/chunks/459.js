@@ -243,7 +243,7 @@ const mcuRouter = (0,_trpc__WEBPACK_IMPORTED_MODULE_7__/* .router */ .Nd)({
         };
         let error = null;
         try {
-            await fetch("http://localhost:7125/machine/services/stop?service=klipper", {
+            await fetch("http://127.0.0.1:7125/machine/services/stop?service=klipper", {
                 method: "POST"
             });
             version = await (0,util__WEBPACK_IMPORTED_MODULE_3__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_2__.exec)(`${path__WEBPACK_IMPORTED_MODULE_8___default().join(process.env.KLIPPER_ENV, "bin", "python")} ${path__WEBPACK_IMPORTED_MODULE_8___default().join(scriptRoot, "check-version.py")} ${ctx.board.serialPath}`, {
@@ -255,7 +255,7 @@ const mcuRouter = (0,_trpc__WEBPACK_IMPORTED_MODULE_7__/* .router */ .Nd)({
         } catch (e) {
             error = e;
         } finally{
-            await fetch("http://localhost:7125/machine/services/start?service=klipper", {
+            await fetch("http://127.0.0.1:7125/machine/services/start?service=klipper", {
                 method: "POST"
             });
         }

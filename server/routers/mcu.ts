@@ -160,7 +160,7 @@ export const mcuRouter = router({
 			let version = { stdout: '' };
 			let error: any = null;
 			try {
-				await fetch('http://localhost:7125/machine/services/stop?service=klipper', { method: 'POST' });
+				await fetch('http://127.0.0.1:7125/machine/services/stop?service=klipper', { method: 'POST' });
 				version = await promisify(exec)(
 					`${path.join(process.env.KLIPPER_ENV, 'bin', 'python')} ${path.join(scriptRoot, 'check-version.py')} ${
 						ctx.board.serialPath
@@ -170,7 +170,7 @@ export const mcuRouter = router({
 			} catch (e) {
 				error = e;
 			} finally {
-				await fetch('http://localhost:7125/machine/services/start?service=klipper', { method: 'POST' });
+				await fetch('http://127.0.0.1:7125/machine/services/start?service=klipper', { method: 'POST' });
 			}
 			if (error) {
 				throw new TRPCError({
