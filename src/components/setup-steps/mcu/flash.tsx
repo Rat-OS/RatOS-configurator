@@ -79,9 +79,9 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 					check your board and try flashing it again.
 				</p>
 				<p>
-					<button color="gray" className="text-brand-700 hover:text-brand-600" onClick={reflash}>
+					<Button color="gray" onClick={reflash}>
 						flash again <ArrowPathIcon className="inline h-5 w-5" />
-					</button>
+					</Button>
 				</p>
 			</Fragment>
 		);
@@ -110,15 +110,16 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 		content = (
 			<Fragment>
 				<h3 className="text-xl font-medium text-zinc-900 dark:text-zinc-100">
-					<CheckCircleIcon className="relative -top-0.5 inline h-7 w-7 text-brand-700" /> {firstBoard?.name} detected
+					<CheckCircleIcon className="relative -top-0.5 inline h-7 w-7 text-brand-700 dark:text-brand-500" />{' '}
+					{firstBoard?.name} detected
 				</h3>
 				{dfuReminder}
 				{versionMismatch}
 				<p>
 					Proceed to the next step or{' '}
-					<button color="gray" className="text-brand-700 hover:text-brand-600" onClick={reflash}>
+					<Button color="gray" onClick={reflash}>
 						flash again <ArrowPathIcon className="inline h-5 w-5" />
-					</button>
+					</Button>
 				</p>
 			</Fragment>
 		);
@@ -231,7 +232,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 					<h3 className="text-lg font-medium leading-6 text-zinc-900 dark:text-zinc-100">{props.name}</h3>
 					<p className="mt-2 max-w-4xl text-sm text-zinc-500 dark:text-zinc-400">{props.description}</p>
 				</div>
-				<div className="space-y-4">
+				<div className="space-y-4 text-zinc-700 dark:text-zinc-300">
 					{props.children}
 					{content}
 				</div>
