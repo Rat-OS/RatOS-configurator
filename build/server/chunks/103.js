@@ -475,7 +475,7 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
                 section.push(`uart_pin: ${utils.getAxisPinName(rail.axis, "_uart_pin")}`);
             }
             if (rail.driver.protocol === "SPI") {
-                section.push(`cs_pin: ${utils.getAxisPinName(rail.axis, "_cs_pin")}`);
+                section.push(`cs_pin: ${utils.getAxisPinName(rail.axis, "_uart_pin")}`);
                 if (config.controlboard.stepperSPI != null) {
                     if ("hardware" in config.controlboard.stepperSPI) {
                         section.push(`spi_bus: ${config.controlboard.stepperSPI.hardware.bus}`);
