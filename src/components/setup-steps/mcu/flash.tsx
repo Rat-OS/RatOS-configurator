@@ -15,7 +15,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 	const [forceReflash, setForceReflash] = useState(false);
 	const [flashStrategy, setFlashStrategy] = useState<null | 'dfu' | 'sdcard' | 'path'>(null);
 	const [flashPath, setFlashPath] = useState<string | null>(null);
-	const { data: isBoardDetected, ...mcuDetect } = trpc.mcu.detect.useQuery(
+	const boardDetected = trpc.mcu.detect.useQuery(
 		{ boardPath: props.selectedBoard?.board.path ?? '' },
 		{
 			refetchInterval: 1000,
@@ -23,14 +23,10 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 		},
 	);
 	const unidentifiedBoards = trpc.mcu.unidentifiedDevices.useQuery();
-	const {
-		data: boardVersion,
-		isFetching: isBoardVersionLoading,
-		...mcuBoardVersion
-	} = trpc.mcu.boardVersion.useQuery(
+	const boardVersion = trpc.mcu.boardVersion.useQuery(
 		{ boardPath: props.selectedBoard?.board.path ?? '' },
 		{
-			enabled: props.selectedBoard !== null && !!isBoardDetected && forceReflash === false,
+			enabled: props.selectedBoard !== null && !!boardDetected.data && forceReflash === false,
 			refetchOnWindowFocus: false,
 			refetchOnMount: false,
 			refetchOnReconnect: false,
@@ -45,14 +41,14 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 		setFlashStrategy(null);
 		setForceReflash(true);
 		setFlashPath(null);
-		mcuDetect.remove();
-		mcuBoardVersion.remove();
-	}, [mcuBoardVersion, mcuDetect]);
+		boardDetected.remove();
+		boardVersion.remove();
+	}, [boardVersion, boardDetected]);
 
 	let rightButton: StepNavButton = {
 		onClick: props.nextScreen,
 		label: 'Next',
-		disabled: !isBoardDetected || !!mcuBoardVersion.error || forceReflash,
+		disabled: !boardDetected.data || forceReflash,
 	};
 	let leftButton: StepNavButton = {
 		onClick: props.previousScreen,
@@ -67,7 +63,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 	}, [flashViaPath, firstBoard]);
 
 	let content = null;
-	if (mcuBoardVersion.error && !forceReflash) {
+	if (boardVersion.error && !forceReflash) {
 		content = (
 			<Fragment>
 				<h3 className="text-xl font-medium text-zinc-900 dark:text-zinc-100">
@@ -84,7 +80,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 				</p>
 			</Fragment>
 		);
-	} else if (isBoardVersionLoading) {
+	} else if (boardVersion.isLoading) {
 		content = (
 			<Fragment>
 				<h3 className="text-xl font-medium text-zinc-900 dark:text-zinc-100">
@@ -94,16 +90,16 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 				<p>Please wait while RatOS queries your board..</p>
 			</Fragment>
 		);
-	} else if (boardVersion || (isBoardDetected && !forceReflash)) {
+	} else if (boardVersion || (boardDetected.data && !forceReflash)) {
 		const dfuReminder =
 			flashStrategy === 'dfu' && firstBoard?.dfu?.reminder ? (
 				<InfoMessage title="Reminder">{firstBoard?.dfu?.reminder}</InfoMessage>
 			) : null;
 		const versionMismatch =
-			boardVersion != null && klipperVersion != null && boardVersion !== klipperVersion ? (
+			boardVersion != null && klipperVersion != null && boardVersion.data !== klipperVersion ? (
 				<WarningMessage title="Version mismatch">
-					The board is running version {boardVersion} but you your pi is on version {klipperVersion}. If you want to
-					update your board click 'flash again' below.
+					The board is running version {boardVersion.data} but you your pi is on version {klipperVersion}. If you want
+					to update your board click 'flash again' below.
 				</WarningMessage>
 			) : null;
 		content = (
@@ -124,7 +120,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 	} else if (flashStrategy == null) {
 		const dfuStrategyEnabled = firstBoard?.dfu != null;
 		const sdCardStrategyEnabled = !firstBoard?.isToolboard;
-		const pathStrategyEnabled = isBoardDetected && firstBoard?.flashScript != null;
+		const pathStrategyEnabled = boardDetected.data && firstBoard?.flashScript != null;
 		const unidentifiedPathStrategyEnabled = unidentifiedBoards.data?.length;
 		const dfu = (
 			<Button
