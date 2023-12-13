@@ -18,7 +18,12 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 	const boardDetected = trpc.mcu.detect.useQuery(
 		{ boardPath: props.selectedBoard?.board.path ?? '' },
 		{
-			refetchInterval: 1000,
+			refetchInterval: (data) => {
+				if (data === true) {
+					return false;
+				}
+				return 1000;
+			},
 			enabled: props.selectedBoard !== null,
 		},
 	);
