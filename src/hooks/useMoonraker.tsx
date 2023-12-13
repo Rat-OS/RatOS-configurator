@@ -36,14 +36,15 @@ export const useMoonraker = (hostname?: string) => {
 	const inFlightRequests = useRef<InFlightRequestCallbacks>({});
 	const inFlightRequestTimeouts = useRef<InFlightRequestTimeouts>({});
 	const onReadyCallbacks = useRef<(() => void)[]>([]);
-	const _hostname =
-		hostname != null && hostname.trim() != ''
+	const _hostname = useMemo(() => {
+		return hostname != null && hostname.trim() != ''
 			? hostname
 			: process.env.NEXT_PUBLIC_KLIPPER_HOSTNAME != null
 			? process.env.NEXT_PUBLIC_KLIPPER_HOSTNAME
 			: typeof window !== 'undefined'
 			? window.location.hostname
 			: '';
+	}, [hostname]);
 	const { lastJsonMessage, sendJsonMessage, readyState } = useWebSocket<MoonrakerResponse>(
 		`ws://${_hostname}/websocket`,
 		{
