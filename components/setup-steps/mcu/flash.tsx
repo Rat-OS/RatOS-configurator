@@ -158,7 +158,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 				className="justify-center"
 				title={pathStrategyEnabled ? undefined : 'Board was not detected.'}
 			>
-				Flash automatically (recommended)
+				Flash automatically
 			</Button>
 		);
 		const unidentifiedPath = (

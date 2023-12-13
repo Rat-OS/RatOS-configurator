@@ -43,7 +43,7 @@ const runSudoScript = (script, ...args)=>{
                         stderr
                     });
                 } else {
-                    reject("An error occured while attempting to run script");
+                    reject("An error occured while attempting to run script: \n" + stdout + "\n" + stderr);
                 }
             });
             child.on("close", (code)=>{
@@ -392,14 +392,14 @@ const mcuRouter = (0,_trpc__WEBPACK_IMPORTED_MODULE_7__/* .router */ .Nd)({
             const message = e instanceof Error ? e.message : e;
             throw new _trpc_server__WEBPACK_IMPORTED_MODULE_4__.TRPCError({
                 code: "INTERNAL_SERVER_ERROR",
-                message: `Could not flash firmware to ${ctx.board.name}: \n\n ${flashResult?.stdout ?? message}'}`,
+                message: `Could not flash firmware to ${ctx.board.name}: \n\n ${flashResult?.stdout ?? message}`,
                 cause: e
             });
         }
         if (!fs__WEBPACK_IMPORTED_MODULE_1___default().existsSync(ctx.board.serialPath)) {
             throw new _trpc_server__WEBPACK_IMPORTED_MODULE_4__.TRPCError({
                 code: "INTERNAL_SERVER_ERROR",
-                message: `Could not flash firmware to ${ctx.board.name}: \n\n ${flashResult.stdout}`
+                message: `Could not flash firmware to ${ctx.board.name}, device did not show up at expected path.: \n\n ${flashResult.stdout}`
             });
         }
         return "success";

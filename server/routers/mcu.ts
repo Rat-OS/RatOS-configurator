@@ -349,14 +349,14 @@ export const mcuRouter = router({
 				const message = e instanceof Error ? e.message : e;
 				throw new TRPCError({
 					code: 'INTERNAL_SERVER_ERROR',
-					message: `Could not flash firmware to ${ctx.board.name}: \n\n ${flashResult?.stdout ?? message}'}`,
+					message: `Could not flash firmware to ${ctx.board.name}: \n\n ${flashResult?.stdout ?? message}`,
 					cause: e,
 				});
 			}
 			if (!fs.existsSync(ctx.board.serialPath)) {
 				throw new TRPCError({
 					code: 'INTERNAL_SERVER_ERROR',
-					message: `Could not flash firmware to ${ctx.board.name}: \n\n ${flashResult.stdout}`,
+					message: `Could not flash firmware to ${ctx.board.name}, device did not show up at expected path.: \n\n ${flashResult.stdout}`,
 				});
 			}
 			return 'success';

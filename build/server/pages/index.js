@@ -1008,7 +1008,7 @@ const Button = (props)=>{
                                 children: /*#__PURE__*/ jsx_runtime_.jsx(external_headlessui_react_.Menu.Item, {
                                     children: ({ active  })=>/*#__PURE__*/ jsx_runtime_.jsx("span", {
                                             onClick: item.onClick,
-                                            className: (0,external_tailwind_merge_namespaceObject.twJoin)(active ? "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100" : "text-zinc-700 dark:text-zinc-300", "block cursor-pointer px-4 py-2 text-sm"),
+                                            className: (0,external_tailwind_merge_namespaceObject.twJoin)(active ? "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100" : "text-zinc-700 dark:text-zinc-300", "block cursor-pointer break-words px-4 py-2 text-sm"),
                                             children: item.title
                                         })
                                 })
@@ -2747,7 +2747,7 @@ const MCUFlashing = (props)=>{
             disabled: !pathStrategyEnabled,
             className: "justify-center",
             title: pathStrategyEnabled ? undefined : "Board was not detected.",
-            children: "Flash automatically (recommended)"
+            children: "Flash automatically"
         });
         const unidentifiedPath = /*#__PURE__*/ jsx_runtime_.jsx(Button, {
             color: "gray",
