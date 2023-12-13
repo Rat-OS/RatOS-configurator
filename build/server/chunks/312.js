@@ -1209,6 +1209,7 @@ const serializePrinterRail = (rail)=>{
 /* harmony export */   "$l": () => (/* binding */ Board),
 /* harmony export */   "AN": () => (/* binding */ AutoFlashableBoard),
 /* harmony export */   "Ai": () => (/* binding */ BoardWithDetectionStatus),
+/* harmony export */   "Fh": () => (/* binding */ ExtruderlessControlBoardPinMap),
 /* harmony export */   "MG": () => (/* binding */ Toolboard),
 /* harmony export */   "MW": () => (/* binding */ ControlBoardPinMap),
 /* harmony export */   "Oy": () => (/* binding */ ToolboardPinMap)
@@ -1300,6 +1301,41 @@ const ControlBoardPinMap = PinMap.extend({
     e_uart_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
     e_heater_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
     e_sensor_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    probe_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    heater_bed_heating_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    heater_bed_sensor_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string()
+}).and(zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
+    fan_part_cooling_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    fan_toolhead_cooling_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string()
+}).or(zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
+    "4p_fan_part_cooling_pin": zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    "4p_fan_part_cooling_tach_pin": zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    "4p_toolhead_cooling_pin": zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    "4p_toolhead_cooling_tach_pin": zod__WEBPACK_IMPORTED_MODULE_0__.z.string()
+})));
+const ExtruderlessControlBoardPinMap = PinMap.extend({
+    x_step_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    x_dir_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    x_enable_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    x_uart_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    x_endstop_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    y_step_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    y_dir_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    y_enable_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    y_uart_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    y_endstop_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    z0_step_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    z0_dir_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    z0_enable_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    z0_uart_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    z1_step_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    z1_dir_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    z1_enable_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    z1_uart_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    z2_step_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    z2_dir_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    z2_enable_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    z2_uart_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
     probe_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
     heater_bed_heating_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
     heater_bed_sensor_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string()

@@ -80,7 +80,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 				</p>
 				<p>
 					<Button color="gray" onClick={reflash}>
-						flash again <ArrowPathIcon className="inline h-5 w-5" />
+						<span>Flash again</span> <ArrowPathIcon className="inline h-5 w-5" />
 					</Button>
 				</p>
 			</Fragment>
@@ -118,7 +118,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 				<p>
 					Proceed to the next step or{' '}
 					<Button color="gray" onClick={reflash}>
-						flash again <ArrowPathIcon className="inline h-5 w-5" />
+						<span>Flash again</span> <ArrowPathIcon className="inline h-5 w-5" />
 					</Button>
 				</p>
 			</Fragment>

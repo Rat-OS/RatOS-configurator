@@ -149,7 +149,7 @@ const exportBoardPinAlias = (name, pins, mcu)=>{
 };
 const parseBoardConfig = async (board, extruderLess)=>{
     let file = external_path_default().join(board.path, board.isToolboard ? "toolboard-config.cfg" : extruderLess && board.extruderlessConfig != null ? board.extruderlessConfig : "config.cfg");
-    const zod = board.isToolboard ? boards/* ToolboardPinMap */.Oy : boards/* ControlBoardPinMap */.MW;
+    const zod = board.isToolboard ? boards/* ToolboardPinMap */.Oy : extruderLess ? boards/* ExtruderlessControlBoardPinMap */.Fh : boards/* ControlBoardPinMap */.MW;
     return zod.parse(await _parsePinAlias(file));
 };
 

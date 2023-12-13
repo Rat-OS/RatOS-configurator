@@ -922,7 +922,7 @@ const _20_solid_namespaceObject = require("@heroicons/react/20/solid");
 
 
 
-const buttonStyle = (0,external_class_variance_authority_namespaceObject.cva)("inline-flex items-center px-4 py-2 border text-sm font-semibold rounded-md shadow-sm focus:outline-none focus:ring-2", {
+const buttonStyle = (0,external_class_variance_authority_namespaceObject.cva)("inline-flex items-center px-4 py-2 border text-sm font-semibold rounded-md shadow-sm focus:outline-none focus:ring-2 capitalize", {
     variants: {
         color: {
             danger: "text-white bg-red-500 hover:bg-red-600 border-transparent focus:ring-offset-2 focus:ring-red-600 dark:focus:ring-offset-zinc-900",
@@ -2643,7 +2643,10 @@ const MCUFlashing = (props)=>{
                         color: "gray",
                         onClick: reflash,
                         children: [
-                            "flash again ",
+                            /*#__PURE__*/ jsx_runtime_.jsx("span", {
+                                children: "Flash again"
+                            }),
+                            " ",
                             /*#__PURE__*/ jsx_runtime_.jsx(outline_.ArrowPathIcon, {
                                 className: "inline h-5 w-5"
                             })
@@ -2710,7 +2713,10 @@ const MCUFlashing = (props)=>{
                             color: "gray",
                             onClick: reflash,
                             children: [
-                                "flash again ",
+                                /*#__PURE__*/ jsx_runtime_.jsx("span", {
+                                    children: "Flash again"
+                                }),
+                                " ",
                                 /*#__PURE__*/ jsx_runtime_.jsx(outline_.ArrowPathIcon, {
                                     className: "inline h-5 w-5"
                                 })
