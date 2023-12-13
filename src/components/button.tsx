@@ -102,7 +102,7 @@ export const Button: React.FC<ButtonProps> = (props) => {
 												active
 													? 'bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100'
 													: 'text-zinc-700 dark:text-zinc-300',
-												'block cursor-pointer px-4 py-2 text-sm',
+												'block cursor-pointer break-words px-4 py-2 text-sm',
 											)}
 										>
 											{item.title}
