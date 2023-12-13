@@ -431,9 +431,11 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
                 `step_pin: ${utils.getAxisPinName(rail.axis, "_step_pin")}`,
                 `dir_pin: ${utils.getAxisPinName(rail.axis, "_dir_pin")}`,
                 `enable_pin: !${utils.getAxisPinName(rail.axis, "_enable_pin")}`,
-                `microsteps: ${rail.microstepping}`,
-                `rotation_distance: ${rail.rotationDistance}`
+                `microsteps: ${rail.microstepping}`
             ];
+            if (rail.axis !== motion/* PrinterAxis.extruder */.po.extruder) {
+                section.push(`rotation_distance: ${rail.rotationDistance}`);
+            }
             if ([
                 motion/* PrinterAxis.x */.po.x,
                 motion/* PrinterAxis.y */.po.y,

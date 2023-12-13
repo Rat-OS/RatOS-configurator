@@ -284,8 +284,10 @@ export const constructKlipperConfigHelpers = async (
 				`dir_pin: ${utils.getAxisPinName(rail.axis, '_dir_pin')}`,
 				`enable_pin: !${utils.getAxisPinName(rail.axis, '_enable_pin')}`,
 				`microsteps: ${rail.microstepping}`,
-				`rotation_distance: ${rail.rotationDistance}`,
 			];
+			if (rail.axis !== PrinterAxis.extruder) {
+				section.push(`rotation_distance: ${rail.rotationDistance}`);
+			}
 			if ([PrinterAxis.x, PrinterAxis.y, PrinterAxis.z].includes(rail.axis)) {
 				section.push(`homing_speed: ${rail.homingSpeed}`);
 			}
