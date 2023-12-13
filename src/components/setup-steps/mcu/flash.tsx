@@ -85,7 +85,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 				</p>
 			</Fragment>
 		);
-	} else if (boardVersion.isLoading) {
+	} else if (boardVersion.isFetching) {
 		content = (
 			<Fragment>
 				<h3 className="text-xl font-medium text-zinc-900 dark:text-zinc-100">
