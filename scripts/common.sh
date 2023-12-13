@@ -97,6 +97,7 @@ pi  ALL=(ALL) NOPASSWD: $SCRIPT_DIR/add-wifi-network.sh
 pi  ALL=(ALL) NOPASSWD: $SCRIPT_DIR/change-hostname.sh
 pi  ALL=(ALL) NOPASSWD: $SCRIPT_DIR/dfu-flash.sh
 pi  ALL=(ALL) NOPASSWD: $SCRIPT_DIR/board-script.sh
+pi  ALL=(ALL) NOPASSWD: $SCRIPT_DIR/flash-path.sh
 __EOF
 
 	$sudo chown root:root /tmp/031-ratos-configurator-scripts
