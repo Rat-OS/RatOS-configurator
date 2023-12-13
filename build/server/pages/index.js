@@ -218,7 +218,11 @@ let REQ_ID = 0;
     const inFlightRequests = (0,react_.useRef)({});
     const inFlightRequestTimeouts = (0,react_.useRef)({});
     const onReadyCallbacks = (0,react_.useRef)([]);
-    const _hostname = hostname != null && hostname.trim() != "" ? hostname :  true ? "" : 0;
+    const _hostname = (0,react_.useMemo)(()=>{
+        return hostname != null && hostname.trim() != "" ? hostname :  true ? "" : 0;
+    }, [
+        hostname
+    ]);
     const { lastJsonMessage , sendJsonMessage , readyState  } = external_react_use_websocket_default()(`ws://${_hostname}/websocket`, {
         shouldReconnect: (closeEvent)=>{
             return true;
