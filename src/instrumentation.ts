@@ -3,6 +3,8 @@ export const register = async () => {
 		const { existsSync, mkdirSync } = await import('fs');
 		const { regenerateKlipperConfiguration } = await import('./server/routers/printer');
 		const { serverSchema } = await import('./env/schema.mjs');
+		const dns = await import('dns');
+		dns.setDefaultResultOrder('ipv4first');
 
 		const environment = serverSchema.parse(process.env);
 		const dataDir = environment.RATOS_DATA_DIR;

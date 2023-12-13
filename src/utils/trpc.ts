@@ -9,7 +9,7 @@ export function getBaseUrl() {
 		// reference for render.com
 		return `http://${process.env.RENDER_INTERNAL_HOSTNAME}:${process.env.PORT}/configure`;
 	// assume localhost
-	return `http://localhost:${process.env.PORT ?? 3000}/configure`;
+	return `http://127.0.0.1:${process.env.PORT ?? 3000}/configure`;
 }
 export const trpc = createTRPCNext<AppRouter>({
 	config() {
