@@ -15,7 +15,11 @@ report_status()
 
 pnpm_install() {
     pushd "$SRC_DIR" || exit 1
-    pnpm install
+	if [ "$EUID" -eq 0 ]; then
+        sudo -u pi pnpm install --aggregate-output --no-color  --config.confirmModulesPurge=false
+    else
+		pnpm install --aggregate-output --no-color  --config.confirmModulesPurge=false
+	fi
     popd || exit 1
 }
 
