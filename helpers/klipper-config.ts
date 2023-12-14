@@ -577,13 +577,13 @@ export const constructKlipperConfigHelpers = async (
 			// Hotend fan
 			result.push(``);
 			result.push(`# Hotend cooling fan`);
-			if (config.partFan.id == '4pin-dedicated') {
+			if (config.hotendFan.id == '4pin-dedicated') {
 				result.push('# 4 pin connected to dedicated 4-pin header on controlboard');
 				result.push(`[include RatOS/4pin-fans/toolhead-fan-25khz.cfg]`);
 			} else {
 				result.push(`[heater_fan toolhead_cooling_fan]`);
 				if (config.toolboard) {
-					if (config.partFan.id === '4pin') {
+					if (config.hotendFan.id === '4pin') {
 						result.push('# 4 pin fan with PWM connected to toolboard fan terminal');
 						result.push(`pin: !toolboard:fan_toolhead_cooling_pin`);
 					} else {
@@ -591,7 +591,7 @@ export const constructKlipperConfigHelpers = async (
 						result.push(`pin: toolboard:fan_toolhead_cooling_pin`);
 					}
 				} else {
-					if (config.partFan.id === '4pin') {
+					if (config.hotendFan.id === '4pin') {
 						result.push('# 4 pin fan with PWM connected to controlboard fan terminal');
 						result.push(`pin: !fan_toolhead_cooling_pin`);
 					} else {
@@ -603,12 +603,12 @@ export const constructKlipperConfigHelpers = async (
 			// Controller fan
 			result.push(``);
 			result.push(`# Controller/driver cooling fan`);
-			if (config.partFan.id == '4pin-dedicated') {
+			if (config.controllerFan.id == '4pin-dedicated') {
 				result.push('# 4 pin connected to dedicated 4-pin header on controlboard');
 				result.push(`[include RatOS/4pin-fans/controller-fan-25khz.cfg]`);
 			} else {
 				result.push(`[controller_fan controller_fan]`);
-				if (config.partFan.id === '4pin') {
+				if (config.controllerFan.id === '4pin') {
 					result.push('# 4 pin fan with PWM connected to controlboard fan terminal');
 					result.push(`pin: !fan_controller_board_pin`);
 				} else {
