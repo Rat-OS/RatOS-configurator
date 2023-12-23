@@ -28,6 +28,11 @@ export const Steppers = z.array(Stepper).parse([
 		maxPeakCurrent: 2.8,
 	},
 	{
+		id: 'BONDTECH-42H025H-0704-002',
+		title: 'Bondtech LGX Stepper',
+		maxPeakCurrent: 0.7,
+	},
+	{
 		id: 'LDO-42STH48-2504AC',
 		title: 'LDO-42STH48-2504AC',
 		maxPeakCurrent: 2.5,
