@@ -10,17 +10,19 @@ import {
 	ToolheadConfiguration,
 } from './toolhead';
 
-const BasePrinterConfiguration = z.object({
-	printer: PrinterDefinition,
-	controlboard: Board,
-	toolheads: z.array(ToolheadConfiguration).min(1).max(2),
-	size: z.number().optional().nullable(),
-	controllerFan: Fan,
-	performanceMode: z.boolean().default(false),
-	stealthchop: z.boolean().default(false),
-	standstillStealth: z.boolean().default(false),
-	rails: z.array(PrinterRail),
-});
+const BasePrinterConfiguration = z
+	.object({
+		printer: PrinterDefinition,
+		controlboard: Board,
+		toolheads: z.array(ToolheadConfiguration).min(1).max(2),
+		size: z.number().optional().nullable(),
+		controllerFan: Fan,
+		performanceMode: z.boolean().default(false),
+		stealthchop: z.boolean().default(false),
+		standstillStealth: z.boolean().default(false),
+		rails: z.array(PrinterRail),
+	})
+	.strict();
 
 export const PrinterConfiguration = BasePrinterConfiguration.refine(
 	(data) => data.size == null || ((data.printer.sizes?.length ?? 0) > 0 && data.size != null),
@@ -38,19 +40,22 @@ export const SerializedPrinterConfiguration = BasePrinterConfiguration.extend({
 	toolheads: z.array(SerializedToolheadConfiguration).min(1).max(2),
 	controllerFan: Fan.shape.id,
 	rails: z.array(SerializedPrinterRail),
-});
+}).strict();
 
 export const PartialPrinterConfiguration = PrinterConfiguration.innerType()
 	.innerType()
 	.extend({
 		toolheads: z.array(PartialToolheadConfiguration).min(1).max(2),
 	})
+	.strict()
 	.partial()
 	.optional();
 
 export const SerializedPartialPrinterConfiguration = SerializedPrinterConfiguration.extend({
 	toolheads: z.array(SerializedPartialToolheadConfiguration).min(1).max(2),
-}).partial();
+})
+	.strict()
+	.partial();
 
 export type PrinterConfiguration = z.infer<typeof PrinterConfiguration>;
 export type PartialPrinterConfiguration = z.infer<typeof PartialPrinterConfiguration>;

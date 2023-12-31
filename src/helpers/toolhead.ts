@@ -133,7 +133,7 @@ export class ToolheadHelper<IsToolboard extends boolean> {
 				}
 			}
 		});
-		return changeSet;
+		return PartialToolheadConfiguration.parse(changeSet);
 	}
 	public getProbe() {
 		return this.config.probe;

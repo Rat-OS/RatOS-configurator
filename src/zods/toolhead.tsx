@@ -3,21 +3,23 @@ import { Toolboard } from './boards';
 import { Hotend, Thermistor, Extruder, Probe, Endstop, Fan, Accelerometer } from './hardware';
 import { PrinterAxis } from './motion';
 
-export const BaseToolheadConfiguration = z.object({
-	hotend: Hotend,
-	thermistor: Thermistor,
-	extruder: Extruder,
-	xEndstop: Endstop,
-	yEndstop: Endstop,
-	hotendFan: Fan,
-	partFan: Fan,
-	xAccelerometer: Accelerometer.optional().nullable(),
-	yAccelerometer: Accelerometer.optional().nullable(),
-	toolboard: Toolboard.nullable(),
-	probe: Probe.optional(),
-	axis: z.literal(PrinterAxis.x).or(z.literal(PrinterAxis.dual_carriage)),
-	description: z.string().optional(),
-});
+export const BaseToolheadConfiguration = z
+	.object({
+		hotend: Hotend,
+		thermistor: Thermistor,
+		extruder: Extruder,
+		xEndstop: Endstop,
+		yEndstop: Endstop,
+		hotendFan: Fan,
+		partFan: Fan,
+		xAccelerometer: Accelerometer.optional().nullable(),
+		yAccelerometer: Accelerometer.optional().nullable(),
+		toolboard: Toolboard.nullable(),
+		probe: Probe.optional(),
+		axis: z.literal(PrinterAxis.x).or(z.literal(PrinterAxis.dual_carriage)),
+		description: z.string().optional(),
+	})
+	.strict();
 
 export const ToolNumber = z.union([z.literal(0), z.literal(1)]);
 export const ToolAxis = z.union([
@@ -61,7 +63,7 @@ export const SerializedToolheadConfiguration = BaseToolheadConfiguration.extend(
 	yAccelerometer: Accelerometer.shape.id.optional().nullable(),
 	toolboard: Toolboard.shape.serialPath.optional().nullable(),
 	probe: Probe.shape.id.optional().nullable(),
-});
+}).strict();
 export const SerializedPartialToolheadConfiguration = SerializedToolheadConfiguration.partial().optional();
 
 export type ToolheadConfiguration<T extends boolean> = z.infer<typeof ToolheadConfiguration> & {

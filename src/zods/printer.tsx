@@ -10,13 +10,15 @@ if (process.env.RATOS_CONFIGURATION_PATH) {
 	startsWithServerValidation = path.join(environment.RATOS_CONFIGURATION_PATH, 'printers');
 }
 
-const SpeedLimits = z.object({
-	velocity: z.number().min(0).describe('Maximum velocity for this printer'),
-	accel: z.number().min(0).describe('Maximum acceleration for this printer'),
-	z_velocity: z.number().min(0).describe('Maximum z velocity for this printer'),
-	z_accel: z.number().min(0).describe('Maximum z acceleration for this printer'),
-	square_corner_velocity: z.number().min(0).default(5).describe('Maximum square corner velocity for this printer'),
-});
+const SpeedLimits = z
+	.object({
+		velocity: z.number().min(0).describe('Maximum velocity for this printer'),
+		accel: z.number().min(0).describe('Maximum acceleration for this printer'),
+		z_velocity: z.number().min(0).describe('Maximum z velocity for this printer'),
+		z_accel: z.number().min(0).describe('Maximum z acceleration for this printer'),
+		square_corner_velocity: z.number().min(0).default(5).describe('Maximum square corner velocity for this printer'),
+	})
+	.strict();
 
 export const PrinterDefinition = z
 	.object({
@@ -35,6 +37,7 @@ export const PrinterDefinition = z
 				basic: SpeedLimits,
 				performance: SpeedLimits.optional(),
 			})
+			.strict()
 			.describe('Speed limits for this printer'),
 		defaults: z
 			.object({
@@ -42,14 +45,17 @@ export const PrinterDefinition = z
 				board: z.string().describe('Default board for this printer. Should be the name of the board directory.'),
 				rails: z.array(SerializedPrinterRailDefinition).describe('Default rails for this printer'),
 			})
+			.strict()
 			.describe('Default hardware for this printer'),
 	})
 	.describe('A RatOS supported 3d printer');
 
 export const PrinterDefinitionWithResolvedToolheads = PrinterDefinition.extend({
-	defaults: PrinterDefinition.shape.defaults.extend({
-		toolheads: z.array(ToolheadConfiguration),
-	}),
+	defaults: PrinterDefinition.shape.defaults
+		.extend({
+			toolheads: z.array(ToolheadConfiguration),
+		})
+		.strict(),
 });
 
 export type PrinterDefinition = z.infer<typeof PrinterDefinition>;
