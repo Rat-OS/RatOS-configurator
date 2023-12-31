@@ -20,7 +20,7 @@ export const register = async () => {
 			logger.info('Config regenerated!');
 		} catch (e) {
 			if (e instanceof Error) {
-				logger.info('Failed to regenerate config: ', e.message);
+				logger.error(`Failed to regenerate config: ${e.message}`);
 			}
 		}
 	}

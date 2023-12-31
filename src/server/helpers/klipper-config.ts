@@ -52,8 +52,8 @@ export const constructKlipperConfigUtils = async (config: PrinterConfiguration) 
 				throw new Error(`The controlboard has no "${pin}" defined in its config.`);
 			}
 		},
-		isToolheadAxis(axis: PrinterAxis) {
-			return toolheads.some((th) => th.getExtruderAxis() === axis || th.getMotionAxis() === axis);
+		isExtruderToolheadAxis(axis: PrinterAxis) {
+			return toolheads.some((th) => th.getExtruderAxis() === axis);
 		},
 		getToolhead: (toolOrAxis: ToolOrAxis) => {
 			const th =
@@ -75,9 +75,20 @@ export const constructKlipperConfigUtils = async (config: PrinterConfiguration) 
 			}
 			return rail;
 		},
-		getAxisPinName(axis: PrinterAxis, alias: string) {
-			const prefix = this.isToolheadAxis(axis) ? this.getToolhead(axis as ToolOrAxis).getPinPrefix() : '';
-			return prefix + (axis === PrinterAxis.z ? 'z0' : axis === PrinterAxis.extruder ? 'e' : axis) + alias;
+		getAxisPin(axis: PrinterAxis, alias: string) {
+			const pinName = (axis === PrinterAxis.z ? 'z0' : axis) + alias;
+			let pinValue = null;
+			if (this.isExtruderToolheadAxis(axis)) {
+				pinValue = this.getToolhead(axis as ToolOrAxis).getToolheadPin(axis, alias);
+			} else {
+				pinValue = cbPins[pinName as keyof ControlPins<false>];
+			}
+			if (pinValue == null) {
+				throw new Error(
+					`Pin name "${pinName}" constructed from axis "${axis}" and alias "${alias}" not found in board pin configs.`,
+				);
+			}
+			return pinValue;
 		},
 		getAxisStepperName(axis: PrinterAxis) {
 			if (axis === PrinterAxis.extruder) {
@@ -111,10 +122,10 @@ export const constructKlipperConfigUtils = async (config: PrinterConfiguration) 
 		},
 		getAxisDriverDiagConfig(axis: PrinterAxis) {
 			if (this.getRail(axis).driver.protocol === 'UART') {
-				return `diag_pin: ^${this.getAxisPinName(axis, '_diag_pin')}`;
+				return `diag_pin: ^${this.getAxisPin(axis, '_diag_pin')}`;
 			}
 			if (this.getRail(axis).driver.protocol === 'SPI') {
-				return `diag1_pin: ^${this.getAxisPinName(axis, '_diag_pin')}`;
+				return `diag1_pin: ^${this.getAxisPin(axis, '_diag_pin')}`;
 			}
 			return '';
 		},
@@ -290,9 +301,9 @@ export const constructKlipperConfigHelpers = async (
 			}
 			const section = [
 				`[${utils.getAxisStepperName(rail.axis)}]`,
-				`step_pin: ${utils.getAxisPinName(rail.axis, '_step_pin')}`,
-				`dir_pin: ${utils.getAxisPinName(rail.axis, '_dir_pin')}`,
-				`enable_pin: !${utils.getAxisPinName(rail.axis, '_enable_pin')}`,
+				`step_pin: ${utils.getAxisPin(rail.axis, '_step_pin')}`,
+				`dir_pin: ${utils.getAxisPin(rail.axis, '_dir_pin')}`,
+				`enable_pin: !${utils.getAxisPin(rail.axis, '_enable_pin')}`,
 				`microsteps: ${rail.microstepping}`,
 			];
 			if (rail.axis === PrinterAxis.extruder || rail.axis === PrinterAxis.extruder1) {
@@ -337,10 +348,10 @@ export const constructKlipperConfigHelpers = async (
 				`interpolate: ${rail.microstepping < 64 || config.stealthchop ? 'True' : 'False'}`,
 			];
 			if (rail.driver.protocol === 'UART') {
-				section.push(`uart_pin: ${utils.getAxisPinName(rail.axis, '_uart_pin')}`);
+				section.push(`uart_pin: ${utils.getAxisPin(rail.axis, '_uart_pin')}`);
 			}
 			if (rail.driver.protocol === 'SPI') {
-				section.push(`cs_pin: ${utils.getAxisPinName(rail.axis, '_uart_pin')}`);
+				section.push(`cs_pin: ${utils.getAxisPin(rail.axis, '_uart_pin')}`);
 				if (config.controlboard.stepperSPI != null) {
 					if ('hardware' in config.controlboard.stepperSPI) {
 						section.push(`spi_bus: ${config.controlboard.stepperSPI.hardware.bus}`);

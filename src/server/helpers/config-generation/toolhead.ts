@@ -13,6 +13,7 @@ import {
 } from '../metadata';
 import { ToolheadHelper } from '../../../helpers/toolhead';
 import { getBoardSerialPath } from '../../../helpers/board';
+import { PrinterAxis } from '../../../zods/motion';
 
 export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelper<IsToolboard> {
 	private toolboardPins: PinMapZodFromBoard<IsToolboard, false> | null;
@@ -48,6 +49,53 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 				`Toolhead ${this.getTool()} is configured to use the toolboard for ${pin}, but the toolboard does not define a pin with that name.`,
 			);
 		}
+	}
+	getExtruderToolAxisPinPrefix() {
+		if (this.getTool() === 0) {
+			return '';
+		}
+		return this.getTool();
+	}
+	getToolheadPin(axis: PrinterAxis, alias: string) {
+		const prefix = axis === this.getExtruderAxis() ? this.getPinPrefix() : '';
+		const axisAlias =
+			axis === PrinterAxis.z
+				? 'z0'
+				: axis !== this.getExtruderAxis()
+				? axis
+				: this.getToolboard() != null
+				? 'e'
+				: 'e' + this.getExtruderToolAxisPinPrefix();
+		const pinName = axisAlias + alias;
+		let pinValue = null;
+		try {
+			pinValue = this.getPinFromAlias(pinName as keyof ControlPins<false> | keyof ToolboardPins<true>);
+		} catch (e) {
+			pinValue = null;
+		}
+		if (pinValue == null) {
+			throw new Error(
+				`Pin name "${pinName}" constructed from axis "${axis}" and alias "${alias}" not found on toolhead ${this.getToolCommand()} with extruder axis ${this.getExtruderAxis()}. Resolved axis alias ${axisAlias}. Searched in ${
+					this.getToolboard() ? 'toolboard' : 'controlboard'
+				}`,
+			);
+		}
+		return prefix + pinValue;
+	}
+	public getPinFromAlias(alias: keyof ControlPins<false> | keyof ToolboardPins<true>): string {
+		let pin = null;
+		if (this.getToolboard()) {
+			if (this.toolboardPins?.[alias] != null) {
+				pin = this.toolboardPins[alias];
+			}
+		}
+		if (this.controlboardPins?.[alias] != null) {
+			pin = this.controlboardPins[alias];
+		}
+		if (pin != null) {
+			return pin;
+		}
+		throw new Error(`Unknown pin alias ${alias}`);
 	}
 	public getXEndstopPin() {
 		let pin: string;
@@ -119,7 +167,7 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 		];
 		if (toolboard.hasMcuTempSensor) {
 			result.push(''); // Add a newline for readability.
-			result.push(`[temperature_sensor ${this.getToolCommand()}_${toolboard.name.replace(/\s/g, '_')}]`);
+			result.push(`[temperature_sensor ${toolboard.name.replace(/\s/g, '_')}_${this.getToolCommand()}]`);
 			result.push(`sensor_type: temperature_mcu`);
 			result.push(`sensor_mcu: ${this.getToolboardName()}`);
 		}
@@ -152,8 +200,16 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 		hotend = stripCommentLines(hotend);
 		hotend = stripIncludes(hotend);
 		hotend = replaceLinesStartingWith(hotend, '[extruder]', `[${this.getExtruderAxis()}]`);
-		hotend = replaceLinesStartingWith(hotend, 'heater_pin', `heater_pin: ${this.getPinPrefix()}e_heater_pin`);
-		hotend = replaceLinesStartingWith(hotend, 'sensor_pin', `sensor_pin: ${this.getPinPrefix()}e_sensor_pin`);
+		hotend = replaceLinesStartingWith(
+			hotend,
+			'heater_pin',
+			`heater_pin: ${this.getToolheadPin(this.getExtruderAxis(), '_heater_pin')}`,
+		);
+		hotend = replaceLinesStartingWith(
+			hotend,
+			'sensor_pin',
+			`sensor_pin: ${this.getToolheadPin(this.getExtruderAxis(), '_sensor_pin')}`,
+		);
 		if (this.getThermistor() === 'PT1000' && this.getToolboard()?.alternativePT1000Resistor != null) {
 			if (hotend.split('\n').some((line) => line.trim().startsWith('pullup_resistor'))) {
 				hotend = replaceLinesStartingWith(
