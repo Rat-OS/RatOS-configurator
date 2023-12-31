@@ -10,6 +10,7 @@ import {
 type ToolheadSuffix = `t${ToolNumber}`;
 type ToolheadCommand = `T${ToolNumber}`;
 type ToolboardAxisString = 'x' | 'dc';
+type ToolboardShortName = ToolheadSuffix;
 
 export class ToolheadHelper<IsToolboard extends boolean> {
 	protected config: ToolheadConfiguration<IsToolboard>;
@@ -25,14 +26,14 @@ export class ToolheadHelper<IsToolboard extends boolean> {
 	public getMotionStepperName() {
 		return `stepper_${this.getMotionAxis()}`;
 	}
-	public getToolboardName(): `toolboard_${ToolboardAxisString}` {
+	public getToolboardName(): `toolboard_${ToolboardShortName}` {
 		if (this.config.toolboard == null) {
 			throw new Error(`Toolhead T${this.getTool()} does not have a toolboard`);
 		}
 		return `toolboard_${this.getShortToolName()}`;
 	}
-	public getShortToolName(): ToolboardAxisString {
-		return this.config.axis === PrinterAxis.dual_carriage ? 'dc' : 'x';
+	public getShortToolName(): ToolboardShortName {
+		return `t${this.getTool()}`;
 	}
 	public getDescription(): string {
 		return this.config.description ?? `the printer's toolhead`;
