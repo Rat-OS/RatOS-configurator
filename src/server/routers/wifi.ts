@@ -1,10 +1,10 @@
 import { promisify } from 'util';
 import { exec } from 'child_process';
 import { getScriptRoot } from '../../helpers/util';
-import { getWirelessInterface, scan } from '../../helpers/iw';
+import { getWirelessInterface, scan } from '../helpers/iw';
 import { hostnameInput, joinInput } from '../../helpers/validators/wifi';
-import { getLogger } from '../../helpers/logger';
-import { runSudoScript } from '../../helpers/run-script';
+import { getLogger } from '../helpers/logger';
+import { runSudoScript } from '../helpers/run-script';
 import { publicProcedure, router } from '../trpc';
 import { TRPCError } from '@trpc/server';
 import path from 'path';

@@ -17,3 +17,4 @@ ensure_service_permission
 ensure_sudo_command_whitelisting
 ensure_pnpm_installation
 pnpm_install
+install_udev_rule root

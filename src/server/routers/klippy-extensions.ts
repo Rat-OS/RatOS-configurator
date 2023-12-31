@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { existsSync, mkdirSync, symlinkSync, writeFileSync, readFileSync } from 'fs';
-import { getLogger } from '../../helpers/logger';
+import { getLogger } from '../helpers/logger';
 import { publicProcedure, router } from '../trpc';
 import path from 'path';
 import { serverSchema } from '../../env/schema.mjs';

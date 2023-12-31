@@ -1,4 +1,9 @@
-import { getPrinters, parseDirectory } from '../server/routers/printer';
+import {
+	deserializePartialToolheadConfiguration,
+	deserializeToolheadConfiguration,
+	getPrinters,
+	parseDirectory,
+} from '../server/routers/printer';
 import { Extruder, Hotend, Probe } from '../zods/hardware';
 import { getBoards } from '../server/routers/mcu';
 import fs from 'fs';
@@ -7,13 +12,22 @@ import { promisify } from 'util';
 import { serverSchema } from '../env/schema.mjs';
 const environment = serverSchema.parse(process.env);
 import { describe, expect, test } from 'vitest';
-import { PartialPrinterConfiguration, SerializedPartialPrinterConfiguration } from '../zods/printer-configuration';
+import {
+	PartialPrinterConfiguration,
+	PrinterConfiguration,
+	SerializedPartialPrinterConfiguration,
+	SerializedPrinterConfiguration,
+} from '../zods/printer-configuration';
 import { xEndstopOptions, yEndstopOptions } from '../data/endstops';
-import { serializePartialPrinterConfiguration } from '../hooks/usePrinterConfiguration';
+import { serializePartialPrinterConfiguration, serializePrinterConfiguration } from '../hooks/usePrinterConfiguration';
 import { deserializePrinterRail } from '../utils/serialization';
-import { parseBoardConfig, exportBoardPinAlias } from '../helpers/metadata';
+import { parseBoardPinConfig } from '../server/helpers/metadata';
+import { getBoardChipId } from '../helpers/board';
+import { ToolheadConfiguration } from '../zods/toolhead';
+import { ServerCache } from '../server/helpers/cache';
 
 describe('configuration', async () => {
+	ServerCache.flushAll();
 	const parsedHotends = await parseDirectory('hotends', Hotend);
 	const parsedExtruders = await parseDirectory('extruders', Extruder);
 	const parsedProbes = await parseDirectory('z-probe', Probe);
@@ -70,9 +84,9 @@ describe('configuration', async () => {
 					// can't override serial numbers on atmega2560 boards. Don't look for it.
 					return;
 				}
-				const attr = `ATTRS{serial}=="${board.serialPath.replace('/dev/', '')}"`;
-				const symlink = `SYMLINK+="${board.serialPath.replace('/dev/', '')}"`;
-				const devlink = `ENV{DEVLINKS}=="${board.serialPath}"`;
+				const attr = `ATTRS{serial}=="${getBoardChipId(board)}"`;
+				const symlink = `SYMLINK+="${getBoardChipId(board)}"`;
+				const devlink = `ENV{DEVLINKS}=="/dev/${getBoardChipId(board)}"`;
 				expect(ruleContents.includes(attr)).toBeTruthy();
 				expect(ruleContents.includes(symlink)).toBeTruthy();
 				expect(ruleContents.includes(devlink)).toBeTruthy();
@@ -83,9 +97,56 @@ describe('configuration', async () => {
 				).toBeTruthy();
 			});
 			test.skipIf(board.isHost)('can parse board config file', async () => {
-				await expect(parseBoardConfig(board)).resolves.not.toThrow();
+				const pinConfigPromise = parseBoardPinConfig(board);
+				await expect(pinConfigPromise).resolves.not.toThrow();
+				const pinConfig = await pinConfigPromise;
+				expect(pinConfig).not.toBeNull();
+				if (board.fourPinFanConnectorCount) {
+					if (board.fourPinFanConnectorCount == 1) {
+						expect(pinConfig['4p_fan_part_cooling_pin'], '4p part cooling fan pin missing').not.toBeNull();
+						expect(pinConfig['4p_fan_part_cooling_tach_pin'], '4p part cooling fan tach pin missing').not.toBeNull();
+					}
+					if (board.fourPinFanConnectorCount > 1) {
+						expect(pinConfig['4p_fan_part_cooling_pin'], '4p part cooling fan pin missing').not.toBeNull();
+						expect(pinConfig['4p_fan_part_cooling_tach_pin'], '4p part cooling fan tach pin missing').not.toBeNull();
+						expect(pinConfig['4p_toolhead_cooling_pin'], '4p toolhead cooling fan pin missing').not.toBeNull();
+						expect(pinConfig['4p_toolhead_cooling_tach_pin'], '4p toolhead cooling tach pin missing').not.toBeNull();
+						expect(pinConfig['4p_controller_board_pin'], '4p controller board fan pin missing').not.toBeNull();
+						expect(pinConfig['4p_controller_board_tach_pin'], '4p controller board tach pin missing').not.toBeNull();
+					}
+				}
+				if (pinConfig['4p_fan_part_cooling_pin'] != null) {
+					expect(
+						board.fourPinFanConnectorCount,
+						'4p pin definitions exist in board pin alias, but are not correctly specified in board definition',
+					).toBeDefined();
+					expect(
+						board.fourPinFanConnectorCount,
+						'4p pin definitions exist in board pin alias, but are not correctly specified in board definition',
+					).toBeGreaterThan(0);
+				}
+				if (pinConfig['4p_toolhead_cooling_pin'] != null) {
+					expect(
+						board.fourPinFanConnectorCount,
+						'4p pin definitions exist in board pin alias, but are not correctly specified in board definition',
+					).toBeDefined();
+					expect(
+						board.fourPinFanConnectorCount,
+						'4p pin definitions exist in board pin alias, but are not correctly specified in board definition',
+					).toBeGreaterThan(1);
+				}
+				if (pinConfig['4p_controller_board_pin'] != null) {
+					expect(
+						board.fourPinFanConnectorCount,
+						'4p pin definitions exist in board pin alias, but are not correctly specified in board definition',
+					).toBeDefined();
+					expect(
+						board.fourPinFanConnectorCount,
+						'4p pin definitions exist in board pin alias, but are not correctly specified in board definition',
+					).toBeGreaterThan(1);
+				}
 				if (board.extruderlessConfig != null) {
-					await expect(parseBoardConfig(board, true)).resolves.not.toThrow();
+					await expect(parseBoardPinConfig(board, true)).resolves.not.toThrow();
 				}
 			});
 			test.skipIf(board.extruderlessConfig == null)('has extruderless config file', async () => {
@@ -99,44 +160,101 @@ describe('configuration', async () => {
 					// can't override serial numbers on atmega2560 boards. Don't look for it.
 					return;
 				}
-				expect(
-					firmwareConfigContents.includes(`CONFIG_USB_SERIAL_NUMBER="${board.serialPath.replace('/dev/', '')}"`),
-				).toBeTruthy();
+				expect(firmwareConfigContents.includes(`CONFIG_USB_SERIAL_NUMBER="${getBoardChipId(board)}"`)).toBeTruthy();
 			});
 		});
 	});
-	const printerConfigs = parsedPrinters.filter((p) => p.defaults != null);
+	const printerConfigs = parsedPrinters.filter((p) => p.defaults == null);
 	test('has valid printer configuration files', async () => {
-		expect(parsedPrinters.length).toBeGreaterThan(0);
+		expect(printerConfigs.length).toBe(0);
 	});
-	describe.each(printerConfigs)('has valid $manufacturer $name definition', async (printer) => {
-		const defaultBoard = parsedBoards.find((board) => board.serialPath === '/dev/' + printer.defaults.board);
-		const defaultHotend = parsedHotends.find((hotend) => hotend.id === printer.defaults.hotend + '.cfg');
-		const defaultExtruder = parsedExtruders.find((extruder) => extruder.id === printer.defaults.extruder + '.cfg');
-		const defaultProbe = parsedProbes.find((probe) => probe.id === printer.defaults.probe + '.cfg');
-		const defaultXEndstop = xEndstopOptions().find((option) => option.id === printer.defaults.xEndstop);
-		const defaultYEndstop = yEndstopOptions().find((option) => option.id === printer.defaults.yEndstop);
-		const defaultToolboard = parsedBoards.find((board) => board.serialPath === '/dev/' + printer.defaults.toolboard);
+	describe.each(parsedPrinters)('has valid $manufacturer $name definition', async (printer) => {
+		const defaultBoard = parsedBoards.find((board) => board.id === printer.defaults.board);
 		const defaultRails = printer.defaults.rails.map((r) => {
 			return deserializePrinterRail(r);
 		});
-		const partialConfigResult = PartialPrinterConfiguration.safeParse({
-			printer: printer,
-			board: defaultBoard,
-			hotend: defaultHotend,
-			extruder: defaultExtruder,
-			probe: defaultProbe,
-			xEndstop: defaultXEndstop,
-			yEndstop: defaultYEndstop,
-			toolboard: defaultToolboard,
-			rails: defaultRails,
+		let partialConfig: SerializedPartialPrinterConfiguration;
+		test('has serializable partial config', () => {
+			const partialConfigResult = PartialPrinterConfiguration.safeParse({
+				printer: printer,
+				controlboard: defaultBoard,
+				rails: defaultRails,
+			} satisfies PartialPrinterConfiguration);
+			if (partialConfigResult.success) {
+				partialConfig = serializePartialPrinterConfiguration(partialConfigResult.data);
+			} else {
+				throw partialConfigResult.error;
+			}
+			expect(partialConfig).not.toBeUndefined();
 		});
-		let partialConfig: undefined | SerializedPartialPrinterConfiguration;
+		let toolheads: ToolheadConfiguration<any>[];
+		test('has deserializeable toolheads', async () => {
+			expect(partialConfig).not.toBeUndefined();
+			toolheads = await Promise.all(
+				printer.defaults.toolheads.map((toolhead) => {
+					return deserializeToolheadConfiguration(toolhead, partialConfig);
+				}),
+			);
+			expect(toolheads.length).toEqual(printer.defaults.toolheads.length);
+			toolheads.forEach((toolhead) => {
+				expect(toolhead).not.toBeNull();
+			});
+		});
+		let serializedConfig: SerializedPrinterConfiguration;
 		test('has serializable config', async () => {
-			partialConfig =
-				partialConfigResult.success && partialConfigResult.data != null
-					? serializePartialPrinterConfiguration(partialConfigResult.data)
-					: undefined;
+			expect(defaultBoard).not.toBeNull();
+			expect(toolheads).not.toBeUndefined();
+			if (defaultBoard == null) {
+				return;
+			}
+			const serializedConfigResult = PrinterConfiguration.safeParse({
+				printer: printer,
+				controlboard: defaultBoard,
+				toolheads: toolheads,
+				rails: defaultRails,
+				performanceMode: false,
+				standstillStealth: false,
+				stealthchop: false,
+				controllerFan: { id: '2pin', title: 'nobody cares' },
+			} satisfies PrinterConfiguration);
+			if (serializedConfigResult.success) {
+				serializedConfig = serializePrinterConfiguration(serializedConfigResult.data);
+			} else {
+				throw serializedConfigResult.error;
+			}
+			expect(serializedConfig).not.toBeUndefined();
+		});
+		describe.each(printer.defaults.toolheads)('has valid toolhead $axis', async (toolhead) => {
+			const defaultHotend = parsedHotends.find((hotend) => hotend.id === toolhead.hotend);
+			const defaultExtruder = parsedExtruders.find((extruder) => extruder.id === toolhead.extruder);
+			const defaultProbe = parsedProbes.find((probe) => probe.id === toolhead.probe);
+			const defaultXEndstop = xEndstopOptions(partialConfig).find((option) => option.id === toolhead.xEndstop);
+			const defaultYEndstop = yEndstopOptions(partialConfig).find((option) => option.id === toolhead.yEndstop);
+			const defaultToolboard = parsedBoards.find((board) => board.id === toolhead.toolboard);
+			test.skipIf(!toolhead.toolboard)('has valid toolboard default', () => {
+				expect(defaultToolboard).not.toBeNull();
+			});
+			test.skipIf(!toolhead.probe)('has valid probe default', () => {
+				expect(defaultProbe).not.toBeNull();
+			});
+			test('has valid hotend default', () => {
+				expect(defaultHotend).not.toBeNull();
+			});
+			test('has valid extruder default', () => {
+				expect(defaultExtruder).not.toBeNull();
+			});
+			test('has valid x endstop default', () => {
+				expect(defaultXEndstop).not.toBeNull();
+			});
+			test('has valid x endstop default', () => {
+				expect(defaultYEndstop).not.toBeNull();
+			});
+			test('can be deserialized', () => {
+				if (partialConfig == null) {
+					throw new Error("partialConfig shouldn't be null or undefined");
+				}
+				deserializePartialToolheadConfiguration(toolhead, partialConfig);
+			});
 		});
 		test('has a valid image', async () => {
 			expect(fs.existsSync(path.join(printer.path, printer.image))).toBeTruthy();
@@ -148,24 +266,6 @@ describe('configuration', async () => {
 		});
 		test('has valid board default', () => {
 			expect(defaultBoard).not.toBeNull();
-		});
-		test.skipIf(!printer.defaults.toolboard)('has valid toolboard default', () => {
-			expect(defaultToolboard).not.toBeNull();
-		});
-		test.skipIf(!printer.defaults.probe)('has valid probe default', () => {
-			expect(defaultProbe).not.toBeNull();
-		});
-		test('has valid hotend default', () => {
-			expect(defaultHotend).not.toBeNull();
-		});
-		test('has valid extruder default', () => {
-			expect(defaultExtruder).not.toBeNull();
-		});
-		test('has valid x endstop default', () => {
-			expect(xEndstopOptions(partialConfig).find((option) => option.id === printer.defaults.xEndstop)).not.toBeNull();
-		});
-		test('has valid x endstop default', () => {
-			expect(yEndstopOptions(partialConfig).find((option) => option.id === printer.defaults.yEndstop)).not.toBeNull();
 		});
 		test('has valid rail defaults', () => {
 			// Rail definitions required for printer definition

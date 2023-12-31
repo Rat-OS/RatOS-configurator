@@ -1,7 +1,6 @@
 'use client';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import useWebSocket from 'react-use-websocket';
-import { useIsClient } from './isClient';
 
 export type MoonrakerStatus = 'connected' | 'connecting' | 'not-running';
 
@@ -103,7 +102,7 @@ export const useMoonraker = (hostname?: string) => {
 					resolve(result);
 				};
 				inFlightRequestTimeouts.current[REQ_ID] = window.setTimeout(() => {
-					inFlightRequests.current[REQ_ID](new Error('Request timed out'), null);
+					inFlightRequests.current[REQ_ID]?.(new Error('Request timed out'), null);
 					delete inFlightRequests.current[REQ_ID];
 					delete inFlightRequestTimeouts.current[REQ_ID];
 				}, 10 * 1000); // 10 second timeout.

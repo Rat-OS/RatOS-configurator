@@ -64,6 +64,19 @@ verify_users()
 	fi
 }
 
+install_udev_rule()
+{
+	report_status "Installing udev rule"
+	sudo="sudo"
+	if [ "$1" = "root" ]
+	then
+		sudo=""
+	fi
+	if [ ! -e /etc/udev/rules.d/97-ratos.rules ]; then
+		$sudo ln -s "$SCRIPT_DIR/ratos.rules" /etc/udev/rules.d/97-ratos.rules
+	fi
+}
+
 ensure_sudo_command_whitelisting()
 {
 	sudo="sudo"
@@ -98,6 +111,7 @@ pi  ALL=(ALL) NOPASSWD: $SCRIPT_DIR/change-hostname.sh
 pi  ALL=(ALL) NOPASSWD: $SCRIPT_DIR/dfu-flash.sh
 pi  ALL=(ALL) NOPASSWD: $SCRIPT_DIR/board-script.sh
 pi  ALL=(ALL) NOPASSWD: $SCRIPT_DIR/flash-path.sh
+pi  ALL=(ALL) NOPASSWD: $SCRIPT_DIR/klipper-compile.sh
 __EOF
 
 	$sudo chown root:root /tmp/031-ratos-configurator-scripts

@@ -10,21 +10,32 @@ import {
 	SelectedCard,
 } from '../card-selector-with-options';
 import { trpc } from '../../helpers/trpc';
-import { usePrinterConfiguration } from '../../hooks/usePrinterConfiguration';
 import { ShowWhenReady } from '../common/show-when-ready';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
+import { useRecoilValue, useRecoilCallback } from 'recoil';
+import { PrinterSizeState, PrinterState, LoadablePrinterState, PrinterRailsState } from '../../recoil/printer';
+import { PrinterDefinitionWithResolvedToolheads } from '../../zods/printer';
+import { PrinterToolheadState, PrinterToolheadsState } from '../../recoil/toolhead';
+import { ToolheadHelper } from '../../helpers/toolhead';
+import {
+	ControllerFanState,
+	PerformanceModeState,
+	StandstillStealthState,
+	StealthchopState,
+} from '../../hooks/usePrinterConfiguration';
+
+interface SelectablePrinter<Option extends SelectableOption = SelectableOption>
+	extends SelectableCardWithOptions<Option> {
+	printer: PrinterDefinitionWithResolvedToolheads;
+}
 
 export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 	const printerQuery = trpc.printer.printers.useQuery();
-	const {
-		setPrinterDefaults,
-		setSelectedPrinter,
-		setSelectedPrinterOption,
-		selectedPrinter,
-		selectedPrinterOption,
-		isReady,
-		queryErrors,
-	} = usePrinterConfiguration();
+	const selectedPrinter = useRecoilValue(LoadablePrinterState);
+	const selectedPrinterOption = useRecoilValue(PrinterSizeState);
+
+	// TODO: Set the toolheads here, should fix the problems!
+
 	const cards = printerQuery.data
 		? (printerQuery.data
 				.slice()
@@ -39,6 +50,7 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 						id: p.id,
 						name: `${p.manufacturer} ${p.name}`,
 						details: p.description,
+						printer: p,
 						right: (
 							<Image
 								src={'/configure/api/printer-image?' + printerImgUri}
@@ -50,33 +62,49 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 						),
 						options: p.sizes ? p.sizes.map((s) => ({ id: s, name: s + '' })) : undefined,
 					};
-				}) satisfies SelectableCardWithOptions[])
+				}) satisfies SelectablePrinter[])
 		: [];
 
 	const selectedCard = cards.find((c) => c.id === selectedPrinter?.id);
 	const selectedPrinterOptionFromCard = selectedCard?.options?.find((o) => o.id === selectedPrinterOption);
 
-	const onSelectPrinter = (card: SelectedCard<Unpacked<typeof cards>>, option: SelectableOption | null) => {
-		const printer = printerQuery.data?.find((p) => p.id === card.id);
-		if (printer == null) {
-			console.error('No printer found matching the criteria');
-			return;
-		}
-		setSelectedPrinter(printer);
-		if ((printer.sizes?.length ?? 0) > 0) {
-			if (option == null || typeof option.id !== 'number') {
-				throw new Error('An option must be selected for printers that come in different size configurations');
-			}
-			setSelectedPrinterOption(option.id);
-		} else {
-			setSelectedPrinterOption(null);
-		}
-		setPrinterDefaults(printer);
-	};
+	const onSelectPrinter = useRecoilCallback(
+		({ set, reset, snapshot }) =>
+			async (card: SelectedCard<Unpacked<typeof cards>>, option: SelectableOption | null) => {
+				const printer = card.printer;
+				if (printer == null) {
+					console.error('No printer found matching the criteria');
+					return;
+				}
+				const oldToolheads = await snapshot.getPromise(PrinterToolheadsState);
+				oldToolheads.forEach((th) => {
+					reset(PrinterToolheadState(th.toolNumber));
+				});
+				set(PrinterState, printer);
+				if ((printer.sizes?.length ?? 0) > 0) {
+					if (option == null || typeof option.id !== 'number') {
+						throw new Error('An option must be selected for printers that come in different size configurations');
+					}
+					set(PrinterSizeState, option.id);
+				} else {
+					set(PrinterSizeState, null);
+				}
+				set(
+					PrinterToolheadsState,
+					printer.defaults.toolheads.map((th) => ({ ...th, toolNumber: new ToolheadHelper(th).getTool() })),
+				);
+				reset(PerformanceModeState);
+				reset(StealthchopState);
+				reset(StandstillStealthState);
+				reset(ControllerFanState);
+				reset(PrinterRailsState);
+			},
+		[printerQuery.data],
+	);
 
 	const [parent] = useAutoAnimate();
 
-	const errors = printerQuery.error ? [printerQuery.error?.message].concat(queryErrors) : queryErrors;
+	const errors = printerQuery.error ? [printerQuery.error?.message] : [];
 
 	return (
 		<>
@@ -88,7 +116,7 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 						This will determine the template used for printer.cfg
 					</p>
 				</div>
-				<ShowWhenReady isReady={isReady} queryErrors={errors}>
+				<ShowWhenReady isReady={printerQuery.isFetched} queryErrors={errors}>
 					<CardSelectorWithOptions
 						cards={cards}
 						onSelect={onSelectPrinter}

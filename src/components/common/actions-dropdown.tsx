@@ -4,6 +4,8 @@ import { Menu, Transition } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
 import { trpc } from '../../helpers/trpc';
 import { MutationModal } from './mutation-modal';
+import { useRecoilCallback } from 'recoil';
+import { PrinterToolheadState } from '../../recoil/toolhead';
 
 function classNames(...classes: string[]) {
 	return classes.filter(Boolean).join(' ');
@@ -105,6 +107,10 @@ export const ActionsDropdown = () => {
 		);
 	}, [symlinkExtensions]);
 
+	const onClickTest = useRecoilCallback(({ set }) => () => {
+		set(PrinterToolheadState(0), null);
+	});
+
 	return (
 		<>
 			<Menu as="div" className="relative inline-block text-left">
@@ -155,6 +161,23 @@ export const ActionsDropdown = () => {
 										)}
 									>
 										Flash all connected MCU's
+									</span>
+								)}
+							</Menu.Item>
+						</div>
+						<div className="py-1">
+							<Menu.Item>
+								{({ active }) => (
+									<span
+										onClick={onClickTest}
+										className={classNames(
+											active
+												? 'bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100'
+												: 'text-zinc-700 dark:text-zinc-300',
+											'block cursor-pointer px-4 py-2 text-sm',
+										)}
+									>
+										Test toolhead state
 									</span>
 								)}
 							</Menu.Item>

@@ -36,7 +36,9 @@ type UseStepProps<P extends NoExtraProps | Object = NoExtraProps> = {
 
 export const useSteps = <P extends NoExtraProps | Object>(props: UseStepProps<P>) => {
 	const { onStepChange } = props;
-	const [currentStepIndex, _setCurrentStepIndex] = useState(props.step != null && !isNaN(props.step) ? props.step : 0);
+	const [currentStepIndex, _setCurrentStepIndex] = useState(
+		props.step != null && !isNaN(props.step) && props.steps[props.step] != null ? props.step : 0,
+	);
 	const currentStep = props.steps[currentStepIndex];
 	const currentStepRef = useRef(currentStepIndex);
 	currentStepRef.current = currentStepIndex;
@@ -48,10 +50,10 @@ export const useSteps = <P extends NoExtraProps | Object>(props: UseStepProps<P>
 		[onStepChange],
 	);
 	useEffect(() => {
-		if (props.step && !isNaN(props.step) && props.step !== currentStepRef.current) {
+		if (props.step && !isNaN(props.step) && props.step !== currentStepRef.current && props.steps[props.step] != null) {
 			_setCurrentStepIndex(props.step);
 		}
-	}, [props.step]);
+	}, [props.step, props.steps]);
 	const hasNextScreen = currentStepIndex < props.steps.length - 1;
 	const hasPreviousScreen = currentStepIndex > 0;
 	const incrementStep = useCallback(() => {

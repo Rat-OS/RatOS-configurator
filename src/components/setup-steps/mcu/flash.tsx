@@ -15,8 +15,11 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 	const [forceReflash, setForceReflash] = useState(false);
 	const [flashStrategy, setFlashStrategy] = useState<null | 'dfu' | 'sdcard' | 'path'>(null);
 	const [flashPath, setFlashPath] = useState<string | null>(null);
+	const { selectedControlboard, selectedToolboard, toolhead } = props;
+	const selectedBoardToFlash = toolhead ? selectedToolboard : selectedControlboard;
+	const selectedBoard = selectedBoardToFlash?.board;
 	const boardDetected = trpc.mcu.detect.useQuery(
-		{ boardPath: props.selectedBoard?.board.path ?? '' },
+		{ boardPath: selectedBoardToFlash?.board.path ?? '', toolhead: toolhead?.serialize() },
 		{
 			refetchInterval: (data) => {
 				if (data === true) {
@@ -24,14 +27,14 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 				}
 				return 1000;
 			},
-			enabled: props.selectedBoard !== null,
+			enabled: selectedBoardToFlash !== null,
 		},
 	);
 	const unidentifiedBoards = trpc.mcu.unidentifiedDevices.useQuery();
 	const boardVersion = trpc.mcu.boardVersion.useQuery(
-		{ boardPath: props.selectedBoard?.board.path ?? '' },
+		{ boardPath: selectedBoardToFlash?.board.path ?? '', toolhead: toolhead?.serialize() },
 		{
-			enabled: props.selectedBoard !== null && !!boardDetected.data && forceReflash === false,
+			enabled: selectedBoardToFlash !== null && !!boardDetected.data && forceReflash === false,
 			refetchOnWindowFocus: false,
 			refetchOnMount: false,
 			refetchOnReconnect: false,
@@ -59,20 +62,18 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 		onClick: props.previousScreen,
 	};
 
-	const firstBoard = props.selectedBoard?.board;
-
 	const onFlashViaPath = useCallback(() => {
-		if (firstBoard == null) return;
+		if (selectedBoard == null) return;
 		setFlashStrategy('path');
-		flashViaPath.mutate({ boardPath: firstBoard.path });
-	}, [flashViaPath, firstBoard]);
+		flashViaPath.mutate({ boardPath: selectedBoard.path, toolhead: toolhead?.serialize() });
+	}, [flashViaPath, selectedBoard, toolhead]);
 
 	let content = null;
 	if (boardVersion.error && !forceReflash) {
 		content = (
 			<Fragment>
 				<h3 className="text-xl font-medium text-zinc-900 dark:text-zinc-100">
-					{firstBoard?.name} detected but is unresponsive.
+					{selectedBoard?.name} detected but is unresponsive.
 				</h3>
 				<p>
 					Klipper doesn't seem to be running on your board, which may indicate faulty firmware or a faulty board. Please
@@ -89,7 +90,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 		content = (
 			<Fragment>
 				<h3 className="text-xl font-medium text-zinc-900 dark:text-zinc-100">
-					<Spinner className="relative -top-0.5 mr-2 inline" noMargin={true} /> {firstBoard?.name} detected, checking
+					<Spinner className="relative -top-0.5 mr-2 inline" noMargin={true} /> {selectedBoard?.name} detected, checking
 					version...
 				</h3>
 				<p>Please wait while RatOS queries your board..</p>
@@ -97,8 +98,8 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 		);
 	} else if (boardVersion.data || (boardDetected.data && !forceReflash)) {
 		const dfuReminder =
-			flashStrategy === 'dfu' && firstBoard?.dfu?.reminder ? (
-				<InfoMessage title="Reminder">{firstBoard?.dfu?.reminder}</InfoMessage>
+			flashStrategy === 'dfu' && selectedBoard?.dfu?.reminder ? (
+				<InfoMessage title="Reminder">{selectedBoard?.dfu?.reminder}</InfoMessage>
 			) : null;
 		const versionMismatch =
 			boardVersion.data != null && klipperVersion != null && boardVersion.data !== klipperVersion ? (
@@ -111,7 +112,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 			<Fragment>
 				<h3 className="text-xl font-medium text-zinc-900 dark:text-zinc-100">
 					<CheckCircleIcon className="relative -top-0.5 inline h-7 w-7 text-brand-700 dark:text-brand-500" />{' '}
-					{firstBoard?.name} detected
+					{selectedBoard?.name} detected
 				</h3>
 				{dfuReminder}
 				{versionMismatch}
@@ -124,9 +125,9 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 			</Fragment>
 		);
 	} else if (flashStrategy == null) {
-		const dfuStrategyEnabled = firstBoard?.dfu != null;
-		const sdCardStrategyEnabled = !firstBoard?.isToolboard;
-		const pathStrategyEnabled = boardDetected.data && firstBoard?.flashScript != null;
+		const dfuStrategyEnabled = selectedBoard?.dfu != null;
+		const sdCardStrategyEnabled = !selectedBoard?.isToolboard;
+		const pathStrategyEnabled = boardDetected.data && selectedBoard?.flashScript != null;
 		const unidentifiedPathStrategyEnabled = unidentifiedBoards.data?.length;
 		const dfu = (
 			<Button
@@ -169,10 +170,10 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 				title={unidentifiedPathStrategyEnabled ? undefined : 'No unidentified boards detected.'}
 				dropdownItems={unidentifiedBoards.data?.map((ub) => ({
 					onClick: () => {
-						if (firstBoard == null) return;
+						if (selectedBoard == null) return;
 						setFlashStrategy('path');
 						setFlashPath(ub);
-						flashViaPath.mutate({ boardPath: firstBoard.path, flashPath: ub });
+						flashViaPath.mutate({ boardPath: selectedBoard.path, flashPath: ub, toolhead: toolhead?.serialize() });
 					},
 					title: ub,
 				}))}
@@ -183,7 +184,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 		content = (
 			<Fragment>
 				<h3 className="text-xl font-medium text-zinc-900 dark:text-zinc-100">
-					How do you want to flash your {firstBoard?.name}?
+					How do you want to flash your {selectedBoard?.name}?
 				</h3>
 				<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
 					{path}
@@ -194,7 +195,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 			</Fragment>
 		);
 	} else {
-		if (firstBoard == null) {
+		if (selectedBoard == null) {
 			content = (
 				<div>
 					<div className="prose mt-4 text-base text-red-700">
@@ -205,16 +206,18 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 		} else {
 			switch (flashStrategy) {
 				case 'dfu':
-					content = <DFUFlash board={firstBoard} onSuccess={() => setForceReflash(false)} />;
+					content = <DFUFlash board={selectedBoard} onSuccess={() => setForceReflash(false)} toolhead={toolhead} />;
 					break;
 				case 'sdcard':
-					content = <SDCardFlashing board={firstBoard} onSuccess={() => setForceReflash(false)} />;
+					content = (
+						<SDCardFlashing board={selectedBoard} onSuccess={() => setForceReflash(false)} toolhead={toolhead} />
+					);
 					break;
 				case 'path':
 					content = (
 						<div>
 							<h3 className="text-xl font-medium text-zinc-900 dark:text-zinc-100">
-								Flashing {firstBoard.name}
+								Flashing {selectedBoard.name}
 								{flashPath ? ` at ${flashPath}` : ''}...
 							</h3>
 							<div className="prose mt-4 text-base text-zinc-500">Please wait while RatOS flashes your board.</div>

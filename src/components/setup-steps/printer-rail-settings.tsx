@@ -1,5 +1,5 @@
 import { Dropdown } from '../forms/dropdown';
-import { Board, Toolboard } from '../../zods/boards';
+import { Board } from '../../zods/boards';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Drivers } from '../../data/drivers';
 import { findPreset, Steppers } from '../../data/steppers';
@@ -8,22 +8,34 @@ import { TextInput } from '../forms/text-input';
 import { Banner } from '../common/banner';
 import { BoltIcon, LightBulbIcon } from '@heroicons/react/24/outline';
 import { useSetRecoilState } from 'recoil';
-import { PrinterRailState } from '../../hooks/usePrinterConfiguration';
 import { FireIcon } from '@heroicons/react/24/solid';
-import { BasePrinterRail, PrinterRailDefinition, getSupportedVoltages, matchesDefaultRail } from '../../zods/motion';
+import {
+	BasePrinterRail,
+	PrinterAxis,
+	PrinterRailDefinition,
+	getSupportedVoltages,
+	matchesDefaultRail,
+} from '../../zods/motion';
 import { deserializeDriver, serializePrinterRail } from '../../utils/serialization';
+import { PrinterRailState } from '../../recoil/printer';
+import { useToolhead } from '../../hooks/useToolheadConfiguration';
 
 interface PrinterRailSettingsProps {
-	selectedBoard: Board | Toolboard | null;
+	selectedBoard: Board | null;
 	printerRail: Zod.infer<typeof BasePrinterRail>;
 	printerRailDefault: Zod.infer<typeof PrinterRailDefinition>;
 	performanceMode?: boolean | null;
 }
 
 export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) => {
+	const toolhead = useToolhead(props.printerRailDefault.axis);
+	const board = toolhead?.getToolboard() ?? props.selectedBoard;
 	const setPrinterRail = useSetRecoilState(PrinterRailState(props.printerRail.axis));
 	const integratedDriver =
-		props.selectedBoard?.integratedDrivers && props.selectedBoard.integratedDrivers[props.printerRail.axis];
+		board?.integratedDrivers &&
+		board.integratedDrivers[
+			props.printerRail.axis.startsWith('extruder') ? PrinterAxis.extruder : props.printerRail.axis
+		];
 	const [driver, setDriver] = useState(
 		integratedDriver != null
 			? deserializeDriver(integratedDriver) ?? props.printerRail.driver
@@ -35,7 +47,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 			? props.printerRailDefault.performanceMode?.homingSpeed ?? props.printerRailDefault.homingSpeed
 			: props.printerRailDefault.homingSpeed,
 	);
-	const supportedVoltages = getSupportedVoltages(props.selectedBoard, driver).map((v) => {
+	const supportedVoltages = getSupportedVoltages(board, driver).map((v) => {
 		return {
 			...v,
 			badge:
@@ -81,7 +93,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 	);
 
 	const supportedDrivers = Drivers.filter((d) => {
-		return d.protocol === 'UART' || props.selectedBoard?.stepperSPI != null;
+		return d.protocol === 'UART' || board?.stepperSPI != null;
 	}).map((d) => {
 		return {
 			...d,
@@ -94,7 +106,6 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 					: undefined,
 		};
 	});
-	console.log(supportedDrivers, Drivers);
 	const steppers = Steppers.map((s) => {
 		return {
 			...s,
@@ -174,19 +185,16 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 	]);
 
 	const isRecommendedPresetCompatible = recommendedPreset && recommendedPreset.run_current === current;
-
-	console.log(matchingPreset, defaultPreset, recommendedPreset);
-
+	const extruderName =
+		props.printerRail.axis === 'extruder'
+			? 'Extruder T0'
+			: props.printerRail.axis === PrinterAxis.extruder1
+			? 'Extruder T1'
+			: 'Stepper ' + props.printerRail.axis.toLocaleUpperCase();
 	return (
 		<div className="rounded-md border border-zinc-300 p-4 shadow-lg dark:border-zinc-700">
 			<div className="">
-				<h3 className="text-sm font-medium leading-6 text-zinc-700 dark:text-zinc-300">
-					{props.printerRail.axis === 'extruder' ? (
-						'Extruder'
-					) : (
-						<span>Stepper {props.printerRail.axis.toLocaleUpperCase()}</span>
-					)}
-				</h3>
+				<h3 className="text-sm font-medium leading-6 text-zinc-700 dark:text-zinc-300">{extruderName}</h3>
 				<p className="text-sm text-zinc-500 dark:text-zinc-400">{props.printerRail.axisDescription}</p>
 			</div>
 			<div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">

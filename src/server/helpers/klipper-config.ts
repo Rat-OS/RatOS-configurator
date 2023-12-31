@@ -1,19 +1,73 @@
-import { PrinterConfiguration } from '../zods/printer-configuration';
-import { sensorlessXTemplate, sensorlessYTemplate } from '../templates/extras/sensorless-homing';
-import { PrinterAxis, PrinterRail, matchesDefaultRail } from '../zods/motion';
-import { findPreset } from '../data/steppers';
-import { deserializePrinterRailDefinition } from '../utils/serialization';
-import { exportBoardPinAlias, parseBoardConfig as parseBoardPinConfig } from './metadata';
+import { PrinterConfiguration } from '../../zods/printer-configuration';
+import { sensorlessXTemplate, sensorlessYTemplate } from '../../templates/extras/sensorless-homing';
+import { PrinterAxis, PrinterRail, matchesDefaultRail } from '../../zods/motion';
+import { findPreset } from '../../data/steppers';
+import { deserializePrinterRailDefinition } from '../../utils/serialization';
+import {
+	ControlPins,
+	exportBoardPinAlias,
+	getExtruderRotationDistance,
+	parseBoardPinConfig,
+	PinMapZodFromBoard,
+} from './metadata';
 
-import path from 'path';
-import { serverSchema } from '../env/schema.mjs';
-import { readFileSync } from 'fs';
-const environment = serverSchema.parse(process.env);
+import { ToolheadGenerator } from './config-generation/toolhead';
+import { getBoardSerialPath } from '../../helpers/board';
+import { ToolOrAxis } from '../../zods/toolhead';
 
 type WritableFiles = { fileName: string; content: string; overwrite: boolean }[];
 
-export const constructKlipperConfigUtils = (config: PrinterConfiguration) => {
+export const constructKlipperConfigUtils = async (config: PrinterConfiguration) => {
+	const toolboardDriverCount = config.toolheads.reduce(
+		(prev, current) => prev + (current.toolboard?.driverCount ?? 0),
+		0,
+	);
+	const extruderLessConfigBonus = config.controlboard.extruderlessConfig != null ? 1 : 0;
+	const isExtruderlessBoard =
+		config.printer.driverCountRequired > config.controlboard.driverCount + toolboardDriverCount;
+	const cbPins = await parseBoardPinConfig(config.controlboard, isExtruderlessBoard);
+	const toolheads = await Promise.all(
+		config.toolheads.map(async (thConfig) => {
+			if (thConfig.toolboard == null) {
+				if (isExtruderlessBoard) {
+					throw new Error(
+						'A toolboard is required when using an extruderless controlboard configuration (your controlboard alone does not have enough drivers for this printer). Please add a toolboard to your configuration.',
+					);
+				}
+				return await ToolheadGenerator.fromConfig(thConfig, cbPins as PinMapZodFromBoard<false, false>);
+			}
+			return await ToolheadGenerator.fromConfig(thConfig, cbPins as PinMapZodFromBoard<false, true>);
+		}),
+	);
+
 	return {
+		extruderLessConfigBonus,
+		isExtruderlessBoard,
+		toolboardDriverCount,
+		getControlboardPins: () => {
+			return { ...cbPins };
+		},
+		requireControlboardPin(pin: keyof ControlPins<false>) {
+			if (this.getControlboardPins()[pin] == null) {
+				throw new Error(`The controlboard has no "${pin}" defined in its config.`);
+			}
+		},
+		isToolheadAxis(axis: PrinterAxis) {
+			return toolheads.some((th) => th.getExtruderAxis() === axis || th.getMotionAxis() === axis);
+		},
+		getToolhead: (toolOrAxis: ToolOrAxis) => {
+			const th =
+				typeof toolOrAxis === 'number'
+					? toolheads.find((th) => th.getTool() === toolOrAxis)
+					: toolheads.find((th) => th.getExtruderAxis() === toolOrAxis || th.getMotionAxis() === toolOrAxis);
+			if (th == null) {
+				throw new Error(`No toolhead found for tool/axis ${toolOrAxis}`);
+			}
+			return th;
+		},
+		getToolheads: () => {
+			return toolheads.slice();
+		},
 		getRail(axis: PrinterAxis) {
 			const rail = config.rails.find((r) => r.axis === axis);
 			if (rail == null) {
@@ -22,11 +76,20 @@ export const constructKlipperConfigUtils = (config: PrinterConfiguration) => {
 			return rail;
 		},
 		getAxisPinName(axis: PrinterAxis, alias: string) {
-			const prefix = axis === PrinterAxis.extruder ? this.getExtruderPinPrefix() : '';
+			const prefix = this.isToolheadAxis(axis) ? this.getToolhead(axis as ToolOrAxis).getPinPrefix() : '';
 			return prefix + (axis === PrinterAxis.z ? 'z0' : axis === PrinterAxis.extruder ? 'e' : axis) + alias;
 		},
 		getAxisStepperName(axis: PrinterAxis) {
-			return axis === PrinterAxis.extruder ? 'extruder' : 'stepper' + '_' + axis;
+			if (axis === PrinterAxis.extruder) {
+				return 'extruder';
+			}
+			if (axis === PrinterAxis.extruder1) {
+				return 'extruder1';
+			}
+			if (axis === PrinterAxis.dual_carriage) {
+				return 'dual_carriage';
+			}
+			return 'stepper' + '_' + axis;
 		},
 		getAxisDriverType(axis: PrinterAxis) {
 			return this.getRail(axis).driver.type.toLowerCase();
@@ -60,45 +123,33 @@ export const constructKlipperConfigUtils = (config: PrinterConfiguration) => {
 			factor = Math.max(0, Math.min(1, factor));
 			return rail.stepper.maxPeakCurrent * 0.71 * factor;
 		},
-		readInclude(fileName: string) {
-			return readFileSync(path.join(environment.RATOS_CONFIGURATION_PATH, fileName), 'utf-8');
-		},
-		stripIncludes(content: string) {
-			return content
-				.split('\n')
-				.filter((l) => !l.trim().startsWith('[include'))
-				.join('\n');
-		},
-		stripCommentLines(content: string) {
-			return content
-				.split('\n')
-				.filter((l) => l.trim().indexOf('#') !== 0)
-				.join('\n');
-		},
-		getExtruderPinPrefix() {
-			if (config.toolboard != null) {
-				return 'toolboard:';
+		getExtruderPinPrefix(tool: ToolOrAxis = 0) {
+			const th = this.getToolhead(tool);
+			if (th == null) {
+				throw new Error(`No toolhead found for tool ${tool}`);
 			}
-			return '';
+			return th.getPinPrefix();
 		},
-		getProbePinPrefix() {
-			if (config.toolboard != null) {
-				return 'toolboard:';
-			}
-			return '';
-		},
-		getXEndstopPinPrefix() {
-			if (config.toolboard != null && config.xEndstop.id === 'endstop-toolboard') {
-				return 'toolboard:';
-			}
-			return '';
-		},
-		getYEndstopPinPrefix() {
-			return '';
+		formatInlineComments(lines: string[], commentChar = '#') {
+			const longestLine = lines.reduce(
+				(prev, current) => Math.max(prev, current.substring(0, current.indexOf(commentChar)).trim().length),
+				0,
+			);
+			return lines.map((l) => {
+				const commentIndex = l.indexOf(commentChar);
+				if (commentIndex === -1 || l.trim().startsWith('#')) {
+					// No comment or comment is at the start of the line, no need to format.
+					return l;
+				}
+				const comment = l.substring(commentIndex);
+				const line = l.substring(0, commentIndex).trim();
+				const padding = longestLine - line.length;
+				return line + ' '.repeat(padding) + ' ' + comment;
+			});
 		},
 	};
 };
-export type KlipperConfigUtils = ReturnType<typeof constructKlipperConfigUtils>;
+export type KlipperConfigUtils = Awaited<ReturnType<typeof constructKlipperConfigUtils>>;
 
 export const constructKlipperConfigExtrasGenerator = (config: PrinterConfiguration, utils: KlipperConfigUtils) => {
 	const _filesToWrite: WritableFiles = [];
@@ -115,14 +166,14 @@ export const constructKlipperConfigExtrasGenerator = (config: PrinterConfigurati
 		},
 		generateSensorlessHomingIncludes() {
 			const filesToWrite: WritableFiles = [];
-			if (config.xEndstop.id === 'sensorless') {
+			if (utils.getToolhead(PrinterAxis.x).getXEndstop().id === 'sensorless') {
 				filesToWrite.push({
 					fileName: 'sensorless-homing-x.cfg',
 					content: sensorlessXTemplate(config, utils),
 					overwrite: false,
 				});
 			}
-			if (config.yEndstop.id === 'sensorless') {
+			if (utils.getToolheads().some((th) => th.getYEndstop().id === 'sensorless')) {
 				filesToWrite.push({
 					fileName: 'sensorless-homing-y.cfg',
 					content: sensorlessYTemplate(config, utils),
@@ -164,59 +215,23 @@ export const constructKlipperConfigHelpers = async (
 	extrasGenerator: KlipperConfigExtrasGenerator,
 	utils: KlipperConfigUtils,
 ) => {
-	const cbPins = await parseBoardPinConfig(
-		config.controlboard,
-		config.printer.driverCountRequired > config.controlboard.driverCount,
-	);
-	const tbPins = config.toolboard != null ? await parseBoardPinConfig(config.toolboard) : null;
 	return {
 		...utils,
-		renderToolboard() {
-			if (config.toolboard == null || tbPins == null) {
-				return '';
-			}
-			const result = [
-				'', // Add a newline for readability.
-				exportBoardPinAlias(config.toolboard.serialPath.replace('/dev/', ''), tbPins, 'toolboard'),
-				'', // Add a newline for readability.
-				`[mcu toolboard]`,
-				`serial: ${config.toolboard.serialPath}`,
-			];
-			if (config.toolboard.hasMcuTempSensor) {
-				result.push(''); // Add a newline for readability.
-				result.push(`[temperature_sensor ${config.toolboard.name.replace(/\s/g, '_')}]`);
-				result.push(`sensor_type: temperature_mcu`);
-				result.push(`sensor_mcu: toolboard`);
-			}
-			if (config.toolboard.ADXL345SPI != null) {
-				result.push(''); // Add a newline for readability.
-				result.push(`[adxl345 toolboard]`);
-				result.push(`cs_pin: toolboard:${config.toolboard.ADXL345SPI.cs_pin}`);
-				if ('hardware' in config.toolboard.ADXL345SPI) {
-					result.push(`spi_bus: ${config.toolboard.ADXL345SPI.hardware.bus}`);
-				} else {
-					result.push(`spi_software_mosi_pin: toolboard:${config.toolboard.ADXL345SPI.software.mosi}`);
-					result.push(`spi_software_miso_pin: toolboard:${config.toolboard.ADXL345SPI.software.miso}`);
-					result.push(`spi_software_sclk_pin: toolboard:${config.toolboard.ADXL345SPI.software.sclk}`);
-				}
-			}
-			if (config.toolboard.outputPins != null) {
-				config.toolboard.outputPins.forEach((pindef) => {
-					result.push(''); // Add a newline for readability.
-					result.push(`[output_pin ${pindef.name}]`);
-					result.push(`pin: toolboard:${pindef.pin}`);
-					result.push(`value: ${pindef.value}`);
-				});
-			}
-			return result.join('\n');
+		renderToolboards() {
+			return utils
+				.getToolheads()
+				.map((th) => {
+					return th.renderToolboard();
+				})
+				.join('\n');
 		},
 		renderControlboard() {
 			const result = [
 				'', // Add a newline for readability.
-				exportBoardPinAlias(config.controlboard.serialPath.replace('/dev/', ''), cbPins),
+				exportBoardPinAlias(config.controlboard.id, utils.getControlboardPins()),
 				'', // Add a newline for readability.
 				`[mcu]`,
-				`serial: ${config.controlboard.serialPath}`,
+				`serial: ${getBoardSerialPath(config.controlboard)}`,
 			];
 			if (config.controlboard.hasMcuTempSensor) {
 				result.push(''); // Add a newline for readability.
@@ -247,22 +262,17 @@ export const constructKlipperConfigHelpers = async (
 		},
 		renderBoards() {
 			if (config.printer.driverCountRequired > config.controlboard.driverCount) {
-				if (config.controlboard.extruderlessConfig == null) {
-					throw new Error(
-						'Control board has insufficient amount of drivers and do not appear to have an extruderless config file.',
-					);
-				}
 				if (
-					config.toolboard == null ||
-					config.controlboard.driverCount + config.toolboard.driverCount < config.printer.driverCountRequired
+					config.controlboard.driverCount + utils.toolboardDriverCount + utils.extruderLessConfigBonus <
+					config.printer.driverCountRequired
 				) {
-					throw new Error('Control board + toolboard does not make up enough drivers for this printer.');
+					throw new Error('Your control and toolboard combination does not make up enough drivers for this printer.');
 				}
 			}
 			const result: string[] = [
 				'[include RatOS/boards/rpi/config.cfg]', // Always include RPi.
 				this.renderControlboard(),
-				this.renderToolboard(),
+				this.renderToolboards(),
 			];
 			return result.join('\n');
 		},
@@ -285,7 +295,13 @@ export const constructKlipperConfigHelpers = async (
 				`enable_pin: !${utils.getAxisPinName(rail.axis, '_enable_pin')}`,
 				`microsteps: ${rail.microstepping}`,
 			];
-			if (rail.axis !== PrinterAxis.extruder) {
+			if (rail.axis === PrinterAxis.extruder || rail.axis === PrinterAxis.extruder1) {
+				const toolhead = utils.getToolhead(rail.axis);
+				if (toolhead == null) {
+					throw new Error(`No toolhead found for ${rail.axis}`);
+				}
+				section.push(`rotation_distance: ${getExtruderRotationDistance(toolhead.getExtruder().id)}`);
+			} else {
 				section.push(`rotation_distance: ${rail.rotationDistance}`);
 			}
 			if ([PrinterAxis.x, PrinterAxis.y, PrinterAxis.z].includes(rail.axis)) {
@@ -295,7 +311,8 @@ export const constructKlipperConfigHelpers = async (
 				section.push(`gear_ratio: ${rail.gearRatio}`);
 			}
 			if (rail.axis === PrinterAxis.z) {
-				if (config.probe != null) {
+				const probeToolhead = config.toolheads.find((th) => th.probe != null);
+				if (probeToolhead?.probe != null) {
 					section.push(`endstop_pin: probe:z_virtual_endstop`);
 				}
 			}
@@ -373,87 +390,61 @@ export const constructKlipperConfigHelpers = async (
 					: config.printer.speedLimits.basic;
 			return config.stealthchop ? '135' : limits.velocity;
 		},
+		getMacroTravelAccel() {
+			const limits =
+				config.performanceMode && config.printer.speedLimits.performance
+					? config.printer.speedLimits.performance
+					: config.printer.speedLimits.basic;
+			return config.stealthchop ? '1000' : limits.accel;
+		},
 		renderBoardQuirks() {
 			let result: string[] = [];
 			if (config.controlboard.hasQuirksFiles) {
 				result.push('# Include controlboard quirk file');
-				if (config.toolboard != null) {
-					result.push(
-						`[include RatOS/boards/${config.controlboard.serialPath.replace('/dev/', '')}/quirks-toolboard.cfg]`,
-					);
+				if (utils.getToolhead(PrinterAxis.extruder) != null) {
+					result.push(`[include RatOS/boards/${config.controlboard.id}/quirks-toolboard.cfg]`);
 				} else {
-					result.push(`[include RatOS/boards/${config.controlboard.serialPath.replace('/dev/', '')}/quirks.cfg]`);
+					result.push(`[include RatOS/boards/${config.controlboard.id}/quirks.cfg]`);
 				}
 			}
-			if (config.toolboard?.hasQuirksFiles) {
-				result.push('# Include toolboard quirk file');
-				result.push(`[include RatOS/boards/${config.toolboard.serialPath.replace('/dev/', '')}/quirks.cfg]`);
-			}
+			utils.getToolheads().forEach((th) => {
+				const toolboard = th.getToolboard();
+				if (toolboard?.hasQuirksFiles) {
+					result.push('# Include toolboard quirk file');
+					result.push(`[include RatOS/boards/${toolboard.id}/quirks.cfg]`);
+				}
+			});
 			return result.join('\n');
 		},
 		renderHotend() {
-			let result: string[] = [];
-			result.push(`[include RatOS/hotends/${config.hotend.id}]`);
-			result.push('[extruder]');
-			result.push(`sensor_type: ${config.thermistor}`);
-			if (config.toolboard != null) {
-				result.push('# Use toolboard pins for heater and thermistor');
-				result.push('heater_pin: toolboard:e_heater_pin');
-				result.push('sensor_pin: toolboard:e_sensor_pin');
-			}
+			let result: string[] = this.getToolheads().map((th) => {
+				return th.renderHotend();
+			});
 			return result.join('\n');
 		},
 		renderExtruder() {
-			let result: string[] = [];
-			// Get rid of the stepper/driver includes in the extruder config and paste it inline (backwards compatibility with 2.0).
-			result.push(`# ${config.extruder.title} definition (from RatOS/extruders/${config.extruder.id})`);
-			result.push(utils.stripCommentLines(utils.stripIncludes(this.readInclude(`extruders/${config.extruder.id}`))));
+			let result: string[] = this.getToolheads().map((th) => {
+				return th.renderExtruder();
+			});
 			return result.join('\n');
 		},
 		renderInputShaper(printerSize: number) {
+			// Only renders x toolhead input shaper for now, IDEX uses macro magic for handling both toolheads.
 			let result: string[] = [];
 			result.push('[resonance_tester]');
-			switch (config.xAccelerometer?.id) {
-				case 'controlboard':
-					result.push('accel_chip_x: adxl345 controlboard');
-					break;
-				case 'toolboard':
-					if (config.toolboard != null) {
-						result.push('accel_chip_x: adxl345 toolboard');
-						break;
-					}
-				case 'sbc':
-					result.push('accel_chip_x: adxl345 rpi');
-					break;
-				default:
-					result.push('accel_chip_x: adxl345 controlboard');
-					break;
-			}
-			switch (config.yAccelerometer?.id) {
-				case 'controlboard':
-					result.push('accel_chip_y: adxl345 controlboard');
-					break;
-				case 'toolboard':
-					if (config.toolboard != null) {
-						result.push('accel_chip_y: adxl345 toolboard');
-						break;
-					}
-				case 'sbc':
-					result.push('accel_chip_y: adxl345 rpi');
-					break;
-				default:
-					result.push('accel_chip_y: adxl345 controlboard');
-					break;
-			}
+			const xToolhead = this.getToolhead(PrinterAxis.x);
+			result.push(`accel_chip_x: adxl345 ${xToolhead.getXAccelerometerName()}`);
+			result.push(`accel_chip_y: adxl345 ${xToolhead.getYAccelerometerName()}`);
 			result.push('probe_points:');
 			result.push(`\t${printerSize / 2},${printerSize / 2},20`);
 			return result.join('\n');
 		},
 		renderProbeIncludes() {
 			const result: string[] = [];
-			if (config.probe != null) {
-				result.push(`[include RatOS/z-probe/${config.probe.id}]`);
-				if (config.toolboard != null && config.probe.id === 'bltouch') {
+			const th = this.getToolheads().find((th) => th.getProbe() != null);
+			if (th) {
+				result.push(`[include RatOS/z-probe/${th.getProbe()?.id + '.cfg'}]`);
+				if (th.hasToolboard() && th.getProbe()?.id === 'bltouch') {
 					result.push('[include RatOS/toolboard/bltouch.cfg]');
 				}
 			}
@@ -461,14 +452,15 @@ export const constructKlipperConfigHelpers = async (
 		},
 		renderProbePinSection() {
 			const result: string[] = [];
-			if (config.probe != null) {
-				switch (config.probe.id) {
-					case 'bltouch.cfg':
+			const th = this.getToolheads().find((th) => th.getProbe() != null);
+			if (th) {
+				switch (th.getProbe()?.id) {
+					case 'bltouch':
 						result.push(`# BLTouch configuration`);
 						result.push(`[bltouch]`);
 						result.push(`z_offset: 0`);
 						break;
-					case 'beacon.cfg':
+					case 'beacon':
 						// print reminder about beacon calibration
 						const reminder: string[] = [];
 						reminder.push('# REMEMBER TO CALIBRATE YOUR BEACON!');
@@ -478,7 +470,7 @@ export const constructKlipperConfigHelpers = async (
 						extrasGenerator.addReminder(reminder.join('\n'));
 						break;
 					default:
-						const pinPrefix = this.getProbePinPrefix();
+						const pinPrefix = th.getPinPrefix();
 						result.push('# Probe configuration');
 						result.push('[probe]');
 						result.push('z_offset: 0.0 # Will be commented out after a successful PROBE_CALIBRATE and SAVE_CONFIG');
@@ -495,25 +487,37 @@ export const constructKlipperConfigHelpers = async (
 		},
 		renderEndstopSection(pretunedSensorlessConfig?: string) {
 			const result: string[] = [];
-			if (config.xEndstop.id !== 'sensorless') {
-				result.push(''); // Add a newline for readability.
-				result.push(`# Physical X endstop configuration`);
-				result.push(`[stepper_x]`);
-				result.push(`endstop_pin: ${this.getXEndstopPinPrefix()}x_endstop_pin`);
-				result.push(`[gcode_macro RatOS]`);
-				result.push(`variable_homing_x: "endstop"`);
-			}
-			if (config.yEndstop.id !== 'sensorless') {
+			const toolheads = this.getToolheads();
+			let yPin: 'sensorless' | string = 'sensorless';
+			toolheads.forEach((th) => {
+				if (th.getXEndstop().id !== 'sensorless') {
+					result.push(''); // Add a newline for readability.
+					result.push(`# Physical X endstop configuration`);
+					result.push(`[${th.getMotionStepperName()}]`);
+					result.push(`endstop_pin: ${th.getXEndstopPin()}`);
+					result.push(`[gcode_macro RatOS]`);
+					result.push(`variable_homing_x: "endstop"`);
+				}
+				if (th.getYEndstop().id !== 'sensorless') {
+					if (yPin == 'sensorless') {
+						yPin = th.getYEndstopPin();
+					} else if (yPin !== th.getYEndstopPin()) {
+						throw new Error(`Multiple toolheads configured with different y endstops is currently not supported.`);
+					}
+				}
+			});
+			if (yPin !== 'sensorless') {
 				result.push(''); // Add a newline for readability.
 				result.push(`# Physical Y endstop configuration`);
 				result.push(`[stepper_y]`);
-				result.push(`endstop_pin: ${this.getYEndstopPinPrefix()}y_endstop_pin`);
+				result.push(`endstop_pin: ${yPin}`);
 				result.push(`[gcode_macro RatOS]`);
 				result.push(`variable_homing_y: "endstop"`);
 			}
 
-			if (config.xEndstop.id === 'sensorless' || config.yEndstop.id === 'sensorless') {
+			if (toolheads.some((th) => th.getXEndstop().id === 'sensorless' || th.getYEndstop().id === 'sensorless')) {
 				const defaultXRail = config.printer.defaults.rails.find((r) => r.axis === PrinterAxis.x);
+				const defaultDCRail = config.printer.defaults.rails.find((r) => r.axis === PrinterAxis.dual_carriage);
 				const defaultYRail = config.printer.defaults.rails.find((r) => r.axis === PrinterAxis.y);
 				result.push(''); // Add a newline for readability.
 				if (
@@ -529,14 +533,20 @@ export const constructKlipperConfigHelpers = async (
 						utils.getRail(PrinterAxis.y),
 						deserializePrinterRailDefinition(defaultYRail),
 						config.performanceMode,
-					)
+					) &&
+					(defaultDCRail == null ||
+						matchesDefaultRail(
+							utils.getRail(PrinterAxis.dual_carriage),
+							deserializePrinterRailDefinition(defaultDCRail),
+							config.performanceMode,
+						))
 				) {
 					result.push(`[include ${pretunedSensorlessConfig}]`);
 				} else {
 					result.push(extrasGenerator.generateSensorlessHomingIncludes());
 				}
 			}
-			if (config.probe == null) {
+			if (this.getToolheads().every((th) => th.getProbe() == null)) {
 				result.push(''); // Add a newline for readability.
 				result.push(`# Physical Z endstop configuration`);
 				result.push(`[stepper_z]`);
@@ -547,75 +557,87 @@ export const constructKlipperConfigHelpers = async (
 			}
 			return result.join('\n');
 		},
+		renderMacroVariableOverrides(size?: number) {
+			const result: string[] = [`variable_macro_travel_speed: ${this.getMacroTravelSpeed()}`];
+			const toolheads = this.getToolheads();
+			const isIdex = toolheads.some((th) => th.getMotionAxis() === PrinterAxis.dual_carriage);
+			if (isIdex) {
+				const probeTool = toolheads.find((th) => th.getProbe() != null)?.getTool();
+				result.push(
+					`variable_default_toolhead: ${probeTool}                             # the toolhead with the z-probe, 0=left 1=right toolhead`,
+				);
+				const dcParkX = (size ?? config.size ?? 300) + 72;
+				result.push(
+					`variable_parking_position: [-69.5, ${dcParkX}]                      # toolhead x parking position`,
+				);
+				result.push(`variable_toolchange_travel_speed: ${this.getMacroTravelSpeed()}     # parking travel speed`);
+				result.push(`variable_toolchange_travel_accel: ${this.getMacroTravelAccel()}     # parking travel accel`);
+				const firstADXL = this.getToolhead(0).getXAccelerometerName();
+				const secondADXL = this.getToolhead(1).getXAccelerometerName();
+				result.push(`variable_adxl_chip: [${firstADXL}, ${secondADXL}]           # toolheads adxl chip names`);
+			}
+			return this.formatInlineComments(result).join('\n');
+		},
+		renderControllerFan() {
+			let result: string[] = [];
+			result.push(`[controller_fan controller_fan]`);
+			switch (config.controllerFan.id) {
+				case '2pin':
+					this.requireControlboardPin('fan_controller_board_pin');
+					result.push(`# 2-pin fan connected to the controller board`);
+					result.push(`pin: ${this.getControlboardPins().fan_controller_board_pin}`);
+					break;
+				case '4pin':
+					this.requireControlboardPin('fan_controller_board_pin');
+					result.push(`# 4-pin fan connected to the controller board`);
+					result.push(`pin: !${this.getControlboardPins().fan_controller_board_pin}`);
+					result.push(`cycle_time:  0.00004`);
+					break;
+				case '4pin-dedicated':
+					this.requireControlboardPin('4p_fan_part_cooling_tach_pin');
+					result.push(`# 4-pin fan connected to a dedicated 4-pin fan header on the controller board`);
+					result.push(`pin: !${this.getControlboardPins()['4p_fan_part_cooling_tach_pin']}`);
+					result.push(`cycle_time:  0.00004`);
+					if (this.getControlboardPins()['4p_fan_part_cooling_tach_pin'] != null) {
+						result.push(`tachometer_pin: ^${this.getControlboardPins()['4p_fan_part_cooling_tach_pin']}`);
+						result.push(`tachometer_poll_interval: 0.0005`);
+					}
+					break;
+				default:
+					throw new Error(`Unsupported controller fan option "${config.controllerFan.title}"`);
+			}
+			return result.join('\n');
+		},
 		renderFans() {
 			const result: string[] = [];
+			const multipleToolheadPartFans = this.getToolheads().filter((th) => th.getPartFan()).length > 1;
 			// Part fan
 			result.push(`# Part cooling fan`);
-			if (config.partFan.id == '4pin-dedicated') {
-				result.push('# 4 pin connected to dedicated 4-pin header on controlboard');
-				result.push(`[include RatOS/4pin-fans/part-cooling-fan-25khz.cfg]`);
-			} else {
+			if (multipleToolheadPartFans) {
+				result.push('# Multiple toolheads with part cooling fans configured');
+				result.push('# [fan] will use an unused io pin, proxy m106 settings to active toolhead via macro.');
 				result.push(`[fan]`);
-				if (config.toolboard) {
-					if (config.partFan.id === '4pin') {
-						result.push('# 4 pin fan with PWM connected to toolboard fan terminal');
-						result.push(`pin: !toolboard:fan_part_cooling_pin`);
-					} else {
-						result.push('# 2 pin fan connected to toolboard fan terminal');
-						result.push(`pin: toolboard:fan_part_cooling_pin`);
-					}
-				} else {
-					if (config.partFan.id === '4pin') {
-						result.push('# 4 pin fan with PWM connected to controlboard fan terminal');
-						result.push(`pin: !fan_part_cooling_pin`);
-					} else {
-						result.push('# 2 pin fan connected to controlboard fan terminal');
-						result.push(`pin: fan_part_cooling_pin`);
-					}
-				}
+				result.push(
+					`pin: rpi:gpio4         # sacrifical part fan, use this to independently control your both toolhead part fans`,
+				);
 			}
+			result.push(
+				this.getToolheads()
+					.map((th) => th.renderPartFan(multipleToolheadPartFans))
+					.join('\n'),
+			);
 			// Hotend fan
 			result.push(``);
 			result.push(`# Hotend cooling fan`);
-			if (config.hotendFan.id == '4pin-dedicated') {
-				result.push('# 4 pin connected to dedicated 4-pin header on controlboard');
-				result.push(`[include RatOS/4pin-fans/toolhead-fan-25khz.cfg]`);
-			} else {
-				result.push(`[heater_fan toolhead_cooling_fan]`);
-				if (config.toolboard) {
-					if (config.hotendFan.id === '4pin') {
-						result.push('# 4 pin fan with PWM connected to toolboard fan terminal');
-						result.push(`pin: !toolboard:fan_toolhead_cooling_pin`);
-					} else {
-						result.push('# 2 pin fan connected to toolboard fan terminal');
-						result.push(`pin: toolboard:fan_toolhead_cooling_pin`);
-					}
-				} else {
-					if (config.hotendFan.id === '4pin') {
-						result.push('# 4 pin fan with PWM connected to controlboard fan terminal');
-						result.push(`pin: !fan_toolhead_cooling_pin`);
-					} else {
-						result.push('# 2 pin fan connected to controlboard fan terminal');
-						result.push(`pin: fan_toolhead_cooling_pin`);
-					}
-				}
-			}
+			result.push(
+				this.getToolheads()
+					.map((th) => th.renderHotendFan())
+					.join('\n'),
+			);
 			// Controller fan
 			result.push(``);
-			result.push(`# Controller/driver cooling fan`);
-			if (config.controllerFan.id == '4pin-dedicated') {
-				result.push('# 4 pin connected to dedicated 4-pin header on controlboard');
-				result.push(`[include RatOS/4pin-fans/controller-fan-25khz.cfg]`);
-			} else {
-				result.push(`[controller_fan controller_fan]`);
-				if (config.controllerFan.id === '4pin') {
-					result.push('# 4 pin fan with PWM connected to controlboard fan terminal');
-					result.push(`pin: !fan_controller_board_pin`);
-				} else {
-					result.push('# 2 pin fan connected to controlboard fan terminal');
-					result.push(`pin: fan_controller_board_pin`);
-				}
-			}
+			result.push(`# Controller cooling fan`);
+			result.push(this.renderControllerFan());
 			return result.join('\n');
 		},
 		renderBase() {
