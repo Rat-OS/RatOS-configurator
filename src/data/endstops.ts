@@ -1,16 +1,20 @@
 import { z } from 'zod';
 import { Endstop } from '../zods/hardware';
-import { SerializedPartialPrinterConfiguration } from '../zods/printer-configuration';
+import { PrinterAxis } from '../zods/motion';
+import type { SerializedPartialPrinterConfiguration } from '../zods/printer-configuration';
+import type { SerializedPartialToolheadConfiguration } from '../zods/toolhead';
 
 export const xEndstopOptions = (
-	config?: z.infer<typeof SerializedPartialPrinterConfiguration> | null,
+	config?: SerializedPartialPrinterConfiguration | null,
+	toolheadConfig?: SerializedPartialToolheadConfiguration | null,
 ): z.infer<typeof Endstop>[] => {
-	const endstops: z.infer<typeof Endstop>[] = [
-		{ id: 'endstop' as const, title: 'Physical Endstop' },
-		{ id: 'sensorless' as const, title: 'Sensorless Homing' },
-	];
-	if (config?.toolboard != null) {
-		endstops.splice(1, 0, { id: 'endstop-toolboard' as const, title: 'Physical Endstop (toolboard)' });
+	const endstops: z.infer<typeof Endstop>[] = [];
+	if (toolheadConfig?.toolboard != null) {
+		endstops.push({ id: 'endstop-toolboard' as const, title: 'Physical Endstop (toolboard)' });
+	}
+	if (toolheadConfig?.axis === PrinterAxis.x) {
+		endstops.push({ id: 'endstop' as const, title: 'Physical Endstop' });
+		endstops.push({ id: 'sensorless' as const, title: 'Sensorless Homing' });
 	}
 	return endstops;
 };
@@ -18,7 +22,8 @@ export const xEndstopOptions = (
 export const defaultXEndstop = { id: 'endstop' as const, title: 'Physical Endstop' };
 
 export const yEndstopOptions = (
-	config?: z.infer<typeof SerializedPartialPrinterConfiguration> | null,
+	config?: SerializedPartialPrinterConfiguration | null,
+	toolheadConfig?: SerializedPartialToolheadConfiguration | null,
 ): z.infer<typeof Endstop>[] => [
 	{ id: 'endstop' as const, title: 'Physical Endstop' },
 	{ id: 'sensorless' as const, title: 'Sensorless Homing' },

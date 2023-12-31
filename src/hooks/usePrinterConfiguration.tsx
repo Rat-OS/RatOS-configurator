@@ -1,174 +1,33 @@
 'use client';
 
-import {
-	atom,
-	atomFamily,
-	DefaultValue,
-	selector,
-	useRecoilValue,
-	useResetRecoilState,
-	useSetRecoilState,
-} from 'recoil';
+import { atom, selector, useRecoilValue, useRecoilState, waitForAll, noWait } from 'recoil';
 import { z } from 'zod';
-import { Board, Toolboard } from '../zods/boards';
-import { Hotend, Thermistor, Extruder, Probe, Endstop, Fan, Accelerometer } from '../zods/hardware';
-import { Printer } from '../zods/printer';
+import { Fan } from '../zods/hardware';
 import {
 	PartialPrinterConfiguration,
 	PrinterConfiguration,
 	SerializedPartialPrinterConfiguration,
 	SerializedPrinterConfiguration,
 } from '../zods/printer-configuration';
-import { useRecoilState } from 'recoil';
-import { trpc, trpcClient } from '../helpers/trpc';
-import { ReadAtom, ReadAtomInterface, syncEffect } from 'recoil-sync';
+import { syncEffect } from 'recoil-sync';
 import { getRefineCheckerForZodSchema } from 'zod-refine';
-import { defaultXEndstop, xEndstopOptions } from '../data/endstops';
-import { useCallback, useMemo } from 'react';
-import { asType, match } from '@recoiljs/refine';
-import { P } from 'pino';
-import { SerializedPrinterRail, PrinterAxis, PrinterRail } from '../zods/motion';
-import { deserializePrinterRail, deserializeStepper, serializePrinterRail } from '../utils/serialization';
+import { useMemo, useRef } from 'react';
+import {
+	serializePartialToolheadConfiguration,
+	serializePrinterRail,
+	serializeToolheadConfiguration,
+} from '../utils/serialization';
+import {
+	ControlboardState,
+	LoadablePrinterRailsState,
+	PrinterRailsState,
+	PrinterSizeState,
+	PrinterState,
+} from '../recoil/printer';
+import { PrinterToolheadsState } from '../recoil/toolhead';
+import { defaultControllerFan } from '../data/fans';
 
-const readPrinterAtom = async ({ read }: ReadAtomInterface): Promise<z.infer<typeof Printer> | null> => {
-	const printer = await read(PrinterState.key);
-	if (printer != null) {
-		const printerId = z.object({ id: Printer.shape.id }).safeParse(printer);
-		if (printerId.success) {
-			const printerReq = await trpcClient.printer.printers.query();
-			const newPrinter = printerReq.find((p) => p.id === printerId.data.id);
-			return newPrinter ?? null;
-		}
-	}
-	return null;
-};
-
-export const PrinterState = atom({
-	key: 'Printer',
-	default: null,
-	effects: [
-		syncEffect({
-			read: readPrinterAtom,
-			refine: match(getRefineCheckerForZodSchema(Printer.nullable())),
-		}),
-	],
-});
-
-export const PrinterSizeState = atom({
-	key: 'PrinterOption',
-	default: null,
-	effects: [
-		syncEffect({
-			refine: getRefineCheckerForZodSchema(Printer.shape.sizes.unwrap().element.nullable()),
-		}),
-	],
-});
-
-export const HotendState = atom({
-	key: 'Hotend',
-	default: null,
-	effects: [
-		syncEffect({
-			refine: getRefineCheckerForZodSchema(Hotend.nullable()),
-		}),
-	],
-});
-
-export const ThermistorState = atom({
-	key: 'Thermistor',
-	default: null,
-	effects: [
-		syncEffect({
-			refine: getRefineCheckerForZodSchema(Thermistor.nullable()),
-		}),
-	],
-});
-
-export const ExtruderState = atom({
-	key: 'Extruder',
-	default: null,
-	effects: [
-		syncEffect({
-			refine: getRefineCheckerForZodSchema(Extruder.nullable()),
-		}),
-	],
-});
-
-export const ProbeState = atom({
-	key: 'Probe',
-	default: null,
-	effects: [
-		syncEffect({
-			refine: getRefineCheckerForZodSchema(Probe.nullable()),
-		}),
-	],
-});
-
-export const XEndstopState = atom({
-	key: 'XEndstop',
-	default: null,
-	effects: [
-		syncEffect({
-			refine: getRefineCheckerForZodSchema(Endstop.nullable()),
-		}),
-	],
-});
-
-export const YEndstopState = atom({
-	key: 'YEndstop',
-	default: null,
-	effects: [
-		syncEffect({
-			refine: getRefineCheckerForZodSchema(Endstop.nullable()),
-		}),
-	],
-});
-
-export const ControlboardState = atom({
-	key: 'Controlboard',
-	default: null,
-	effects: [
-		syncEffect({
-			read: async ({ read }) => {
-				const board = await read(ControlboardState.key);
-				if (board != null) {
-					const boardId = z.object({ path: Board.shape.path }).safeParse(board);
-					if (boardId.success) {
-						const boardReq = await trpcClient.mcu.boards.query({ boardFilters: { toolboard: false } });
-						const newBoard = boardReq.find((b) => b.path === boardId.data.path);
-						return newBoard ?? null;
-					}
-				}
-				return null;
-			},
-			refine: getRefineCheckerForZodSchema(Board.nullable()),
-		}),
-	],
-});
-
-const _ToolboardState = atom({
-	key: 'Toolboard',
-	default: null,
-	effects: [
-		syncEffect({
-			read: async ({ read }) => {
-				const board = await read(_ToolboardState.key);
-				if (board != null) {
-					const boardId = z.object({ path: Board.shape.path }).safeParse(board);
-					if (boardId.success) {
-						const boardReq = await trpcClient.mcu.boards.query({ boardFilters: { toolboard: true } });
-						const newBoard = boardReq.find((b) => b.path === boardId.data.path);
-						return newBoard ?? null;
-					}
-				}
-				return null;
-			},
-			refine: getRefineCheckerForZodSchema(Toolboard.nullable()),
-		}),
-	],
-});
-
-const PerformanceModeState = atom({
+export const PerformanceModeState = atom({
 	key: 'PerformanceMode',
 	default: false,
 	effects: [
@@ -178,7 +37,7 @@ const PerformanceModeState = atom({
 	],
 });
 
-const StealthchopState = atom({
+export const StealthchopState = atom({
 	key: 'Stealchop',
 	default: false,
 	effects: [
@@ -188,7 +47,7 @@ const StealthchopState = atom({
 	],
 });
 
-const StandstillStealthState = atom({
+export const StandstillStealthState = atom({
 	key: 'StandstillStealth',
 	default: false,
 	effects: [
@@ -197,215 +56,103 @@ const StandstillStealthState = atom({
 		}),
 	],
 });
-
-const XAccelerometerState = atom({
-	key: 'XAccelerometer',
-	default: null,
-	effects: [
-		syncEffect({
-			refine: getRefineCheckerForZodSchema(Accelerometer.nullable()),
-		}),
-	],
-});
-const YAccelerometerState = atom({
-	key: 'YAccelerometer',
-	default: null,
-	effects: [
-		syncEffect({
-			refine: getRefineCheckerForZodSchema(Accelerometer.nullable()),
-		}),
-	],
-});
-
-const PartFanState = atom({
-	key: 'PartFan',
-	default: null,
-	effects: [
-		syncEffect({
-			refine: getRefineCheckerForZodSchema(Fan.nullable()),
-		}),
-	],
-});
-
-const HotendFanState = atom({
-	key: 'HotendFan',
-	default: null,
-	effects: [
-		syncEffect({
-			refine: getRefineCheckerForZodSchema(Fan.nullable()),
-		}),
-	],
-});
-
-const ControllerFanState = atom({
+export const ControllerFanState = atom({
 	key: 'ControllerFan',
-	default: null,
+	default: defaultControllerFan,
 	effects: [
 		syncEffect({
 			refine: getRefineCheckerForZodSchema(Fan.nullable()),
 		}),
 	],
-});
-
-export const ToolboardState = selector<z.infer<typeof Toolboard> | null>({
-	key: 'ToolboardSelector',
-	set: ({ set, get }, newValue) => {
-		const xEndstop = get(XEndstopState);
-		if (newValue == null && xEndstop?.id === 'endstop-toolboard') {
-			set(XEndstopState, defaultXEndstop);
-		}
-		set(_ToolboardState, newValue);
-	},
-	get: ({ get }) => {
-		return get(_ToolboardState);
-	},
-});
-
-export const PrinterRailState = atomFamily<z.infer<typeof SerializedPrinterRail> | null, PrinterAxis>({
-	key: 'PrinterRail',
-	default: null,
-	effects: (param) => [
-		syncEffect({
-			read: async ({ read }) => {
-				const printerRailState = await read(PrinterRailState(param).key);
-				if (printerRailState != null) {
-					const parsedRail = SerializedPrinterRail.safeParse(printerRailState);
-					if (parsedRail.success) {
-						return parsedRail.data;
-					}
-					const printer = await readPrinterAtom({ read });
-					const printerRailDefault = printer?.defaults.rails.find((r) => r.axis === param);
-					if (printerRailDefault != null) {
-						const parsedRailRepaired = SerializedPrinterRail.safeParse({ ...printerRailDefault, ...printerRailState });
-						if (parsedRailRepaired.success) {
-							return parsedRailRepaired.data;
-						}
-					}
-				}
-				return null;
-			},
-			refine: getRefineCheckerForZodSchema(SerializedPrinterRail.nullable()),
-		}),
-	],
-});
-
-export const PrinterRailsState = selector<z.infer<typeof PrinterRail>[]>({
-	key: 'PrinterRails',
-	get: ({ get }) => {
-		const printer = get(PrinterState);
-		const rails = printer?.defaults.rails.map((rail) => {
-			const railState = get(PrinterRailState(rail.axis));
-			return deserializePrinterRail(railState ?? rail);
-		});
-		return rails ?? [];
-	},
-	set: ({ set }, newValue) => {
-		if (newValue instanceof DefaultValue) {
-			Object.values(PrinterAxis).forEach((axis) => {
-				set(PrinterRailState(axis), null);
-			});
-			return;
-		}
-		newValue.forEach((rail) => {
-			set(PrinterRailState(rail.axis), serializePrinterRail(rail));
-		});
-	},
 });
 
 export const PrinterConfigurationState = selector<z.infer<typeof PartialPrinterConfiguration> | null>({
 	key: 'PrinterConfiguration',
-	get: ({ get }) => {
-		const printer = get(PrinterState) ?? undefined;
-		const printerSize = get(PrinterSizeState) ?? undefined;
-		const hotend = get(HotendState) ?? undefined;
-		const thermistor = get(ThermistorState) ?? undefined;
-		const extruder = get(ExtruderState) ?? undefined;
-		const probe = get(ProbeState) ?? undefined;
-		const xEndstop = get(XEndstopState) ?? undefined;
-		const yEndstop = get(YEndstopState) ?? undefined;
-		const controlboard = get(ControlboardState) ?? undefined;
-		const toolboard = get(ToolboardState) ?? undefined;
-		const partFan = get(PartFanState) ?? undefined;
-		const hotendFan = get(HotendFanState) ?? undefined;
-		const controllerFan = get(ControllerFanState) ?? undefined;
-		const xAccelerometer = get(XAccelerometerState) ?? undefined;
-		const yAccelerometer = get(YAccelerometerState) ?? undefined;
-		const performanceMode = get(PerformanceModeState) ?? undefined;
-		const stealthchop = get(StealthchopState) ?? undefined;
-		const standstillStealth = get(StandstillStealthState) ?? undefined;
-		const rails = get(PrinterRailsState);
-
-		const printerConfig = PartialPrinterConfiguration.safeParse({
+	get: async ({ get }) => {
+		const {
 			printer,
-			hotend,
-			thermistor,
-			extruder,
-			probe,
-			xEndstop,
-			yEndstop,
-			controlboard,
-			toolboard,
-			partFan,
-			hotendFan,
-			controllerFan,
-			size: printerSize,
-			xAccelerometer,
-			yAccelerometer,
+			printerSize,
 			performanceMode,
 			stealthchop,
 			standstillStealth,
 			rails,
-		});
-		if (printerConfig.success === false) {
-			console.log(printerConfig.error);
-		}
+			controlboard,
+			controllerFan,
+			toolheads,
+		} = get(
+			waitForAll({
+				printer: PrinterState,
+				printerSize: PrinterSizeState,
+				performanceMode: PerformanceModeState,
+				stealthchop: StealthchopState,
+				standstillStealth: StandstillStealthState,
+				rails: PrinterRailsState,
+				controlboard: ControlboardState,
+				controllerFan: ControllerFanState,
+				toolheads: PrinterToolheadsState,
+			}),
+		);
+
+		const printerConfig = PartialPrinterConfiguration.safeParse({
+			printer:
+				printer == null
+					? null
+					: {
+							...printer,
+							defaults: {
+								...printer.defaults,
+								toolheads: printer?.defaults.toolheads.map((th) => serializeToolheadConfiguration(th)),
+							},
+					  },
+			size: printerSize,
+			performanceMode,
+			stealthchop,
+			standstillStealth,
+			rails,
+			controlboard,
+			controllerFan,
+			toolheads,
+		} satisfies { [key in keyof PrinterConfiguration]: PrinterConfiguration[key] | null | undefined });
 		return printerConfig.success ? printerConfig.data : null;
+	},
+});
+
+export const LoadablePrinterConfigurationState = selector<z.infer<typeof PartialPrinterConfiguration>>({
+	key: 'LoadablePrinterConfigurationState',
+	get: async ({ get }) => {
+		const loadable = get(noWait(PrinterConfigurationState));
+		return {
+			hasValue: () => loadable.contents,
+			hasError: () => null,
+			loading: () => null,
+		}[loadable.state]();
 	},
 });
 
 export const serializePrinterConfiguration = (config: PrinterConfiguration): SerializedPrinterConfiguration => {
 	const serializedConfig: SerializedPrinterConfiguration = {
 		printer: config.printer.id,
+		toolheads: config.toolheads.map((toolhead) => serializeToolheadConfiguration(toolhead)),
 		size: config.size,
-		hotend: config.hotend.id,
-		thermistor: config.thermistor,
-		extruder: config.extruder.id,
-		probe: config.probe?.id,
-		xEndstop: config.xEndstop.id,
-		yEndstop: config.yEndstop.id,
-		controlboard: config.controlboard.serialPath,
-		toolboard: config.toolboard?.serialPath,
-		partFan: config.partFan.id,
-		hotendFan: config.hotendFan.id,
+		controlboard: config.controlboard.id,
 		controllerFan: config.controllerFan.id,
-		xAccelerometer: config.xAccelerometer?.id,
-		yAccelerometer: config.yAccelerometer?.id,
 		performanceMode: config.performanceMode,
 		stealthchop: config.stealthchop,
 		standstillStealth: config.standstillStealth,
-		rails: config.rails.map((rail) => ({ ...rail, driver: rail.driver.id, stepper: rail.stepper.id })),
+		rails: config.rails.map((rail) => serializePrinterRail(rail)),
 	};
 	return SerializedPrinterConfiguration.parse(serializedConfig);
 };
 export const serializePartialPrinterConfiguration = (
 	config: PartialPrinterConfiguration,
 ): SerializedPartialPrinterConfiguration => {
+	const toolheads = config?.toolheads?.map((toolhead) => serializePartialToolheadConfiguration(toolhead));
 	const serializedConfig: SerializedPartialPrinterConfiguration = {
 		printer: config?.printer?.id,
+		toolheads: toolheads,
 		size: config?.size,
-		hotend: config?.hotend?.id,
-		thermistor: config?.thermistor,
-		extruder: config?.extruder?.id,
-		probe: config?.probe?.id,
-		xEndstop: config?.xEndstop?.id,
-		yEndstop: config?.yEndstop?.id,
-		controlboard: config?.controlboard?.serialPath,
-		toolboard: config?.toolboard?.serialPath,
-		partFan: config?.partFan?.id,
-		hotendFan: config?.hotendFan?.id,
+		controlboard: config?.controlboard?.id,
 		controllerFan: config?.controllerFan?.id,
-		xAccelerometer: config?.xAccelerometer?.id,
-		yAccelerometer: config?.yAccelerometer?.id,
 		performanceMode: config?.performanceMode,
 		stealthchop: config?.stealthchop,
 		standstillStealth: config?.standstillStealth,
@@ -413,259 +160,39 @@ export const serializePartialPrinterConfiguration = (
 	return SerializedPartialPrinterConfiguration.parse(serializedConfig);
 };
 
+export const useSerializedPrinterConfiguration = () => {
+	const printerConfiguration = useRecoilValue(LoadablePrinterConfigurationState);
+	const printerConfigurationCache = useRef(printerConfiguration);
+	if (printerConfiguration != null) {
+		printerConfigurationCache.current = printerConfiguration;
+	}
+	const serializedPrinterConfiguration = useMemo(
+		() => serializePartialPrinterConfiguration(printerConfigurationCache.current ?? {}),
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[printerConfigurationCache.current],
+	);
+	return serializedPrinterConfiguration;
+};
 export const usePrinterConfiguration = () => {
 	const [selectedPrinter, setSelectedPrinter] = useRecoilState(PrinterState);
 	const [selectedPrinterOption, setSelectedPrinterOption] = useRecoilState(PrinterSizeState);
-	const [selectedHotend, setSelectedHotend] = useRecoilState(HotendState);
-	const [selectedExtruder, _setSelectedExtruder] = useRecoilState(ExtruderState);
-	const [selectedThermistor, setSelectedThermistor] = useRecoilState(ThermistorState);
-	const [selectedProbe, setSelectedProbe] = useRecoilState(ProbeState);
-	const [selectedXEndstop, setSelectedXEndstop] = useRecoilState(XEndstopState);
-	const [selectedYEndstop, setSelectedYEndstop] = useRecoilState(YEndstopState);
 	const [selectedBoard, setSelectedBoard] = useRecoilState(ControlboardState);
-	const [selectedToolboard, setSelectedToolboard] = useRecoilState(ToolboardState);
-	const [selectedXAccelerometer, setSelectedXAccelerometer] = useRecoilState(XAccelerometerState);
-	const [selectedYAccelerometer, setSelectedYAccelerometer] = useRecoilState(YAccelerometerState);
 	const [performanceMode, setPerformanceMode] = useRecoilState(PerformanceModeState);
 	const [stealthchop, setStealthchop] = useRecoilState(StealthchopState);
 	const [standstillStealth, setStandstillStealth] = useRecoilState(StandstillStealthState);
-	const [selectedPartFan, setSelectedPartFan] = useRecoilState(PartFanState);
-	const [selectedHotendFan, setSelectedHotendFan] = useRecoilState(HotendFanState);
 	const [selectedControllerFan, setSelectedControllerFan] = useRecoilState(ControllerFanState);
-	const [selectedPrinterRails, setSelectedPrinterRails] = useRecoilState(PrinterRailsState);
-	const resetSelectedPrinterRails = useResetRecoilState(PrinterRailsState);
-	const printerConfiguration = useRecoilValue(PrinterConfigurationState);
-	const serializedPrinterConfiguration = useMemo(
-		() => serializePartialPrinterConfiguration(printerConfiguration ?? {}),
-		[printerConfiguration],
-	);
-	const setExtruderRail = useSetRecoilState(PrinterRailState(PrinterAxis.extruder));
+	const selectedPrinterRails = useRecoilValue(LoadablePrinterRailsState);
+	const printerConfiguration = useRecoilValue(LoadablePrinterConfigurationState);
+	const serializedPrinterConfiguration = useSerializedPrinterConfiguration();
+	const parsedPrinterConfiguration = PrinterConfiguration.safeParse(printerConfiguration);
 
-	const hotends = trpc.printer.hotends.useQuery();
-	const boards = trpc.mcu.boards.useQuery({});
-	const extruders = trpc.printer.extruders.useQuery();
-	const thermistors = trpc.printer.thermistors.useQuery();
-	const probes = trpc.printer.probes.useQuery();
-	const xEndstops = trpc.printer.xEndstops.useQuery(serializedPrinterConfiguration, {
-		keepPreviousData: true,
-	});
-	const yEndstops = trpc.printer.yEndstops.useQuery(serializedPrinterConfiguration, {
-		keepPreviousData: true,
-	});
-	const partFanOptions = trpc.printer.partFanOptions.useQuery(serializedPrinterConfiguration, {
-		keepPreviousData: true,
-	});
-	const hotendFanOptions = trpc.printer.hotendFanOptions.useQuery(serializedPrinterConfiguration, {
-		keepPreviousData: true,
-	});
-	const controllerFanOptions = trpc.printer.controllerFanOptions.useQuery(serializedPrinterConfiguration, {
-		keepPreviousData: true,
-	});
-	const xAccelerometerOptions = trpc.printer.xAccelerometerOptions.useQuery(serializedPrinterConfiguration, {
-		keepPreviousData: true,
-	});
-	const yAccelerometerOptions = trpc.printer.yAccelerometerOptions.useQuery(serializedPrinterConfiguration, {
-		keepPreviousData: true,
-	});
-	const setSelectedExtruder = useCallback(
-		(extruder: z.infer<typeof Extruder> | null) => {
-			_setSelectedExtruder(extruder);
-			// If the extruder has a stepper, set the extruder rail to use that stepper
-			if (extruder != null) {
-				if (extruder.stepper != null) {
-					const stepper = deserializeStepper(extruder.stepper);
-					if (stepper != null) {
-						setExtruderRail((rail) => {
-							return rail == null
-								? null
-								: {
-										...rail,
-										stepper: stepper.id,
-										current: extruder.current ?? stepper.maxPeakCurrent * 0.71,
-								  };
-						});
-					}
-				}
-			}
-		},
-		[_setSelectedExtruder, setExtruderRail],
-	);
-
-	const setPrinterDefaults = useCallback(
-		(printer: z.infer<typeof Printer>) => {
-			const board = boards.data?.find((board) => board.serialPath === '/dev/' + printer.defaults.board);
-			const toolboard = boards.data?.find((board) => board.serialPath === '/dev/' + printer.defaults.board);
-			const hotend = hotends.data?.find((h) => h.id === printer.defaults.hotend + '.cfg');
-			const extruder = extruders.data?.find((e) => e.id === printer.defaults.extruder + '.cfg');
-			const thermistor = thermistors.data?.find((t) => t === hotend?.thermistor);
-			const probe = probes.data?.find((p) => p.id === printer.defaults.probe + '.cfg');
-			const xEndstop = xEndstops.data?.find((e) => e.id === printer.defaults.xEndstop);
-			const yEndstop = yEndstops.data?.find((e) => e.id === printer.defaults.yEndstop);
-			const partFan = partFanOptions.data?.[0];
-			const hotendFan = hotendFanOptions.data?.[0];
-			const controllerFan = controllerFanOptions.data?.[0];
-			const xAccelerometer = xAccelerometerOptions.data?.[0];
-			const yAccelerometer = yAccelerometerOptions.data?.[0];
-
-			setPerformanceMode(false);
-			setStealthchop(false);
-
-			if (board) {
-				setSelectedBoard(board);
-			}
-
-			if (toolboard) {
-				const _toolboard = Toolboard.safeParse(toolboard);
-				if (_toolboard.success) {
-					setSelectedToolboard(_toolboard.data);
-				}
-			}
-
-			if (hotend) {
-				setSelectedHotend(hotend);
-			}
-
-			if (extruder) {
-				setSelectedExtruder(extruder);
-			}
-
-			if (thermistor) {
-				setSelectedThermistor(thermistor);
-			}
-
-			if (probe) {
-				setSelectedProbe(probe);
-			}
-
-			if (xEndstop) {
-				setSelectedXEndstop(xEndstop);
-			}
-
-			if (yEndstop) {
-				setSelectedYEndstop(yEndstop);
-			}
-
-			if (partFan) {
-				setSelectedPartFan(partFan);
-			}
-
-			if (hotendFan) {
-				setSelectedHotendFan(hotendFan);
-			}
-
-			if (controllerFan) {
-				setSelectedControllerFan(controllerFan);
-			}
-			if (xAccelerometer) {
-				setSelectedXAccelerometer(xAccelerometer);
-			}
-			if (yAccelerometer) {
-				setSelectedYAccelerometer(yAccelerometer);
-			}
-			resetSelectedPrinterRails();
-		},
-		[
-			boards.data,
-			hotends.data,
-			extruders.data,
-			thermistors.data,
-			probes.data,
-			xEndstops.data,
-			yEndstops.data,
-			partFanOptions.data,
-			hotendFanOptions.data,
-			controllerFanOptions.data,
-			xAccelerometerOptions.data,
-			yAccelerometerOptions.data,
-			setPerformanceMode,
-			setStealthchop,
-			resetSelectedPrinterRails,
-			setSelectedBoard,
-			setSelectedToolboard,
-			setSelectedHotend,
-			setSelectedExtruder,
-			setSelectedThermistor,
-			setSelectedProbe,
-			setSelectedXEndstop,
-			setSelectedYEndstop,
-			setSelectedPartFan,
-			setSelectedHotendFan,
-			setSelectedControllerFan,
-			setSelectedXAccelerometer,
-			setSelectedYAccelerometer,
-		],
-	);
-
-	const parsedPrinterConfiguration = PrinterConfiguration.safeParse({
-		controlboard: selectedBoard,
-		toolboard: selectedToolboard,
-		printer: selectedPrinter,
-		hotend: selectedHotend,
-		extruder: selectedExtruder,
-		thermistor: selectedThermistor,
-		probe: selectedProbe,
-		xEndstop: selectedXEndstop,
-		yEndstop: selectedYEndstop,
-		partFan: selectedPartFan,
-		hotendFan: selectedHotendFan,
-		controllerFan: selectedControllerFan,
-		size: selectedPrinterOption,
-		xAccelerometer: selectedXAccelerometer,
-		yAccelerometer: selectedYAccelerometer,
-		performanceMode,
-		stealthchop,
-		standstillStealth,
-		rails: selectedPrinterRails,
-	});
-
-	const queryErrors: string[] = [];
-	if (hotends.error) {
-		queryErrors.push(hotends.error.message);
-	}
-	if (extruders.error) {
-		queryErrors.push(extruders.error.message);
-	}
-	if (thermistors.error) {
-		queryErrors.push(thermistors.error.message);
-	}
-	if (probes.error) {
-		queryErrors.push(probes.error.message);
-	}
-	if (xEndstops.error) {
-		queryErrors.push(xEndstops.error.message);
-	}
-	if (yEndstops.error) {
-		queryErrors.push(yEndstops.error.message);
-	}
-	if (boards.error) {
-		queryErrors.push(boards.error.message);
-	}
 	return {
-		queryErrors,
 		selectedPrinter,
 		setSelectedPrinter,
 		selectedPrinterOption,
 		setSelectedPrinterOption,
-		selectedHotend,
-		setSelectedHotend,
-		selectedExtruder,
-		setSelectedExtruder,
-		selectedThermistor,
-		setSelectedThermistor,
-		selectedProbe,
-		setSelectedProbe,
-		selectedXEndstop,
-		setSelectedXEndstop,
-		selectedYEndstop,
-		setSelectedYEndstop,
 		selectedBoard,
 		setSelectedBoard,
-		selectedToolboard,
-		setSelectedToolboard,
-		selectedXAccelerometer,
-		setSelectedXAccelerometer,
-		selectedYAccelerometer,
-		setSelectedYAccelerometer,
 		performanceMode,
 		setPerformanceMode,
 		stealthchop,
@@ -673,34 +200,10 @@ export const usePrinterConfiguration = () => {
 		standstillStealth,
 		setStandstillStealth,
 		selectedPrinterRails,
-		setSelectedPrinterRails,
-		selectedPartFan,
-		setSelectedPartFan,
-		selectedHotendFan,
-		setSelectedHotendFan,
 		selectedControllerFan,
 		setSelectedControllerFan,
-		hotends,
-		extruders,
-		thermistors,
-		probes,
-		xEndstops,
-		yEndstops,
-		partFanOptions,
-		hotendFanOptions,
-		controllerFanOptions,
-		xAccelerometerOptions,
-		yAccelerometerOptions,
-		setPrinterDefaults,
 		partialPrinterConfiguration: printerConfiguration,
+		serializedPrinterConfiguration,
 		parsedPrinterConfiguration,
-		isReady:
-			hotends.data != null &&
-			extruders.data != null &&
-			thermistors.data != null &&
-			probes.data != null &&
-			xEndstops.data != null &&
-			yEndstops.data != null &&
-			boards.data != null,
 	};
 };

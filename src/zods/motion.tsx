@@ -121,6 +121,7 @@ export const Stepper = z.object({
 
 export enum PrinterAxis {
 	'x' = 'x',
+	'dual_carriage' = 'dual_carriage',
 	'x1' = 'x1',
 	'y' = 'y',
 	'y1' = 'y1',
@@ -129,6 +130,7 @@ export enum PrinterAxis {
 	'z2' = 'z2',
 	'z3' = 'z3',
 	'extruder' = 'extruder',
+	'extruder1' = 'extruder1',
 }
 
 export const BasePrinterRail = z.object({

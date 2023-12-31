@@ -21,7 +21,7 @@ if (process.env.RATOS_CONFIGURATION_PATH) {
 }
 const hardwareType = z.object({
 	path: z.string().startsWith(startsWithServerValidation).endsWith('.cfg'),
-	id: z.string().endsWith('.cfg'),
+	id: z.string(),
 });
 
 export const Thermistor = z.enum(thermistors);

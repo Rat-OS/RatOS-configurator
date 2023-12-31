@@ -2,8 +2,7 @@
 
 import React, { useCallback } from 'react';
 import { useMoonraker } from '../hooks/useMoonraker';
-import { ReadItem, RecoilSync, WriteItem, WriteItems } from 'recoil-sync';
-import { useIsClient } from '../hooks/isClient';
+import { ReadItem, RecoilSync, WriteItems } from 'recoil-sync';
 import { DefaultValue } from 'recoil';
 
 export const SyncWithMoonraker: React.FC<React.PropsWithChildren> = ({ children }) => {
@@ -18,6 +17,7 @@ export const SyncWithMoonraker: React.FC<React.PropsWithChildren> = ({ children 
 	const write: WriteItems = useCallback(
 		async ({ diff }) => {
 			for (const [key, value] of diff) {
+				console.log(`Writing ${key}`, value);
 				await moonraker.saveItem(key, value);
 			}
 		},

@@ -1,25 +1,21 @@
 import { z } from 'zod';
 import { Board } from './boards';
-import { Hotend, Thermistor, Extruder, Probe, Endstop, Fan, Accelerometer } from './hardware';
-import { Printer } from './printer';
+import { Fan } from './hardware';
+import { PrinterDefinition } from './printer';
 import { PrinterRail, SerializedPrinterRail } from './motion';
+import {
+	PartialToolheadConfiguration,
+	SerializedPartialToolheadConfiguration,
+	SerializedToolheadConfiguration,
+	ToolheadConfiguration,
+} from './toolhead';
 
 const BasePrinterConfiguration = z.object({
-	printer: Printer,
-	hotend: Hotend,
-	thermistor: Thermistor,
-	extruder: Extruder,
-	probe: Probe.optional(),
-	xEndstop: Endstop,
-	yEndstop: Endstop,
+	printer: PrinterDefinition,
 	controlboard: Board,
-	toolboard: Board.optional().nullable(),
+	toolheads: z.array(ToolheadConfiguration).min(1).max(2),
 	size: z.number().optional().nullable(),
-	partFan: Fan,
 	controllerFan: Fan,
-	hotendFan: Fan,
-	xAccelerometer: Accelerometer.optional().nullable(),
-	yAccelerometer: Accelerometer.optional().nullable(),
 	performanceMode: z.boolean().default(false),
 	stealthchop: z.boolean().default(false),
 	standstillStealth: z.boolean().default(false),
@@ -29,41 +25,32 @@ const BasePrinterConfiguration = z.object({
 export const PrinterConfiguration = BasePrinterConfiguration.refine(
 	(data) => data.size == null || ((data.printer.sizes?.length ?? 0) > 0 && data.size != null),
 	'Printer size must be provided if printer has size options, otherwise it must be omitted',
-)
-	.refine(
-		(data) => data.toolboard !== null || data.xEndstop.id !== 'endstop-toolboard',
-		'Cannot use toolboard endstop without a toolboard',
-	)
-	.refine(
-		(data) => data.controlboard.driverCount >= data.printer.driverCountRequired || data.toolboard != null,
-		'You have to select a toolboard to use this printer and controlboard combo',
-	);
+).refine(
+	(data) =>
+		data.toolheads.map((t) => t.toolboard).filter(Boolean).length + data.controlboard.driverCount >=
+		data.printer.driverCountRequired,
+	'Your combination of controlboard and toolboards do not have enough stepper drivers for this printer',
+);
 
 export const SerializedPrinterConfiguration = BasePrinterConfiguration.extend({
-	printer: Printer.shape.id,
-	hotend: Hotend.shape.id,
-	thermistor: Thermistor,
-	extruder: Extruder.shape.id,
-	probe: Probe.shape.id.optional().nullable(),
-	xEndstop: Endstop.shape.id,
-	yEndstop: Endstop.shape.id,
-	controlboard: Board.shape.serialPath,
-	toolboard: Board.shape.serialPath.optional().nullable(),
-	partFan: Fan.shape.id,
+	printer: PrinterDefinition.shape.id,
+	controlboard: Board.shape.id,
+	toolheads: z.array(SerializedToolheadConfiguration).min(1).max(2),
 	controllerFan: Fan.shape.id,
-	hotendFan: Fan.shape.id,
-	xAccelerometer: Accelerometer.shape.id.optional().nullable(),
-	yAccelerometer: Accelerometer.shape.id.optional().nullable(),
 	rails: z.array(SerializedPrinterRail),
 });
 
 export const PartialPrinterConfiguration = PrinterConfiguration.innerType()
 	.innerType()
-	.innerType()
+	.extend({
+		toolheads: z.array(PartialToolheadConfiguration).min(1).max(2),
+	})
 	.partial()
 	.optional();
 
-export const SerializedPartialPrinterConfiguration = SerializedPrinterConfiguration.partial();
+export const SerializedPartialPrinterConfiguration = SerializedPrinterConfiguration.extend({
+	toolheads: z.array(SerializedPartialToolheadConfiguration).min(1).max(2),
+}).partial();
 
 export type PrinterConfiguration = z.infer<typeof PrinterConfiguration>;
 export type PartialPrinterConfiguration = z.infer<typeof PartialPrinterConfiguration>;

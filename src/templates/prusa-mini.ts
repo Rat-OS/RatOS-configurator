@@ -1,5 +1,4 @@
-import { KlipperConfigHelper } from '../helpers/klipper-config';
-import { PrinterAxis } from '../zods/motion';
+import { KlipperConfigHelper } from '../server/helpers/klipper-config';
 import { PrinterConfiguration } from '../zods/printer-configuration';
 
 export const template = (config: PrinterConfiguration, helper: KlipperConfigHelper) => `

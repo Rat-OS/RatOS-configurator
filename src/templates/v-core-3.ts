@@ -1,4 +1,4 @@
-import { KlipperConfigHelper } from '../helpers/klipper-config';
+import { KlipperConfigHelper } from '../server/helpers/klipper-config';
 import { PrinterAxis } from '../zods/motion';
 import { PrinterConfiguration } from '../zods/printer-configuration';
 export const template = (config: PrinterConfiguration, helper: KlipperConfigHelper) => `
@@ -19,6 +19,9 @@ ${helper.renderBase()}
 [include RatOS/printers/v-core-3/v-core-3.cfg]
 [include RatOS/printers/v-core-3/macros.cfg]
 [include RatOS/printers/v-core-3/${config.size ?? 300}.cfg]
+
+# Macro variable overrides
+${helper.renderMacroVariableOverrides()}
 
 # Extruder
 ${helper.renderExtruder()}

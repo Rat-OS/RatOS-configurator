@@ -6,7 +6,7 @@ import { ErrorMessage } from '../error-message';
 import { WifiIcon } from '@heroicons/react/24/solid';
 import { TextInput } from '../forms/text-input';
 import { StepNavButton, StepNavButtons } from '../step-nav-buttons';
-import { Network } from '../../helpers/iw';
+import type { Network } from '../../server/helpers/iw';
 import { Modal } from '../modal';
 import { parseSignal } from '../../helpers/wifi';
 import { StepScreenProps } from '../../hooks/useSteps';
