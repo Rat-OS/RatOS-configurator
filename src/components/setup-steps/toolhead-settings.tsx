@@ -37,7 +37,7 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 			xAccelerometer: selectedXAccelerometer,
 			yAccelerometer: selectedYAccelerometer,
 		});
-		if (Object.keys(updated).length > 0) {
+		if (updated && Object.keys(updated).length > 0) {
 			setToolhead({ ...toolhead.getConfig(), ...updated });
 		}
 	}, [

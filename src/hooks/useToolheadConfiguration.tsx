@@ -52,7 +52,6 @@ export const useToolheadConfiguration = <T extends boolean = true>(
 			async (th: ToolheadConfiguration<any>) => {
 				const helper = new ToolheadHelper(th);
 				const currentConfig = await snapshot.getPromise(PrinterToolheadState(helper.getTool()));
-				snapshot.retain();
 				if (currentConfig == null) {
 					throw new Error(`Toolhead ${helper.getToolCommand()} not found`);
 				}

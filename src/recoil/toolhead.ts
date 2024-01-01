@@ -12,6 +12,7 @@ import {
 	ToolNumber,
 } from '../zods/toolhead';
 import { PrinterState } from './printer';
+import { moonrakerWriteEffect } from '../components/sync-with-moonraker';
 
 export const isAxisValidForTool = (axis: PrinterAxis, tool: ToolNumber) => {
 	if (axis === PrinterAxis.dual_carriage && tool === 1) {
@@ -23,33 +24,6 @@ export const isAxisValidForTool = (axis: PrinterAxis, tool: ToolNumber) => {
 	return false;
 };
 
-const readPrinterToolheadAtom =
-	(param: ToolNumber) =>
-	async ({ read }: ReadAtomInterface): Promise<(ToolheadConfiguration<any> & { toolNumber: ToolNumber }) | null> => {
-		const printerToolheadState = await read(PrinterToolheadState(param).key);
-		if (printerToolheadState != null) {
-			const parsedToolhead = ToolheadConfiguration.safeParse(printerToolheadState);
-			if (parsedToolhead.success) {
-				let freshToolboard = parsedToolhead.data.toolboard;
-				if (freshToolboard) {
-					if (freshToolboard != null) {
-						const toolboardPath = z.object({ path: Toolboard.shape.path }).safeParse(freshToolboard);
-						if (toolboardPath.success) {
-							const boardReq = await trpcClient.mcu.boards.query({ boardFilters: { toolboard: true } });
-							const maybeToolboard = boardReq.find((b) => b.path === toolboardPath.data.path);
-							if (maybeToolboard) {
-								freshToolboard = Toolboard.parse(maybeToolboard);
-							}
-						}
-					}
-				}
-				return { ...parsedToolhead.data, toolboard: freshToolboard, toolNumber: param };
-			}
-			return null;
-		}
-		return null;
-	};
-
 export const PrinterToolheadState = atomFamily<
 	(ToolheadConfiguration<any> & { toolNumber: ToolNumber }) | null,
 	ToolNumber
@@ -57,17 +31,21 @@ export const PrinterToolheadState = atomFamily<
 	key: 'PrinterToolhead',
 	default: null,
 	effects: (param) => [
-		(params) => {
-			params.onSet((newValue) => {
-				console.log('Atom Effect: new toolhead value was set', PrinterToolheadState(param).key, newValue);
-			});
-		},
+		moonrakerWriteEffect(),
 		syncEffect({
 			read: async ({
 				read,
 			}: ReadAtomInterface): Promise<(ToolheadConfiguration<any> & { toolNumber: ToolNumber }) | null> => {
-				console.log('RecoilSync: reading toolhead!', PrinterToolheadState(param).key);
-				const printerToolheadState = await read(PrinterToolheadState(param).key);
+				const state = await read(PrinterToolheadState(param).key);
+				if (typeof state !== 'object') {
+					return null;
+				}
+				if (state == null) {
+					return null;
+				}
+				const { toolNumber: tNum, ...printerToolheadState } = state as ToolheadConfiguration<any> & {
+					toolNumber: ToolNumber;
+				};
 				if (printerToolheadState != null) {
 					const parsedToolhead = ToolheadConfiguration.safeParse(printerToolheadState);
 					if (parsedToolhead.success) {
@@ -86,17 +64,15 @@ export const PrinterToolheadState = atomFamily<
 						}
 						return { ...parsedToolhead.data, toolboard: freshToolboard, toolNumber: param };
 					}
+					console.debug(
+						'RecoilSync: failed to read toolhead!',
+						PrinterToolheadState(param).key,
+						parsedToolhead.error,
+						printerToolheadState,
+					);
 					return null;
 				}
 				return null;
-			},
-			write: async ({ write, reset }, newValue) => {
-				console.log('RecoilSync: writing toolhead!', newValue, PrinterToolheadState(param).key);
-				if (newValue instanceof DefaultValue) {
-					reset(PrinterToolheadState(param).key);
-				} else {
-					write(PrinterToolheadState(param).key, newValue);
-				}
 			},
 			refine: getRefineCheckerForZodSchema(BaseToolheadConfiguration.extend({ toolNumber: ToolNumber }).nullable()),
 		}),

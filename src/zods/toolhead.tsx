@@ -18,6 +18,7 @@ export const BaseToolheadConfiguration = z
 		probe: Probe.optional(),
 		axis: z.literal(PrinterAxis.x).or(z.literal(PrinterAxis.dual_carriage)),
 		description: z.string().optional(),
+		toolNumber: z.number().optional(),
 	})
 	.strict();
 

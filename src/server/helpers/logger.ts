@@ -8,7 +8,7 @@ const stream = pretty({
 	ignore: 'time,hostname,pid',
 });
 
-let logger: pino.Logger<pino.LoggerOptions> | null = null;
+let logger: pino.Logger | null = null;
 export const getLogger = () => {
 	if (logger != null) {
 		return logger;

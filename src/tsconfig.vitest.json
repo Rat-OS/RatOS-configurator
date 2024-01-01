@@ -1,0 +1,7 @@
+{
+	"extends": "./tsconfig.next.json",
+	"compilerOptions": {
+		"jsx": "react",
+		"types": ["vitest/globals"]
+	}
+}

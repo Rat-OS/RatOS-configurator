@@ -33,33 +33,32 @@ describe('configuration', async () => {
 	const parsedProbes = await parseDirectory('z-probe', Probe);
 	const parsedBoards = await getBoards();
 	const parsedPrinters = await getPrinters();
-	test('has valid hotend configuration files', async () => {
-		expect(parsedHotends.length).toBeGreaterThan(0);
-	});
-	test('has valid extruder configuration files', async () => {
-		expect(parsedExtruders.length).toBeGreaterThan(0);
-	});
-	test('has valid z-probe configuration files', async () => {
-		expect(parsedProbes.length).toBeGreaterThan(0);
-	});
-	test('has valid board configuration files', async () => {
-		expect(parsedBoards.length).toBeGreaterThan(0);
-	});
 	const scripts = (await promisify(fs.readdir)(path.join(environment.RATOS_CONFIGURATION_PATH, 'scripts'))).filter(
 		(f) => f.substring(f.length - 3) === '.sh',
 	);
-	test('has non zero bash scripts', async () => {
+	test.concurrent('has valid hotend configuration files', async () => {
+		expect(parsedHotends.length).toBeGreaterThan(0);
+	});
+	test.concurrent('has valid extruder configuration files', async () => {
+		expect(parsedExtruders.length).toBeGreaterThan(0);
+	});
+	test.concurrent('has valid z-probe configuration files', async () => {
+		expect(parsedProbes.length).toBeGreaterThan(0);
+	});
+	test.concurrent('has valid board configuration files', async () => {
+		expect(parsedBoards.length).toBeGreaterThan(0);
+	});
+	test.concurrent('has non zero bash scripts', async () => {
 		expect(scripts.length).toBeGreaterThan(0);
 	});
 	describe('has executable bash scripts', async () => {
-		test.each(scripts)('%s is executable', async (script) => {
+		test.concurrent.each(scripts)('%s is executable', async (script) => {
 			await promisify(fs.access)(path.join(environment.RATOS_CONFIGURATION_PATH, 'scripts', script), fs.constants.X_OK);
 		});
 	});
 	describe('has valid board definitions', async () => {
-		const rules: string[] = [];
 		describe.each(parsedBoards)('$name', async (board) => {
-			test('has executable scripts', async () => {
+			test.concurrent('has executable scripts', async () => {
 				const boardFiles = await promisify(fs.readdir)(`${board.path}`);
 				const boardScripts = boardFiles.filter((f) => f.substring(f.length - 3) === '.sh');
 				expect(boardScripts.length).toBeGreaterThan(0);
@@ -69,7 +68,8 @@ describe('configuration', async () => {
 					}),
 				);
 			});
-			test.skipIf(board.isHost)('has a valid single unique udev rule', async () => {
+			test.skipIf(board.isHost).concurrent('has a valid single unique udev rule', async () => {
+				const rules: string[] = [];
 				const boardFiles = await promisify(fs.readdir)(`${board.path}`);
 				const boardRules = boardFiles.filter((f) => f.substring(f.length - 6) === '.rules');
 				expect(boardRules.length).toBe(1);
@@ -91,12 +91,12 @@ describe('configuration', async () => {
 				expect(ruleContents.includes(symlink)).toBeTruthy();
 				expect(ruleContents.includes(devlink)).toBeTruthy();
 			});
-			test('has config file', async () => {
+			test.concurrent('has config file', async () => {
 				expect(
 					fs.existsSync(path.join(board.path, board.isToolboard ? 'toolboard-config.cfg' : 'config.cfg')),
 				).toBeTruthy();
 			});
-			test.skipIf(board.isHost)('can parse board config file', async () => {
+			test.skipIf(board.isHost).concurrent('can parse board config file', async () => {
 				const pinConfigPromise = parseBoardPinConfig(board);
 				await expect(pinConfigPromise).resolves.not.toThrow();
 				const pinConfig = await pinConfigPromise;
@@ -149,10 +149,10 @@ describe('configuration', async () => {
 					await expect(parseBoardPinConfig(board, true)).resolves.not.toThrow();
 				}
 			});
-			test.skipIf(board.extruderlessConfig == null)('has extruderless config file', async () => {
+			test.skipIf(board.extruderlessConfig == null).concurrent('has extruderless config file', async () => {
 				expect(fs.existsSync(path.join(board.path, board.extruderlessConfig ?? ''))).toBeTruthy();
 			});
-			test.skipIf(board.isHost)('has firmware config file with correct USB Serial number', async () => {
+			test.skipIf(board.isHost).concurrent('has firmware config file with correct USB Serial number', async () => {
 				const firmwareConfig = path.join(board.path, 'firmware.config');
 				expect(fs.existsSync(firmwareConfig)).toBeTruthy();
 				const firmwareConfigContents = await promisify(fs.readFile)(firmwareConfig, 'utf8');
@@ -231,43 +231,43 @@ describe('configuration', async () => {
 			const defaultXEndstop = xEndstopOptions(partialConfig).find((option) => option.id === toolhead.xEndstop);
 			const defaultYEndstop = yEndstopOptions(partialConfig).find((option) => option.id === toolhead.yEndstop);
 			const defaultToolboard = parsedBoards.find((board) => board.id === toolhead.toolboard);
-			test.skipIf(!toolhead.toolboard)('has valid toolboard default', () => {
+			test.skipIf(!toolhead.toolboard).concurrent('has valid toolboard default', () => {
 				expect(defaultToolboard).not.toBeNull();
 			});
-			test.skipIf(!toolhead.probe)('has valid probe default', () => {
+			test.skipIf(!toolhead.probe).concurrent('has valid probe default', () => {
 				expect(defaultProbe).not.toBeNull();
 			});
-			test('has valid hotend default', () => {
+			test.concurrent('has valid hotend default', () => {
 				expect(defaultHotend).not.toBeNull();
 			});
-			test('has valid extruder default', () => {
+			test.concurrent('has valid extruder default', () => {
 				expect(defaultExtruder).not.toBeNull();
 			});
-			test('has valid x endstop default', () => {
+			test.concurrent('has valid x endstop default', () => {
 				expect(defaultXEndstop).not.toBeNull();
 			});
-			test('has valid x endstop default', () => {
+			test.concurrent('has valid x endstop default', () => {
 				expect(defaultYEndstop).not.toBeNull();
 			});
-			test('can be deserialized', () => {
+			test.concurrent('can be deserialized', () => {
 				if (partialConfig == null) {
 					throw new Error("partialConfig shouldn't be null or undefined");
 				}
 				deserializePartialToolheadConfiguration(toolhead, partialConfig);
 			});
 		});
-		test('has a valid image', async () => {
+		test.concurrent('has a valid image', async () => {
 			expect(fs.existsSync(path.join(printer.path, printer.image))).toBeTruthy();
 		});
-		test('has an existing template file', async () => {
+		test.concurrent('has an existing template file', async () => {
 			expect(
 				fs.existsSync(path.join(environment.RATOS_CONFIGURATION_PATH, 'templates', printer.template)),
 			).toBeTruthy();
 		});
-		test('has valid board default', () => {
+		test.concurrent('has valid board default', () => {
 			expect(defaultBoard).not.toBeNull();
 		});
-		test('has valid rail defaults', () => {
+		test.concurrent('has valid rail defaults', () => {
 			// Rail definitions required for printer definition
 			expect(defaultRails.length ?? 0).toBe(printer.driverCountRequired);
 		});

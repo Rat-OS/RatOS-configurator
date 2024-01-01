@@ -7,6 +7,7 @@ import { getRefineCheckerForZodSchema } from 'zod-refine';
 import { deserializePrinterRail, serializePrinterRail } from '../utils/serialization';
 import { SerializedPrinterRail, PrinterAxis, PrinterRail } from '../zods/motion';
 import { Board } from '../zods/boards';
+import { moonrakerWriteEffect } from '../components/sync-with-moonraker';
 
 let cachedPrinters: { [id: string]: z.infer<typeof PrinterDefinitionWithResolvedToolheads> } = {};
 
@@ -56,6 +57,7 @@ export const PrinterState = atom<z.infer<typeof PrinterDefinitionWithResolvedToo
 	key: 'Printer',
 	default: null,
 	effects: [
+		moonrakerWriteEffect(),
 		syncEffect({
 			read: readPrinterAtom,
 			write: async ({ write }, newValue) => {
@@ -85,20 +87,22 @@ export const LoadablePrinterState = selector<z.infer<typeof PrinterDefinitionWit
 	},
 });
 
-export const PrinterSizeState = atom({
+export const PrinterSizeState = atom<number | null>({
 	key: 'PrinterOption',
 	default: null,
 	effects: [
+		moonrakerWriteEffect(),
 		syncEffect({
 			refine: getRefineCheckerForZodSchema(PrinterDefinition.shape.sizes.unwrap().element.nullable()),
 		}),
 	],
 });
 
-export const ControlboardState = atom({
+export const ControlboardState = atom<Board | null>({
 	key: 'Controlboard',
 	default: null,
 	effects: [
+		moonrakerWriteEffect(),
 		syncEffect({
 			read: async ({ read }) => {
 				const board = await read(ControlboardState.key);
@@ -121,6 +125,7 @@ export const PrinterRailState = atomFamily<z.infer<typeof SerializedPrinterRail>
 	key: 'PrinterRail',
 	default: null,
 	effects: (param) => [
+		moonrakerWriteEffect(),
 		syncEffect({
 			read: readPrinterRailAtom(param),
 			refine: getRefineCheckerForZodSchema(SerializedPrinterRail.nullable()),

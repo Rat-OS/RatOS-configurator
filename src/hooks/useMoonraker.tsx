@@ -184,5 +184,3 @@ export const useMoonraker = (hostname?: string) => {
 		isReady: readyState === 1,
 	};
 };
-
-export const useMoonrakerRequestHandling = () => {};
