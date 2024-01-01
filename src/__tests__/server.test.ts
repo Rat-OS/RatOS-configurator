@@ -15,7 +15,7 @@ import { getBoardChipId } from '../helpers/board';
 describe('server', async () => {
 	const parsedPrinters = await getPrinters();
 	describe('metadata', async () => {
-		test('can strip comments', () => {
+		test.concurrent('can strip comments', () => {
 			const test = `
 				# this is a comment
 				[include]
@@ -25,7 +25,7 @@ describe('server', async () => {
 				[include]
 			`);
 		});
-		test('can strip includes', () => {
+		test.concurrent('can strip includes', () => {
 			const test = `
 				# this is a comment
 				[include RatOS/extruder/test.cfg]
@@ -35,7 +35,7 @@ describe('server', async () => {
 				# this is a comment
 			`);
 		});
-		test('can replace a pin', () => {
+		test.concurrent('can replace a pin', () => {
 			const test = `
 				# this is a comment
 				[include RatOS/extruder/test.cfg]
@@ -52,7 +52,7 @@ describe('server', async () => {
 		});
 	});
 	describe('serialization', async () => {
-		test('can deserialize toolheads from printer configuration files', async () => {
+		test.concurrent('can deserialize toolheads from printer configuration files', async () => {
 			const parsedPrintersWithDeserializedToolheads = await getPrinters(true);
 			expect(parsedPrintersWithDeserializedToolheads.length).toEqual(parsedPrinters.length);
 			parsedPrinters.forEach((p) => {
@@ -62,7 +62,7 @@ describe('server', async () => {
 				});
 			});
 		});
-		test('can deserialize toolheads from a partial printer config', async () => {
+		test.concurrent('can deserialize toolheads from a partial printer config', async () => {
 			await Promise.all(
 				parsedPrinters.map(async (p) => {
 					const config = await deserializePartialPrinterConfiguration({
@@ -95,7 +95,7 @@ describe('server', async () => {
 				}),
 			);
 		});
-		test('can generate idex config', async () => {
+		test.concurrent('can generate idex config', async () => {
 			let res = await regenerateKlipperConfiguration(path.join(__dirname, 'stubs', 'idex-config.json'), true, true);
 			res = res.split('\n').map((l: string, i: number) => `Line ${i}`.padEnd(10, ' ') + `|${l}`);
 			const noUndefined = res.filter((l: string) => l.includes('undefined')).join('\n');
@@ -110,7 +110,7 @@ describe('server', async () => {
 		});
 	});
 	describe('mcu', async () => {
-		test('can compile firmware for controlboard and toolheads', async () => {
+		test.concurrent('can compile firmware for controlboard and toolheads', async () => {
 			const config = await loadSerializedConfig(path.join(__dirname, 'stubs', 'idex-config.json'));
 			const cbFirmware = await compileFirmware(config.controlboard, undefined, true);
 			if (!cbFirmware) {

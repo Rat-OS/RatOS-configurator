@@ -29,7 +29,10 @@ interface PrinterRailSettingsProps {
 
 export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) => {
 	const toolhead = useToolhead(props.printerRailDefault.axis);
-	const board = toolhead?.getToolboard() ?? props.selectedBoard;
+	const board =
+		toolhead?.getExtruderAxis() === props.printerRailDefault.axis && toolhead?.hasToolboard()
+			? toolhead.getToolboard()
+			: props.selectedBoard;
 	const setPrinterRail = useSetRecoilState(PrinterRailState(props.printerRail.axis));
 	const integratedDriver =
 		board?.integratedDrivers &&

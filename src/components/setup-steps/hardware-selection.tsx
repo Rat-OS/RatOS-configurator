@@ -49,7 +49,7 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 						If your hardware isn't listed, pick the one closest to it and override as necessary in printer.cfg later
 					</p>
 				</div>
-				<div ref={animate}>
+				<div ref={animate} className="flex flex-col">
 					{errors.length > 0 && (
 						<ErrorMessage className="mb-4">
 							{errors.map((e) => (

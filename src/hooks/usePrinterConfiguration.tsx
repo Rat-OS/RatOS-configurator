@@ -11,7 +11,7 @@ import {
 } from '../zods/printer-configuration';
 import { syncEffect } from 'recoil-sync';
 import { getRefineCheckerForZodSchema } from 'zod-refine';
-import { useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 import {
 	serializePartialToolheadConfiguration,
 	serializePrinterRail,
@@ -26,40 +26,45 @@ import {
 } from '../recoil/printer';
 import { PrinterToolheadsState } from '../recoil/toolhead';
 import { defaultControllerFan } from '../data/fans';
+import { moonrakerWriteEffect } from '../components/sync-with-moonraker';
 
-export const PerformanceModeState = atom({
+export const PerformanceModeState = atom<boolean | null | undefined>({
 	key: 'PerformanceMode',
 	default: false,
 	effects: [
+		moonrakerWriteEffect(),
 		syncEffect({
 			refine: getRefineCheckerForZodSchema(z.boolean().optional().nullable()),
 		}),
 	],
 });
 
-export const StealthchopState = atom({
+export const StealthchopState = atom<boolean | null | undefined>({
 	key: 'Stealchop',
 	default: false,
 	effects: [
+		moonrakerWriteEffect(),
 		syncEffect({
 			refine: getRefineCheckerForZodSchema(z.boolean().optional().nullable()),
 		}),
 	],
 });
 
-export const StandstillStealthState = atom({
+export const StandstillStealthState = atom<boolean | null | undefined>({
 	key: 'StandstillStealth',
 	default: false,
 	effects: [
+		moonrakerWriteEffect(),
 		syncEffect({
 			refine: getRefineCheckerForZodSchema(z.boolean().optional().nullable()),
 		}),
 	],
 });
-export const ControllerFanState = atom({
+export const ControllerFanState = atom<z.infer<typeof Fan> | null>({
 	key: 'ControllerFan',
 	default: defaultControllerFan,
 	effects: [
+		moonrakerWriteEffect(),
 		syncEffect({
 			refine: getRefineCheckerForZodSchema(Fan.nullable()),
 		}),
@@ -113,6 +118,9 @@ export const PrinterConfigurationState = selector<z.infer<typeof PartialPrinterC
 			controllerFan,
 			toolheads,
 		} satisfies { [key in keyof PrinterConfiguration]: PrinterConfiguration[key] | null | undefined });
+		if (printerConfig.success === false) {
+			console.error(printerConfig.error.flatten().fieldErrors);
+		}
 		return printerConfig.success ? printerConfig.data : null;
 	},
 });
@@ -162,14 +170,9 @@ export const serializePartialPrinterConfiguration = (
 
 export const useSerializedPrinterConfiguration = () => {
 	const printerConfiguration = useRecoilValue(LoadablePrinterConfigurationState);
-	const printerConfigurationCache = useRef(printerConfiguration);
-	if (printerConfiguration != null) {
-		printerConfigurationCache.current = printerConfiguration;
-	}
 	const serializedPrinterConfiguration = useMemo(
-		() => serializePartialPrinterConfiguration(printerConfigurationCache.current ?? {}),
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[printerConfigurationCache.current],
+		() => serializePartialPrinterConfiguration(printerConfiguration ?? {}),
+		[printerConfiguration],
 	);
 	return serializedPrinterConfiguration;
 };

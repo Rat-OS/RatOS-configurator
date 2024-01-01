@@ -56,7 +56,6 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 		({ snapshot, set }) =>
 			async () => {
 				const printerConfig = await snapshot.getPromise(PrinterConfigurationState);
-				snapshot.retain();
 				if (printerConfig == null) {
 					return;
 				}

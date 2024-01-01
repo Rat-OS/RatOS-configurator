@@ -24,6 +24,5 @@ export default defineNextConfig({
 	experimental: {
 		appDir: true,
 		instrumentationHook: true,
-		serverComponentsExternalPackages: ['pino', 'pino-pretty'],
 	},
 });
