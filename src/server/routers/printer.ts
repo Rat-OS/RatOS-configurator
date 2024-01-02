@@ -321,8 +321,9 @@ const generateKlipperConfiguration = async (
 			}
 			try {
 				await promisify(access)(path.join(environment.KLIPPER_CONFIG_PATH, file.fileName), constants.F_OK);
-				// At this point we know the file exists;
+				// At this point we know the file exists.
 				if (file.overwrite) {
+					// Make a back up.
 					const backupFilename = `${file.fileName.split('.').slice(0, -1).join('.')}-${getTimeStamp()}.cfg`;
 					try {
 						await promisify(copyFile)(
@@ -391,7 +392,7 @@ export const regenerateKlipperConfiguration = async (fromFile?: string, returnAs
 		throw new Error("Couldn't find printer settings file: " + filePath);
 	}
 	const config = await loadSerializedConfig(filePath);
-	return await generateKlipperConfiguration(config, false, false, returnAsText, noWrite);
+	return await generateKlipperConfiguration(config, noWrite, noWrite, returnAsText, noWrite);
 };
 
 const getToolhead = async <

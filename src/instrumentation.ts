@@ -4,6 +4,8 @@ export const register = async () => {
 		const { existsSync, mkdirSync } = await import('fs');
 		const { regenerateKlipperConfiguration } = await import('./server/routers/printer');
 		const { serverSchema } = await import('./env/schema.mjs');
+		const { symlinkKlippyExtensions } = await import('./server/routers/klippy-extensions');
+		const { symlinkMoonrakerExtensions } = await import('./server/routers/moonraker-extensions');
 		const dns = await import('dns');
 		dns.setDefaultResultOrder('ipv4first');
 		const logger = getLogger();
@@ -14,8 +16,24 @@ export const register = async () => {
 			logger.info('Creating RatOS data directory..');
 			mkdirSync(dataDir);
 		}
-		logger.info('Regenerating last known config...');
 		try {
+			logger.info('Symlinking klippy extensions...');
+			logger.info(await symlinkKlippyExtensions());
+		} catch (e) {
+			if (e instanceof Error) {
+				logger.error(`Failed to symlink klippy extensions: ${e.message}`);
+			}
+		}
+		try {
+			logger.info('Symlinking moonraker extensions...');
+			logger.info(await symlinkMoonrakerExtensions());
+		} catch (e) {
+			if (e instanceof Error) {
+				logger.error(`Failed to symlink moonraker extensions: ${e.message}`);
+			}
+		}
+		try {
+			logger.info('Regenerating last known config...');
 			await regenerateKlipperConfiguration();
 			logger.info('Config regenerated!');
 		} catch (e) {

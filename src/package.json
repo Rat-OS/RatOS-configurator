@@ -7,6 +7,9 @@
 		"start": "next start",
 		"lint": "next lint",
 		"test": "vitest",
+		"test:config": "vitest configuration",
+		"test:ci": "vitest  --reporter=verbose --reporter=json",
+		"test:ci:config": "vitest configuration  --reporter=verbose --reporter=json",
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
@@ -21,6 +24,7 @@
 		"@trpc/next": "10.44.1",
 		"@trpc/react-query": "10.44.1",
 		"@trpc/server": "10.44.1",
+		"@vitest/coverage-v8": "^1.1.1",
 		"axios": "^0.26.1",
 		"babel-plugin-superjson-next": "^0.4.5",
 		"class-variance-authority": "^0.7.0",
