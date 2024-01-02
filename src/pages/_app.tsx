@@ -5,11 +5,8 @@ import { Disclosure } from '@headlessui/react';
 import { Bars3Icon, XMarkIcon, MoonIcon, SunIcon } from '@heroicons/react/24/outline';
 import Image from 'next/image';
 import getConfig from 'next/config';
-import { withTRPC } from '@trpc/next';
-import { AppRouter } from './api/trpc/[trpc]';
 import { Inter } from 'next/font/google';
 import { useEffect, useState } from 'react';
-import { httpBatchLink } from '@trpc/client';
 import { trpc } from '../utils/trpc';
 
 function classNames(...classes: string[]) {

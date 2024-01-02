@@ -1,5 +1,5 @@
 import { Switch } from '@headlessui/react';
-import React, { useState } from 'react';
+import React from 'react';
 import { twJoin, twMerge } from 'tailwind-merge';
 
 interface ToggleProps {
