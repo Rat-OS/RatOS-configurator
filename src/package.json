@@ -8,8 +8,8 @@
 		"lint": "next lint",
 		"test": "vitest",
 		"test:config": "vitest configuration",
-		"test:ci": "vitest  --reporter=verbose --reporter=json",
-		"test:ci:config": "vitest configuration  --reporter=verbose --reporter=json",
+		"test:ci": "vitest  --reporter=verbose --reporter=junit",
+		"test:ci:config": "vitest configuration  --reporter=verbose --reporter=junit",
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
