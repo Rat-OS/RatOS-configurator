@@ -147,10 +147,14 @@ export const constructKlipperConfigUtils = async (config: PrinterConfiguration) 
 				0,
 			);
 			return lines.map((l) => {
-				const commentIndex = l.indexOf(commentChar);
-				if (commentIndex === -1 || l.trim().startsWith('#')) {
-					// No comment or comment is at the start of the line, no need to format.
+				let commentIndex = l.indexOf(commentChar);
+				const lastCommentIndex = l.lastIndexOf(commentChar);
+				if ((commentIndex === -1 || l.trim().startsWith(commentChar)) && lastCommentIndex === commentIndex) {
+					// No comment or comment is only at the start of the line, no need to format.
 					return l;
+				}
+				if (commentIndex !== lastCommentIndex) {
+					commentIndex = l.indexOf(commentChar, commentIndex + 1);
 				}
 				const comment = l.substring(commentIndex);
 				const line = l.substring(0, commentIndex).trim();
@@ -326,6 +330,57 @@ export const constructKlipperConfigHelpers = async (
 				if (probeToolhead?.probe != null) {
 					section.push(`endstop_pin: probe:z_virtual_endstop`);
 				}
+			}
+			return section.join('\n') + '\n';
+		},
+		renderUserStepperSections(customization: {
+			[key in PrinterAxis]?: { directionInverted: boolean; rotationComment?: string; additionalLines?: string[] };
+		}) {
+			return this.formatInlineComments(
+				config.rails
+					.map((r) => {
+						const { directionInverted, rotationComment, additionalLines } = customization[r.axis] ?? {};
+						return this.renderUserStepperSection(r.axis, directionInverted, rotationComment, additionalLines);
+					})
+					.join('\n')
+					.split('\n'),
+			).join('\n');
+		},
+		renderUserStepperSection(
+			axis: PrinterAxis | Zod.infer<typeof PrinterRail>,
+			directionInverted: boolean = false,
+			rotationComment?: string,
+			additionalLines?: string[],
+		) {
+			const rail = typeof axis === 'object' ? axis : config.rails.find((r) => r.axis === axis);
+			if (rail == null) {
+				throw new Error(`No rail found for axis ${axis}`);
+			}
+			const dirComment = directionInverted
+				? `# Add ! in front of pin name to reverse the direction of ${utils.getAxisStepperName(rail.axis)}`
+				: `# Remove ! in front of pin name to reverse the direction of ${utils.getAxisStepperName(rail.axis)}`;
+			const section = [
+				`[${utils.getAxisStepperName(rail.axis)}]`,
+				`dir_pin: ${directionInverted ? '!' : ''}${utils.getAxisPin(rail.axis, '_dir_pin')} ${dirComment}`,
+			];
+			if (rail.axis === PrinterAxis.extruder || rail.axis === PrinterAxis.extruder1) {
+				const toolhead = utils.getToolhead(rail.axis);
+				if (toolhead == null) {
+					throw new Error(`No toolhead found for ${rail.axis}`);
+				}
+				section.push(
+					`rotation_distance: ${getExtruderRotationDistance(toolhead.getExtruder().id)} # ${
+						toolhead.getExtruder().title
+					} default`,
+				);
+			} else {
+				section.push(`rotation_distance: ${rail.rotationDistance} ${rotationComment ? `# ${rotationComment}` : ''}`);
+			}
+			if ([PrinterAxis.x, PrinterAxis.y, PrinterAxis.z].includes(rail.axis)) {
+				section.push(`homing_speed: ${rail.homingSpeed}`);
+			}
+			if (additionalLines != null) {
+				section.push(...additionalLines);
 			}
 			return section.join('\n') + '\n';
 		},
