@@ -1,7 +1,7 @@
 import { XCircleIcon } from '@heroicons/react/24/solid';
 import React from 'react';
 import { twMerge } from 'tailwind-merge';
-import { Banner } from './common/banner';
+import { Banner } from './banner';
 
 export type ErrorMessageProps = React.PropsWithChildren<{
 	title?: string;

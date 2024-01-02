@@ -3,7 +3,7 @@ import { useToolheadConfiguration } from '../../hooks/useToolheadConfiguration';
 import { stringToTitleObject } from '../../utils/serialization';
 import { ToolOrAxis } from '../../zods/toolhead';
 import { DropdownWithPrinterQuery } from '../forms/dropdown';
-import { Spinner } from '../spinner';
+import { Spinner } from '../common/spinner';
 import { twMerge } from 'tailwind-merge';
 import { badgeBackgroundColorStyle, badgeBorderColorStyle, badgeTextColorStyle } from '../common/badge';
 

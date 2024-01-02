@@ -1,13 +1,13 @@
 'use client';
 import React, { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { CardSelector, SelectableCard } from '../card-selector';
-import { Spinner } from '../spinner';
-import { ErrorMessage } from '../error-message';
+import { Spinner } from '../common/spinner';
+import { ErrorMessage } from '../common/error-message';
 import { WifiIcon } from '@heroicons/react/24/solid';
 import { TextInput } from '../forms/text-input';
 import { StepNavButton, StepNavButtons } from '../step-nav-buttons';
 import type { Network } from '../../server/helpers/iw';
-import { Modal } from '../modal';
+import { Modal } from '../common/modal';
 import { parseSignal } from '../../helpers/wifi';
 import { StepScreenProps } from '../../hooks/useSteps';
 import { trpc } from '../../helpers/trpc';

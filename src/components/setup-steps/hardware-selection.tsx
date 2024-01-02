@@ -3,13 +3,13 @@ import { StepNavButtons } from '../step-nav-buttons';
 import { StepScreenProps } from '../../hooks/useSteps';
 import { DropdownWithPrinterQuery } from '../forms/dropdown';
 import { usePrinterConfiguration } from '../../hooks/usePrinterConfiguration';
-import { ErrorMessage } from '../error-message';
+import { ErrorMessage } from '../common/error-message';
 import { Toggle } from '../forms/toggle';
 import { PrinterRailSettings } from './printer-rail-settings';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { deserializePrinterRailDefinition } from '../../utils/serialization';
 import { ToolheadSettings } from './toolhead-settings';
-import { Spinner } from '../spinner';
+import { Spinner } from '../common/spinner';
 
 export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 	const [animate] = useAutoAnimate();

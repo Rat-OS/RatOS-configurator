@@ -1,7 +1,7 @@
 import { CheckIcon } from '@heroicons/react/24/solid';
 import React from 'react';
 import { twJoin } from 'tailwind-merge';
-import { StepScreen, StepScreenProps } from '../hooks/useSteps';
+import { StepScreen, StepScreenProps } from '../../hooks/useSteps';
 
 interface StepProps {
 	steps: StepScreen[];
@@ -29,7 +29,7 @@ export const VerticalSteps: React.FC<StepProps> = (props) => {
 										/>
 									) : null}
 									<span
-										className="group relative flex items-start cursor-pointer"
+										className="group relative flex cursor-pointer items-start"
 										onClick={() => props.setCurrentStepIndex(stepIdx)}
 									>
 										<span className="flex h-9 items-center">

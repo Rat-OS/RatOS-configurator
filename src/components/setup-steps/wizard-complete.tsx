@@ -8,19 +8,19 @@ import {
 } from '../../hooks/usePrinterConfiguration';
 import { StepScreen, StepScreenProps, useSteps } from '../../hooks/useSteps';
 import { StepNavButtons } from '../step-nav-buttons';
-import { ErrorMessage } from '../error-message';
+import { ErrorMessage } from '../common/error-message';
 import { trpc } from '../../helpers/trpc';
 import { Badge } from '../common/badge';
-import { InfoMessage } from '../info-message';
+import { InfoMessage } from '../common/info-message';
 import { WarningMessage } from '../warning-message';
-import { Button } from '../button';
+import { Button } from '../common/button';
 import { useRecoilCallback } from 'recoil';
 import { xEndstopOptions } from '../../data/endstops';
 import { PrinterConfiguration } from '../../zods/printer-configuration';
 import { PrinterAxis } from '../../zods/motion';
 import { ToolOrAxis } from '../../zods/toolhead';
 import { useToolheadConfiguration } from '../../hooks/useToolheadConfiguration';
-import { Spinner } from '../spinner';
+import { Spinner } from '../common/spinner';
 
 const CompletionSteps: StepScreen[] = [
 	{

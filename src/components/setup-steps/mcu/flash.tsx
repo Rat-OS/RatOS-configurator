@@ -1,10 +1,10 @@
 import { CheckCircleIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { Fragment, useCallback, useState } from 'react';
 import { trpc } from '../../../helpers/trpc';
-import { Button } from '../../button';
+import { Button } from '../../common/button';
 import { MutationStatus } from '../../common/mutation-status';
-import { InfoMessage } from '../../info-message';
-import { Spinner } from '../../spinner';
+import { InfoMessage } from '../../common/info-message';
+import { Spinner } from '../../common/spinner';
 import { StepNavButton, StepNavButtons } from '../../step-nav-buttons';
 import { WarningMessage } from '../../warning-message';
 import { MCUStepScreenProps } from '../mcu-preparation';

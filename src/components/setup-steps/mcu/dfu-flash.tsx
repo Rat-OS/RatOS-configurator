@@ -1,12 +1,11 @@
 /* eslint-disable @next/next/no-img-element */
-import Image from 'next/image';
 import React, { useCallback, useState } from 'react';
 import { ToolheadHelper } from '../../../helpers/toolhead';
 import { trpc } from '../../../helpers/trpc';
 import { Board } from '../../../zods/boards';
-import { Button } from '../../button';
-import { ErrorMessage } from '../../error-message';
-import { InfoMessage } from '../../info-message';
+import { Button } from '../../common/button';
+import { ErrorMessage } from '../../common/error-message';
+import { InfoMessage } from '../../common/info-message';
 
 interface DFUFlashProps {
 	board: Board;
