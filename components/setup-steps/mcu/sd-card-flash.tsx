@@ -10,14 +10,16 @@ import { ArrowDownTrayIcon, PlayIcon } from '@heroicons/react/24/solid';
 import React, { useState } from 'react';
 import { useMutation } from 'react-query';
 import { trpc } from '../../../helpers/trpc';
-import { Button } from '../../button';
-import { Modal } from '../../modal';
-import { Spinner } from '../../spinner';
+import { Button } from '../../common/button';
+import { Modal } from '../../common/modal';
+import { Spinner } from '../../common/spinner';
 import { useMoonraker } from '../../../hooks/useMoonraker';
 import { Board } from '../../../zods/boards';
+import { ToolheadHelper } from '../../../helpers/toolhead';
 
 interface SDCardFlashingProps {
 	board: Board;
+	toolhead?: ToolheadHelper<any> | null;
 	onSuccess?: () => void;
 }
 
@@ -61,7 +63,11 @@ export const SDCardFlashing: React.FC<SDCardFlashingProps> = (props) => {
 
 			<Button
 				color="brand"
-				onClick={isFirmwareReady ? undefined : () => compile.mutate({ boardPath: props.board.path })}
+				onClick={
+					isFirmwareReady
+						? undefined
+						: () => compile.mutate({ boardPath: props.board.path, toolhead: props.toolhead?.serialize() })
+				}
 				className="w-52 justify-center"
 				disabled={compile.isLoading && !isFirmwareReady}
 				href={isFirmwareReady ? '/api/download-firmware?boardPath=' + encodeURIComponent(props.board.path) : undefined}

@@ -1,9 +1,9 @@
 import type { NextPage } from 'next';
 import Head from 'next/head';
 import React from 'react';
-import { isConnectedToWifi } from '../helpers/wpa-cli';
+import { isConnectedToWifi } from '../server/helpers/wpa-cli';
 import { Wizard } from '../app/wizard';
-import { getWirelessInterface } from '../helpers/iw';
+import { getWirelessInterface } from '../server/helpers/iw';
 
 export async function getServerSideProps() {
 	return {

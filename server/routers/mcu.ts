@@ -1,24 +1,43 @@
 import { z } from 'zod';
-import fs from 'fs';
+import fs, { readFileSync } from 'fs';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { TRPCError } from '@trpc/server';
 import { getScriptRoot } from '../../helpers/util';
-import { runSudoScript } from '../../helpers/run-script';
-import { AutoFlashableBoard, Board, BoardWithDetectionStatus } from '../../zods/boards';
+import { runSudoScript } from '../helpers/run-script';
+import { AutoFlashableBoard, Board, BoardWithDetectionStatus, ToolboardWithDetectionStatus } from '../../zods/boards';
 import { middleware, publicProcedure, router } from '../trpc';
 import path from 'path';
 import { glob } from 'glob';
+import { SerializedToolheadConfiguration } from '../../zods/toolhead';
+import { getBoardSerialPath, getBoardChipId } from '../../helpers/board';
+import { copyFile } from 'fs/promises';
+import { serverSchema } from '../../env/schema.mjs';
+import { replaceInFileByLine } from '../helpers/file-operations';
+import { ToolheadHelper } from '../../helpers/toolhead';
+import { deserializeToolheadConfiguration } from './printer';
+import { ServerCache } from '../helpers/cache';
 
 const inputSchema = z.object({
-	boardPath: z.string(),
+	boardPath: z.string().optional(),
+	toolhead: SerializedToolheadConfiguration.optional(),
 });
 
+const detect = (board: Board, toolhead?: ToolheadHelper<any>) => {
+	return fs.existsSync(getBoardSerialPath(board, toolhead));
+};
+
 export const getBoards = async () => {
-	const defs = await promisify(exec)(`ls ${process.env.RATOS_CONFIGURATION_PATH}/boards/*/board-definition.json`);
-	return z.array(BoardWithDetectionStatus).parse(
-		defs.stdout
-			.split('\n')
+	const cached = ServerCache.get('boards');
+	if (cached != null && cached.length > 0) {
+		return cached.map((b) => {
+			b.detected = detect(b);
+			return b;
+		});
+	}
+	const defs = await glob(`${process.env.RATOS_CONFIGURATION_PATH}/boards/*/board-definition.json`);
+	const boards = z.array(BoardWithDetectionStatus).parse(
+		defs
 			.map((f) =>
 				f.trim() === ''
 					? null
@@ -27,19 +46,53 @@ export const getBoards = async () => {
 							path: f.replace('board-definition.json', ''),
 					  },
 			)
-			.filter((b) => b != null)
+			.filter(Boolean)
 			.map((b) => {
-				b!.detected = b != null && 'serialPath' in b && b.serialPath != null ? fs.existsSync(b.serialPath) : false;
+				b.detected = detect(b);
 				return b;
 			}),
 	);
+	ServerCache.set('boards', boards);
+	return boards;
+};
+
+export const updateDetectionStatus = async (boards: BoardWithDetectionStatus[], toolhead?: ToolheadHelper<any>) => {
+	return boards.map((b) => {
+		b.detected = detect(b, toolhead);
+		return b;
+	});
+};
+
+export const compileFirmware = async (board: Board, toolhead?: ToolheadHelper<any>, skipCompile?: boolean) => {
+	let compileResult = null;
+	const environment = serverSchema.parse(process.env);
+	try {
+		const dest = path.join(environment.KLIPPER_DIR, '.config');
+		await copyFile(path.join(environment.RATOS_CONFIGURATION_PATH, 'boards', board.id, 'firmware.config'), dest);
+		await replaceInFileByLine(
+			dest,
+			/CONFIG_USB_SERIAL_NUMBER=".+"/g,
+			`CONFIG_USB_SERIAL_NUMBER="${getBoardChipId(board, toolhead)}"`,
+		);
+		if (skipCompile) {
+			return readFileSync(dest).toString();
+		}
+		compileResult = await runSudoScript('klipper-compile.sh');
+	} catch (e) {
+		const message = e instanceof Error ? e.message : e;
+		throw new TRPCError({
+			code: 'INTERNAL_SERVER_ERROR',
+			message: `Could not compile firmware for ${board.name}: ${compileResult?.stdout ?? message}'}`,
+			cause: e,
+		});
+	}
 };
 
 export const getBoardsWithoutHost = (boards: BoardWithDetectionStatus[]) => {
 	return boards.filter((b) => !b.isHost);
 };
 export const getToolboards = (boards: BoardWithDetectionStatus[]) => {
-	return boards.filter((b) => b.isToolboard);
+	return z.array(ToolboardWithDetectionStatus).parse(boards.filter((b) => b.isToolboard));
 };
 export const getBoardsWithDriverCount = (boards: BoardWithDetectionStatus[], driverCount: number) => {
 	return boards.filter(
@@ -48,9 +101,15 @@ export const getBoardsWithDriverCount = (boards: BoardWithDetectionStatus[], dri
 };
 const mcuMiddleware = middleware(async ({ ctx, next, meta, rawInput }) => {
 	let boards = null;
+	let toolhead = null;
 	const parsedInput = inputSchema.safeParse(rawInput);
 	try {
 		boards = await getBoards();
+		toolhead =
+			parsedInput.success && parsedInput.data.toolhead
+				? new ToolheadHelper(await deserializeToolheadConfiguration(parsedInput.data.toolhead, {}, boards))
+				: undefined;
+		boards = await updateDetectionStatus(boards, toolhead);
 		if (meta?.includeHost !== true) {
 			boards = getBoardsWithoutHost(boards);
 		}
@@ -62,13 +121,14 @@ const mcuMiddleware = middleware(async ({ ctx, next, meta, rawInput }) => {
 		});
 	}
 	let board = null;
-	if (meta?.boardRequired && !parsedInput.success) {
+
+	if (meta?.boardRequired && (!parsedInput.success || parsedInput.data.boardPath == null)) {
 		throw new TRPCError({
 			code: 'PRECONDITION_FAILED',
 			message: `boardPath parameter missing.`,
 		});
 	}
-	if (parsedInput.success) {
+	if (parsedInput.success && parsedInput.data.boardPath != null) {
 		board = boards.find((b) => b.path === parsedInput.data.boardPath);
 		if (board == null) {
 			throw new TRPCError({
@@ -82,6 +142,7 @@ const mcuMiddleware = middleware(async ({ ctx, next, meta, rawInput }) => {
 			...ctx,
 			boards: boards,
 			board: board,
+			toolhead: toolhead,
 		},
 	});
 });
@@ -121,13 +182,10 @@ export const mcuRouter = router({
 					message: `No supported board exists for the path ${input.boardPath}`,
 				});
 			}
-			if (fs.existsSync(ctx.board.serialPath)) {
-				return true;
-			}
-			return false;
+			return detect(ctx.board);
 		}),
 	unidentifiedDevices: mcuProcedure.query(async ({ ctx }) => {
-		const detected = ctx.boards.filter((b) => b.detected).map((b) => fs.realpathSync(b.serialPath));
+		const detected = ctx.boards.filter((b) => b.detected).map((b) => fs.realpathSync(getBoardSerialPath(b)));
 		return (await glob('/dev/serial/by-id/usb-Klipper*')).filter((d) => !detected.includes(fs.realpathSync(d)));
 	}),
 	boardVersion: mcuProcedure
@@ -162,9 +220,10 @@ export const mcuRouter = router({
 			try {
 				await fetch('http://127.0.0.1:7125/machine/services/stop?service=klipper', { method: 'POST' });
 				version = await promisify(exec)(
-					`${path.join(process.env.KLIPPER_ENV, 'bin', 'python')} ${path.join(scriptRoot, 'check-version.py')} ${
-						ctx.board.serialPath
-					}`,
+					`${path.join(process.env.KLIPPER_ENV, 'bin', 'python')} ${path.join(
+						scriptRoot,
+						'check-version.py',
+					)} ${getBoardSerialPath(ctx.board, ctx.toolhead)}`,
 					{ env: { KLIPPER_DIR: process.env.KLIPPER_DIR, NODE_ENV: process.env.NODE_ENV } },
 				);
 			} catch (e) {
@@ -185,6 +244,7 @@ export const mcuRouter = router({
 		.input(
 			z.object({
 				boardPath: z.string(),
+				toolhead: SerializedToolheadConfiguration.optional(),
 			}),
 		)
 		.meta({
@@ -197,34 +257,7 @@ export const mcuRouter = router({
 					message: `No supported board exists for the path ${input.boardPath}`,
 				});
 			}
-			let compileResult = null;
-			const firmwareBinary = path.resolve(
-				'/home/pi/printer_data/config/firmware_binaries',
-				ctx.board.firmwareBinaryName,
-			);
-			try {
-				if (fs.existsSync(firmwareBinary)) {
-					fs.rmSync(firmwareBinary);
-				}
-				const compileScript = path.join(
-					ctx.board.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''),
-					ctx.board.compileScript,
-				);
-				compileResult = await runSudoScript('board-script.sh', compileScript);
-			} catch (e) {
-				const message = e instanceof Error ? e.message : e;
-				throw new TRPCError({
-					code: 'INTERNAL_SERVER_ERROR',
-					message: `Could not compile firmware for ${ctx.board.name}: ${message}'}`,
-					cause: e,
-				});
-			}
-			if (!fs.existsSync(firmwareBinary)) {
-				throw new TRPCError({
-					code: 'INTERNAL_SERVER_ERROR',
-					message: `Could not compile firmware for ${ctx.board.name}: ${compileResult.stdout}`,
-				});
-			}
+			await compileFirmware(ctx.board, ctx.toolhead);
 			return 'success';
 		}),
 	flashAllConnected: mcuProcedure
@@ -234,7 +267,7 @@ export const mcuRouter = router({
 		})
 		.mutation(async ({ ctx }) => {
 			const connectedBoards = ctx.boards.filter(
-				(b) => fs.existsSync(b.serialPath) && b.flashScript && b.compileScript && b.disableAutoFlash !== true,
+				(b) => detect(b) && b.flashScript && b.compileScript && b.disableAutoFlash !== true,
 			);
 			const flashResults: {
 				board: Board;
@@ -284,6 +317,7 @@ export const mcuRouter = router({
 			z.object({
 				boardPath: z.string(),
 				flashPath: z.string().optional(),
+				toolhead: SerializedToolheadConfiguration.optional(),
 			}),
 		)
 		.meta({
@@ -343,7 +377,9 @@ export const mcuRouter = router({
 					ctx.board.flashScript,
 				);
 				flashResult = input.flashPath
-					? await runSudoScript('flash-path.sh', ctx.board.serialPath, input.flashPath)
+					? await runSudoScript('flash-path.sh', getBoardSerialPath(ctx.board, ctx.toolhead), input.flashPath)
+					: ctx.toolhead
+					? await runSudoScript('flash-path.sh', getBoardSerialPath(ctx.board, ctx.toolhead))
 					: await runSudoScript('board-script.sh', flashScript);
 			} catch (e) {
 				const message = e instanceof Error ? e.message : e;
@@ -353,7 +389,7 @@ export const mcuRouter = router({
 					cause: e,
 				});
 			}
-			if (!fs.existsSync(ctx.board.serialPath)) {
+			if (!detect(ctx.board, ctx.toolhead)) {
 				throw new TRPCError({
 					code: 'INTERNAL_SERVER_ERROR',
 					message: `Could not flash firmware to ${ctx.board.name}, device did not show up at expected path.: \n\n ${flashResult.stdout}`,
@@ -421,7 +457,7 @@ export const mcuRouter = router({
 				});
 			}
 			try {
-				const flashResult = await runSudoScript('dfu-flash.sh', ctx.board.serialPath);
+				const flashResult = await runSudoScript('dfu-flash.sh', getBoardSerialPath(ctx.board, ctx.toolhead));
 				return flashResult.stdout;
 			} catch (e) {
 				throw new TRPCError({

@@ -1,4 +1,4 @@
-import { KlipperConfigHelper } from '../helpers/klipper-config';
+import { KlipperConfigHelper } from '../server/helpers/klipper-config';
 import { PrinterConfiguration } from '../zods/printer-configuration';
 
 export const template = (config: PrinterConfiguration, helper: KlipperConfigHelper) => `
@@ -54,6 +54,13 @@ ${helper.renderEndstopSection()}
 #############################################################################################################
 ${helper.renderFans()}
 
+#############################################################################################################
+### MACRO CONFIGURATION
+#############################################################################################################
+
+# Macro variable overrides
+[gcode_macro RatOS]
+${helper.renderMacroVariableOverrides()}
 `;
 
 export const initialPrinterCfg = (config: PrinterConfiguration, helper: KlipperConfigHelper) => `
@@ -77,6 +84,7 @@ variable_start_print_park_z_height: 50
 variable_end_print_park_in: "back"
 variable_pause_print_park_in: "front"
 variable_macro_travel_speed: ${helper.getMacroTravelSpeed()}
+${helper.renderMacroVariableOverrides()}
 
 #############################################################################################################
 ### USER OVERRIDES & CUSTOM CONFIGURATION
@@ -98,34 +106,40 @@ variable_macro_travel_speed: ${helper.getMacroTravelSpeed()}
 ### Read more about klipper here: https://www.klipper3d.org/Overview.html
 #############################################################################################################
 
-[stepper_x]
-dir_pin: !x_dir_pin # Remove ! in front of pin name to reverse X stepper direction
 
-[stepper_y]
-dir_pin: y_dir_pin # Add ! in front of pin name to reverse Y stepper direction
-
-[stepper_z]
-dir_pin: !z0_dir_pin # Remove ! in front of pin name to reverse Z stepper direction
-
-[stepper_z1]
-dir_pin: !z1_dir_pin # Remove ! in front of pin name to reverse Z stepper direction
-
-[stepper_z2]
-dir_pin: !z2_dir_pin # Remove ! in front of pin name to reverse Z stepper direction
-
-[stepper_z3]
-dir_pin: !z3_dir_pin # Remove ! in front of pin name to reverse Z stepper direction
-
-# Pressure Advance
-# Check https://www.klipper3d.org/Pressure_Advance.html for pressure advance tuning.
-[extruder]
-# pressure_advance: 0.05
-dir_pin: !${helper.getExtruderPinPrefix()}e_dir_pin # Remove ! in front of pin name to reverse extruder direction
-nozzle_diameter: 0.4 # Remember to change this if you change nozzle diameter.
-control: pid
-pid_kp: 21.673
-pid_ki: 1.338
-pid_kd: 87.776
+${helper.renderUserStepperSections({
+	x: {
+		directionInverted: true,
+		rotationComment: '40 for 20 tooth 2GT pulleys, 32 for 16 tooth 2GT pulleys',
+	},
+	y: {
+		directionInverted: false,
+		rotationComment: '40 for 20 tooth 2GT pulleys, 32 for 16 tooth 2GT pulleys',
+	},
+	z: {
+		directionInverted: true,
+	},
+	z1: {
+		directionInverted: true,
+	},
+	z2: {
+		directionInverted: true,
+	},
+	z3: {
+		directionInverted: true,
+	},
+	extruder: {
+		directionInverted: true,
+		additionalLines: [
+			'#pressure_advance: 0.05 # Check https://www.klipper3d.org/Pressure_Advance.html for pressure advance tuning.',
+			'nozzle_diameter: 0.4 # Remember to change this if you change nozzle diameter.',
+			'control: pid',
+			'pid_kp: 21.673',
+			'pid_ki: 1.338',
+			'pid_kd: 87.776',
+		],
+	},
+})}
 
 [heater_bed]
 control: pid

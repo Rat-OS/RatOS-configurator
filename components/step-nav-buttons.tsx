@@ -1,8 +1,8 @@
 'use client';
 import { PlayIcon, ForwardIcon } from '@heroicons/react/24/outline';
 import React from 'react';
-import { Button } from './button';
-import { Spinner } from './spinner';
+import { Button } from './common/button';
+import { Spinner } from './common/spinner';
 
 export interface StepNavButton {
 	label?: string;

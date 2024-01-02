@@ -1,4 +1,4 @@
-import { KlipperConfigUtils } from '../../helpers/klipper-config';
+import { KlipperConfigUtils } from '../../server/helpers/klipper-config';
 import { PrinterAxis } from '../../zods/motion';
 import { PrinterConfiguration } from '../../zods/printer-configuration';
 export const sensorlessXTemplate = (config: PrinterConfiguration, utils: KlipperConfigUtils) => `

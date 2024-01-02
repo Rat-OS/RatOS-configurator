@@ -1,30 +1,33 @@
 import { CpuChipIcon } from '@heroicons/react/24/outline';
 import React, { useCallback, useMemo } from 'react';
-import { useRecoilState } from 'recoil';
 import { trpc } from '../../helpers/trpc';
-import { ControlboardState, ToolboardState, usePrinterConfiguration } from '../../hooks/usePrinterConfiguration';
+import { usePrinterConfiguration } from '../../hooks/usePrinterConfiguration';
 import { StepScreen, StepScreenProps, useSteps } from '../../hooks/useSteps';
 import { Board, BoardWithDetectionStatus, Toolboard } from '../../zods/boards';
 import { SelectableCard } from '../card-selector';
 import { QueryStatus } from '../common/query-status';
 import { MCUFlashing } from './mcu/flash';
 import { MCUPicker } from './mcu/pick';
-import { Printer } from '../../zods/printer';
+import { PrinterDefinitionWithResolvedToolheads } from '../../zods/printer';
+import { ToolOrAxis } from '../../zods/toolhead';
+import { ToolheadHelper } from '../../helpers/toolhead';
+import { useToolheadConfiguration } from '../../hooks/useToolheadConfiguration';
 
 export interface SelectableBoard extends SelectableCard {
 	board: BoardWithDetectionStatus;
 }
 
 interface ExtraStepProps {
-	selectedBoard: SelectableBoard | null;
+	selectedControlboard: SelectableBoard | null;
+	selectedToolboard: SelectableBoard | null;
 	cards: SelectableBoard[];
 	setSelectedBoard: (board: SelectableBoard | null) => void;
-	selectedPrinter: Printer | null;
-	toolboards?: boolean;
+	selectedPrinter: PrinterDefinitionWithResolvedToolheads | null;
+	toolhead: ToolheadHelper<any> | null;
 }
 
 interface ExtraProps {
-	toolboards?: boolean;
+	toolOrAxis?: ToolOrAxis;
 }
 
 export type MCUStepScreenProps = StepScreenProps & ExtraStepProps;
@@ -32,21 +35,25 @@ export type MCUStepScreenProps = StepScreenProps & ExtraStepProps;
 const MCUSteps: StepScreen<ExtraStepProps>[] = [
 	{
 		id: '01',
-		name: (screenProps) => (screenProps.toolboards ? 'Toolboard' : 'Control board'),
+		name: (screenProps) =>
+			`Pick ${screenProps.toolhead ? `${screenProps.toolhead.getToolCommand()} Toolboard` : 'Control board'}`,
 		description: (screenProps) =>
-			`Pick your ${
-				screenProps.toolboards
-					? 'toolboard.'
-					: 'control board. If you also use a toolboard, you can add that in a later step.'
+			`Pick the ${
+				screenProps.toolhead
+					? `toolboard for ${screenProps.toolhead.getDescription()}.`
+					: 'control board. Toolboard(s) can be added in a later step.'
 			}`,
 		href: '#',
 		renderScreen: (screenProps) => <MCUPicker {...screenProps} key={screenProps.key} />,
 	},
 	{
 		id: '02',
-		name: (screenProps) => `${screenProps.toolboards ? 'Toolboard' : 'Control board'} flashing`,
+		name: (screenProps) =>
+			`${screenProps.toolhead ? `${screenProps.toolhead.getToolCommand()} Toolboard` : 'Control board'} flashing`,
 		description: (screenProps) =>
-			`Make sure your ${screenProps.toolboards ? 'toolboard' : 'control board'} is flashed and up to date`,
+			`Make sure your ${
+				screenProps.toolhead ? `toolboard for ${screenProps.toolhead.getDescription()}` : 'control board'
+			} is flashed and up to date.`,
 		href: '#',
 		renderScreen: (screenProps) => <MCUFlashing {...screenProps} key={screenProps.key} />,
 	},
@@ -55,23 +62,25 @@ const MCUSteps: StepScreen<ExtraStepProps>[] = [
 export const MCUPreparation: React.FC<StepScreenProps & ExtraProps> = (props) => {
 	const {
 		selectedPrinter,
-		selectedToolboard: _toolBoard,
 		selectedBoard: _controlBoard,
 		setSelectedBoard: _setControlboard,
-		setSelectedToolboard: _setToolboard,
 	} = usePrinterConfiguration();
+	const { toolhead, setToolhead } = useToolheadConfiguration(props.toolOrAxis, false);
 
 	const boardsQuery = trpc.mcu.boards.useQuery({
-        			boardFilters: {
-        				toolboard: props.toolboards,
-        				driverCountRequired: props.toolboards ? undefined : selectedPrinter?.driverCountRequired,
-        			},
-        		});
+		boardFilters: {
+			toolboard: toolhead != null,
+			driverCountRequired:
+				toolhead != null
+					? undefined
+					: (selectedPrinter?.driverCountRequired ?? 0) - (selectedPrinter?.defaults.toolheads.length ?? 1),
+		},
+	});
 
 	const cards: SelectableBoard[] = useMemo(() => {
 		if (boardsQuery.isError || boardsQuery.data == null) return [];
 		return boardsQuery.data.map((b) => ({
-			id: b.serialPath,
+			id: b.id,
 			board: b,
 			name: `${b.manufacturer} ${b.name}`,
 			details: (
@@ -84,27 +93,30 @@ export const MCUPreparation: React.FC<StepScreenProps & ExtraProps> = (props) =>
 		}));
 	}, [boardsQuery.isError, boardsQuery.data]);
 
-	const selectedBoard =
-		cards.find((c) => c.board.serialPath == (props.toolboards ? _toolBoard?.serialPath : _controlBoard?.serialPath)) ??
-		null;
+	const selectedControlboard = cards.find((c) => c.board.id == _controlBoard?.id) ?? null;
+	const selectedToolboard = cards.find((c) => c.board.id == toolhead?.getToolboard()?.id) ?? null;
 
 	const setSelectedBoard = useCallback(
 		(newBoard: SelectableBoard | null) => {
-			if (props.toolboards) {
-				_setToolboard(newBoard == null ? null : Toolboard.parse(newBoard.board));
+			if (toolhead) {
+				setToolhead({
+					...toolhead.getConfig(),
+					toolboard: newBoard == null ? null : Toolboard.parse(newBoard.board),
+				});
 			} else if (newBoard != null) {
 				_setControlboard(Board.parse(newBoard.board));
 			}
 		},
-		[_setControlboard, _setToolboard, props.toolboards],
+		[_setControlboard, setToolhead, toolhead],
 	);
 
 	const extraScreenProps: ExtraStepProps = {
-		selectedBoard: selectedBoard ?? null,
+		selectedControlboard,
+		selectedToolboard,
 		cards,
 		setSelectedBoard,
 		selectedPrinter,
-		toolboards: props.toolboards,
+		toolhead,
 	};
 	const { currentStep, screenProps } = useSteps<ExtraStepProps>({
 		steps: MCUSteps,

@@ -1,30 +1,26 @@
-import React, { Fragment, useCallback, useMemo } from 'react';
+import React, { Fragment, useCallback } from 'react';
 import { CardSelector } from '../../card-selector';
 import { StepNavButton, StepNavButtons } from '../../step-nav-buttons';
 import { MCUStepScreenProps, SelectableBoard } from '../mcu-preparation';
-import { Button } from '../../button';
+import { Button } from '../../common/button';
 import { Badge } from '../../common/badge';
 
-interface MCUPickProps extends MCUStepScreenProps {
-	toolboards?: boolean;
-}
+export const MCUPicker: React.FC<MCUStepScreenProps> = (props) => {
+	const { toolhead, skipSteps, setSelectedBoard, selectedControlboard, selectedToolboard, selectedPrinter, cards } =
+		props;
 
-export const MCUPicker: React.FC<MCUPickProps> = (props) => {
-	const { toolboards, skipSteps, setSelectedBoard, selectedPrinter, cards } = props;
-
+	// TODO: This should be determined on the basis of defined board drivers / heaters (check pins), whether it has an extruderless config and how many drivers and which axes the printer requires.
 	const isToolboardRequired = useCallback(
-		(selectedBoard: SelectableBoard) => {
-			return (
-				selectedPrinter != null && !toolboards && selectedBoard.board.driverCount < selectedPrinter.driverCountRequired
-			);
+		(controlboard: SelectableBoard | null = selectedControlboard) => {
+			return selectedPrinter != null && (controlboard?.board.driverCount ?? 0) < selectedPrinter.driverCountRequired;
 		},
-		[selectedPrinter, toolboards],
+		[selectedControlboard, selectedPrinter],
 	);
 
 	let content = (
 		<CardSelector<SelectableBoard>
 			cards={cards}
-			value={props.selectedBoard}
+			value={toolhead ? selectedToolboard : selectedControlboard}
 			onSelect={setSelectedBoard}
 			title={(card) => (
 				<>
@@ -34,7 +30,7 @@ export const MCUPicker: React.FC<MCUPickProps> = (props) => {
 							Detected
 						</Badge>
 					)}
-					{isToolboardRequired(card) && (
+					{!toolhead && isToolboardRequired(card) && (
 						<Badge color="yellow" size="sm">
 							Toolboard required
 						</Badge>
@@ -54,21 +50,21 @@ export const MCUPicker: React.FC<MCUPickProps> = (props) => {
 	};
 
 	const skip = useCallback(() => {
-		if (toolboards && skipSteps) {
+		if (toolhead && skipSteps) {
 			setSelectedBoard(null);
 			skipSteps?.();
 		}
-	}, [toolboards, skipSteps, setSelectedBoard]);
+	}, [toolhead, skipSteps, setSelectedBoard]);
 
 	let skipButton: StepNavButton | undefined =
-		toolboards && props.selectedBoard && !isToolboardRequired(props.selectedBoard) && props.skipSteps
+		toolhead && !isToolboardRequired() && props.skipSteps
 			? {
 					onClick: skip,
 					label: 'Skip',
 			  }
 			: undefined;
 
-	if (props.selectedBoard != null) {
+	if ((toolhead && selectedToolboard != null) || (!toolhead && selectedControlboard != null)) {
 		rightButton = {
 			onClick: props.nextScreen,
 			label: 'Next',
@@ -84,7 +80,7 @@ export const MCUPicker: React.FC<MCUPickProps> = (props) => {
 						<h3 className="text-lg font-medium leading-6 text-zinc-900 dark:text-zinc-100">{props.name}</h3>
 						<p className="mt-2 max-w-4xl text-sm text-zinc-500 dark:text-zinc-400">{props.description}</p>
 					</div>
-					{toolboards && props.selectedBoard != null && (
+					{toolhead && selectedToolboard != null && (
 						<div>
 							<Button onClick={() => setSelectedBoard(null)} color="danger">
 								Clear selection

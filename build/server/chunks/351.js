@@ -63,6 +63,13 @@ ${helper.renderEndstopSection("RatOS/printers/prusa-mk3s/sensorless-homing-tmc21
 #############################################################################################################
 ${helper.renderFans()}
 
+#############################################################################################################
+### MACRO CONFIGURATION
+#############################################################################################################
+
+# Macro variable overrides
+[gcode_macro RatOS]
+${helper.renderMacroVariableOverrides()}
 `;
 const initialPrinterCfg = (config, helper)=>`
 #############################################################################################################
@@ -89,6 +96,7 @@ variable_filament_unload_speed: 5
 variable_filament_load_length: 100
 variable_filament_load_speed: 10
 variable_macro_travel_speed: ${helper.getMacroTravelSpeed()}
+${helper.renderMacroVariableOverrides()}
 
 #############################################################################################################
 ### LCD
@@ -129,25 +137,34 @@ variable_macro_travel_speed: ${helper.getMacroTravelSpeed()}
 ### Read more about klipper here: https://www.klipper3d.org/Overview.html
 #############################################################################################################
 
-[stepper_x]
-dir_pin: !x_dir_pin # Add ! in front of pin name to reverse X stepper direction
 
-[stepper_y]
-dir_pin: y_dir_pin # Add ! in front of pin name to reverse Y stepper direction
-
-[stepper_z]
-dir_pin: !z0_dir_pin # Remove ! in front of pin name to reverse Z stepper direction
-
-# Pressure Advance
-# Check https://www.klipper3d.org/Pressure_Advance.html for pressure advance tuning.
-[extruder]
-pressure_advance: 0.04 #this is a reference value, should be calibrated on each printer
-dir_pin: ${helper.getExtruderPinPrefix()}e_dir_pin # Remove ! in front of pin name to reverse extruder direction
-nozzle_diameter: 0.4 # Remember to change this if you change nozzle diameter.
-control: pid
-pid_Kp: 16.13
-pid_Ki: 1.1625
-pid_Kd: 56.23
+${helper.renderUserStepperSections({
+        x: {
+            directionInverted: true,
+            additionalLines: [
+                "position_endstop: 0 # Adjust this to your setup",
+                "position_min: 0 # Adjust this to your setup",
+                "position_max: 180 # Adjust this to your setup"
+            ]
+        },
+        y: {
+            directionInverted: false
+        },
+        z: {
+            directionInverted: true
+        },
+        extruder: {
+            directionInverted: false,
+            additionalLines: [
+                "pressure_advance: 0.04 # Check https://www.klipper3d.org/Pressure_Advance.html for pressure advance tuning.",
+                "nozzle_diameter: 0.4 # Remember to change this if you change nozzle diameter.",
+                "control: pid",
+                "pid_kp: 16.13",
+                "pid_ki: 1.1625",
+                "pid_kd: 56.23"
+            ]
+        }
+    })}
 
 [heater_bed]
 control: pid

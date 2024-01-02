@@ -90,6 +90,8 @@ verify_users
 install_hooks
 ensure_sudo_command_whitelisting
 ensure_pnpm_installation
+install_logrotation
 pnpm_install
 disable_telemetry
 install_service
+install_udev_rule "$USER"

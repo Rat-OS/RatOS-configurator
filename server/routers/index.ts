@@ -5,11 +5,12 @@ import { wifiRouter } from './wifi';
 import { mcuRouter } from './mcu';
 import { promisify } from 'util';
 import { exec } from 'child_process';
-import { getWirelessInterface } from '../../helpers/iw';
+import { getWirelessInterface } from '../helpers/iw';
 import { klippyExtensionsRouter } from './klippy-extensions';
 import { moonrakerExtensionsRouter } from './moonraker-extensions';
 import { printerRouter } from './printer';
 import { publicProcedure, router } from '../trpc';
+import { ServerCache } from '../helpers/cache';
 
 export const appRouter = router({
 	version: publicProcedure.query(async () => {
@@ -37,6 +38,12 @@ export const appRouter = router({
 				({ stdout }) => stdout.match(/inet\s(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/)?.[1],
 			)) ?? 'Unknown IP'
 		);
+	}),
+	resetCache: publicProcedure.mutation(async () => {
+		ServerCache.flushAll();
+		return {
+			result: 'success',
+		};
 	}),
 	kill: publicProcedure.query(async () => {
 		process.exit();

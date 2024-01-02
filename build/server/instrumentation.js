@@ -14,35 +14,49 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 const register = async ()=>{
     if (true) {
+        const { getLogger  } = await Promise.all(/* import() */[__webpack_require__.e(876), __webpack_require__.e(799)]).then(__webpack_require__.bind(__webpack_require__, 799));
         const { existsSync , mkdirSync  } = await Promise.resolve(/* import() */).then(__webpack_require__.t.bind(__webpack_require__, 7147, 23));
-        const { regenerateKlipperConfiguration  } = await Promise.all(/* import() */[__webpack_require__.e(323), __webpack_require__.e(680), __webpack_require__.e(876), __webpack_require__.e(945), __webpack_require__.e(312), __webpack_require__.e(96), __webpack_require__.e(103)]).then(__webpack_require__.bind(__webpack_require__, 3103));
+        const { regenerateKlipperConfiguration  } = await Promise.all(/* import() */[__webpack_require__.e(323), __webpack_require__.e(876), __webpack_require__.e(680), __webpack_require__.e(815), __webpack_require__.e(945), __webpack_require__.e(377), __webpack_require__.e(96), __webpack_require__.e(390)]).then(__webpack_require__.bind(__webpack_require__, 6390));
         const { serverSchema  } = await __webpack_require__.e(/* import() */ 876).then(__webpack_require__.bind(__webpack_require__, 6165));
+        const { symlinkKlippyExtensions  } = await Promise.all(/* import() */[__webpack_require__.e(876), __webpack_require__.e(815), __webpack_require__.e(4)]).then(__webpack_require__.bind(__webpack_require__, 4004));
+        const { symlinkMoonrakerExtensions  } = await Promise.all(/* import() */[__webpack_require__.e(876), __webpack_require__.e(815), __webpack_require__.e(974)]).then(__webpack_require__.bind(__webpack_require__, 7974));
         const dns = await Promise.resolve(/* import() */).then(__webpack_require__.t.bind(__webpack_require__, 9523, 23));
         dns.setDefaultResultOrder("ipv4first");
+        const logger = getLogger();
         const environment = serverSchema.parse(process.env);
         const dataDir = environment.RATOS_DATA_DIR;
         if (!existsSync(dataDir)) {
-            console.log("Creating RatOS data directory..");
+            logger.info("Creating RatOS data directory..");
             mkdirSync(dataDir);
         }
-        console.log("Regenerating last known config");
         try {
-            await regenerateKlipperConfiguration();
+            logger.info("Symlinking klippy extensions...");
+            logger.info(await symlinkKlippyExtensions());
         } catch (e) {
             if (e instanceof Error) {
-                console.log("Failed to regenerate config: ", e.message);
+                logger.error(`Failed to symlink klippy extensions: ${e.message}`);
+            }
+        }
+        try {
+            logger.info("Symlinking moonraker extensions...");
+            logger.info(await symlinkMoonrakerExtensions());
+        } catch (e) {
+            if (e instanceof Error) {
+                logger.error(`Failed to symlink moonraker extensions: ${e.message}`);
+            }
+        }
+        try {
+            logger.info("Regenerating last known config...");
+            await regenerateKlipperConfiguration();
+            logger.info("Config regenerated!");
+        } catch (e) {
+            if (e instanceof Error) {
+                logger.error(`Failed to regenerate config: ${e.message}`);
             }
         }
     }
 };
 
-
-/***/ }),
-
-/***/ 7856:
-/***/ ((module) => {
-
-module.exports = require("@recoiljs/refine");
 
 /***/ }),
 
@@ -102,6 +116,20 @@ module.exports = require("next/dist/compiled/react");
 
 /***/ }),
 
+/***/ 6786:
+/***/ ((module) => {
+
+module.exports = require("next/dist/compiled/react/jsx-runtime");
+
+/***/ }),
+
+/***/ 4580:
+/***/ ((module) => {
+
+module.exports = require("node-cache");
+
+/***/ }),
+
 /***/ 8545:
 /***/ ((module) => {
 
@@ -113,6 +141,13 @@ module.exports = require("pino");
 /***/ ((module) => {
 
 module.exports = require("pino-pretty");
+
+/***/ }),
+
+/***/ 7636:
+/***/ ((module) => {
+
+module.exports = require("react-use-websocket");
 
 /***/ }),
 
@@ -165,10 +200,31 @@ module.exports = require("fs");
 
 /***/ }),
 
+/***/ 3292:
+/***/ ((module) => {
+
+module.exports = require("fs/promises");
+
+/***/ }),
+
+/***/ 2037:
+/***/ ((module) => {
+
+module.exports = require("os");
+
+/***/ }),
+
 /***/ 1017:
 /***/ ((module) => {
 
 module.exports = require("path");
+
+/***/ }),
+
+/***/ 4521:
+/***/ ((module) => {
+
+module.exports = require("readline");
 
 /***/ }),
 

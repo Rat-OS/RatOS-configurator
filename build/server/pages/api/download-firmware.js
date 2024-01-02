@@ -5,10 +5,45 @@ exports.id = 951;
 exports.ids = [951];
 exports.modules = {
 
+/***/ 8910:
+/***/ ((module) => {
+
+module.exports = require("@tanstack/react-query");
+
+/***/ }),
+
+/***/ 5337:
+/***/ ((module) => {
+
+module.exports = require("@trpc/client");
+
+/***/ }),
+
+/***/ 7785:
+/***/ ((module) => {
+
+module.exports = require("@trpc/react-query");
+
+/***/ }),
+
+/***/ 6185:
+/***/ ((module) => {
+
+module.exports = require("@trpc/react-query/shared");
+
+/***/ }),
+
 /***/ 2756:
 /***/ ((module) => {
 
 module.exports = require("@trpc/server");
+
+/***/ }),
+
+/***/ 8161:
+/***/ ((module) => {
+
+module.exports = require("@trpc/server/shared");
 
 /***/ }),
 
@@ -19,10 +54,73 @@ module.exports = require("glob");
 
 /***/ }),
 
+/***/ 8038:
+/***/ ((module) => {
+
+module.exports = require("next/dist/compiled/react");
+
+/***/ }),
+
+/***/ 6786:
+/***/ ((module) => {
+
+module.exports = require("next/dist/compiled/react/jsx-runtime");
+
+/***/ }),
+
+/***/ 4580:
+/***/ ((module) => {
+
+module.exports = require("node-cache");
+
+/***/ }),
+
+/***/ 8545:
+/***/ ((module) => {
+
+module.exports = require("pino");
+
+/***/ }),
+
+/***/ 3009:
+/***/ ((module) => {
+
+module.exports = require("pino-pretty");
+
+/***/ }),
+
+/***/ 7636:
+/***/ ((module) => {
+
+module.exports = require("react-use-websocket");
+
+/***/ }),
+
+/***/ 9755:
+/***/ ((module) => {
+
+module.exports = require("recoil");
+
+/***/ }),
+
+/***/ 4101:
+/***/ ((module) => {
+
+module.exports = require("recoil-sync");
+
+/***/ }),
+
 /***/ 8316:
 /***/ ((module) => {
 
 module.exports = require("zod");
+
+/***/ }),
+
+/***/ 5140:
+/***/ ((module) => {
+
+module.exports = require("zod-refine");
 
 /***/ }),
 
@@ -37,6 +135,13 @@ module.exports = require("child_process");
 /***/ ((module) => {
 
 module.exports = require("fs");
+
+/***/ }),
+
+/***/ 3292:
+/***/ ((module) => {
+
+module.exports = require("fs/promises");
 
 /***/ }),
 
@@ -61,10 +166,24 @@ module.exports = require("node:stream");
 
 /***/ }),
 
+/***/ 2037:
+/***/ ((module) => {
+
+module.exports = require("os");
+
+/***/ }),
+
 /***/ 1017:
 /***/ ((module) => {
 
 module.exports = require("path");
+
+/***/ }),
+
+/***/ 4521:
+/***/ ((module) => {
+
+module.exports = require("readline");
 
 /***/ }),
 
@@ -150,7 +269,7 @@ async function handler(req, res) {
 var __webpack_require__ = require("../../webpack-api-runtime.js");
 __webpack_require__.C(exports);
 var __webpack_exec__ = (moduleId) => (__webpack_require__(__webpack_require__.s = moduleId))
-var __webpack_exports__ = __webpack_require__.X(0, [379,459], () => (__webpack_exec__(1200)));
+var __webpack_exports__ = __webpack_require__.X(0, [736,379,123], () => (__webpack_exec__(1200)));
 module.exports = __webpack_exports__;
 
 })();

@@ -9,12 +9,30 @@ export const PinMap = z.object({
 	x_uart_pin: z.string().optional(),
 	x_diag_pin: z.string().optional(),
 	x_endstop_pin: z.string().optional(),
+	x1_step_pin: z.string().optional(),
+	x1_dir_pin: z.string().optional(),
+	x1_enable_pin: z.string().optional(),
+	x1_uart_pin: z.string().optional(),
+	x1_diag_pin: z.string().optional(),
+	x1_endstop_pin: z.string().optional(),
+	dual_carriage_step_pin: z.string().optional(),
+	dual_carriage_dir_pin: z.string().optional(),
+	dual_carriage_enable_pin: z.string().optional(),
+	dual_carriage_uart_pin: z.string().optional(),
+	dual_carriage_diag_pin: z.string().optional(),
+	dual_carriage_endstop_pin: z.string().optional(),
 	y_step_pin: z.string().optional(),
 	y_dir_pin: z.string().optional(),
 	y_enable_pin: z.string().optional(),
 	y_uart_pin: z.string().optional(),
 	y_diag_pin: z.string().optional(),
 	y_endstop_pin: z.string().optional(),
+	y1_step_pin: z.string().optional(),
+	y1_dir_pin: z.string().optional(),
+	y1_enable_pin: z.string().optional(),
+	y1_uart_pin: z.string().optional(),
+	y1_diag_pin: z.string().optional(),
+	y1_endstop_pin: z.string().optional(),
 	z0_step_pin: z.string().optional(),
 	z0_dir_pin: z.string().optional(),
 	z0_enable_pin: z.string().optional(),
@@ -169,9 +187,10 @@ export const ToolboardPinMap = PinMap.extend({
 );
 
 export const Board = z.object({
-	serialPath: z.string(),
+	id: z.string(),
 	isToolboard: z.boolean().optional(),
 	isHost: z.boolean().optional(),
+	serialPath: z.string().optional(),
 	name: z.string(),
 	manufacturer: z.string(),
 	firmwareBinaryName: z.string(),
@@ -187,6 +206,7 @@ export const Board = z.object({
 	fourPinFanConnectorCount: z.number().optional(),
 	driverVoltages: Voltage.array().default([24]),
 	hasMcuTempSensor: z.boolean().default(true),
+	alternativePT1000Resistor: z.number().optional(),
 	outputPins: z
 		.array(
 			z.object({
@@ -251,7 +271,8 @@ export const BoardWithDetectionStatus = Board.extend({
 });
 
 export const AutoFlashableBoard = z.object({
-	serialPath: z.string(),
+	id: z.string(),
+	mcuType: z.string(),
 	isToolboard: z.boolean().optional(),
 	compileScript: z.string(),
 	flashScript: z.string(),
@@ -263,12 +284,20 @@ export const Toolboard = Board.extend({
 	isHost: z.literal(false).optional(),
 	integratedDrivers: Board.shape.integratedDrivers.and(
 		z.object({
-			extruder: z.string(),
+			[PrinterAxis.extruder]: z.string(),
 		}),
 	),
+});
+
+export const ToolboardWithDetectionStatus = Toolboard.extend({
+	detected: z.boolean(),
 });
 
 export type Board = z.infer<typeof Board>;
 export type BoardWithDetectionStatus = z.infer<typeof BoardWithDetectionStatus>;
 export type Toolboard = z.infer<typeof Toolboard>;
+export type ToolboardWithDetectionStatus = z.infer<typeof ToolboardWithDetectionStatus>;
 export type AutoFlashableBoard = z.infer<typeof AutoFlashableBoard>;
+export type ToolboardPinMap = z.infer<typeof ToolboardPinMap>;
+export type ControlBoardPinMap = z.infer<typeof ControlBoardPinMap>;
+export type ExtruderlessControlBoardPinMap = z.infer<typeof ExtruderlessControlBoardPinMap>;

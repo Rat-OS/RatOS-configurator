@@ -1,10 +1,12 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { existsSync, mkdirSync, readFileSync, symlinkSync, writeFileSync } from 'fs';
-import { getLogger } from '../../helpers/logger';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { getLogger } from '../helpers/logger';
 import { publicProcedure, router } from '../trpc';
 import path from 'path';
 import { serverSchema } from '../../env/schema.mjs';
+import { searchFileByLine } from '../helpers/file-operations';
+import { appendFile, symlink } from 'fs/promises';
 
 const moonrakerExtension = z.object({
 	fileName: z.string(),
@@ -38,6 +40,64 @@ const saveExtensions = (extensions: z.infer<typeof moonrakerExtensions>) => {
 	writeFileSync(moonrakerExtensionsFile, JSON.stringify(extensions));
 };
 
+export const symlinkMoonrakerExtensions = async () => {
+	const environment = serverSchema.parse(process.env);
+	const currentExtensions = getExtensions();
+	if (currentExtensions.length === 0) {
+		return 'No extensions registered, nothing to do.';
+	}
+	let cleanedUpExtensions: z.infer<typeof moonrakerExtensions> = [];
+	const gitExcludePath = path.resolve(path.join(environment.MOONRAKER_DIR, '.git', 'info', 'exclude'));
+	const symlinkResults = await Promise.all(
+		currentExtensions.map(async (ext) => {
+			if (existsSync(path.resolve(path.join(ext.path, ext.fileName)))) {
+				cleanedUpExtensions.push(ext);
+				const excludeLine = new RegExp(`^moonraker/components/${ext.fileName}$`);
+				const isExcluded = await searchFileByLine(gitExcludePath, excludeLine);
+				const symlinkExists = existsSync(
+					path.resolve(path.join(environment.MOONRAKER_DIR, 'moonraker/components', ext.fileName)),
+				);
+				try {
+					if (symlinkExists === false) {
+						await symlink(
+							path.resolve(path.join(ext.path, ext.fileName)),
+							path.resolve(path.join(environment.MOONRAKER_DIR, 'moonraker/components', ext.fileName)),
+						);
+					}
+					if (isExcluded === false) {
+						await appendFile(gitExcludePath, `moonraker/components/${ext.fileName}\n`);
+					}
+					return {
+						result: 'success',
+						message: symlinkExists
+							? `Symlink for "${ext.fileName}" already exists. Skipping.`
+							: `Symlink for "${ext.fileName}" created`,
+					};
+				} catch (e) {
+					return {
+						result: 'error',
+						message: `Failed to create symlink for "${ext.fileName}"`,
+					};
+				}
+			} else {
+				return {
+					result: 'error',
+					message: `Extension file "${ext.fileName}" does not exist in ${ext.path} and has been removed from the list of registered extensions`,
+				};
+			}
+		}),
+	);
+	if (cleanedUpExtensions.length !== currentExtensions.length) {
+		saveExtensions(cleanedUpExtensions);
+	}
+	const successCount = symlinkResults.filter((r) => r.result === 'success').length;
+	let report = `Symlinked ${successCount}/${symlinkResults.length} extension(s): \n`;
+	symlinkResults.forEach((r) => {
+		report += `${r.message} \n`;
+	});
+	return report;
+};
+
 export const moonrakerExtensionsRouter = router({
 	register: publicProcedure.input(z.object({ json: moonrakerExtension })).mutation(async ({ input }) => {
 		const currentExtensions = getExtensions();
@@ -65,54 +125,7 @@ export const moonrakerExtensionsRouter = router({
 		saveExtensions(currentExtensions);
 		return true;
 	}),
-	symlink: publicProcedure.mutation(async () => {
-		const environment = serverSchema.parse(process.env);
-		const currentExtensions = getExtensions();
-		if (currentExtensions.length === 0) {
-			return 'No extensions registered, nothing to do.';
-		}
-		let cleanedUpExtensions: z.infer<typeof moonrakerExtensions> = [];
-		const symlinkResults = currentExtensions.map((ext) => {
-			if (existsSync(path.resolve(path.join(ext.path, ext.fileName)))) {
-				cleanedUpExtensions.push(ext);
-				if (existsSync(path.resolve(path.join(environment.MOONRAKER_DIR, 'moonraker/components', ext.fileName)))) {
-					return {
-						result: 'success',
-						message: `Symlink for "${ext.fileName}" already exists`,
-					};
-				}
-				try {
-					symlinkSync(
-						path.resolve(path.join(ext.path, ext.fileName)),
-						path.resolve(path.join(environment.MOONRAKER_DIR, 'moonraker/components', ext.fileName)),
-					);
-					return {
-						result: 'success',
-						message: `Symlink for "${ext.fileName}" created`,
-					};
-				} catch (e) {
-					return {
-						result: 'error',
-						message: `Failed to create symlink for "${ext.fileName}"`,
-					};
-				}
-			} else {
-				return {
-					result: 'error',
-					message: `Extension file "${ext.fileName}" does not exist in ${ext.path} and has been removed from the list of registered extensions`,
-				};
-			}
-		});
-		if (cleanedUpExtensions.length !== currentExtensions.length) {
-			saveExtensions(cleanedUpExtensions);
-		}
-		const successCount = symlinkResults.filter((r) => r.result === 'success').length;
-		let report = `Symlinked ${successCount}/${symlinkResults.length} extension(s): \n`;
-		symlinkResults.forEach((r) => {
-			report += `${r.message} \n`;
-		});
-		return report;
-	}),
+	symlink: publicProcedure.mutation(symlinkMoonrakerExtensions),
 	list: publicProcedure.output(moonrakerExtensions).query(async () => {
 		return getExtensions();
 	}),

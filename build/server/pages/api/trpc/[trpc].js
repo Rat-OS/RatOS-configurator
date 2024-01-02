@@ -5,13 +5,6 @@ exports.id = 829;
 exports.ids = [829];
 exports.modules = {
 
-/***/ 7856:
-/***/ ((module) => {
-
-module.exports = require("@recoiljs/refine");
-
-/***/ }),
-
 /***/ 8910:
 /***/ ((module) => {
 
@@ -68,6 +61,20 @@ module.exports = require("next/dist/compiled/react");
 
 /***/ }),
 
+/***/ 6786:
+/***/ ((module) => {
+
+module.exports = require("next/dist/compiled/react/jsx-runtime");
+
+/***/ }),
+
+/***/ 4580:
+/***/ ((module) => {
+
+module.exports = require("node-cache");
+
+/***/ }),
+
 /***/ 8545:
 /***/ ((module) => {
 
@@ -79,6 +86,13 @@ module.exports = require("pino");
 /***/ ((module) => {
 
 module.exports = require("pino-pretty");
+
+/***/ }),
+
+/***/ 7636:
+/***/ ((module) => {
+
+module.exports = require("react-use-websocket");
 
 /***/ }),
 
@@ -124,10 +138,31 @@ module.exports = require("fs");
 
 /***/ }),
 
+/***/ 3292:
+/***/ ((module) => {
+
+module.exports = require("fs/promises");
+
+/***/ }),
+
+/***/ 2037:
+/***/ ((module) => {
+
+module.exports = require("os");
+
+/***/ }),
+
 /***/ 1017:
 /***/ ((module) => {
 
 module.exports = require("path");
+
+/***/ }),
+
+/***/ 4521:
+/***/ ((module) => {
+
+module.exports = require("readline");
 
 /***/ }),
 
@@ -138,7 +173,7 @@ module.exports = require("util");
 
 /***/ }),
 
-/***/ 7096:
+/***/ 5991:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 // ESM COMPAT FLAG
@@ -149,8 +184,8 @@ __webpack_require__.d(__webpack_exports__, {
   "default": () => (/* binding */ _trpc_)
 });
 
-// EXTERNAL MODULE: ./helpers/logger.ts
-var logger = __webpack_require__(6477);
+// EXTERNAL MODULE: ./server/helpers/logger.ts
+var logger = __webpack_require__(4279);
 // EXTERNAL MODULE: external "fs"
 var external_fs_ = __webpack_require__(7147);
 // EXTERNAL MODULE: external "util"
@@ -159,7 +194,7 @@ var external_util_ = __webpack_require__(3837);
 var external_child_process_ = __webpack_require__(2081);
 // EXTERNAL MODULE: ./helpers/util.ts
 var util = __webpack_require__(2633);
-;// CONCATENATED MODULE: ./helpers/iw.ts
+;// CONCATENATED MODULE: ./server/helpers/iw.ts
 /*
  * Copyright (c) 2015 Christopher M. Baker
  *
@@ -323,8 +358,8 @@ const joinInput = external_zod_.z.object({
     country: external_zod_.z.string().optional()
 });
 
-// EXTERNAL MODULE: ./helpers/run-script.ts
-var run_script = __webpack_require__(399);
+// EXTERNAL MODULE: ./server/helpers/run-script.ts
+var run_script = __webpack_require__(1554);
 // EXTERNAL MODULE: ./server/trpc.ts
 var trpc = __webpack_require__(8199);
 // EXTERNAL MODULE: external "@trpc/server"
@@ -411,7 +446,13 @@ const wifiRouter = (0,trpc/* router */.Nd)({
 var mcu = __webpack_require__(3459);
 // EXTERNAL MODULE: ./env/schema.mjs
 var schema = __webpack_require__(954);
+// EXTERNAL MODULE: ./server/helpers/file-operations.ts
+var file_operations = __webpack_require__(8736);
+// EXTERNAL MODULE: external "fs/promises"
+var promises_ = __webpack_require__(3292);
 ;// CONCATENATED MODULE: ./server/routers/klippy-extensions.ts
+
+
 
 
 
@@ -423,7 +464,8 @@ const klippyExtension = external_zod_.z.object({
     fileName: external_zod_.z.string(),
     path: external_zod_.z.string(),
     extensionName: external_zod_.z.string(),
-    errorIfExists: external_zod_.z.boolean().optional()
+    errorIfExists: external_zod_.z.boolean().optional(),
+    isKinematics: external_zod_.z.boolean().optional()
 });
 const klippyExtensions = external_zod_.z.array(klippyExtension);
 const getExtensions = ()=>{
@@ -448,6 +490,62 @@ const saveExtensions = (extensions)=>{
     }
     (0,external_fs_.writeFileSync)(klippyExtensionsFile, JSON.stringify(extensions));
 };
+const symlinkKlippyExtensions = async ()=>{
+    const environment = schema/* serverSchema.parse */.Rz.parse(process.env);
+    const currentExtensions = getExtensions();
+    if (currentExtensions.length === 0) {
+        return "No extensions registered, nothing to do.";
+    }
+    let cleanedUpExtensions = [];
+    const gitExcludePath = external_path_default().resolve(external_path_default().join(environment.KLIPPER_DIR, ".git", "info", "exclude"));
+    const symlinkResults = await Promise.all(currentExtensions.map(async (ext)=>{
+        if ((0,external_fs_.existsSync)(external_path_default().resolve(external_path_default().join(ext.path, ext.fileName)))) {
+            const relativeDestination = ext.isKinematics ? `klippy/kinematics/${ext.fileName}` : `klippy/extras/${ext.fileName}`;
+            const destination = external_path_default().resolve(external_path_default().join(environment.KLIPPER_DIR, relativeDestination));
+            cleanedUpExtensions.push(ext);
+            const excludeLine = new RegExp(`^${relativeDestination}$`);
+            const isExcluded = await (0,file_operations/* searchFileByLine */.M)(gitExcludePath, excludeLine);
+            const symlinkExists = (0,external_fs_.existsSync)(external_path_default().resolve(external_path_default().join(environment.MOONRAKER_DIR, "moonraker/components", ext.fileName)));
+            if ((0,external_fs_.existsSync)(destination)) {
+                return {
+                    result: "success",
+                    message: `Symlink for "${ext.fileName}" already exists`
+                };
+            }
+            try {
+                if (symlinkExists === false) {
+                    await (0,promises_.symlink)(external_path_default().resolve(external_path_default().join(ext.path, ext.fileName)), destination);
+                }
+                if (isExcluded === false) {
+                    await (0,promises_.appendFile)(gitExcludePath, `${relativeDestination}\n`);
+                }
+                return {
+                    result: "success",
+                    message: symlinkExists ? `Symlink for "${ext.fileName}" already exists. Skipping.` : `Symlink for "${ext.fileName}" created`
+                };
+            } catch (e) {
+                return {
+                    result: "error",
+                    message: `Failed to create symlink for "${ext.fileName}"`
+                };
+            }
+        } else {
+            return {
+                result: "error",
+                message: `Extension file "${ext.fileName}" does not exist in ${ext.path} and has been removed from the list of registered extensions`
+            };
+        }
+    }));
+    if (cleanedUpExtensions.length !== currentExtensions.length) {
+        saveExtensions(cleanedUpExtensions);
+    }
+    const successCount = symlinkResults.filter((r)=>r.result === "success").length;
+    let report = `Symlinked ${successCount}/${symlinkResults.length} extension(s): \n`;
+    symlinkResults.forEach((r)=>{
+        report += `${r.message} \n`;
+    });
+    return report;
+};
 const klippyExtensionsRouter = (0,trpc/* router */.Nd)({
     register: trpc/* publicProcedure.input */.$y.input(external_zod_.z.object({
         json: klippyExtension
@@ -462,9 +560,9 @@ const klippyExtensionsRouter = (0,trpc/* router */.Nd)({
                 code: "PRECONDITION_FAILED"
             });
         }
-        if (currentExtensions.find((ext)=>ext.fileName === fileName)) {
+        if (currentExtensions.find((ext)=>ext.fileName === fileName && !!ext.isKinematics === !!input.json.isKinematics)) {
             if (errorIfExists === true) {
-                (0,logger/* getLogger */.j)().error(`An extension with the fileName "${fileName}" is already registered`);
+                (0,logger/* getLogger */.j)().error(`${input.json.isKinematics ? "A kinematic" : "An"} extension with the fileName "${fileName}" is already registered`);
                 throw new server_.TRPCError({
                     message: `An extension with the fileName "${fileName}" is already registered`,
                     code: "PRECONDITION_FAILED"
@@ -477,57 +575,15 @@ const klippyExtensionsRouter = (0,trpc/* router */.Nd)({
         saveExtensions(currentExtensions);
         return true;
     }),
-    symlink: trpc/* publicProcedure.mutation */.$y.mutation(async ()=>{
-        const environment = schema/* serverSchema.parse */.Rz.parse(process.env);
-        const currentExtensions = getExtensions();
-        if (currentExtensions.length === 0) {
-            return "No extensions registered, nothing to do.";
-        }
-        let cleanedUpExtensions = [];
-        const symlinkResults = currentExtensions.map((ext)=>{
-            if ((0,external_fs_.existsSync)(external_path_default().resolve(external_path_default().join(ext.path, ext.fileName)))) {
-                cleanedUpExtensions.push(ext);
-                if ((0,external_fs_.existsSync)(external_path_default().resolve(external_path_default().join(environment.KLIPPER_DIR, "klippy/extras", ext.fileName)))) {
-                    return {
-                        result: "success",
-                        message: `Symlink for "${ext.fileName}" already exists`
-                    };
-                }
-                try {
-                    (0,external_fs_.symlinkSync)(external_path_default().resolve(external_path_default().join(ext.path, ext.fileName)), external_path_default().resolve(external_path_default().join(environment.KLIPPER_DIR, "klippy/extras", ext.fileName)));
-                    return {
-                        result: "success",
-                        message: `Symlink for "${ext.fileName}" created`
-                    };
-                } catch (e) {
-                    return {
-                        result: "error",
-                        message: `Failed to create symlink for "${ext.fileName}"`
-                    };
-                }
-            } else {
-                return {
-                    result: "error",
-                    message: `Extension file "${ext.fileName}" does not exist in ${ext.path} and has been removed from the list of registered extensions`
-                };
-            }
-        });
-        if (cleanedUpExtensions.length !== currentExtensions.length) {
-            saveExtensions(cleanedUpExtensions);
-        }
-        const successCount = symlinkResults.filter((r)=>r.result === "success").length;
-        let report = `Symlinked ${successCount}/${symlinkResults.length} extension(s): \n`;
-        symlinkResults.forEach((r)=>{
-            report += `${r.message} \n`;
-        });
-        return report;
-    }),
+    symlink: trpc/* publicProcedure.mutation */.$y.mutation(symlinkKlippyExtensions),
     list: trpc/* publicProcedure.output */.$y.output(klippyExtensions).query(async ()=>{
         return getExtensions();
     })
 });
 
 ;// CONCATENATED MODULE: ./server/routers/moonraker-extensions.ts
+
+
 
 
 
@@ -564,6 +620,54 @@ const moonraker_extensions_saveExtensions = (extensions)=>{
     }
     (0,external_fs_.writeFileSync)(moonrakerExtensionsFile, JSON.stringify(extensions));
 };
+const symlinkMoonrakerExtensions = async ()=>{
+    const environment = schema/* serverSchema.parse */.Rz.parse(process.env);
+    const currentExtensions = moonraker_extensions_getExtensions();
+    if (currentExtensions.length === 0) {
+        return "No extensions registered, nothing to do.";
+    }
+    let cleanedUpExtensions = [];
+    const gitExcludePath = external_path_default().resolve(external_path_default().join(environment.MOONRAKER_DIR, ".git", "info", "exclude"));
+    const symlinkResults = await Promise.all(currentExtensions.map(async (ext)=>{
+        if ((0,external_fs_.existsSync)(external_path_default().resolve(external_path_default().join(ext.path, ext.fileName)))) {
+            cleanedUpExtensions.push(ext);
+            const excludeLine = new RegExp(`^moonraker/components/${ext.fileName}$`);
+            const isExcluded = await (0,file_operations/* searchFileByLine */.M)(gitExcludePath, excludeLine);
+            const symlinkExists = (0,external_fs_.existsSync)(external_path_default().resolve(external_path_default().join(environment.MOONRAKER_DIR, "moonraker/components", ext.fileName)));
+            try {
+                if (symlinkExists === false) {
+                    await (0,promises_.symlink)(external_path_default().resolve(external_path_default().join(ext.path, ext.fileName)), external_path_default().resolve(external_path_default().join(environment.MOONRAKER_DIR, "moonraker/components", ext.fileName)));
+                }
+                if (isExcluded === false) {
+                    await (0,promises_.appendFile)(gitExcludePath, `moonraker/components/${ext.fileName}\n`);
+                }
+                return {
+                    result: "success",
+                    message: symlinkExists ? `Symlink for "${ext.fileName}" already exists. Skipping.` : `Symlink for "${ext.fileName}" created`
+                };
+            } catch (e) {
+                return {
+                    result: "error",
+                    message: `Failed to create symlink for "${ext.fileName}"`
+                };
+            }
+        } else {
+            return {
+                result: "error",
+                message: `Extension file "${ext.fileName}" does not exist in ${ext.path} and has been removed from the list of registered extensions`
+            };
+        }
+    }));
+    if (cleanedUpExtensions.length !== currentExtensions.length) {
+        moonraker_extensions_saveExtensions(cleanedUpExtensions);
+    }
+    const successCount = symlinkResults.filter((r)=>r.result === "success").length;
+    let report = `Symlinked ${successCount}/${symlinkResults.length} extension(s): \n`;
+    symlinkResults.forEach((r)=>{
+        report += `${r.message} \n`;
+    });
+    return report;
+};
 const moonrakerExtensionsRouter = (0,trpc/* router */.Nd)({
     register: trpc/* publicProcedure.input */.$y.input(external_zod_.z.object({
         json: moonrakerExtension
@@ -593,60 +697,19 @@ const moonrakerExtensionsRouter = (0,trpc/* router */.Nd)({
         moonraker_extensions_saveExtensions(currentExtensions);
         return true;
     }),
-    symlink: trpc/* publicProcedure.mutation */.$y.mutation(async ()=>{
-        const environment = schema/* serverSchema.parse */.Rz.parse(process.env);
-        const currentExtensions = moonraker_extensions_getExtensions();
-        if (currentExtensions.length === 0) {
-            return "No extensions registered, nothing to do.";
-        }
-        let cleanedUpExtensions = [];
-        const symlinkResults = currentExtensions.map((ext)=>{
-            if ((0,external_fs_.existsSync)(external_path_default().resolve(external_path_default().join(ext.path, ext.fileName)))) {
-                cleanedUpExtensions.push(ext);
-                if ((0,external_fs_.existsSync)(external_path_default().resolve(external_path_default().join(environment.MOONRAKER_DIR, "moonraker/components", ext.fileName)))) {
-                    return {
-                        result: "success",
-                        message: `Symlink for "${ext.fileName}" already exists`
-                    };
-                }
-                try {
-                    (0,external_fs_.symlinkSync)(external_path_default().resolve(external_path_default().join(ext.path, ext.fileName)), external_path_default().resolve(external_path_default().join(environment.MOONRAKER_DIR, "moonraker/components", ext.fileName)));
-                    return {
-                        result: "success",
-                        message: `Symlink for "${ext.fileName}" created`
-                    };
-                } catch (e) {
-                    return {
-                        result: "error",
-                        message: `Failed to create symlink for "${ext.fileName}"`
-                    };
-                }
-            } else {
-                return {
-                    result: "error",
-                    message: `Extension file "${ext.fileName}" does not exist in ${ext.path} and has been removed from the list of registered extensions`
-                };
-            }
-        });
-        if (cleanedUpExtensions.length !== currentExtensions.length) {
-            moonraker_extensions_saveExtensions(cleanedUpExtensions);
-        }
-        const successCount = symlinkResults.filter((r)=>r.result === "success").length;
-        let report = `Symlinked ${successCount}/${symlinkResults.length} extension(s): \n`;
-        symlinkResults.forEach((r)=>{
-            report += `${r.message} \n`;
-        });
-        return report;
-    }),
+    symlink: trpc/* publicProcedure.mutation */.$y.mutation(symlinkMoonrakerExtensions),
     list: trpc/* publicProcedure.output */.$y.output(moonrakerExtensions).query(async ()=>{
         return moonraker_extensions_getExtensions();
     })
 });
 
-// EXTERNAL MODULE: ./server/routers/printer.ts + 15 modules
-var printer = __webpack_require__(2922);
+// EXTERNAL MODULE: ./server/routers/printer.ts + 16 modules
+var printer = __webpack_require__(1572);
+// EXTERNAL MODULE: ./server/helpers/cache.ts
+var cache = __webpack_require__(9878);
 ;// CONCATENATED MODULE: ./server/routers/index.ts
 // src/server/router/index.ts
+
 
 
 
@@ -677,6 +740,12 @@ const appRouter = (0,trpc/* router */.Nd)({
         const wirelessInterface = await getWirelessInterface();
         const iface = wirelessInterface == null || wirelessInterface.trim() === "" ? "eth0" : wirelessInterface.trim();
         return await (0,external_util_.promisify)(external_child_process_.exec)(`ip address | grep "${iface}"`).then(({ stdout  })=>stdout.match(/inet\s(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/)?.[1]) ?? "Unknown IP";
+    }),
+    resetCache: trpc/* publicProcedure.mutation */.$y.mutation(async ()=>{
+        cache/* ServerCache.flushAll */.o.flushAll();
+        return {
+            result: "success"
+        };
     }),
     kill: trpc/* publicProcedure.query */.$y.query(async ()=>{
         process.exit();
@@ -723,7 +792,7 @@ const next_namespaceObject = require("@trpc/server/adapters/next");
 var __webpack_require__ = require("../../../webpack-api-runtime.js");
 __webpack_require__.C(exports);
 var __webpack_exec__ = (moduleId) => (__webpack_require__(__webpack_require__.s = moduleId))
-var __webpack_exports__ = __webpack_require__.X(0, [736,459,922], () => (__webpack_exec__(7096)));
+var __webpack_exports__ = __webpack_require__.X(0, [736,123], () => (__webpack_exec__(5991)));
 module.exports = __webpack_exports__;
 
 })();

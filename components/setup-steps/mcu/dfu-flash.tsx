@@ -1,20 +1,21 @@
 /* eslint-disable @next/next/no-img-element */
-import Image from 'next/image';
 import React, { useCallback, useState } from 'react';
+import { ToolheadHelper } from '../../../helpers/toolhead';
 import { trpc } from '../../../helpers/trpc';
 import { Board } from '../../../zods/boards';
-import { Button } from '../../button';
-import { ErrorMessage } from '../../error-message';
-import { InfoMessage } from '../../info-message';
+import { Button } from '../../common/button';
+import { ErrorMessage } from '../../common/error-message';
+import { InfoMessage } from '../../common/info-message';
 
 interface DFUFlashProps {
 	board: Board;
+	toolhead?: ToolheadHelper<any> | null;
 	onSuccess?: () => void;
 }
 
 export const DFUFlash: React.FC<DFUFlashProps> = (props) => {
 	const { data: dfuDetected, error } = trpc.mcu.dfuDetect.useQuery(
-		{ boardPath: props.board.path },
+		{ boardPath: props.board.path, toolhead: props.toolhead?.serialize() },
 		{
 			refetchInterval: 1000,
 		},
@@ -25,12 +26,12 @@ export const DFUFlash: React.FC<DFUFlashProps> = (props) => {
 	const startFlash = useCallback(async () => {
 		setIsFlashing(true);
 		flashDfuMutation.mutate(
-			{ boardPath: props.board.path },
+			{ boardPath: props.board.path, toolhead: props.toolhead?.serialize() },
 			{
 				onSettled: () => setIsFlashing(false),
 			},
 		);
-	}, [flashDfuMutation, props.board.path]);
+	}, [flashDfuMutation, props.board.path, props.toolhead]);
 
 	const dfuError = error ? <ErrorMessage>{error.message}</ErrorMessage> : null;
 

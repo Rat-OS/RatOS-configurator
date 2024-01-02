@@ -2,11 +2,14 @@
 	"name": "ratos-configurator",
 	"private": true,
 	"scripts": {
-		"dev": "next dev",
+		"dev": "next dev | pino-pretty -m message -i time -c",
 		"build": "next build",
 		"start": "next start",
 		"lint": "next lint",
 		"test": "vitest",
+		"test:config": "vitest configuration",
+		"test:ci": "vitest  --reporter=verbose --reporter=junit",
+		"test:ci:config": "vitest configuration  --reporter=verbose --reporter=junit",
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
@@ -21,6 +24,7 @@
 		"@trpc/next": "10.44.1",
 		"@trpc/react-query": "10.44.1",
 		"@trpc/server": "10.44.1",
+		"@vitest/coverage-v8": "^1.1.1",
 		"axios": "^0.26.1",
 		"babel-plugin-superjson-next": "^0.4.5",
 		"class-variance-authority": "^0.7.0",
@@ -29,8 +33,9 @@
 		"glob": "^10.3.10",
 		"next": "13.2.4",
 		"next-superjson-plugin": "^0.5.6",
-		"pino": "^8.8.0",
-		"pino-pretty": "^9.1.1",
+		"node-cache": "^5.1.2",
+		"pino": "^8.17.2",
+		"pino-pretty": "^10.3.1",
 		"react": "18.2.0",
 		"react-dom": "18.2.0",
 		"react-query": "^3.39.3",
@@ -55,13 +60,14 @@
 		"eslint": "^8.7.0",
 		"eslint-config-next": "13.2.4",
 		"eslint-plugin-react-hooks": "^4.6.0",
+		"eslint-plugin-unused-imports": "2",
 		"jest-environment-jsdom": "^29.5.0",
 		"postcss": "^8.4.21",
 		"prettier": "^2.5.1",
 		"prettier-plugin-tailwindcss": "^0.4.1",
 		"tailwind-scrollbar": "^3.0.5",
 		"tailwindcss": "^3.3.5",
-		"typescript": "4.9.5",
-		"vitest": "^0.34.4"
+		"typescript": "5.3.3",
+		"vitest": "^1.1.1"
 	}
 }

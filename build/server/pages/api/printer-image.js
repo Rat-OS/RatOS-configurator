@@ -5,13 +5,6 @@ exports.id = 378;
 exports.ids = [378];
 exports.modules = {
 
-/***/ 7856:
-/***/ ((module) => {
-
-module.exports = require("@recoiljs/refine");
-
-/***/ }),
-
 /***/ 8910:
 /***/ ((module) => {
 
@@ -68,6 +61,20 @@ module.exports = require("next/dist/compiled/react");
 
 /***/ }),
 
+/***/ 6786:
+/***/ ((module) => {
+
+module.exports = require("next/dist/compiled/react/jsx-runtime");
+
+/***/ }),
+
+/***/ 4580:
+/***/ ((module) => {
+
+module.exports = require("node-cache");
+
+/***/ }),
+
 /***/ 8545:
 /***/ ((module) => {
 
@@ -79,6 +86,13 @@ module.exports = require("pino");
 /***/ ((module) => {
 
 module.exports = require("pino-pretty");
+
+/***/ }),
+
+/***/ 7636:
+/***/ ((module) => {
+
+module.exports = require("react-use-websocket");
 
 /***/ }),
 
@@ -124,6 +138,13 @@ module.exports = require("fs");
 
 /***/ }),
 
+/***/ 3292:
+/***/ ((module) => {
+
+module.exports = require("fs/promises");
+
+/***/ }),
+
 /***/ 2254:
 /***/ ((module) => {
 
@@ -145,10 +166,24 @@ module.exports = require("node:stream");
 
 /***/ }),
 
+/***/ 2037:
+/***/ ((module) => {
+
+module.exports = require("os");
+
+/***/ }),
+
 /***/ 1017:
 /***/ ((module) => {
 
 module.exports = require("path");
+
+/***/ }),
+
+/***/ 4521:
+/***/ ((module) => {
+
+module.exports = require("readline");
 
 /***/ }),
 
@@ -173,7 +208,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(1017);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var file_type__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(5379);
-/* harmony import */ var _server_routers_printer__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(2922);
+/* harmony import */ var _server_routers_printer__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(1572);
 
 
 
@@ -240,7 +275,7 @@ async function handler(req, res) {
 var __webpack_require__ = require("../../webpack-api-runtime.js");
 __webpack_require__.C(exports);
 var __webpack_exec__ = (moduleId) => (__webpack_require__(__webpack_require__.s = moduleId))
-var __webpack_exports__ = __webpack_require__.X(0, [379,736,459,922], () => (__webpack_exec__(1647)));
+var __webpack_exports__ = __webpack_require__.X(0, [736,379,123], () => (__webpack_exec__(1647)));
 module.exports = __webpack_exports__;
 
 })();

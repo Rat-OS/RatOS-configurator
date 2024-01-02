@@ -1,6 +1,6 @@
 import { spawn } from 'child_process';
 import path from 'path';
-import { getScriptRoot } from './util';
+import { getScriptRoot } from '../../helpers/util';
 
 export const runSudoScript = (script: string, ...args: string[]): Promise<{ stderr: string; stdout: string }> => {
 	const scriptRoot = getScriptRoot();

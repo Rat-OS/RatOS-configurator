@@ -1,9 +1,11 @@
 import { initTRPC } from '@trpc/server';
+import { ToolheadGenerator } from './helpers/config-generation/toolhead';
 import { Board } from '../zods/boards';
 
 interface Context {
 	boards: Board[];
 	board?: Board;
+	toolhead?: ToolheadGenerator<any>;
 }
 
 interface Meta {

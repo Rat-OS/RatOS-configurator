@@ -144,6 +144,7 @@ const Stepper = zod__WEBPACK_IMPORTED_MODULE_0__.object({
 var PrinterAxis;
 (function(PrinterAxis) {
     PrinterAxis["x"] = "x";
+    PrinterAxis["dual_carriage"] = "dual_carriage";
     PrinterAxis["x1"] = "x1";
     PrinterAxis["y"] = "y";
     PrinterAxis["y1"] = "y1";
@@ -152,6 +153,7 @@ var PrinterAxis;
     PrinterAxis["z2"] = "z2";
     PrinterAxis["z3"] = "z3";
     PrinterAxis["extruder"] = "extruder";
+    PrinterAxis["extruder1"] = "extruder1";
 })(PrinterAxis || (PrinterAxis = {}));
 const BasePrinterRail = zod__WEBPACK_IMPORTED_MODULE_0__.object({
     axis: zod__WEBPACK_IMPORTED_MODULE_0__.nativeEnum(PrinterAxis).describe("Axis of the rail"),
