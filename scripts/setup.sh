@@ -56,7 +56,7 @@ __EOF
 install_logrotation() {
     LOGROTATE_FILE="/etc/logrotate.d/ratos-configurator"
     LOGFILE="/home/${USER}/printer_data/logs/configurator.log"
-    report_status "Installing RatOS log rotation script..."
+    report_status "Installing RatOS Configurator log rotation script..."
     sudo /bin/sh -c "cat > ${LOGROTATE_FILE}" << __EOF
 #### RatOS-configurator
 ####
@@ -79,7 +79,7 @@ ${LOGFILE} {
     maxsize 10M
 }
 __EOF
-    chmod 644 ${LOGROTATE_FILE}
+    sudo chmod 644 ${LOGROTATE_FILE}
 }
 
 # Force script to exit if an error occurs
