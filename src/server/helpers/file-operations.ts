@@ -37,3 +37,33 @@ export const replaceInFileByLine = async (filePath: string, search: string | Reg
 	await copyFile(filePath + '.tmp', filePath);
 	await unlink(filePath + '.tmp');
 };
+
+export const searchFileByLine = async (filePath: string, search: string | RegExp): Promise<number | false> => {
+	if (!existsSync(filePath)) {
+		throw new Error('Firmware config file does not exist: ' + filePath);
+	}
+	const fileStream = createReadStream(filePath);
+
+	const rl = createInterface({
+		input: fileStream,
+		crlfDelay: Infinity,
+	});
+	let result: number | false = false;
+	let lineNumber = 0;
+	for await (const line of rl) {
+		lineNumber++;
+		if (search instanceof RegExp ? line.match(search) : line.includes(search)) {
+			result = lineNumber;
+			break;
+		}
+	}
+	await new Promise((resolve, reject) => {
+		fileStream.close((err) => {
+			if (err) {
+				throw reject(err);
+			}
+			resolve(null);
+		});
+	});
+	return result;
+};

@@ -1,5 +1,8 @@
 import dotenv from 'dotenv';
+import { existsSync } from 'fs';
 
 export const setup = () => {
-    dotenv.config({ path: './.env.test.local' });
-}
+	if (existsSync('./.env.test.local')) {
+		dotenv.config({ path: './.env.test.local' });
+	}
+};
