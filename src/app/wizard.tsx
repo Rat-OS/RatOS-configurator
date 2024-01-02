@@ -9,7 +9,7 @@ import { RecoilRoot } from 'recoil';
 import { SyncWithMoonraker } from '../components/sync-with-moonraker';
 import React from 'react';
 import { useIsClient } from '../hooks/isClient';
-import { Spinner } from '../components/spinner';
+import { Spinner } from '../components/common/spinner';
 import { SetupSteps } from '../components/setup-steps';
 
 // Create a client

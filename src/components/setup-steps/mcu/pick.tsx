@@ -2,7 +2,7 @@ import React, { Fragment, useCallback } from 'react';
 import { CardSelector } from '../../card-selector';
 import { StepNavButton, StepNavButtons } from '../../step-nav-buttons';
 import { MCUStepScreenProps, SelectableBoard } from '../mcu-preparation';
-import { Button } from '../../button';
+import { Button } from '../../common/button';
 import { Badge } from '../../common/badge';
 
 export const MCUPicker: React.FC<MCUStepScreenProps> = (props) => {

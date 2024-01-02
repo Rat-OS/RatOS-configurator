@@ -4,7 +4,7 @@ import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
 import { twJoin } from 'tailwind-merge';
 import { Badge, BadgeProps } from '../common/badge';
 import { DropdownQuery, DropdownQueryInput, DropdownQueryKeys, DropdownQueryOutput, trpc } from '../../utils/trpc';
-import { Spinner } from '../spinner';
+import { Spinner } from '../common/spinner';
 import { useSerializedPrinterConfiguration } from '../../hooks/usePrinterConfiguration';
 
 type Option = {
