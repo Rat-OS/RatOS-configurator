@@ -82,8 +82,8 @@ jobs:
         working-directory: ratos-configurator/src
         run: pnpm run lint:ci
 
-      - name: Typecheck
-        uses: gozala/typescript-error-reporter-action@v1.0.5
+      - name: TypeScript report
+        uses: fersilva16/ts-report-action@1.1.0
         with:
           project: ratos-configurator/src/tsconfig.json
 
