@@ -26,13 +26,13 @@ jobs:
       - name: Fetch Repository
         uses: actions/checkout@v4
         with:
+          repository: Rat-OS/RatOS-configuration
           path: "ratos-configuration"
 
       - name: Fetch Configurator Repository
         uses: actions/checkout@v4
         with:
           path: "ratos-configurator"
-          repository: Rat-OS/RatOS-configurator
           ref: ${{ github.ref_name }}
 
       - name: Setup Node.js environment
@@ -72,16 +72,23 @@ jobs:
 
       - name: Typecheck
         uses: gozala/typescript-error-reporter-action@v1.0.5
+        with:
+          project: ratos-configurator/src/tsconfig.json
 
-      - name: Run configuration tests
+      - name: Test
         working-directory: ratos-configurator/src
         if: success() || failure() # run this step even if previous step failed
         run: pnpm run test:ci --outputFile=./report.xml
 
-      - uses: actions/upload-artifact@v3 # upload test results
+      - name: Upload Reports
+        uses: actions/upload-artifact@v3 # upload test results
         if: success() || failure() # run this step even if previous step failed
         with:
           name: test-results
           path: |
             ratos-configurator/src/report.xml
             ratos-configurator/src/eslint_report.json
+
+      - name: Check Failure
+        if: ${{ failure() }}
+        run: exit 1
