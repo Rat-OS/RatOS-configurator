@@ -18,36 +18,27 @@ on:
 
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
 jobs:
-  test_configuration:
-    name: Lint, Typecheck and Test
+  checkout_dependencies:
+    name: Checkout RatOS Configurator
     runs-on: ubuntu-latest
+    outputs:
+      STORE_PATH: ${{ steps.generate-keys.outputs.STORE_PATH }}
+      CACHE_KEY: ${{ steps.generate-keys.outputs.STORE_PATH }}
+      bin_dest: ${{ steps.pnpm-install.outputs.bin_dest }}
+      dest: ${{ steps.pnpm-install.outputs.dest }}
     steps:
-      - name: Fetch Repository
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          repository: Rat-OS/RatOS-configuration
-          path: "ratos-configuration"
-
-      - name: Fetch Configurator Repository
-        uses: actions/checkout@v4
-        with:
+          repository: Rat-OS/RatOS-configurator
           path: "ratos-configurator"
-          ref: ${{ github.ref_name }}
 
-      - name: Fetch Klipper Repository
-        uses: actions/checkout@v4
-        with:
-          repository: klipper3d/klipper
-          path: "klipper"
-
-      - name: Fetch Klipper Repository
-        uses: actions/checkout@v4
-        with:
-          repository: Arksine/moonraker
-          path: "moonraker"
-
-      - name: Setup Node.js environment
+      - name: Install Node
         uses: actions/setup-node@v4.0.1
         with:
           # Version Spec of the version to use. Examples: 12.x, 10.15.1, >=10.15.0.
@@ -60,39 +51,139 @@ jobs:
           version: 8
           run_install: false
 
-      - name: Get pnpm store directory
-        id: pnpm-cache
+      - name: Generate keys
+        id: generate-keys
         shell: bash
+        env:
+          cache_key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', '**/.git/refs/heads/*') }}
         run: |
           echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+          echo "CACHE_KEY=$cache_key" >> $GITHUB_OUTPUT
 
       - uses: actions/cache@v3
-        name: Setup pnpm cache
+        name: pnpm cache
+        id: cache
         with:
-          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+          path: |
+            ${{ steps.generate-keys.outputs.STORE_PATH }}
+            ${{ steps.pnpm-install.outputs.bin_dest }}
+            ${{ steps.pnpm-install.outputs.dest }}
+            ~/ratos-configuration
+            ~/klipper
+            ~/moonraker
+            **/node_modules
+          key: ${{ steps.generate-keys.outputs.CACHE_KEY }}
 
-      - name: Install all dependencies
+      - name: Dependencies
         working-directory: ratos-configurator/src
         run: pnpm install --frozen-lockfile
 
-      - name: Lint
-        working-directory: ratos-configurator/src
-        run: pnpm run lint:ci
+      - name: Checkout RatOS Configuration
+        uses: actions/checkout@v4
+        with:
+          repository: Rat-OS/RatOS-configuration
+          path: "ratos-configuration"
+          ref: ${{ github.ref_name }}
 
-      - name: TypeScript report
+      - name: Checkout Klipper
+        uses: actions/checkout@v4
+        with:
+          repository: klipper3d/klipper
+          path: "klipper"
+
+      - name: Checkout Moonraker
+        uses: actions/checkout@v4
+        with:
+          repository: Arksine/moonraker
+          path: "moonraker"
+
+  lint:
+    name: Lint
+    needs: [checkout_dependencies]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: Rat-OS/RatOS-configurator
+          path: "ratos-configurator"
+      - uses: actions/cache/restore@v3
+        name: Restore Cache
+        with:
+          path: |
+            ${{ needs.checkout_dependencies.outputs.STORE_PATH }}
+            ${{ needs.checkout_dependencies.outputs.bin_dest }}
+            ${{ needs.checkout_dependencies.outputs.dest }}
+            ~/ratos-configuration
+            ~/klipper
+            ~/moonraker
+            **/node_modules
+          key: ${{ needs.checkout_dependencies.outputs.CACHE_KEY }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      - name: Begin CI...
+        working-directory: ratos-configurator/src
+        run: npm run lint:ci
+
+  typecheck:
+    needs: [checkout_dependencies]
+    name: Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: Rat-OS/RatOS-configurator
+          path: "ratos-configurator"
+      - uses: actions/cache/restore@v3
+        name: Restore Cache
+        with:
+          path: |
+            ${{ needs.checkout_dependencies.outputs.STORE_PATH }}
+            ${{ needs.checkout_dependencies.outputs.bin_dest }}
+            ${{ needs.checkout_dependencies.outputs.dest }}
+            ~/ratos-configuration
+            ~/klipper
+            ~/moonraker
+            **/node_modules
+          key: ${{ needs.checkout_dependencies.outputs.CACHE_KEY }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      - name: Begin CI...
         uses: fersilva16/ts-report-action@1.1.0
         with:
           project: ratos-configurator/src/tsconfig.json
 
-      - name: Test
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: [checkout_dependencies]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: Rat-OS/RatOS-configurator
+          path: "ratos-configurator"
+      - uses: actions/cache/restore@v3
+        name: Restore Cache
+        with:
+          path: |
+            ${{ needs.checkout_dependencies.outputs.STORE_PATH }}
+            ${{ needs.checkout_dependencies.outputs.bin_dest }}
+            ${{ needs.checkout_dependencies.outputs.dest }}
+            ~/ratos-configuration
+            ~/klipper
+            ~/moonraker
+            **/node_modules
+          key: ${{ needs.checkout_dependencies.outputs.CACHE_KEY }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      - name: Begin CI...
         working-directory: ratos-configurator/src
         if: success() || failure() # run this step even if previous step failed
-        run: pnpm run test:ci --outputFile=./report.xml
+        run: npm run test:ci --outputFile=./report.xml
 
-      - name: Upload Reports
+      - name: Upload reports
         uses: actions/upload-artifact@v3 # upload test results
         if: success() || failure() # run this step even if previous step failed
         with:
@@ -101,6 +192,6 @@ jobs:
             ratos-configurator/src/report.xml
             ratos-configurator/src/eslint_report.json
 
-      - name: Check Failure
+      - name: Report status
         if: ${{ failure() }}
         run: exit 1
