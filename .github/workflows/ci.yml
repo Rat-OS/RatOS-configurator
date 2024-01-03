@@ -35,6 +35,18 @@ jobs:
           path: "ratos-configurator"
           ref: ${{ github.ref_name }}
 
+      - name: Fetch Klipper Repository
+        uses: actions/checkout@v4
+        with:
+          repository: klipper3d/klipper
+          path: "klipper"
+
+      - name: Fetch Klipper Repository
+        uses: actions/checkout@v4
+        with:
+          repository: Arksine/moonraker
+          path: "moonraker"
+
       - name: Setup Node.js environment
         uses: actions/setup-node@v4.0.1
         with:
