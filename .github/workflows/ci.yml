@@ -1,0 +1,87 @@
+name: "CI"
+env:
+  RATOS_CONFIGURATION_PATH: ${{ github.workspace }}/ratos-configuration
+  KLIPPER_CONFIG_PATH: ${{ github.workspace }}/config
+  RATOS_SCRIPT_DIR: ${{ github.workspace }}/ratos-configurator/src/scripts
+  KLIPPER_DIR: ${{ github.workspace }}/klipper
+  KLIPPER_ENV: ${{ github.workspace }}/klippy-env
+  MOONRAKER_DIR: ${{ github.workspace }}/moonraker
+  LOG_FILE: ${{ github.workspace }}/ratos-configurator.log
+  RATOS_DATA_DIR: ${{ github.workspace }}/ratos-data
+on:
+  push:
+    branches:
+      - "development"
+  pull_request:
+    branches:
+      - "**"
+
+  workflow_dispatch:
+
+jobs:
+  test_configuration:
+    name: Lint, Typecheck and Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch Repository
+        uses: actions/checkout@v4
+        with:
+          path: "ratos-configuration"
+
+      - name: Fetch Configurator Repository
+        uses: actions/checkout@v4
+        with:
+          path: "ratos-configurator"
+          repository: Rat-OS/RatOS-configurator
+          ref: ${{ github.ref_name }}
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4.0.1
+        with:
+          # Version Spec of the version to use. Examples: 12.x, 10.15.1, >=10.15.0.
+          node-version: 18.x
+
+      - uses: pnpm/action-setup@v2
+        name: Install pnpm
+        id: pnpm-install
+        with:
+          version: 8
+          run_install: false
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - uses: actions/cache@v3
+        name: Setup pnpm cache
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install all dependencies
+        working-directory: ratos-configurator/src
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        working-directory: ratos-configurator/src
+        run: pnpm run lint:ci
+
+      - name: Typecheck
+        uses: gozala/typescript-error-reporter-action@v1.0.5
+
+      - name: Run configuration tests
+        working-directory: ratos-configurator/src
+        if: success() || failure() # run this step even if previous step failed
+        run: pnpm run test:ci --outputFile=./report.xml
+
+      - uses: actions/upload-artifact@v3 # upload test results
+        if: success() || failure() # run this step even if previous step failed
+        with:
+          name: test-results
+          path: |
+            ratos-configurator/src/report.xml
+            ratos-configurator/src/eslint_report.json
