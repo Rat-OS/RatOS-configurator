@@ -33,7 +33,7 @@ module.exports = require("@trpc/react-query/shared");
 
 /***/ }),
 
-/***/ 6368:
+/***/ 2756:
 /***/ ((module) => {
 
 module.exports = require("@trpc/server");
@@ -363,7 +363,7 @@ var run_script = __webpack_require__(1554);
 // EXTERNAL MODULE: ./server/trpc.ts
 var trpc = __webpack_require__(8199);
 // EXTERNAL MODULE: external "@trpc/server"
-var server_ = __webpack_require__(6368);
+var server_ = __webpack_require__(2756);
 // EXTERNAL MODULE: external "path"
 var external_path_ = __webpack_require__(1017);
 var external_path_default = /*#__PURE__*/__webpack_require__.n(external_path_);
