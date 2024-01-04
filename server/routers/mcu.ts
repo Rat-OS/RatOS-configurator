@@ -63,7 +63,11 @@ export const updateDetectionStatus = async (boards: BoardWithDetectionStatus[], 
 	});
 };
 
-export const compileFirmware = async (board: Board, toolhead?: ToolheadHelper<any>, skipCompile?: boolean) => {
+export const compileFirmware = async <T extends boolean>(
+	board: Board,
+	toolhead?: ToolheadHelper<any>,
+	skipCompile?: T,
+): Promise<T extends true ? string : Awaited<ReturnType<typeof runSudoScript>>> => {
 	let compileResult = null;
 	const environment = serverSchema.parse(process.env);
 	try {
@@ -75,10 +79,10 @@ export const compileFirmware = async (board: Board, toolhead?: ToolheadHelper<an
 			`CONFIG_USB_SERIAL_NUMBER="${getBoardChipId(board, toolhead)}"`,
 		);
 		if (skipCompile) {
-			return readFileSync(dest).toString();
+			return readFileSync(dest).toString() as T extends true ? string : Awaited<ReturnType<typeof runSudoScript>>;
 		}
 		compileResult = await runSudoScript('klipper-compile.sh');
-		return compileResult;
+		return compileResult as T extends true ? string : Awaited<ReturnType<typeof runSudoScript>>;
 	} catch (e) {
 		const message = e instanceof Error ? e.message : e;
 		throw new TRPCError({
@@ -348,14 +352,7 @@ export const mcuRouter = router({
 				});
 			}
 			let compileResult = null;
-			const firmwareBinary = path.resolve(
-				'/home/pi/printer_data/config/firmware_binaries',
-				ctx.board.firmwareBinaryName,
-			);
 			try {
-				if (fs.existsSync(firmwareBinary)) {
-					fs.rmSync(firmwareBinary);
-				}
 				const compileScript = path.join(
 					ctx.board.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''),
 					ctx.board.compileScript,
@@ -367,12 +364,6 @@ export const mcuRouter = router({
 					code: 'INTERNAL_SERVER_ERROR',
 					message: `Could not compile firmware for ${ctx.board.name}: ${compileResult?.stdout ?? message}'}`,
 					cause: e,
-				});
-			}
-			if (!fs.existsSync(firmwareBinary)) {
-				throw new TRPCError({
-					code: 'INTERNAL_SERVER_ERROR',
-					message: `Could not compile firmware for ${ctx.board.name}: ${compileResult.stdout}`,
 				});
 			}
 			let flashResult = null;

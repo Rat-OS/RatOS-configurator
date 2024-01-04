@@ -1042,11 +1042,7 @@ const mcuRouter = (0,_trpc__WEBPACK_IMPORTED_MODULE_7__/* .router */ .Nd)({
             });
         }
         let compileResult = null;
-        const firmwareBinary = path__WEBPACK_IMPORTED_MODULE_8___default().resolve("/home/pi/printer_data/config/firmware_binaries", ctx.board.firmwareBinaryName);
         try {
-            if (fs__WEBPACK_IMPORTED_MODULE_1___default().existsSync(firmwareBinary)) {
-                fs__WEBPACK_IMPORTED_MODULE_1___default().rmSync(firmwareBinary);
-            }
             const compileScript = path__WEBPACK_IMPORTED_MODULE_8___default().join(ctx.board.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ""), ctx.board.compileScript);
             compileResult = await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_5__/* .runSudoScript */ .$)("board-script.sh", compileScript);
         } catch (e) {
@@ -1055,12 +1051,6 @@ const mcuRouter = (0,_trpc__WEBPACK_IMPORTED_MODULE_7__/* .router */ .Nd)({
                 code: "INTERNAL_SERVER_ERROR",
                 message: `Could not compile firmware for ${ctx.board.name}: ${compileResult?.stdout ?? message}'}`,
                 cause: e
-            });
-        }
-        if (!fs__WEBPACK_IMPORTED_MODULE_1___default().existsSync(firmwareBinary)) {
-            throw new _trpc_server__WEBPACK_IMPORTED_MODULE_4__.TRPCError({
-                code: "INTERNAL_SERVER_ERROR",
-                message: `Could not compile firmware for ${ctx.board.name}: ${compileResult.stdout}`
             });
         }
         let flashResult = null;
@@ -1760,7 +1750,7 @@ class ToolheadGenerator extends helpers_toolhead/* ToolheadHelper */.D {
     }
     renderHotendFan() {
         let result = [];
-        result.push(`[heater_fan toolhead_cooling_fan_${this.getShortToolName()}]`);
+        result.push(`[heater_fan toolhead_cooling_fan${this.getTool() > 0 ? `_${this.getShortToolName()}` : ""}]`);
         switch(this.getHotendFan().id){
             case "2pin":
                 this.requireControlboardPin("fan_toolhead_cooling_pin");

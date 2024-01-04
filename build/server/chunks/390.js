@@ -483,7 +483,7 @@ class ToolheadGenerator extends helpers_toolhead/* ToolheadHelper */.D {
     }
     renderHotendFan() {
         let result = [];
-        result.push(`[heater_fan toolhead_cooling_fan_${this.getShortToolName()}]`);
+        result.push(`[heater_fan toolhead_cooling_fan${this.getTool() > 0 ? `_${this.getShortToolName()}` : ""}]`);
         switch(this.getHotendFan().id){
             case "2pin":
                 this.requireControlboardPin("fan_toolhead_cooling_pin");
@@ -1523,11 +1523,7 @@ const mcuRouter = (0,trpc/* router */.Nd)({
             });
         }
         let compileResult = null;
-        const firmwareBinary = external_path_default().resolve("/home/pi/printer_data/config/firmware_binaries", ctx.board.firmwareBinaryName);
         try {
-            if (external_fs_default().existsSync(firmwareBinary)) {
-                external_fs_default().rmSync(firmwareBinary);
-            }
             const compileScript = external_path_default().join(ctx.board.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ""), ctx.board.compileScript);
             compileResult = await runSudoScript("board-script.sh", compileScript);
         } catch (e) {
@@ -1536,12 +1532,6 @@ const mcuRouter = (0,trpc/* router */.Nd)({
                 code: "INTERNAL_SERVER_ERROR",
                 message: `Could not compile firmware for ${ctx.board.name}: ${compileResult?.stdout ?? message}'}`,
                 cause: e
-            });
-        }
-        if (!external_fs_default().existsSync(firmwareBinary)) {
-            throw new server_.TRPCError({
-                code: "INTERNAL_SERVER_ERROR",
-                message: `Could not compile firmware for ${ctx.board.name}: ${compileResult.stdout}`
             });
         }
         let flashResult = null;

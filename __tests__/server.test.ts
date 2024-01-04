@@ -97,7 +97,7 @@ describe('server', async () => {
 		});
 		test.concurrent('can generate idex config', async () => {
 			let res: string = await regenerateKlipperConfiguration(
-				path.join(__dirname, 'stubs', 'idex-config.json'),
+				path.join(__dirname, 'fixtures', 'idex-config.json'),
 				true,
 				true,
 			);
@@ -112,10 +112,50 @@ describe('server', async () => {
 			expect(noPromises, 'Expected no promises in config').to.eq('');
 			expect(noObjects, 'Expected no objects in config').to.eq('');
 		});
+		describe('can generate hybrid config with toolboard', async () => {
+			let generatedLines: string[] = [];
+			test('produces valid config', async () => {
+				const res: string = await regenerateKlipperConfiguration(
+					path.join(__dirname, 'fixtures', 'hybrid-config.json'),
+					true,
+					true,
+				);
+				generatedLines = res.split('\n').map((l: string, i: number) => `Line ${i}`.padEnd(10, ' ') + `|${l}`);
+				const noUndefined = generatedLines.filter((l: string) => l.includes('undefined')).join('\n');
+				const noPromises = generatedLines.filter((l: string) => l.includes('[object Promise]')).join('\n');
+				const noObjects = generatedLines.filter((l: string) => l.includes('[object Object]')).join('\n');
+				if (noUndefined || noPromises || noObjects) {
+					console.log(generatedLines.join('\n'));
+				}
+				expect(noUndefined, 'Expected no undefined values in config').to.eq('');
+				expect(noPromises, 'Expected no promises in config').to.eq('');
+				expect(noObjects, 'Expected no objects in config').to.eq('');
+			});
+			test.concurrent('uses the correct heater fan', async () => {
+				const sectionIndex = generatedLines.findIndex((l) => l.includes('[heater_fan toolhead_cooling_fan]'));
+				const commentIndex = generatedLines.findIndex((l) =>
+					l.includes('# 2-pin fan connected to the toolboard on T0 (toolboard_t0)'),
+				);
+				const pinIndex = generatedLines.findIndex((l) => l.includes('pin: toolboard_t0:PA1'));
+				expect(sectionIndex, 'Exepected [heater_fan toolhead_cooling_fan] section present').toBeGreaterThan(-1);
+				expect(commentIndex, 'Expected 2-pin toolboard fan comment').toEqual(sectionIndex! + 1);
+				expect(pinIndex, 'expected toolboard fan pin').toEqual(commentIndex! + 1);
+			});
+			test.concurrent('uses the correct part fan', async () => {
+				const sectionIndex = generatedLines.findIndex((l) => l.includes('[fan]'));
+				const commentIndex = generatedLines.findIndex((l) =>
+					l.includes('# 4-pin fan connected to the toolboard on T0 (toolboard_t0)'),
+				);
+				const pinIndex = generatedLines.findIndex((l) => l.includes('pin: !toolboard_t0:PA0'));
+				expect(sectionIndex, 'Exepected [fan] section present').toBeGreaterThan(-1);
+				expect(commentIndex, 'Expected 4-pin toolboard fan comment').toEqual(sectionIndex! + 1);
+				expect(pinIndex, 'expected toolboard fan pin').toEqual(commentIndex! + 1);
+			});
+		});
 	});
 	describe('mcu', async () => {
 		test.concurrent('can compile firmware for controlboard and toolheads', async () => {
-			const config = await loadSerializedConfig(path.join(__dirname, 'stubs', 'idex-config.json'));
+			const config = await loadSerializedConfig(path.join(__dirname, 'fixtures', 'idex-config.json'));
 			const cbFirmware = await compileFirmware(config.controlboard, undefined, true);
 			if (!cbFirmware) {
 				throw new Error('Failed to compile controlboard firmware');
