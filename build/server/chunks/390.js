@@ -1296,6 +1296,7 @@ const compileFirmware = async (board, toolhead, skipCompile)=>{
             return (0,external_fs_.readFileSync)(dest).toString();
         }
         compileResult = await runSudoScript("klipper-compile.sh");
+        return compileResult;
     } catch (e) {
         const message = e instanceof Error ? e.message : e;
         throw new server_.TRPCError({
@@ -1588,26 +1589,14 @@ const mcuRouter = (0,trpc/* router */.Nd)({
                 message: "Board does not support DFU."
             });
         }
-        let compileResult = null;
-        const firmwareBinary = external_path_default().resolve("/home/pi/printer_data/config/firmware_binaries", ctx.board.firmwareBinaryName);
         try {
-            if (external_fs_default().existsSync(firmwareBinary)) {
-                external_fs_default().rmSync(firmwareBinary);
-            }
-            const compileScript = external_path_default().join(ctx.board.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ""), ctx.board.compileScript);
-            compileResult = await runSudoScript("board-script.sh", compileScript);
+            await compileFirmware(ctx.board, ctx.toolhead);
         } catch (e) {
             const message = e instanceof Error ? e.message : e;
             throw new server_.TRPCError({
                 code: "INTERNAL_SERVER_ERROR",
                 message: `Could not compile firmware for ${ctx.board.name}: \n\n ${message}`,
                 cause: e
-            });
-        }
-        if (!external_fs_default().existsSync(firmwareBinary)) {
-            throw new server_.TRPCError({
-                code: "INTERNAL_SERVER_ERROR",
-                message: `Could not compile firmware for ${ctx.board.name}: \n\n ${compileResult.stdout} ${compileResult.stderr}`
             });
         }
         try {
@@ -2133,6 +2122,14 @@ var map = {
 	"./v-core-3": [
 		9263,
 		263
+	],
+	"./v-core-3-hybrid": [
+		4091,
+		91
+	],
+	"./v-core-3-hybrid.ts": [
+		4091,
+		91
 	],
 	"./v-core-3.ts": [
 		9263,

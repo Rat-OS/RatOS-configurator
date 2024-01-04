@@ -36,6 +36,14 @@ var map = {
 		9263,
 		263
 	],
+	"./v-core-3-hybrid": [
+		4091,
+		91
+	],
+	"./v-core-3-hybrid.ts": [
+		4091,
+		91
+	],
 	"./v-core-3.ts": [
 		9263,
 		263
@@ -807,6 +815,7 @@ const compileFirmware = async (board, toolhead, skipCompile)=>{
             return (0,fs__WEBPACK_IMPORTED_MODULE_1__.readFileSync)(dest).toString();
         }
         compileResult = await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_5__/* .runSudoScript */ .$)("klipper-compile.sh");
+        return compileResult;
     } catch (e) {
         const message = e instanceof Error ? e.message : e;
         throw new _trpc_server__WEBPACK_IMPORTED_MODULE_4__.TRPCError({
@@ -1099,26 +1108,14 @@ const mcuRouter = (0,_trpc__WEBPACK_IMPORTED_MODULE_7__/* .router */ .Nd)({
                 message: "Board does not support DFU."
             });
         }
-        let compileResult = null;
-        const firmwareBinary = path__WEBPACK_IMPORTED_MODULE_8___default().resolve("/home/pi/printer_data/config/firmware_binaries", ctx.board.firmwareBinaryName);
         try {
-            if (fs__WEBPACK_IMPORTED_MODULE_1___default().existsSync(firmwareBinary)) {
-                fs__WEBPACK_IMPORTED_MODULE_1___default().rmSync(firmwareBinary);
-            }
-            const compileScript = path__WEBPACK_IMPORTED_MODULE_8___default().join(ctx.board.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ""), ctx.board.compileScript);
-            compileResult = await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_5__/* .runSudoScript */ .$)("board-script.sh", compileScript);
+            await compileFirmware(ctx.board, ctx.toolhead);
         } catch (e) {
             const message = e instanceof Error ? e.message : e;
             throw new _trpc_server__WEBPACK_IMPORTED_MODULE_4__.TRPCError({
                 code: "INTERNAL_SERVER_ERROR",
                 message: `Could not compile firmware for ${ctx.board.name}: \n\n ${message}`,
                 cause: e
-            });
-        }
-        if (!fs__WEBPACK_IMPORTED_MODULE_1___default().existsSync(firmwareBinary)) {
-            throw new _trpc_server__WEBPACK_IMPORTED_MODULE_4__.TRPCError({
-                code: "INTERNAL_SERVER_ERROR",
-                message: `Could not compile firmware for ${ctx.board.name}: \n\n ${compileResult.stdout} ${compileResult.stderr}`
             });
         }
         try {
