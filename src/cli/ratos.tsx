@@ -300,33 +300,57 @@ program
 	.description('Commands for managing the RatOS configuration')
 	.command('regenerate')
 	.action(async () => {
-		const result = await client['printer'].regenerateConfiguration.mutate();
-		renderApiResults(
-			result.map((file) => {
-				let action =
-					file.action === 'created'
-						? 'Created'
-						: file.action === 'skipped'
-							? 'Skipped'
-							: file.action === 'overwritten'
-								? 'Updated'
-								: 'Failed to write';
-				return {
-					result:
-						file.action === 'skipped'
-							? 'skip'
-							: file.action === 'created'
-								? 'success'
+		try {
+			const result = await client['printer'].regenerateConfiguration.mutate();
+			renderApiResults(
+				result.map((file) => {
+					let action =
+						file.action === 'created'
+							? 'Created'
+							: file.action === 'skipped'
+								? 'Skipped'
 								: file.action === 'overwritten'
-									? 'warning'
-									: 'error',
-					message:
-						file.action === 'error'
-							? `Error during processing of ${file.fileName}${file.err instanceof Error ? `: ${file.err.message}` : ''}`
-							: `${action} config file ${file.fileName}`,
-				};
-			}),
-		);
+									? 'Updated'
+									: 'Failed to write';
+					return {
+						result:
+							file.action === 'skipped'
+								? 'skip'
+								: file.action === 'created'
+									? 'success'
+									: file.action === 'overwritten'
+										? 'warning'
+										: 'error',
+						message:
+							file.action === 'error'
+								? `Error during processing of ${file.fileName}${
+										file.err instanceof Error ? `: ${file.err.message}` : ''
+									}`
+								: `${action} config file ${file.fileName}`,
+					};
+				}),
+			);
+		} catch (e) {
+			if (e instanceof Error) {
+				return renderError(e.message, { exitCode: 2 });
+			}
+			return renderError('Failed to regenerate config', { exitCode: 2 });
+		}
+	});
+
+program
+	.command('flash')
+	.description(`Flash all connected boards`)
+	.action(async () => {
+		try {
+			const res = await client['mcu'].flashAllConnected.mutate();
+			renderApiResults(res.flashResults);
+		} catch (e) {
+			if (e instanceof Error) {
+				return renderError(e.message, { exitCode: 2 });
+			}
+			return renderError("Failed to flash mcu's", { exitCode: 2 });
+		}
 	});
 
 program.parseAsync();
