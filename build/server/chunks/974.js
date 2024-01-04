@@ -22,10 +22,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(1017);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_5__);
 /* harmony import */ var _env_schema_mjs__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(6165);
-/* harmony import */ var _helpers_file_operations__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(8145);
-/* harmony import */ var fs_promises__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(3292);
-/* harmony import */ var fs_promises__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(fs_promises__WEBPACK_IMPORTED_MODULE_8__);
-
+/* harmony import */ var _helpers_extensions__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(5581);
 
 
 
@@ -63,53 +60,18 @@ const saveExtensions = (extensions)=>{
     }
     (0,fs__WEBPACK_IMPORTED_MODULE_2__.writeFileSync)(moonrakerExtensionsFile, JSON.stringify(extensions));
 };
-const symlinkMoonrakerExtensions = async ()=>{
+const symlinkMoonrakerExtensions = async (errorIfExists)=>{
     const environment = _env_schema_mjs__WEBPACK_IMPORTED_MODULE_6__.serverSchema.parse(process.env);
     const currentExtensions = getExtensions();
-    if (currentExtensions.length === 0) {
-        return "No extensions registered, nothing to do.";
-    }
-    let cleanedUpExtensions = [];
-    const gitExcludePath = path__WEBPACK_IMPORTED_MODULE_5___default().resolve(path__WEBPACK_IMPORTED_MODULE_5___default().join(environment.MOONRAKER_DIR, ".git", "info", "exclude"));
-    const symlinkResults = await Promise.all(currentExtensions.map(async (ext)=>{
-        if ((0,fs__WEBPACK_IMPORTED_MODULE_2__.existsSync)(path__WEBPACK_IMPORTED_MODULE_5___default().resolve(path__WEBPACK_IMPORTED_MODULE_5___default().join(ext.path, ext.fileName)))) {
-            cleanedUpExtensions.push(ext);
-            const excludeLine = new RegExp(`^moonraker/components/${ext.fileName}$`);
-            const isExcluded = await (0,_helpers_file_operations__WEBPACK_IMPORTED_MODULE_7__/* .searchFileByLine */ .M)(gitExcludePath, excludeLine);
-            const symlinkExists = (0,fs__WEBPACK_IMPORTED_MODULE_2__.existsSync)(path__WEBPACK_IMPORTED_MODULE_5___default().resolve(path__WEBPACK_IMPORTED_MODULE_5___default().join(environment.MOONRAKER_DIR, "moonraker/components", ext.fileName)));
-            try {
-                if (symlinkExists === false) {
-                    await (0,fs_promises__WEBPACK_IMPORTED_MODULE_8__.symlink)(path__WEBPACK_IMPORTED_MODULE_5___default().resolve(path__WEBPACK_IMPORTED_MODULE_5___default().join(ext.path, ext.fileName)), path__WEBPACK_IMPORTED_MODULE_5___default().resolve(path__WEBPACK_IMPORTED_MODULE_5___default().join(environment.MOONRAKER_DIR, "moonraker/components", ext.fileName)));
-                }
-                if (isExcluded === false) {
-                    await (0,fs_promises__WEBPACK_IMPORTED_MODULE_8__.appendFile)(gitExcludePath, `moonraker/components/${ext.fileName}\n`);
-                }
-                return {
-                    result: "success",
-                    message: symlinkExists ? `Symlink for "${ext.fileName}" already exists. Skipping.` : `Symlink for "${ext.fileName}" created`
-                };
-            } catch (e) {
-                return {
-                    result: "error",
-                    message: `Failed to create symlink for "${ext.fileName}"`
-                };
-            }
-        } else {
-            return {
-                result: "error",
-                message: `Extension file "${ext.fileName}" does not exist in ${ext.path} and has been removed from the list of registered extensions`
-            };
-        }
-    }));
-    if (cleanedUpExtensions.length !== currentExtensions.length) {
-        saveExtensions(cleanedUpExtensions);
-    }
-    const successCount = symlinkResults.filter((r)=>r.result === "success").length;
-    let report = `Symlinked ${successCount}/${symlinkResults.length} extension(s): \n`;
-    symlinkResults.forEach((r)=>{
-        report += `${r.message} \n`;
+    return await (0,_helpers_extensions__WEBPACK_IMPORTED_MODULE_7__/* .symlinkExtensions */ .b)({
+        extensions: currentExtensions,
+        options: {
+            errorIfExists: errorIfExists
+        },
+        gitRepoPath: environment.MOONRAKER_DIR,
+        relativePath: ()=>`moonraker/components`,
+        saveExtensions
     });
-    return report;
 };
 const moonrakerExtensionsRouter = (0,_trpc__WEBPACK_IMPORTED_MODULE_4__/* .router */ .Nd)({
     register: _trpc__WEBPACK_IMPORTED_MODULE_4__/* .publicProcedure.input */ .$y.input(zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
@@ -140,7 +102,56 @@ const moonrakerExtensionsRouter = (0,_trpc__WEBPACK_IMPORTED_MODULE_4__/* .route
         saveExtensions(currentExtensions);
         return true;
     }),
-    symlink: _trpc__WEBPACK_IMPORTED_MODULE_4__/* .publicProcedure.mutation */ .$y.mutation(symlinkMoonrakerExtensions),
+    symlink: _trpc__WEBPACK_IMPORTED_MODULE_4__/* .publicProcedure.input */ .$y.input(zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
+        errorIfExists: zod__WEBPACK_IMPORTED_MODULE_0__.z.boolean().optional()
+    })).mutation(async ({ input  })=>await symlinkMoonrakerExtensions(input.errorIfExists)),
+    unlink: _trpc__WEBPACK_IMPORTED_MODULE_4__/* .publicProcedure.mutation */ .$y.mutation(async ()=>{
+        const currentExtensions = getExtensions();
+        const environment = _env_schema_mjs__WEBPACK_IMPORTED_MODULE_6__.serverSchema.parse(process.env);
+        return await Promise.all(currentExtensions.map(async (ext)=>{
+            const res = await (0,_helpers_extensions__WEBPACK_IMPORTED_MODULE_7__/* .unlinkExtension */ .Y)({
+                extension: ext,
+                gitRepoPath: environment.MOONRAKER_DIR,
+                relativePath: "moonraker/components"
+            });
+            return res;
+        }));
+    }),
+    unregister: _trpc__WEBPACK_IMPORTED_MODULE_4__/* .publicProcedure.input */ .$y.input(zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
+        extensionName: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+        errorIfNotExists: zod__WEBPACK_IMPORTED_MODULE_0__.z.boolean().optional()
+    })).mutation(async ({ input  })=>{
+        const environment = _env_schema_mjs__WEBPACK_IMPORTED_MODULE_6__.serverSchema.parse(process.env);
+        const currentExtensions = getExtensions();
+        const { extensionName  } = input;
+        const extensionIndex = currentExtensions.findIndex((ext)=>ext.extensionName === extensionName);
+        if (extensionIndex === -1) {
+            if (input.errorIfNotExists === true) {
+                throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
+                    message: `Extension with the name "${extensionName}" is not registered`,
+                    code: "PRECONDITION_FAILED"
+                });
+            }
+            (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__.getLogger)().warn(`Extension with the name "${extensionName}" is not registered, ignoring...`);
+            return {
+                result: "success",
+                message: `Extension with the name "${extensionName}" is not registered`
+            };
+        }
+        const ext = currentExtensions.splice(extensionIndex, 1);
+        if (ext.length !== 1) {
+            throw new Error("Failed to remove extension");
+        }
+        const res = await (0,_helpers_extensions__WEBPACK_IMPORTED_MODULE_7__/* .unlinkExtension */ .Y)({
+            extension: ext[0],
+            gitRepoPath: environment.MOONRAKER_DIR,
+            relativePath: "moonraker/components"
+        });
+        if (res.result === "success") {
+            saveExtensions(currentExtensions);
+        }
+        return res;
+    }),
     list: _trpc__WEBPACK_IMPORTED_MODULE_4__/* .publicProcedure.output */ .$y.output(moonrakerExtensions).query(async ()=>{
         return getExtensions();
     })

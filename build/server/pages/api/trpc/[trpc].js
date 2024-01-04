@@ -173,7 +173,7 @@ module.exports = require("util");
 
 /***/ }),
 
-/***/ 5991:
+/***/ 1350:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 // ESM COMPAT FLAG
@@ -446,12 +446,126 @@ const wifiRouter = (0,trpc/* router */.Nd)({
 var mcu = __webpack_require__(3459);
 // EXTERNAL MODULE: ./env/schema.mjs
 var schema = __webpack_require__(954);
-// EXTERNAL MODULE: ./server/helpers/file-operations.ts
-var file_operations = __webpack_require__(8736);
 // EXTERNAL MODULE: external "fs/promises"
 var promises_ = __webpack_require__(3292);
-;// CONCATENATED MODULE: ./server/routers/klippy-extensions.ts
+// EXTERNAL MODULE: ./server/helpers/file-operations.ts
+var file_operations = __webpack_require__(8736);
+;// CONCATENATED MODULE: ./server/helpers/extensions.ts
 
+
+
+
+
+
+const extension = external_zod_.z.object({
+    fileName: external_zod_.z.string(),
+    path: external_zod_.z.string(),
+    extensionName: external_zod_.z.string()
+});
+const options = external_zod_.z.object({
+    errorIfExists: external_zod_.z.boolean().optional(),
+    errorIfNotExists: external_zod_.z.boolean().optional()
+});
+const symlinkExtensions = async (props)=>{
+    const currentExtensions = props.extensions.slice();
+    let cleanedUpExtensions = [];
+    if (currentExtensions.length === 0) {
+        return {
+            report: "No extensions registered, nothing to do.",
+            cleanedUpExtensions,
+            symlinkResults: []
+        };
+    }
+    const gitExcludePath = external_path_default().resolve(external_path_default().join(props.gitRepoPath, ".git", "info", "exclude"));
+    const symlinkResults = await Promise.all(currentExtensions.map(async (ext)=>{
+        if ((0,external_fs_.existsSync)(external_path_default().resolve(external_path_default().join(ext.path, ext.fileName)))) {
+            cleanedUpExtensions.push(ext);
+            const relativeDestination = external_path_default().join(typeof props.relativePath === "function" ? props.relativePath(ext) : props.relativePath, ext.fileName);
+            const destination = external_path_default().resolve(external_path_default().join(props.gitRepoPath, relativeDestination));
+            const excludeLine = new RegExp(`^${relativeDestination}$`);
+            const isExcluded = await (0,file_operations/* searchFileByLine */.M)(gitExcludePath, excludeLine);
+            const symlinkExists = (0,external_fs_.existsSync)(destination);
+            try {
+                if (symlinkExists === false) {
+                    await (0,promises_.symlink)(external_path_default().resolve(external_path_default().join(ext.path, ext.fileName)), destination);
+                } else if (props.options?.errorIfExists) {
+                    throw new server_.TRPCError({
+                        code: "PRECONDITION_FAILED",
+                        message: `Symlink for "${ext.fileName}" already exists.`
+                    });
+                }
+                if (isExcluded === false) {
+                    await (0,promises_.appendFile)(gitExcludePath, `${relativeDestination}\n`);
+                }
+                return {
+                    result: "success",
+                    message: symlinkExists ? `Symlink for "${ext.fileName}" already exists. Skipping.` : `Symlink for "${ext.fileName}" created`
+                };
+            } catch (e) {
+                return {
+                    result: "error",
+                    message: `Failed to create symlink for "${ext.fileName}"${e instanceof Error ? `:\n\t${e.message}` : ""}`
+                };
+            }
+        } else {
+            return {
+                result: "error",
+                message: `Extension file "${ext.fileName}" does not exist in ${ext.path} and has been removed from the list of registered extensions`
+            };
+        }
+    }));
+    if (cleanedUpExtensions.length !== currentExtensions.length) {
+        props.saveExtensions(cleanedUpExtensions);
+    }
+    const successCount = symlinkResults.filter((r)=>r.result === "success").length;
+    let report = `Symlinked ${successCount}/${symlinkResults.length} extension(s): \n`;
+    symlinkResults.forEach((r)=>{
+        report += `${r.message} \n`;
+    });
+    return {
+        report,
+        cleanedUpExtensions,
+        symlinkResults
+    };
+};
+const unlinkExtension = async (props)=>{
+    const ext = props.extension;
+    const relativeDestination = external_path_default().join(typeof props.relativePath === "function" ? props.relativePath(ext) : props.relativePath, ext.fileName);
+    const gitExcludePath = external_path_default().resolve(props.gitRepoPath, ".git", "info", "exclude");
+    const destination = external_path_default().resolve(external_path_default().join(props.gitRepoPath, relativeDestination));
+    if ((0,external_fs_.existsSync)(external_path_default().resolve(external_path_default().join(ext.path, ext.fileName)))) {
+        const excludeLine = new RegExp(`^${relativeDestination}$`);
+        // Remove extension from git exclude file
+        await (0,file_operations/* replaceInFileByLine */.u)(gitExcludePath, excludeLine, null);
+        const symlinkExists = (0,external_fs_.existsSync)(destination);
+        try {
+            if (symlinkExists === true) {
+                await (0,promises_.unlink)(destination);
+            } else if (props.options?.errorIfNotExists) {
+                throw new server_.TRPCError({
+                    code: "PRECONDITION_FAILED",
+                    message: `Symlink for "${ext.fileName}" doesn't exist.`
+                });
+            }
+            return {
+                result: "success",
+                message: symlinkExists ? `Symlink for "${ext.fileName}" has been removed.` : `Symlink for "${ext.fileName}" doesn't exist. Skipping.`
+            };
+        } catch (e) {
+            return {
+                result: "error",
+                message: `Failed to remove symlink for "${ext.fileName}"`
+            };
+        }
+    } else {
+        return {
+            result: "success",
+            message: `Extension file "${ext.fileName}" does not exist in ${ext.path}. Nothing to do.`
+        };
+    }
+};
+
+;// CONCATENATED MODULE: ./server/routers/klippy-extensions.ts
 
 
 
@@ -465,6 +579,7 @@ const klippyExtension = external_zod_.z.object({
     path: external_zod_.z.string(),
     extensionName: external_zod_.z.string(),
     errorIfExists: external_zod_.z.boolean().optional(),
+    errorIfNotExists: external_zod_.z.boolean().optional(),
     isKinematics: external_zod_.z.boolean().optional()
 });
 const klippyExtensions = external_zod_.z.array(klippyExtension);
@@ -490,99 +605,103 @@ const saveExtensions = (extensions)=>{
     }
     (0,external_fs_.writeFileSync)(klippyExtensionsFile, JSON.stringify(extensions));
 };
-const symlinkKlippyExtensions = async ()=>{
+const symlinkKlippyExtensions = async (errorIfExists)=>{
     const environment = schema/* serverSchema.parse */.Rz.parse(process.env);
     const currentExtensions = getExtensions();
-    if (currentExtensions.length === 0) {
-        return "No extensions registered, nothing to do.";
-    }
-    let cleanedUpExtensions = [];
-    const gitExcludePath = external_path_default().resolve(external_path_default().join(environment.KLIPPER_DIR, ".git", "info", "exclude"));
-    const symlinkResults = await Promise.all(currentExtensions.map(async (ext)=>{
-        if ((0,external_fs_.existsSync)(external_path_default().resolve(external_path_default().join(ext.path, ext.fileName)))) {
-            const relativeDestination = ext.isKinematics ? `klippy/kinematics/${ext.fileName}` : `klippy/extras/${ext.fileName}`;
-            const destination = external_path_default().resolve(external_path_default().join(environment.KLIPPER_DIR, relativeDestination));
-            cleanedUpExtensions.push(ext);
-            const excludeLine = new RegExp(`^${relativeDestination}$`);
-            const isExcluded = await (0,file_operations/* searchFileByLine */.M)(gitExcludePath, excludeLine);
-            const symlinkExists = (0,external_fs_.existsSync)(external_path_default().resolve(external_path_default().join(environment.MOONRAKER_DIR, "moonraker/components", ext.fileName)));
-            if ((0,external_fs_.existsSync)(destination)) {
-                return {
-                    result: "success",
-                    message: `Symlink for "${ext.fileName}" already exists`
-                };
-            }
-            try {
-                if (symlinkExists === false) {
-                    await (0,promises_.symlink)(external_path_default().resolve(external_path_default().join(ext.path, ext.fileName)), destination);
-                }
-                if (isExcluded === false) {
-                    await (0,promises_.appendFile)(gitExcludePath, `${relativeDestination}\n`);
-                }
-                return {
-                    result: "success",
-                    message: symlinkExists ? `Symlink for "${ext.fileName}" already exists. Skipping.` : `Symlink for "${ext.fileName}" created`
-                };
-            } catch (e) {
-                return {
-                    result: "error",
-                    message: `Failed to create symlink for "${ext.fileName}"`
-                };
-            }
-        } else {
-            return {
-                result: "error",
-                message: `Extension file "${ext.fileName}" does not exist in ${ext.path} and has been removed from the list of registered extensions`
-            };
-        }
-    }));
-    if (cleanedUpExtensions.length !== currentExtensions.length) {
-        saveExtensions(cleanedUpExtensions);
-    }
-    const successCount = symlinkResults.filter((r)=>r.result === "success").length;
-    let report = `Symlinked ${successCount}/${symlinkResults.length} extension(s): \n`;
-    symlinkResults.forEach((r)=>{
-        report += `${r.message} \n`;
+    return await symlinkExtensions({
+        extensions: currentExtensions,
+        options: {
+            errorIfExists: errorIfExists
+        },
+        gitRepoPath: environment.KLIPPER_DIR,
+        relativePath,
+        saveExtensions
     });
-    return report;
+};
+const relativePath = (ext)=>{
+    return ext.isKinematics ? `klippy/kinematics` : `klippy/extras`;
 };
 const klippyExtensionsRouter = (0,trpc/* router */.Nd)({
     register: trpc/* publicProcedure.input */.$y.input(external_zod_.z.object({
         json: klippyExtension
     })).mutation(async ({ input  })=>{
         const currentExtensions = getExtensions();
-        const { path: filePath , fileName , errorIfExists  } = input.json;
+        const { path: filePath , fileName , errorIfExists , extensionName  } = input.json;
         const extensionPath = external_path_default().join(filePath, fileName);
         if (!(0,external_fs_.existsSync)(extensionPath)) {
-            (0,logger/* getLogger */.j)().error(`File "${extensionPath}" does not exist`);
             throw new server_.TRPCError({
                 message: `File "${extensionPath}" does not exist`,
                 code: "PRECONDITION_FAILED"
             });
         }
-        if (currentExtensions.find((ext)=>ext.fileName === fileName && !!ext.isKinematics === !!input.json.isKinematics)) {
+        if (currentExtensions.find((ext)=>ext.extensionName === extensionName || ext.fileName === fileName && !!ext.isKinematics === !!input.json.isKinematics)) {
             if (errorIfExists === true) {
-                (0,logger/* getLogger */.j)().error(`${input.json.isKinematics ? "A kinematic" : "An"} extension with the fileName "${fileName}" is already registered`);
                 throw new server_.TRPCError({
-                    message: `An extension with the fileName "${fileName}" is already registered`,
+                    message: `${input.json.isKinematics ? "A kinematic" : "An"} extension called "${extensionName}" with fileName "${fileName}" is already registered`,
                     code: "PRECONDITION_FAILED"
                 });
             }
-            (0,logger/* getLogger */.j)().warn(`An extension with the fileName "${fileName}" is already registered, ignoring...`);
+            (0,logger/* getLogger */.j)().warn(`${input.json.isKinematics ? "A kinematic" : "An"} extension called "${extensionName}" with the fileName "${fileName}" is already registered, ignoring...`);
             return true;
         }
         currentExtensions.push(input.json);
         saveExtensions(currentExtensions);
         return true;
     }),
-    symlink: trpc/* publicProcedure.mutation */.$y.mutation(symlinkKlippyExtensions),
+    unregister: trpc/* publicProcedure.input */.$y.input(external_zod_.z.object({
+        extensionName: external_zod_.z.string(),
+        errorIfNotExists: external_zod_.z.boolean().optional()
+    })).mutation(async ({ input  })=>{
+        const currentExtensions = getExtensions();
+        const { extensionName  } = input;
+        const extensionIndex = currentExtensions.findIndex((ext)=>ext.extensionName === extensionName);
+        if (extensionIndex === -1) {
+            if (input.errorIfNotExists === true) {
+                throw new server_.TRPCError({
+                    message: `Extension with the name "${extensionName}" is not registered`,
+                    code: "PRECONDITION_FAILED"
+                });
+            }
+            (0,logger/* getLogger */.j)().warn(`Extension with the name "${extensionName}" is not registered, ignoring...`);
+            return {
+                result: "success",
+                message: `Extension file "${extensionName}" does not exist. Nothing to do.`
+            };
+        }
+        const ext = currentExtensions.splice(extensionIndex, 1);
+        if (ext.length !== 1) {
+            throw new Error("Failed to remove extension");
+        }
+        const res = await unlinkExtension({
+            extension: ext[0],
+            gitRepoPath: schema/* serverSchema.parse */.Rz.parse(process.env).KLIPPER_DIR,
+            relativePath
+        });
+        if (res.result === "success") {
+            saveExtensions(currentExtensions);
+        }
+        return res;
+    }),
+    symlink: trpc/* publicProcedure.input */.$y.input(external_zod_.z.object({
+        errorIfExists: external_zod_.z.boolean().optional()
+    })).mutation(async ({ input  })=>await symlinkKlippyExtensions(input.errorIfExists)),
+    unlink: trpc/* publicProcedure.mutation */.$y.mutation(async ()=>{
+        const currentExtensions = getExtensions();
+        return await Promise.all(currentExtensions.map(async (ext)=>{
+            const res = await unlinkExtension({
+                extension: ext,
+                gitRepoPath: schema/* serverSchema.parse */.Rz.parse(process.env).KLIPPER_DIR,
+                relativePath
+            });
+            return res;
+        }));
+    }),
     list: trpc/* publicProcedure.output */.$y.output(klippyExtensions).query(async ()=>{
         return getExtensions();
     })
 });
 
 ;// CONCATENATED MODULE: ./server/routers/moonraker-extensions.ts
-
 
 
 
@@ -620,53 +739,18 @@ const moonraker_extensions_saveExtensions = (extensions)=>{
     }
     (0,external_fs_.writeFileSync)(moonrakerExtensionsFile, JSON.stringify(extensions));
 };
-const symlinkMoonrakerExtensions = async ()=>{
+const symlinkMoonrakerExtensions = async (errorIfExists)=>{
     const environment = schema/* serverSchema.parse */.Rz.parse(process.env);
     const currentExtensions = moonraker_extensions_getExtensions();
-    if (currentExtensions.length === 0) {
-        return "No extensions registered, nothing to do.";
-    }
-    let cleanedUpExtensions = [];
-    const gitExcludePath = external_path_default().resolve(external_path_default().join(environment.MOONRAKER_DIR, ".git", "info", "exclude"));
-    const symlinkResults = await Promise.all(currentExtensions.map(async (ext)=>{
-        if ((0,external_fs_.existsSync)(external_path_default().resolve(external_path_default().join(ext.path, ext.fileName)))) {
-            cleanedUpExtensions.push(ext);
-            const excludeLine = new RegExp(`^moonraker/components/${ext.fileName}$`);
-            const isExcluded = await (0,file_operations/* searchFileByLine */.M)(gitExcludePath, excludeLine);
-            const symlinkExists = (0,external_fs_.existsSync)(external_path_default().resolve(external_path_default().join(environment.MOONRAKER_DIR, "moonraker/components", ext.fileName)));
-            try {
-                if (symlinkExists === false) {
-                    await (0,promises_.symlink)(external_path_default().resolve(external_path_default().join(ext.path, ext.fileName)), external_path_default().resolve(external_path_default().join(environment.MOONRAKER_DIR, "moonraker/components", ext.fileName)));
-                }
-                if (isExcluded === false) {
-                    await (0,promises_.appendFile)(gitExcludePath, `moonraker/components/${ext.fileName}\n`);
-                }
-                return {
-                    result: "success",
-                    message: symlinkExists ? `Symlink for "${ext.fileName}" already exists. Skipping.` : `Symlink for "${ext.fileName}" created`
-                };
-            } catch (e) {
-                return {
-                    result: "error",
-                    message: `Failed to create symlink for "${ext.fileName}"`
-                };
-            }
-        } else {
-            return {
-                result: "error",
-                message: `Extension file "${ext.fileName}" does not exist in ${ext.path} and has been removed from the list of registered extensions`
-            };
-        }
-    }));
-    if (cleanedUpExtensions.length !== currentExtensions.length) {
-        moonraker_extensions_saveExtensions(cleanedUpExtensions);
-    }
-    const successCount = symlinkResults.filter((r)=>r.result === "success").length;
-    let report = `Symlinked ${successCount}/${symlinkResults.length} extension(s): \n`;
-    symlinkResults.forEach((r)=>{
-        report += `${r.message} \n`;
+    return await symlinkExtensions({
+        extensions: currentExtensions,
+        options: {
+            errorIfExists: errorIfExists
+        },
+        gitRepoPath: environment.MOONRAKER_DIR,
+        relativePath: ()=>`moonraker/components`,
+        saveExtensions: moonraker_extensions_saveExtensions
     });
-    return report;
 };
 const moonrakerExtensionsRouter = (0,trpc/* router */.Nd)({
     register: trpc/* publicProcedure.input */.$y.input(external_zod_.z.object({
@@ -697,7 +781,56 @@ const moonrakerExtensionsRouter = (0,trpc/* router */.Nd)({
         moonraker_extensions_saveExtensions(currentExtensions);
         return true;
     }),
-    symlink: trpc/* publicProcedure.mutation */.$y.mutation(symlinkMoonrakerExtensions),
+    symlink: trpc/* publicProcedure.input */.$y.input(external_zod_.z.object({
+        errorIfExists: external_zod_.z.boolean().optional()
+    })).mutation(async ({ input  })=>await symlinkMoonrakerExtensions(input.errorIfExists)),
+    unlink: trpc/* publicProcedure.mutation */.$y.mutation(async ()=>{
+        const currentExtensions = moonraker_extensions_getExtensions();
+        const environment = schema/* serverSchema.parse */.Rz.parse(process.env);
+        return await Promise.all(currentExtensions.map(async (ext)=>{
+            const res = await unlinkExtension({
+                extension: ext,
+                gitRepoPath: environment.MOONRAKER_DIR,
+                relativePath: "moonraker/components"
+            });
+            return res;
+        }));
+    }),
+    unregister: trpc/* publicProcedure.input */.$y.input(external_zod_.z.object({
+        extensionName: external_zod_.z.string(),
+        errorIfNotExists: external_zod_.z.boolean().optional()
+    })).mutation(async ({ input  })=>{
+        const environment = schema/* serverSchema.parse */.Rz.parse(process.env);
+        const currentExtensions = moonraker_extensions_getExtensions();
+        const { extensionName  } = input;
+        const extensionIndex = currentExtensions.findIndex((ext)=>ext.extensionName === extensionName);
+        if (extensionIndex === -1) {
+            if (input.errorIfNotExists === true) {
+                throw new server_.TRPCError({
+                    message: `Extension with the name "${extensionName}" is not registered`,
+                    code: "PRECONDITION_FAILED"
+                });
+            }
+            (0,logger/* getLogger */.j)().warn(`Extension with the name "${extensionName}" is not registered, ignoring...`);
+            return {
+                result: "success",
+                message: `Extension with the name "${extensionName}" is not registered`
+            };
+        }
+        const ext = currentExtensions.splice(extensionIndex, 1);
+        if (ext.length !== 1) {
+            throw new Error("Failed to remove extension");
+        }
+        const res = await unlinkExtension({
+            extension: ext[0],
+            gitRepoPath: environment.MOONRAKER_DIR,
+            relativePath: "moonraker/components"
+        });
+        if (res.result === "success") {
+            moonraker_extensions_saveExtensions(currentExtensions);
+        }
+        return res;
+    }),
     list: trpc/* publicProcedure.output */.$y.output(moonrakerExtensions).query(async ()=>{
         return moonraker_extensions_getExtensions();
     })
@@ -792,7 +925,7 @@ const next_namespaceObject = require("@trpc/server/adapters/next");
 var __webpack_require__ = require("../../../webpack-api-runtime.js");
 __webpack_require__.C(exports);
 var __webpack_exec__ = (moduleId) => (__webpack_require__(__webpack_require__.s = moduleId))
-var __webpack_exports__ = __webpack_require__.X(0, [736,123], () => (__webpack_exec__(5991)));
+var __webpack_exports__ = __webpack_require__.X(0, [736,123], () => (__webpack_exec__(1350)));
 module.exports = __webpack_exports__;
 
 })();

@@ -96,13 +96,17 @@ describe('server', async () => {
 			);
 		});
 		test.concurrent('can generate idex config', async () => {
-			let res = await regenerateKlipperConfiguration(path.join(__dirname, 'stubs', 'idex-config.json'), true, true);
-			res = res.split('\n').map((l: string, i: number) => `Line ${i}`.padEnd(10, ' ') + `|${l}`);
-			const noUndefined = res.filter((l: string) => l.includes('undefined')).join('\n');
-			const noPromises = res.filter((l: string) => l.includes('[object Promise]')).join('\n');
-			const noObjects = res.filter((l: string) => l.includes('[object Object]')).join('\n');
+			let res: string = await regenerateKlipperConfiguration(
+				path.join(__dirname, 'stubs', 'idex-config.json'),
+				true,
+				true,
+			);
+			const splitRes = res.split('\n').map((l: string, i: number) => `Line ${i}`.padEnd(10, ' ') + `|${l}`);
+			const noUndefined = splitRes.filter((l: string) => l.includes('undefined')).join('\n');
+			const noPromises = splitRes.filter((l: string) => l.includes('[object Promise]')).join('\n');
+			const noObjects = splitRes.filter((l: string) => l.includes('[object Object]')).join('\n');
 			if (noUndefined || noPromises || noObjects) {
-				console.log(res.join('\n'));
+				console.log(splitRes.join('\n'));
 			}
 			expect(noUndefined, 'Expected no undefined values in config').to.eq('');
 			expect(noPromises, 'Expected no promises in config').to.eq('');

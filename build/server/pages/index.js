@@ -813,7 +813,7 @@ const ActionsDropdown = ()=>{
                 title: "Flashing Complete",
                 children: /*#__PURE__*/ jsx_runtime_.jsx("p", {
                     dangerouslySetInnerHTML: {
-                        __html: value.replace(/\n/g, "<br />")
+                        __html: value.report.replace(/\n/g, "<br />")
                     }
                 }),
                 dismissText: "OK"
@@ -843,12 +843,12 @@ const ActionsDropdown = ()=>{
             dismissText: "Please wait..."
         });
         setIsSymlinkModalOpen(true);
-        symlinkExtensions.mutateAsync().then((value)=>{
+        symlinkExtensions.mutateAsync({}).then((value)=>{
             setSymlinkModalContent({
                 title: "Symlink Complete",
                 children: /*#__PURE__*/ jsx_runtime_.jsx("p", {
                     dangerouslySetInnerHTML: {
-                        __html: value.replace(/\n/g, "<br />")
+                        __html: value.report.replace(/\n/g, "<br />")
                     }
                 }),
                 dismissText: "OK"

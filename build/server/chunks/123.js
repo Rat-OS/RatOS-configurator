@@ -538,8 +538,16 @@ const replaceInFileByLine = async (filePath, search, replace)=>{
         crlfDelay: Infinity
     });
     for await (const line of rl){
+        if (replace == null) {
+            if (search instanceof RegExp ? line.match(search) : line.includes(search)) {
+                continue;
+            }
+            writeStream.write(line + os__WEBPACK_IMPORTED_MODULE_2__.EOL);
+            continue;
+        }
         writeStream.write(line.replace(search, replace) + os__WEBPACK_IMPORTED_MODULE_2__.EOL);
     }
+    rl.close();
     await new Promise((resolve, reject)=>{
         writeStream.close((err)=>{
             if (err) {
@@ -571,10 +579,10 @@ const searchFileByLine = async (filePath, search)=>{
     let result = false;
     let lineNumber = 0;
     for await (const line of rl){
+        if (result) continue;
         lineNumber++;
         if (search instanceof RegExp ? line.match(search) : line.includes(search)) {
             result = lineNumber;
-            break;
         }
     }
     await new Promise((resolve, reject)=>{
@@ -973,14 +981,15 @@ const mcuRouter = (0,_trpc__WEBPACK_IMPORTED_MODULE_7__/* .router */ .Nd)({
                 await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_5__/* .runSudoScript */ .$)("board-script.sh", path__WEBPACK_IMPORTED_MODULE_8___default().join(current.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ""), current.flashScript));
                 flashResults.push({
                     board: b,
-                    result: "success"
+                    result: "success",
+                    message: `${b.manufacturer} ${b.name} was successfully flashed.`
                 });
             } catch (e) {
                 const message = e instanceof Error ? e.message : e;
                 flashResults.push({
                     board: b,
                     result: "error",
-                    message: typeof message === "string" ? message : undefined
+                    message: typeof message === "string" ? message : `Unknown error occured while flashing ${b.manufacturer} ${b.name}`
                 });
             }
         }
@@ -993,7 +1002,10 @@ const mcuRouter = (0,_trpc__WEBPACK_IMPORTED_MODULE_7__/* .router */ .Nd)({
                 report += `${r.board.manufacturer} ${r.board.name} was successfully flashed.\n`;
             }
         });
-        return report;
+        return {
+            report,
+            flashResults
+        };
     }),
     flashViaPath: mcuProcedure.input(zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
         boardPath: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
@@ -3639,6 +3651,7 @@ const generateKlipperConfiguration = async (config, overwritePrinterCfg = false,
     if (returnAsText) {
         return renderedTemplate;
     }
+    return results;
 };
 const loadSerializedConfig = async (filePath)=>{
     const configJson = (0,external_fs_.readFileSync)(filePath);

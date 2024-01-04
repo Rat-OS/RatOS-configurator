@@ -22,10 +22,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(1017);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_5__);
 /* harmony import */ var _env_schema_mjs__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(6165);
-/* harmony import */ var _helpers_file_operations__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(8145);
-/* harmony import */ var fs_promises__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(3292);
-/* harmony import */ var fs_promises__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(fs_promises__WEBPACK_IMPORTED_MODULE_8__);
-
+/* harmony import */ var _helpers_extensions__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(5581);
 
 
 
@@ -39,6 +36,7 @@ const klippyExtension = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
     path: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
     extensionName: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
     errorIfExists: zod__WEBPACK_IMPORTED_MODULE_0__.z.boolean().optional(),
+    errorIfNotExists: zod__WEBPACK_IMPORTED_MODULE_0__.z.boolean().optional(),
     isKinematics: zod__WEBPACK_IMPORTED_MODULE_0__.z.boolean().optional()
 });
 const klippyExtensions = zod__WEBPACK_IMPORTED_MODULE_0__.z.array(klippyExtension);
@@ -64,92 +62,97 @@ const saveExtensions = (extensions)=>{
     }
     (0,fs__WEBPACK_IMPORTED_MODULE_2__.writeFileSync)(klippyExtensionsFile, JSON.stringify(extensions));
 };
-const symlinkKlippyExtensions = async ()=>{
+const symlinkKlippyExtensions = async (errorIfExists)=>{
     const environment = _env_schema_mjs__WEBPACK_IMPORTED_MODULE_6__.serverSchema.parse(process.env);
     const currentExtensions = getExtensions();
-    if (currentExtensions.length === 0) {
-        return "No extensions registered, nothing to do.";
-    }
-    let cleanedUpExtensions = [];
-    const gitExcludePath = path__WEBPACK_IMPORTED_MODULE_5___default().resolve(path__WEBPACK_IMPORTED_MODULE_5___default().join(environment.KLIPPER_DIR, ".git", "info", "exclude"));
-    const symlinkResults = await Promise.all(currentExtensions.map(async (ext)=>{
-        if ((0,fs__WEBPACK_IMPORTED_MODULE_2__.existsSync)(path__WEBPACK_IMPORTED_MODULE_5___default().resolve(path__WEBPACK_IMPORTED_MODULE_5___default().join(ext.path, ext.fileName)))) {
-            const relativeDestination = ext.isKinematics ? `klippy/kinematics/${ext.fileName}` : `klippy/extras/${ext.fileName}`;
-            const destination = path__WEBPACK_IMPORTED_MODULE_5___default().resolve(path__WEBPACK_IMPORTED_MODULE_5___default().join(environment.KLIPPER_DIR, relativeDestination));
-            cleanedUpExtensions.push(ext);
-            const excludeLine = new RegExp(`^${relativeDestination}$`);
-            const isExcluded = await (0,_helpers_file_operations__WEBPACK_IMPORTED_MODULE_7__/* .searchFileByLine */ .M)(gitExcludePath, excludeLine);
-            const symlinkExists = (0,fs__WEBPACK_IMPORTED_MODULE_2__.existsSync)(path__WEBPACK_IMPORTED_MODULE_5___default().resolve(path__WEBPACK_IMPORTED_MODULE_5___default().join(environment.MOONRAKER_DIR, "moonraker/components", ext.fileName)));
-            if ((0,fs__WEBPACK_IMPORTED_MODULE_2__.existsSync)(destination)) {
-                return {
-                    result: "success",
-                    message: `Symlink for "${ext.fileName}" already exists`
-                };
-            }
-            try {
-                if (symlinkExists === false) {
-                    await (0,fs_promises__WEBPACK_IMPORTED_MODULE_8__.symlink)(path__WEBPACK_IMPORTED_MODULE_5___default().resolve(path__WEBPACK_IMPORTED_MODULE_5___default().join(ext.path, ext.fileName)), destination);
-                }
-                if (isExcluded === false) {
-                    await (0,fs_promises__WEBPACK_IMPORTED_MODULE_8__.appendFile)(gitExcludePath, `${relativeDestination}\n`);
-                }
-                return {
-                    result: "success",
-                    message: symlinkExists ? `Symlink for "${ext.fileName}" already exists. Skipping.` : `Symlink for "${ext.fileName}" created`
-                };
-            } catch (e) {
-                return {
-                    result: "error",
-                    message: `Failed to create symlink for "${ext.fileName}"`
-                };
-            }
-        } else {
-            return {
-                result: "error",
-                message: `Extension file "${ext.fileName}" does not exist in ${ext.path} and has been removed from the list of registered extensions`
-            };
-        }
-    }));
-    if (cleanedUpExtensions.length !== currentExtensions.length) {
-        saveExtensions(cleanedUpExtensions);
-    }
-    const successCount = symlinkResults.filter((r)=>r.result === "success").length;
-    let report = `Symlinked ${successCount}/${symlinkResults.length} extension(s): \n`;
-    symlinkResults.forEach((r)=>{
-        report += `${r.message} \n`;
+    return await (0,_helpers_extensions__WEBPACK_IMPORTED_MODULE_7__/* .symlinkExtensions */ .b)({
+        extensions: currentExtensions,
+        options: {
+            errorIfExists: errorIfExists
+        },
+        gitRepoPath: environment.KLIPPER_DIR,
+        relativePath,
+        saveExtensions
     });
-    return report;
+};
+const relativePath = (ext)=>{
+    return ext.isKinematics ? `klippy/kinematics` : `klippy/extras`;
 };
 const klippyExtensionsRouter = (0,_trpc__WEBPACK_IMPORTED_MODULE_4__/* .router */ .Nd)({
     register: _trpc__WEBPACK_IMPORTED_MODULE_4__/* .publicProcedure.input */ .$y.input(zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
         json: klippyExtension
     })).mutation(async ({ input  })=>{
         const currentExtensions = getExtensions();
-        const { path: filePath , fileName , errorIfExists  } = input.json;
+        const { path: filePath , fileName , errorIfExists , extensionName  } = input.json;
         const extensionPath = path__WEBPACK_IMPORTED_MODULE_5___default().join(filePath, fileName);
         if (!(0,fs__WEBPACK_IMPORTED_MODULE_2__.existsSync)(extensionPath)) {
-            (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__.getLogger)().error(`File "${extensionPath}" does not exist`);
             throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
                 message: `File "${extensionPath}" does not exist`,
                 code: "PRECONDITION_FAILED"
             });
         }
-        if (currentExtensions.find((ext)=>ext.fileName === fileName && !!ext.isKinematics === !!input.json.isKinematics)) {
+        if (currentExtensions.find((ext)=>ext.extensionName === extensionName || ext.fileName === fileName && !!ext.isKinematics === !!input.json.isKinematics)) {
             if (errorIfExists === true) {
-                (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__.getLogger)().error(`${input.json.isKinematics ? "A kinematic" : "An"} extension with the fileName "${fileName}" is already registered`);
                 throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
-                    message: `An extension with the fileName "${fileName}" is already registered`,
+                    message: `${input.json.isKinematics ? "A kinematic" : "An"} extension called "${extensionName}" with fileName "${fileName}" is already registered`,
                     code: "PRECONDITION_FAILED"
                 });
             }
-            (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__.getLogger)().warn(`An extension with the fileName "${fileName}" is already registered, ignoring...`);
+            (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__.getLogger)().warn(`${input.json.isKinematics ? "A kinematic" : "An"} extension called "${extensionName}" with the fileName "${fileName}" is already registered, ignoring...`);
             return true;
         }
         currentExtensions.push(input.json);
         saveExtensions(currentExtensions);
         return true;
     }),
-    symlink: _trpc__WEBPACK_IMPORTED_MODULE_4__/* .publicProcedure.mutation */ .$y.mutation(symlinkKlippyExtensions),
+    unregister: _trpc__WEBPACK_IMPORTED_MODULE_4__/* .publicProcedure.input */ .$y.input(zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
+        extensionName: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+        errorIfNotExists: zod__WEBPACK_IMPORTED_MODULE_0__.z.boolean().optional()
+    })).mutation(async ({ input  })=>{
+        const currentExtensions = getExtensions();
+        const { extensionName  } = input;
+        const extensionIndex = currentExtensions.findIndex((ext)=>ext.extensionName === extensionName);
+        if (extensionIndex === -1) {
+            if (input.errorIfNotExists === true) {
+                throw new _trpc_server__WEBPACK_IMPORTED_MODULE_1__.TRPCError({
+                    message: `Extension with the name "${extensionName}" is not registered`,
+                    code: "PRECONDITION_FAILED"
+                });
+            }
+            (0,_helpers_logger__WEBPACK_IMPORTED_MODULE_3__.getLogger)().warn(`Extension with the name "${extensionName}" is not registered, ignoring...`);
+            return {
+                result: "success",
+                message: `Extension file "${extensionName}" does not exist. Nothing to do.`
+            };
+        }
+        const ext = currentExtensions.splice(extensionIndex, 1);
+        if (ext.length !== 1) {
+            throw new Error("Failed to remove extension");
+        }
+        const res = await (0,_helpers_extensions__WEBPACK_IMPORTED_MODULE_7__/* .unlinkExtension */ .Y)({
+            extension: ext[0],
+            gitRepoPath: _env_schema_mjs__WEBPACK_IMPORTED_MODULE_6__.serverSchema.parse(process.env).KLIPPER_DIR,
+            relativePath
+        });
+        if (res.result === "success") {
+            saveExtensions(currentExtensions);
+        }
+        return res;
+    }),
+    symlink: _trpc__WEBPACK_IMPORTED_MODULE_4__/* .publicProcedure.input */ .$y.input(zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
+        errorIfExists: zod__WEBPACK_IMPORTED_MODULE_0__.z.boolean().optional()
+    })).mutation(async ({ input  })=>await symlinkKlippyExtensions(input.errorIfExists)),
+    unlink: _trpc__WEBPACK_IMPORTED_MODULE_4__/* .publicProcedure.mutation */ .$y.mutation(async ()=>{
+        const currentExtensions = getExtensions();
+        return await Promise.all(currentExtensions.map(async (ext)=>{
+            const res = await (0,_helpers_extensions__WEBPACK_IMPORTED_MODULE_7__/* .unlinkExtension */ .Y)({
+                extension: ext,
+                gitRepoPath: _env_schema_mjs__WEBPACK_IMPORTED_MODULE_6__.serverSchema.parse(process.env).KLIPPER_DIR,
+                relativePath
+            });
+            return res;
+        }));
+    }),
     list: _trpc__WEBPACK_IMPORTED_MODULE_4__/* .publicProcedure.output */ .$y.output(klippyExtensions).query(async ()=>{
         return getExtensions();
     })

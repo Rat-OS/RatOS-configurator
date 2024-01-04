@@ -3,7 +3,7 @@ import { copyFile, unlink } from 'fs/promises';
 import { EOL } from 'os';
 import { createInterface } from 'readline';
 
-export const replaceInFileByLine = async (filePath: string, search: string | RegExp, replace: string) => {
+export const replaceInFileByLine = async (filePath: string, search: string | RegExp, replace: string | null) => {
 	if (!existsSync(filePath)) {
 		throw new Error('Firmware config file does not exist: ' + filePath);
 	}
@@ -16,8 +16,16 @@ export const replaceInFileByLine = async (filePath: string, search: string | Reg
 	});
 
 	for await (const line of rl) {
+		if (replace == null) {
+			if (search instanceof RegExp ? line.match(search) : line.includes(search)) {
+				continue;
+			}
+			writeStream.write(line + EOL);
+			continue;
+		}
 		writeStream.write(line.replace(search, replace) + EOL);
 	}
+	rl.close();
 	await new Promise((resolve, reject) => {
 		writeStream.close((err) => {
 			if (err) {
@@ -51,10 +59,10 @@ export const searchFileByLine = async (filePath: string, search: string | RegExp
 	let result: number | false = false;
 	let lineNumber = 0;
 	for await (const line of rl) {
+		if (result) continue;
 		lineNumber++;
 		if (search instanceof RegExp ? line.match(search) : line.includes(search)) {
 			result = lineNumber;
-			break;
 		}
 	}
 	await new Promise((resolve, reject) => {

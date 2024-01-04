@@ -58,7 +58,7 @@ export const ActionsDropdown = () => {
 			(value) => {
 				setFlashModalContent({
 					title: 'Flashing Complete',
-					children: <p dangerouslySetInnerHTML={{ __html: value.replace(/\n/g, '<br />') }} />,
+					children: <p dangerouslySetInnerHTML={{ __html: value.report.replace(/\n/g, '<br />') }} />,
 					dismissText: 'OK',
 				});
 			},
@@ -84,11 +84,11 @@ export const ActionsDropdown = () => {
 			dismissText: 'Please wait...',
 		});
 		setIsSymlinkModalOpen(true);
-		symlinkExtensions.mutateAsync().then(
+		symlinkExtensions.mutateAsync({}).then(
 			(value) => {
 				setSymlinkModalContent({
 					title: 'Symlink Complete',
-					children: <p dangerouslySetInnerHTML={{ __html: value.replace(/\n/g, '<br />') }} />,
+					children: <p dangerouslySetInnerHTML={{ __html: value.report.replace(/\n/g, '<br />') }} />,
 					dismissText: 'OK',
 				});
 			},

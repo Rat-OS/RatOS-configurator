@@ -1470,14 +1470,15 @@ const mcuRouter = (0,trpc/* router */.Nd)({
                 await runSudoScript("board-script.sh", external_path_default().join(current.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ""), current.flashScript));
                 flashResults.push({
                     board: b,
-                    result: "success"
+                    result: "success",
+                    message: `${b.manufacturer} ${b.name} was successfully flashed.`
                 });
             } catch (e) {
                 const message = e instanceof Error ? e.message : e;
                 flashResults.push({
                     board: b,
                     result: "error",
-                    message: typeof message === "string" ? message : undefined
+                    message: typeof message === "string" ? message : `Unknown error occured while flashing ${b.manufacturer} ${b.name}`
                 });
             }
         }
@@ -1490,7 +1491,10 @@ const mcuRouter = (0,trpc/* router */.Nd)({
                 report += `${r.board.manufacturer} ${r.board.name} was successfully flashed.\n`;
             }
         });
-        return report;
+        return {
+            report,
+            flashResults
+        };
     }),
     flashViaPath: mcuProcedure.input(external_zod_.z.object({
         boardPath: external_zod_.z.string(),
@@ -1992,6 +1996,7 @@ const generateKlipperConfiguration = async (config, overwritePrinterCfg = false,
     if (returnAsText) {
         return renderedTemplate;
     }
+    return results;
 };
 const loadSerializedConfig = async (filePath)=>{
     const configJson = (0,external_fs_.readFileSync)(filePath);

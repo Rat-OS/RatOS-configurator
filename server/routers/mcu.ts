@@ -44,7 +44,7 @@ export const getBoards = async () => {
 					: {
 							...(JSON.parse(fs.readFileSync(f).toString()) as BoardWithDetectionStatus),
 							path: f.replace('board-definition.json', ''),
-					  },
+						},
 			)
 			.filter(Boolean)
 			.map((b) => {
@@ -272,7 +272,7 @@ export const mcuRouter = router({
 			const flashResults: {
 				board: Board;
 				result: 'success' | 'error';
-				message?: string;
+				message: string;
 			}[] = [];
 			for (const b of connectedBoards) {
 				try {
@@ -291,13 +291,17 @@ export const mcuRouter = router({
 					flashResults.push({
 						board: b,
 						result: 'success',
+						message: `${b.manufacturer} ${b.name} was successfully flashed.`,
 					});
 				} catch (e) {
 					const message = e instanceof Error ? e.message : e;
 					flashResults.push({
 						board: b,
 						result: 'error',
-						message: typeof message === 'string' ? message : undefined,
+						message:
+							typeof message === 'string'
+								? message
+								: `Unknown error occured while flashing ${b.manufacturer} ${b.name}`,
 					});
 				}
 			}
@@ -310,7 +314,7 @@ export const mcuRouter = router({
 					report += `${r.board.manufacturer} ${r.board.name} was successfully flashed.\n`;
 				}
 			});
-			return report;
+			return { report, flashResults };
 		}),
 	flashViaPath: mcuProcedure
 		.input(
@@ -379,8 +383,8 @@ export const mcuRouter = router({
 				flashResult = input.flashPath
 					? await runSudoScript('flash-path.sh', getBoardSerialPath(ctx.board, ctx.toolhead), input.flashPath)
 					: ctx.toolhead
-					? await runSudoScript('flash-path.sh', getBoardSerialPath(ctx.board, ctx.toolhead))
-					: await runSudoScript('board-script.sh', flashScript);
+						? await runSudoScript('flash-path.sh', getBoardSerialPath(ctx.board, ctx.toolhead))
+						: await runSudoScript('board-script.sh', flashScript);
 			} catch (e) {
 				const message = e instanceof Error ? e.message : e;
 				throw new TRPCError({

@@ -1,0 +1,6 @@
+#!/bin/bash
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+RATOS_BIN_CWD=$(pwd)
+export RATOS_BIN_CWD
+pnpm run --silent -C "$SCRIPT_DIR"/.. cli "$@"
+exit $?
