@@ -261,7 +261,11 @@ describe('configuration', async () => {
 		});
 		test.concurrent('has an existing template file', async () => {
 			expect(
-				fs.existsSync(path.join(environment.RATOS_CONFIGURATION_PATH, 'templates', printer.template)),
+				fs.existsSync(
+					path.resolve(
+						path.join(__dirname, `../templates/${printer.template.replace('-printer.template.cfg', '.ts')}`),
+					),
+				),
 			).toBeTruthy();
 		});
 		test.concurrent('has valid board default', () => {
