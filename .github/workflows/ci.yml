@@ -24,7 +24,7 @@ concurrency:
 
 jobs:
   checkout_dependencies:
-    name: Checkout RatOS Configurator
+    name: Lint, Typecheck and Tests
     runs-on: ubuntu-latest
     outputs:
       STORE_PATH: ${{ steps.generate-keys.outputs.STORE_PATH }}
