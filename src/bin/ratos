@@ -1,5 +1,4 @@
 #!/bin/bash
-set -x
 BIN_LOCATION=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )/ratos
 REAL_BIN_LOCATOIN=$(realpath "$BIN_LOCATION")
 SCRIPT_DIR=$(dirname "$REAL_BIN_LOCATOIN")
