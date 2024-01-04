@@ -1163,7 +1163,7 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
 // EXTERNAL MODULE: ./data/fans.ts
 var fans = __webpack_require__(7645);
 // EXTERNAL MODULE: external "@trpc/server"
-var server_ = __webpack_require__(2756);
+var server_ = __webpack_require__(6368);
 ;// CONCATENATED MODULE: ./server/helpers/run-script.ts
 
 
