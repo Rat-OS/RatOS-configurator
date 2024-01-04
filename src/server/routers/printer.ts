@@ -106,7 +106,7 @@ export const getPrinters = async <T extends boolean = false>(
 						...(JSON.parse(readFileSync(f).toString()) as {}),
 						path: f.replace('printer-definition.json', ''),
 						id: f.replace('/printer-definition.json', '').split('/').pop(),
-				  } as z.infer<typeof PrinterDefinition>),
+					} as z.infer<typeof PrinterDefinition>),
 		)
 		.filter(Boolean);
 
@@ -238,7 +238,7 @@ export const deserializePartialPrinterConfiguration = async (
 			? undefined
 			: await Promise.all(
 					config.toolheads.map(async (th) => await deserializePartialToolheadConfiguration(th, config, boards)),
-			  );
+				);
 
 	return PartialPrinterConfiguration.parse({
 		toolheads: toolheads,
@@ -287,13 +287,13 @@ const getTimeStamp = () => {
 	return `${yyyy}${mm}${dd}-${hh}${min}${sec}`;
 };
 
-const generateKlipperConfiguration = async (
+const generateKlipperConfiguration = async <T extends boolean>(
 	config: PrinterConfiguration,
 	overwritePrinterCfg = false,
 	overwriteExtras: boolean = false,
-	returnAsText: boolean = false,
+	returnAsText: T = false as T,
 	noWrite: boolean = false,
-) => {
+): Promise<T extends true ? string : { fileName: string; action: FileAction; err?: unknown }[]> => {
 	const utils = await constructKlipperConfigUtils(config);
 	const extrasGenerator = constructKlipperConfigExtrasGenerator(config, utils);
 	const helper = await constructKlipperConfigHelpers(config, extrasGenerator, utils);
@@ -376,6 +376,7 @@ const generateKlipperConfiguration = async (
 	if (returnAsText) {
 		return renderedTemplate;
 	}
+	return results as T extends true ? string : { fileName: string; action: FileAction; err?: unknown }[];
 };
 
 export const loadSerializedConfig = async (filePath: string) => {
@@ -385,14 +386,18 @@ export const loadSerializedConfig = async (filePath: string) => {
 	return config;
 };
 
-export const regenerateKlipperConfiguration = async (fromFile?: string, returnAsText?: boolean, noWrite?: boolean) => {
+export const regenerateKlipperConfiguration = async <T extends boolean = false>(
+	fromFile?: string,
+	returnAsText?: T,
+	noWrite?: boolean,
+) => {
 	const environment = serverSchema.parse(process.env);
 	const filePath = fromFile ?? path.join(environment.RATOS_DATA_DIR, 'last-printer-settings.json');
 	if (!existsSync(filePath)) {
 		throw new Error("Couldn't find printer settings file: " + filePath);
 	}
 	const config = await loadSerializedConfig(filePath);
-	return await generateKlipperConfiguration(config, noWrite, noWrite, returnAsText, noWrite);
+	return await generateKlipperConfiguration<T>(config, noWrite, noWrite, returnAsText, noWrite);
 };
 
 const getToolhead = async <
@@ -568,7 +573,7 @@ export const printerRouter = router({
 		};
 	}),
 	regenerateConfiguration: publicProcedure.mutation(async () => {
-		return await regenerateKlipperConfiguration();
+		return await regenerateKlipperConfiguration<false>();
 	}),
 	saveConfiguration: publicProcedure
 		.input(

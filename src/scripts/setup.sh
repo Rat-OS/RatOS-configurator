@@ -94,4 +94,5 @@ install_logrotation
 pnpm_install
 disable_telemetry
 install_service
-install_udev_rule "$USER"
+install_udev_rule
+install_cli

@@ -3,7 +3,7 @@ import { copyFile, unlink } from 'fs/promises';
 import { EOL } from 'os';
 import { createInterface } from 'readline';
 
-export const replaceInFileByLine = async (filePath: string, search: string | RegExp, replace: string) => {
+export const replaceInFileByLine = async (filePath: string, search: string | RegExp, replace: string | null) => {
 	if (!existsSync(filePath)) {
 		throw new Error('Firmware config file does not exist: ' + filePath);
 	}
@@ -16,6 +16,14 @@ export const replaceInFileByLine = async (filePath: string, search: string | Reg
 	});
 
 	for await (const line of rl) {
+		if (replace == null) {
+			if (search instanceof RegExp ? line.match(search) : line.includes(search)) {
+				continue;
+			} else {
+				writeStream.write(line + EOL);
+			}
+			continue;
+		}
 		writeStream.write(line.replace(search, replace) + EOL);
 	}
 	await new Promise((resolve, reject) => {

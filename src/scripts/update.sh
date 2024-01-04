@@ -18,3 +18,4 @@ ensure_sudo_command_whitelisting
 ensure_pnpm_installation
 pnpm_install
 install_udev_rule root
+install_cli

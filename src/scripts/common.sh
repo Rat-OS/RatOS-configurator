@@ -56,6 +56,19 @@ install_hooks()
 	fi
 }
 
+install_cli()
+{
+	report_status "Installing RatOS CLI"
+	sudo=""
+	if [ "$EUID" -ne 0 ]
+	then
+		sudo="sudo"
+	fi
+	if [ ! -L "/usr/local/bin/ratos" ]; then
+ 	   $sudo ln -s "$SRC_DIR/bin/ratos" "/usr/local/bin/ratos"
+	fi
+}
+
 verify_users()
 {
 	if ! id "pi" &>/dev/null; then
@@ -67,10 +80,10 @@ verify_users()
 install_udev_rule()
 {
 	report_status "Installing udev rule"
-	sudo="sudo"
-	if [ "$1" = "root" ]
+	sudo=""
+	if [ "$EUID" -ne 0 ]
 	then
-		sudo=""
+		sudo="sudo"
 	fi
 	if [ ! -e /etc/udev/rules.d/97-ratos.rules ]; then
 		$sudo ln -s "$SCRIPT_DIR/ratos.rules" /etc/udev/rules.d/97-ratos.rules
@@ -79,10 +92,10 @@ install_udev_rule()
 
 ensure_sudo_command_whitelisting()
 {
-	sudo="sudo"
-	if [ "$1" = "root" ]
+	sudo=""
+	if [ "$EUID" -ne 0 ]
 	then
-		sudo=""
+		sudo="sudo"
 	fi
     report_status "Updating whitelisted commands"
 	# Whitelist RatOS configurator git hook scripts
