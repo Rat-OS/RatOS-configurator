@@ -66,6 +66,7 @@ install_cli()
 	fi
 	if [ ! -L "/usr/local/bin/ratos" ]; then
  	   $sudo ln -s "$SRC_DIR/bin/ratos" "/usr/local/bin/ratos"
+	   $sudo chmod a+x "/usr/local/bin/ratos"
 	fi
 }
 
