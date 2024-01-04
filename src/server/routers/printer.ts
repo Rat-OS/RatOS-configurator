@@ -300,7 +300,6 @@ const generateKlipperConfiguration = async <T extends boolean>(
 	const { template, initialPrinterCfg } = await import(
 		`../../templates/${config.printer.template.replace('-printer.template.cfg', '.ts')}`
 	);
-
 	const environment = serverSchema.parse(process.env);
 	const renderedTemplate = template(config, helper).trim();
 	const renderedPrinterCfg = initialPrinterCfg(config, helper).trim();

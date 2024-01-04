@@ -62,10 +62,10 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 			axis === PrinterAxis.z
 				? 'z0'
 				: axis !== this.getExtruderAxis()
-				? axis
-				: this.getToolboard() != null
-				? 'e'
-				: 'e' + this.getExtruderToolAxisPinPrefix();
+					? axis
+					: this.getToolboard() != null
+						? 'e'
+						: 'e' + this.getExtruderToolAxisPinPrefix();
 		const pinName = axisAlias + alias;
 		let pinValue = null;
 		try {
@@ -308,7 +308,7 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 	}
 	public renderHotendFan() {
 		let result: string[] = [];
-		result.push(`[heater_fan toolhead_cooling_fan_${this.getShortToolName()}]`);
+		result.push(`[heater_fan toolhead_cooling_fan${this.getTool() > 0 ? `_${this.getShortToolName()}` : ''}]`);
 		switch (this.getHotendFan().id) {
 			case '2pin':
 				this.requireControlboardPin('fan_toolhead_cooling_pin');
