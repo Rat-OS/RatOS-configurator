@@ -15,7 +15,6 @@ export const Status: React.FC<StatusProps> = (props) => {
 		? props.results.some((result) => result.result === 'error')
 		: props.results.result === 'error';
 	const results = Array.isArray(props.results) ? props.results : [props.results];
-	console.log(results, hasError);
 	return (
 		<Box flexDirection="column">
 			{hasError ? <Text color="red">Error!</Text> : <Text color="green">Success!</Text>}
