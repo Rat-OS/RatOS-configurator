@@ -93,7 +93,7 @@ jobs:
 
       - name: Lint
         working-directory: ratos-configurator/src
-        run: npm run lint:ci
+        run: pnpm run lint:ci
 
       - name: Typecheck
         uses: fersilva16/ts-report-action@1.1.0
@@ -104,7 +104,7 @@ jobs:
       - name: Run test suite
         working-directory: ratos-configurator/src
         if: success() || failure() # run this step even if previous step failed
-        run: npm run test:ci --outputFile=./report.xml
+        run: pnpm run test:ci --outputFile=./report.xml
 
       - name: Upload reports
         uses: actions/upload-artifact@v3 # upload test results
