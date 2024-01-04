@@ -78,6 +78,7 @@ export const compileFirmware = async (board: Board, toolhead?: ToolheadHelper<an
 			return readFileSync(dest).toString();
 		}
 		compileResult = await runSudoScript('klipper-compile.sh');
+		return compileResult;
 	} catch (e) {
 		const message = e instanceof Error ? e.message : e;
 		throw new TRPCError({
@@ -432,32 +433,14 @@ export const mcuRouter = router({
 					message: 'Board does not support DFU.',
 				});
 			}
-			let compileResult = null;
-			const firmwareBinary = path.resolve(
-				'/home/pi/printer_data/config/firmware_binaries',
-				ctx.board.firmwareBinaryName,
-			);
 			try {
-				if (fs.existsSync(firmwareBinary)) {
-					fs.rmSync(firmwareBinary);
-				}
-				const compileScript = path.join(
-					ctx.board.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''),
-					ctx.board.compileScript,
-				);
-				compileResult = await runSudoScript('board-script.sh', compileScript);
+				await compileFirmware(ctx.board, ctx.toolhead);
 			} catch (e) {
 				const message = e instanceof Error ? e.message : e;
 				throw new TRPCError({
 					code: 'INTERNAL_SERVER_ERROR',
 					message: `Could not compile firmware for ${ctx.board.name}: \n\n ${message}`,
 					cause: e,
-				});
-			}
-			if (!fs.existsSync(firmwareBinary)) {
-				throw new TRPCError({
-					code: 'INTERNAL_SERVER_ERROR',
-					message: `Could not compile firmware for ${ctx.board.name}: \n\n ${compileResult.stdout} ${compileResult.stderr}`,
 				});
 			}
 			try {
