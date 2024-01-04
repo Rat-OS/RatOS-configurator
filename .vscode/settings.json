@@ -1,9 +1,21 @@
 {
+	"typescript.tsdk": "src/node_modules/typescript/lib",
     "tailwindCSS.experimental.classRegex": [
         ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
         ["cx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"],
         ["twMerge\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"],
         ["twJoin\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
     ],
-    "prettier.requireConfig": true
+    "prettier.requireConfig": true,
+	"tailwindCSS.classAttributes": [
+		"class",
+		"className",
+		"ngClass",
+		"enterFrom",
+		"enterTo",
+		"enter",
+		"leaveFrom",
+		"leaveTo",
+		"leave"
+	],
 }

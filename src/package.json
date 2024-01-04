@@ -21,7 +21,7 @@
 		"trailingComma": "all",
 		"printWidth": 120,
 		"plugins": [
-			"/home/pi/work/RatOS-configurator/src/node_modules/.pnpm/prettier-plugin-tailwindcss@0.5.10_prettier@3.1.1/node_modules/prettier-plugin-tailwindcss/dist/index.mjs"
+			"prettier-plugin-tailwindcss/dist/index.mjs"
 		],
 		"tailwindConfig": "./tailwind.config.js"
 	},
