@@ -16,8 +16,8 @@ This thing still need to be dockerized (PR's welcome), but will run on any linux
 * Linux or WSL
 * VSCode
 * Prettier ESLint vscode extension Beta 3 https://github.com/idahogurl/vs-code-prettier-eslint/issues/171#issuecomment-1856574317 (you'll have to manually install this one)
-* Node v18.x
-* PNPM
+* Node v18.x (i prefer managing this with [nvm](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating))
+* [PNPM](https://pnpm.io/installation)
 
 Most bash scripts will assume user `pi` exists. Needs fixing, fortunately  you don't need them for most work.
 
