@@ -4361,7 +4361,8 @@ const CompletionSteps = [
 const ConfirmToolhead = (props)=>{
     const { toolhead , setToolhead  } = useToolheadConfiguration(props.toolOrAxis);
     const toolboardDetected = trpc/* trpc.mcu.detect.useQuery */.S.mcu.detect.useQuery({
-        boardPath: toolhead.getToolboard()?.path ?? ""
+        boardPath: toolhead.getToolboard()?.path ?? "",
+        toolhead: toolhead.serialize()
     }, {
         enabled: toolhead.getToolboard() != null
     });
@@ -4381,7 +4382,7 @@ const ConfirmToolhead = (props)=>{
         }, []);
     if (toolhead == null) {
         return /*#__PURE__*/ jsx_runtime_.jsx("dl", {
-            className: "grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2",
+            className: "grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700",
             children: /*#__PURE__*/ jsx_runtime_.jsx("div", {
                 className: "sm:col-span-2",
                 children: /*#__PURE__*/ jsx_runtime_.jsx("div", {
@@ -4394,7 +4395,7 @@ const ConfirmToolhead = (props)=>{
     return /*#__PURE__*/ (0,jsx_runtime_.jsxs)(jsx_runtime_.Fragment, {
         children: [
             /*#__PURE__*/ (0,jsx_runtime_.jsxs)("dl", {
-                className: "grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2",
+                className: "grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700",
                 children: [
                     /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
                         className: "sm:col-span-1",
@@ -4413,7 +4414,7 @@ const ConfirmToolhead = (props)=>{
                                 ]
                             }),
                             /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                className: "mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2",
+                                className: "mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300",
                                 children: toolhead.getConfig().toolboard == null ? "None selected" : `${toolhead.getConfig().toolboard?.manufacturer} ${toolhead.getConfig().toolboard?.name}`
                             })
                         ]
@@ -4437,7 +4438,7 @@ const ConfirmToolhead = (props)=>{
                                 children: "Extruder"
                             }),
                             /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                className: "mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2",
+                                className: "mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300",
                                 children: toolhead.getConfig().extruder?.title ?? "None selected"
                             })
                         ]
@@ -4450,7 +4451,7 @@ const ConfirmToolhead = (props)=>{
                                 children: "Hotend"
                             }),
                             /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                className: "mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2",
+                                className: "mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300",
                                 children: toolhead.getConfig().hotend?.title ?? "None selected"
                             })
                         ]
@@ -4463,7 +4464,7 @@ const ConfirmToolhead = (props)=>{
                                 children: "Thermistor"
                             }),
                             /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                className: "mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2",
+                                className: "mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300",
                                 children: toolhead.getConfig().thermistor ?? "None selected"
                             })
                         ]
@@ -4471,7 +4472,7 @@ const ConfirmToolhead = (props)=>{
                 ]
             }),
             /*#__PURE__*/ (0,jsx_runtime_.jsxs)("dl", {
-                className: "grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2",
+                className: "grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700",
                 children: [
                     /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
                         className: "sm:col-span-1",
@@ -4481,7 +4482,7 @@ const ConfirmToolhead = (props)=>{
                                 children: "X Endstop"
                             }),
                             /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                className: "mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2",
+                                className: "mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300",
                                 children: toolhead.getConfig().xEndstop?.title ?? "None selected"
                             })
                         ]
@@ -4494,7 +4495,7 @@ const ConfirmToolhead = (props)=>{
                                 children: "Y Endstop"
                             }),
                             /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                className: "mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2",
+                                className: "mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300",
                                 children: toolhead.getConfig().yEndstop?.title ?? "None selected"
                             })
                         ]
@@ -4507,7 +4508,7 @@ const ConfirmToolhead = (props)=>{
                                 children: "Probe"
                             }),
                             /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                className: "mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2",
+                                className: "mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300",
                                 children: toolhead.getConfig().probe?.title ?? "None selected"
                             })
                         ]
@@ -4538,7 +4539,7 @@ const ConfirmToolhead = (props)=>{
                 ]
             }),
             /*#__PURE__*/ (0,jsx_runtime_.jsxs)("dl", {
-                className: "grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2",
+                className: "grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700",
                 children: [
                     /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
                         className: "sm:col-span-1",
@@ -4548,7 +4549,7 @@ const ConfirmToolhead = (props)=>{
                                 children: "Part cooling fan"
                             }),
                             /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                className: "mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2",
+                                className: "mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300",
                                 children: toolhead.getConfig().partFan?.title ?? "None selected"
                             })
                         ]
@@ -4561,7 +4562,7 @@ const ConfirmToolhead = (props)=>{
                                 children: "Hotend cooling fan"
                             }),
                             /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                className: "mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2",
+                                className: "mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300",
                                 children: toolhead.getConfig().hotendFan?.title ?? "None selected"
                             })
                         ]
@@ -4569,7 +4570,7 @@ const ConfirmToolhead = (props)=>{
                 ]
             }),
             /*#__PURE__*/ (0,jsx_runtime_.jsxs)("dl", {
-                className: "grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2",
+                className: "grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700",
                 children: [
                     /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
                         className: "sm:col-span-1",
@@ -4579,7 +4580,7 @@ const ConfirmToolhead = (props)=>{
                                 children: "X Accelerometer"
                             }),
                             /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                className: "mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2",
+                                className: "mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300",
                                 children: toolhead.getConfig().xAccelerometer?.title ?? "None"
                             })
                         ]
@@ -4592,7 +4593,7 @@ const ConfirmToolhead = (props)=>{
                                 children: "Y Accelerometer"
                             }),
                             /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                className: "mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2",
+                                className: "mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300",
                                 children: toolhead.getConfig().yAccelerometer?.title ?? "None"
                             })
                         ]
@@ -4694,7 +4695,7 @@ const ConfirmConfig = (props)=>{
                                     className: "mt-4",
                                     children: [
                                         /*#__PURE__*/ (0,jsx_runtime_.jsxs)("dl", {
-                                            className: "grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2",
+                                            className: "grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700",
                                             children: [
                                                 /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
                                                     className: "sm:col-span-2",
@@ -4704,7 +4705,7 @@ const ConfirmConfig = (props)=>{
                                                             children: "Printer"
                                                         }),
                                                         /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                                            className: "mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2",
+                                                            className: "mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300",
                                                             children: parsedPrinterConfiguration.data.printer != null ? `${parsedPrinterConfiguration.data.printer.manufacturer} ${parsedPrinterConfiguration.data.printer.name} ${parsedPrinterConfiguration.data.size}` : "None selected"
                                                         })
                                                     ]
@@ -4725,7 +4726,7 @@ const ConfirmConfig = (props)=>{
                                                             ]
                                                         }),
                                                         /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                                            className: "mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2",
+                                                            className: "mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300",
                                                             children: parsedPrinterConfiguration.data.controlboard != null ? `${parsedPrinterConfiguration.data.controlboard.manufacturer} ${parsedPrinterConfiguration.data.controlboard.name}` : "None selected"
                                                         })
                                                     ]
@@ -4738,7 +4739,7 @@ const ConfirmConfig = (props)=>{
                                                             children: "Controller cooling fan"
                                                         }),
                                                         /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                                            className: "mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2",
+                                                            className: "mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300",
                                                             children: parsedPrinterConfiguration.data.controllerFan?.title ?? "None selected"
                                                         })
                                                     ]
@@ -4760,7 +4761,7 @@ const ConfirmConfig = (props)=>{
                                                 toolOrAxis: tool.axis
                                             }, tool.axis)),
                                         /*#__PURE__*/ (0,jsx_runtime_.jsxs)("dl", {
-                                            className: "grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2",
+                                            className: "grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700",
                                             children: [
                                                 /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
                                                     className: "sm:col-span-1",
@@ -4770,7 +4771,7 @@ const ConfirmConfig = (props)=>{
                                                             children: "Performance mode"
                                                         }),
                                                         /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                                            className: "mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2",
+                                                            className: "mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300",
                                                             children: parsedPrinterConfiguration.data.performanceMode ? "Enabled" : "Disabled"
                                                         })
                                                     ]
@@ -4783,7 +4784,7 @@ const ConfirmConfig = (props)=>{
                                                             children: "Stealtchop"
                                                         }),
                                                         /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                                            className: "mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2",
+                                                            className: "mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300",
                                                             children: parsedPrinterConfiguration.data.stealthchop ? "Enabled" : "Disabled"
                                                         })
                                                     ]
@@ -4796,7 +4797,7 @@ const ConfirmConfig = (props)=>{
                                                             children: "Standstill Stealth"
                                                         }),
                                                         /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                                            className: "mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2",
+                                                            className: "mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300",
                                                             children: parsedPrinterConfiguration.data.standstillStealth ? "Enabled" : "Disabled"
                                                         })
                                                     ]
@@ -4804,7 +4805,7 @@ const ConfirmConfig = (props)=>{
                                             ]
                                         }),
                                         /*#__PURE__*/ jsx_runtime_.jsx("dl", {
-                                            className: "grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2",
+                                            className: "grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700",
                                             children: parsedPrinterConfiguration.data.rails?.map((rail, i)=>/*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
                                                     className: "sm:col-span-1",
                                                     children: [
@@ -4816,7 +4817,7 @@ const ConfirmConfig = (props)=>{
                                                             ]
                                                         }),
                                                         /*#__PURE__*/ (0,jsx_runtime_.jsxs)("dd", {
-                                                            className: "mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2",
+                                                            className: "mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300",
                                                             children: [
                                                                 /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
                                                                     className: "font-medium",
@@ -4849,9 +4850,9 @@ const ConfirmConfig = (props)=>{
                                                 }, i))
                                         }),
                                         /*#__PURE__*/ jsx_runtime_.jsx("dl", {
-                                            className: "grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2",
+                                            className: "grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700",
                                             children: /*#__PURE__*/ jsx_runtime_.jsx("div", {
-                                                className: " dark:border-zinc-700 sm:col-span-2",
+                                                className: " sm:col-span-2 dark:border-zinc-700",
                                                 children: /*#__PURE__*/ jsx_runtime_.jsx(InfoMessage, {
                                                     children: 'If the above information is correct, go ahead and save the configuration. If not, go back and change the configuration by clicking the steps in the "Setup Progress" panel.'
                                                 })
