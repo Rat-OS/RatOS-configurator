@@ -18,8 +18,8 @@ export const Status: React.FC<StatusProps> = (props) => {
 	return (
 		<Box flexDirection="column">
 			{hasError ? <Text color="red">Error!</Text> : <Text color="green">Success!</Text>}
-			{results.map(({ message, result }) => (
-				<Box key={message}>
+			{results.map(({ message, result }, i) => (
+				<Box key={i}>
 					{result === 'success' ? (
 						<Text color="green" bold={true}>
 							✓{' '}
