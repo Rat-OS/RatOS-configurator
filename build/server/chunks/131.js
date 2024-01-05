@@ -517,7 +517,7 @@ class Head extends _react.default.Component {
             content: "width=device-width,minimum-scale=1,initial-scale=1"
         }), !hasCanonicalRel && /*#__PURE__*/ _react.default.createElement("link", {
             rel: "canonical",
-            href: canonicalBase + (__webpack_require__(6368).cleanAmpPath)(dangerousAsPath)
+            href: canonicalBase + (__webpack_require__(2778).cleanAmpPath)(dangerousAsPath)
         }), /*#__PURE__*/ _react.default.createElement("link", {
             rel: "preload",
             as: "script",

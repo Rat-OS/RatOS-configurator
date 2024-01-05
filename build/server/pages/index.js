@@ -2100,8 +2100,8 @@ const PrinterRailSettings = (props)=>{
     ]);
     const isRecommendedPresetCompatible = recommendedPreset && recommendedPreset.run_current === current;
     const extruderName = props.printerRail.axis === "extruder" ? "Extruder T0" : props.printerRail.axis === motion/* PrinterAxis.extruder1 */.po.extruder1 ? "Extruder T1" : "Stepper " + props.printerRail.axis.toLocaleUpperCase();
-    return /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-        className: "rounded-md border border-zinc-300 p-4 shadow-lg dark:border-zinc-700",
+    return props.isVisible ? /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+        className: "break-inside-avoid-column rounded-md border border-zinc-300 p-4 shadow-lg dark:border-zinc-700",
         children: [
             /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
                 className: "",
@@ -2210,7 +2210,7 @@ const PrinterRailSettings = (props)=>{
                 ]
             })
         ]
-    });
+    }) : null;
 };
 
 // EXTERNAL MODULE: ./node_modules/.pnpm/@formkit+auto-animate@0.8.0/node_modules/@formkit/auto-animate/react/index.mjs + 1 modules
@@ -2515,6 +2515,7 @@ const ToolheadSettings = (props)=>{
 
 const HardwareSelection = (props)=>{
     const [animate] = (0,react/* useAutoAnimate */.u)();
+    const [railAnimate] = (0,react/* useAutoAnimate */.u)();
     const [advancedSteppers, setAdvancedSteppers] = (0,react_.useState)(false);
     const { selectedControllerFan , selectedBoard , selectedPrinter , performanceMode , setPerformanceMode , stealthchop , setStealthchop , standstillStealth , setStandstillStealth , selectedPrinterRails , setSelectedControllerFan: setControllerFan , serializedPrinterConfiguration , parsedPrinterConfiguration , partialPrinterConfiguration  } = (0,usePrinterConfiguration/* usePrinterConfiguration */.G3)();
     const errors = [];
@@ -2580,7 +2581,7 @@ const HardwareSelection = (props)=>{
                                 ]
                             }),
                             /*#__PURE__*/ jsx_runtime_.jsx("div", {
-                                className: "mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 dark:border-zinc-700 sm:grid-cols-2",
+                                className: "mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 sm:grid-cols-2 dark:border-zinc-700",
                                 children: /*#__PURE__*/ jsx_runtime_.jsx("div", {
                                     children: /*#__PURE__*/ jsx_runtime_.jsx(DropdownWithPrinterQuery, {
                                         label: "Controller fan",
@@ -2620,7 +2621,7 @@ const HardwareSelection = (props)=>{
                                 ]
                             }),
                             /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                                className: "mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 dark:border-zinc-700 sm:grid-cols-2",
+                                className: "mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 sm:grid-cols-2 dark:border-zinc-700",
                                 children: [
                                     selectedPrinter?.speedLimits.performance && /*#__PURE__*/ jsx_runtime_.jsx("div", {
                                         className: "col-span-2",
@@ -2654,21 +2655,20 @@ const HardwareSelection = (props)=>{
                         ]
                     }),
                     /*#__PURE__*/ jsx_runtime_.jsx("div", {
-                        children: advancedSteppers && selectedPrinter && /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                        children: selectedPrinter && /*#__PURE__*/ jsx_runtime_.jsx("div", {
                             className: "grid gap-4 py-4 sm:grid-cols-2",
+                            ref: railAnimate,
                             children: selectedPrinterRails.map((rail)=>{
                                 const defaultRail = selectedPrinter.defaults.rails.find((r)=>r.axis === rail.axis);
                                 if (defaultRail == null) {
                                     throw new Error("No printer default for axis " + rail.axis);
                                 }
-                                return /*#__PURE__*/ jsx_runtime_.jsx("div", {
-                                    className: "break-inside-avoid-column",
-                                    children: /*#__PURE__*/ jsx_runtime_.jsx(PrinterRailSettings, {
-                                        selectedBoard: selectedBoard,
-                                        printerRail: rail,
-                                        printerRailDefault: (0,serialization/* deserializePrinterRailDefinition */.Oj)(defaultRail),
-                                        performanceMode: performanceMode
-                                    })
+                                return /*#__PURE__*/ jsx_runtime_.jsx(PrinterRailSettings, {
+                                    selectedBoard: selectedBoard,
+                                    printerRail: rail,
+                                    printerRailDefault: (0,serialization/* deserializePrinterRailDefinition */.Oj)(defaultRail),
+                                    performanceMode: performanceMode,
+                                    isVisible: advancedSteppers
                                 }, rail.axis + (performanceMode ? "performance" : ""));
                             })
                         })
