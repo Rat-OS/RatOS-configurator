@@ -46,7 +46,7 @@ interface ConfirmToolheadProps {
 export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 	const { toolhead, setToolhead } = useToolheadConfiguration(props.toolOrAxis);
 	const toolboardDetected = trpc.mcu.detect.useQuery(
-		{ boardPath: toolhead.getToolboard()?.path ?? '' },
+		{ boardPath: toolhead.getToolboard()?.path ?? '', toolhead: toolhead.serialize() },
 		{
 			enabled: toolhead.getToolboard() != null,
 		},
@@ -74,7 +74,7 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 	);
 	if (toolhead == null) {
 		return (
-			<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
+			<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
 				<div className="sm:col-span-2">
 					<div className="space-x-2 text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">
 						<Spinner />
@@ -85,7 +85,7 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 	}
 	return (
 		<>
-			<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
+			<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
 				<div className="sm:col-span-1">
 					<dt className="space-x-2 text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">
 						<span>Toolboard</span>{' '}
@@ -95,7 +95,7 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 							</Badge>
 						)}
 					</dt>
-					<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
+					<dd className="mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300">
 						{toolhead.getConfig().toolboard == null
 							? 'None selected'
 							: `${toolhead.getConfig().toolboard?.manufacturer} ${toolhead.getConfig().toolboard?.name}`}
@@ -115,39 +115,39 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 				)}
 				<div className="sm:col-span-1">
 					<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Extruder</dt>
-					<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
+					<dd className="mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300">
 						{toolhead.getConfig().extruder?.title ?? 'None selected'}
 					</dd>
 				</div>
 				<div className="sm:col-span-1">
 					<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Hotend</dt>
-					<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
+					<dd className="mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300">
 						{toolhead.getConfig().hotend?.title ?? 'None selected'}
 					</dd>
 				</div>
 				<div className="sm:col-span-1">
 					<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Thermistor</dt>
-					<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
+					<dd className="mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300">
 						{toolhead.getConfig().thermistor ?? 'None selected'}
 					</dd>
 				</div>
 			</dl>
-			<dl className="grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
+			<dl className="grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
 				<div className="sm:col-span-1">
 					<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">X Endstop</dt>
-					<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
+					<dd className="mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300">
 						{toolhead.getConfig().xEndstop?.title ?? 'None selected'}
 					</dd>
 				</div>
 				<div className="sm:col-span-1">
 					<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Y Endstop</dt>
-					<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
+					<dd className="mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300">
 						{toolhead.getConfig().yEndstop?.title ?? 'None selected'}
 					</dd>
 				</div>
 				<div className="sm:col-span-1">
 					<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Probe</dt>
-					<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
+					<dd className="mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300">
 						{toolhead.getConfig().probe?.title ?? 'None selected'}
 					</dd>
 				</div>
@@ -170,30 +170,30 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 						</div>
 					)}
 			</dl>
-			<dl className="grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
+			<dl className="grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
 				<div className="sm:col-span-1">
 					<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Part cooling fan</dt>
-					<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
+					<dd className="mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300">
 						{toolhead.getConfig().partFan?.title ?? 'None selected'}
 					</dd>
 				</div>
 				<div className="sm:col-span-1">
 					<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Hotend cooling fan</dt>
-					<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
+					<dd className="mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300">
 						{toolhead.getConfig().hotendFan?.title ?? 'None selected'}
 					</dd>
 				</div>
 			</dl>
-			<dl className="grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
+			<dl className="grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
 				<div className="sm:col-span-1">
 					<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">X Accelerometer</dt>
-					<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
+					<dd className="mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300">
 						{toolhead.getConfig().xAccelerometer?.title ?? 'None'}
 					</dd>
 				</div>
 				<div className="sm:col-span-1">
 					<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Y Accelerometer</dt>
-					<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
+					<dd className="mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300">
 						{toolhead.getConfig().yAccelerometer?.title ?? 'None'}
 					</dd>
 				</div>
@@ -276,10 +276,10 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 								</div>
 							)}
 							<div className="mt-4">
-								<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
+								<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
 									<div className="sm:col-span-2">
 										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Printer</dt>
-										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
+										<dd className="mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300">
 											{parsedPrinterConfiguration.data.printer != null
 												? `${parsedPrinterConfiguration.data.printer.manufacturer} ${parsedPrinterConfiguration.data.printer.name} ${parsedPrinterConfiguration.data.size}`
 												: 'None selected'}
@@ -294,7 +294,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 												</Badge>
 											)}
 										</dt>
-										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
+										<dd className="mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300">
 											{parsedPrinterConfiguration.data.controlboard != null
 												? `${parsedPrinterConfiguration.data.controlboard.manufacturer} ${parsedPrinterConfiguration.data.controlboard.name}`
 												: 'None selected'}
@@ -304,7 +304,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">
 											Controller cooling fan
 										</dt>
-										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
+										<dd className="mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300">
 											{parsedPrinterConfiguration.data.controllerFan?.title ?? 'None selected'}
 										</dd>
 									</div>
@@ -324,16 +324,16 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 								{parsedPrinterConfiguration.data.toolheads.map((tool) => (
 									<ConfirmToolhead key={tool.axis} toolOrAxis={tool.axis} />
 								))}
-								<dl className="grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
+								<dl className="grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
 									<div className="sm:col-span-1">
 										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Performance mode</dt>
-										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
+										<dd className="mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300">
 											{parsedPrinterConfiguration.data.performanceMode ? 'Enabled' : 'Disabled'}
 										</dd>
 									</div>
 									<div className="sm:col-span-1">
 										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Stealtchop</dt>
-										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
+										<dd className="mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300">
 											{parsedPrinterConfiguration.data.stealthchop ? 'Enabled' : 'Disabled'}
 										</dd>
 									</div>
@@ -341,19 +341,19 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">
 											Standstill Stealth
 										</dt>
-										<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
+										<dd className="mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300">
 											{parsedPrinterConfiguration.data.standstillStealth ? 'Enabled' : 'Disabled'}
 										</dd>
 									</div>
 								</dl>
-								<dl className="grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
+								<dl className="grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
 									{parsedPrinterConfiguration.data.rails?.map((rail, i) => (
 										<div className="sm:col-span-1" key={i}>
 											<dt className="text-sm font-medium capitalize leading-6 text-zinc-900 dark:text-zinc-100">
 												{rail.axis === PrinterAxis.extruder ? rail.axis : rail.axis.toLocaleUpperCase()} Motion
 												Configuration
 											</dt>
-											<dd className="mt-1 text-sm leading-6 text-zinc-700 dark:text-zinc-300 sm:mt-2">
+											<dd className="mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300">
 												<div className="font-medium">
 													{rail.driver.title} @ {rail.voltage}V
 												</div>
@@ -365,8 +365,8 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 										</div>
 									))}
 								</dl>
-								<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
-									<div className=" dark:border-zinc-700 sm:col-span-2">
+								<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
+									<div className=" sm:col-span-2 dark:border-zinc-700">
 										<InfoMessage>
 											If the above information is correct, go ahead and save the configuration. If not, go back and
 											change the configuration by clicking the steps in the "Setup Progress" panel.
