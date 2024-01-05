@@ -13,6 +13,7 @@ import { Spinner } from '../common/spinner';
 
 export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 	const [animate] = useAutoAnimate();
+	const [railAnimate] = useAutoAnimate();
 	const [advancedSteppers, setAdvancedSteppers] = useState(false);
 	const {
 		selectedControllerFan,
@@ -76,7 +77,7 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 							Configure miscellaneous electronics settings
 						</p>
 					</div>
-					<div className="mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 dark:border-zinc-700 sm:grid-cols-2">
+					<div className="mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 sm:grid-cols-2 dark:border-zinc-700">
 						<div>
 							<DropdownWithPrinterQuery
 								label="Controller fan"
@@ -98,7 +99,7 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 							Configure your stepper motor and driver settings
 						</p>
 					</div>
-					<div className="mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 dark:border-zinc-700 sm:grid-cols-2">
+					<div className="mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 sm:grid-cols-2 dark:border-zinc-700">
 						{selectedPrinter?.speedLimits.performance && (
 							<div className="col-span-2">
 								<Toggle
@@ -128,22 +129,22 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 					</div>
 				</div>
 				<div>
-					{advancedSteppers && selectedPrinter && (
-						<div className="grid gap-4 py-4 sm:grid-cols-2">
+					{selectedPrinter && (
+						<div className="grid gap-4 py-4 sm:grid-cols-2" ref={railAnimate}>
 							{selectedPrinterRails.map((rail) => {
 								const defaultRail = selectedPrinter.defaults.rails.find((r) => r.axis === rail.axis);
 								if (defaultRail == null) {
 									throw new Error('No printer default for axis ' + rail.axis);
 								}
 								return (
-									<div className="break-inside-avoid-column" key={rail.axis + (performanceMode ? 'performance' : '')}>
-										<PrinterRailSettings
-											selectedBoard={selectedBoard}
-											printerRail={rail}
-											printerRailDefault={deserializePrinterRailDefinition(defaultRail)}
-											performanceMode={performanceMode}
-										/>
-									</div>
+									<PrinterRailSettings
+										key={rail.axis + (performanceMode ? 'performance' : '')}
+										selectedBoard={selectedBoard}
+										printerRail={rail}
+										printerRailDefault={deserializePrinterRailDefinition(defaultRail)}
+										performanceMode={performanceMode}
+										isVisible={advancedSteppers}
+									/>
 								);
 							})}
 						</div>

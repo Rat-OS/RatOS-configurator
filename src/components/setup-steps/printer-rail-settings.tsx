@@ -25,6 +25,11 @@ interface PrinterRailSettingsProps {
 	printerRail: Zod.infer<typeof BasePrinterRail>;
 	printerRailDefault: Zod.infer<typeof PrinterRailDefinition>;
 	performanceMode?: boolean | null;
+	/**
+	 * This component should always be rendered to ensure the settings are updated when
+	 * switching performance mode, even if it isn't visible.
+	 */
+	isVisible?: boolean;
 }
 
 export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) => {
@@ -58,7 +63,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 					? ({
 							children: 'Tuned Preset',
 							color: 'sky',
-					  } satisfies BadgeProps)
+						} satisfies BadgeProps)
 					: undefined,
 		};
 	});
@@ -105,7 +110,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 					? ({
 							children: 'Tuned Preset',
 							color: 'sky',
-					  } satisfies BadgeProps)
+						} satisfies BadgeProps)
 					: undefined,
 		};
 	});
@@ -117,7 +122,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 					? ({
 							children: 'Tuned Preset',
 							color: 'sky',
-					  } satisfies BadgeProps)
+						} satisfies BadgeProps)
 					: undefined,
 		};
 	});
@@ -192,10 +197,10 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 		props.printerRail.axis === 'extruder'
 			? 'Extruder T0'
 			: props.printerRail.axis === PrinterAxis.extruder1
-			? 'Extruder T1'
-			: 'Stepper ' + props.printerRail.axis.toLocaleUpperCase();
-	return (
-		<div className="rounded-md border border-zinc-300 p-4 shadow-lg dark:border-zinc-700">
+				? 'Extruder T1'
+				: 'Stepper ' + props.printerRail.axis.toLocaleUpperCase();
+	return props.isVisible ? (
+		<div className="break-inside-avoid-column rounded-md border border-zinc-300 p-4 shadow-lg dark:border-zinc-700">
 			<div className="">
 				<h3 className="text-sm font-medium leading-6 text-zinc-700 dark:text-zinc-300">{extruderName}</h3>
 				<p className="text-sm text-zinc-500 dark:text-zinc-400">{props.printerRail.axisDescription}</p>
@@ -263,5 +268,5 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 					)}
 			</div>
 		</div>
-	);
+	) : null;
 };
