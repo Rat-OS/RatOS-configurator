@@ -1456,9 +1456,9 @@ const sensorlessXTemplate = (config, utils)=>`
 # Read the klipper documentation for more info: https://www.klipper3d.org/TMC_Drivers.html#sensorless-homing
 #
 # Note: if your board has diag jumpers, you would need to insert them for the specific drivers you want to use for sensorless homing on.
-# Note: Sensorless homing does NOT work if you drivers have a missing DIAG pins.
-    
+# Note: Sensorless homing does NOT work if you drivers have a missing DIAG pins.    
 # Check https://www.klipper3d.org/TMC_Drivers.html#sensorless-homing for tuning instructions.
+
 [${utils.getAxisDriverSectionName(motion/* PrinterAxis.x */.po.x)}]
 ${utils.getAxisDriverDiagConfig(motion/* PrinterAxis.x */.po.x)}
 ${utils.getAxisDriverStallGuardThreshold(motion/* PrinterAxis.x */.po.x, 0.5)}
@@ -1472,7 +1472,7 @@ homing_retract_dist: 0
 [gcode_macro RatOS]
 variable_homing_x: "sensorless"
 variable_sensorless_x_current: ${utils.getAxisDriverHomingCurrent(motion/* PrinterAxis.x */.po.x, 0.35)}
-variable_driver_type_x: "${utils.getAxisDriverType(motion/* PrinterAxis.x */.po.x)}"
+${utils.getAxisDriverVariables(motion/* PrinterAxis.x */.po.x)}
 `;
 const sensorlessYTemplate = (config, utils)=>`
 # Sensorless homing.
@@ -1485,10 +1485,8 @@ const sensorlessYTemplate = (config, utils)=>`
 #
 # Note: if your board has diag jumpers, you would need to insert them for the specific drivers you want to use for sensorless homing on.
 # Note: Sensorless homing does NOT work if you drivers have a missing DIAG pins.
-
 # Check https://www.klipper3d.org/TMC_Drivers.html#sensorless-homing for tuning instructions.
 
-# Check https://www.klipper3d.org/TMC_Drivers.html#sensorless-homing for tuning instructions.
 [${utils.getAxisDriverSectionName(motion/* PrinterAxis.y */.po.y)}]
 ${utils.getAxisDriverDiagConfig(motion/* PrinterAxis.y */.po.y)}
 ${utils.getAxisDriverStallGuardThreshold(motion/* PrinterAxis.y */.po.y, 0.5)}
@@ -1502,7 +1500,7 @@ homing_retract_dist: 0
 [gcode_macro RatOS]
 variable_homing_y: "sensorless"
 variable_sensorless_y_current: ${utils.getAxisDriverHomingCurrent(motion/* PrinterAxis.y */.po.y, 0.51)}
-variable_driver_type_y: "${utils.getAxisDriverType(motion/* PrinterAxis.y */.po.y)}"
+${utils.getAxisDriverVariables(motion/* PrinterAxis.y */.po.y)}
 `;
 
 // EXTERNAL MODULE: ./data/steppers.ts
@@ -1886,6 +1884,13 @@ const constructKlipperConfigUtils = async (config)=>{
         },
         getAxisDriverType (axis) {
             return this.getRail(axis).driver.type.toLowerCase();
+        },
+        getAxisDriverVariables (axis) {
+            const rails = config.rails.filter((r)=>r.axis.startsWith(axis));
+            const variables = [];
+            variables.push(`variable_${axis}_driver_types: [${rails.map((r)=>`"${r.driver.type.toLowerCase()}"`).join(", ")}]`);
+            variables.push(`variable_${axis}_axes: [${rails.map((r)=>`"${r.axis}"`).join(", ")}]`);
+            return variables.join("\n");
         },
         getAxisDriverSectionName (axis) {
             return `${this.getAxisDriverType(axis)} ${this.getAxisStepperName(axis)}`;

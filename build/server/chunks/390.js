@@ -619,6 +619,13 @@ const constructKlipperConfigUtils = async (config)=>{
         getAxisDriverType (axis) {
             return this.getRail(axis).driver.type.toLowerCase();
         },
+        getAxisDriverVariables (axis) {
+            const rails = config.rails.filter((r)=>r.axis.startsWith(axis));
+            const variables = [];
+            variables.push(`variable_${axis}_driver_types: [${rails.map((r)=>`"${r.driver.type.toLowerCase()}"`).join(", ")}]`);
+            variables.push(`variable_${axis}_axes: [${rails.map((r)=>`"${r.axis}"`).join(", ")}]`);
+            return variables.join("\n");
+        },
         getAxisDriverSectionName (axis) {
             return `${this.getAxisDriverType(axis)} ${this.getAxisStepperName(axis)}`;
         },

@@ -11,6 +11,8 @@ import { replaceLinesStartingWith, stripCommentLines, stripIncludes } from '../s
 import { compileFirmware } from '../server/routers/mcu';
 import { ToolheadHelper } from '../helpers/toolhead';
 import { getBoardChipId } from '../helpers/board';
+import { constructKlipperConfigUtils } from '../server/helpers/klipper-config';
+import { sensorlessXTemplate, sensorlessYTemplate } from '../templates/extras/sensorless-homing';
 
 describe('server', async () => {
 	const parsedPrinters = await getPrinters();
@@ -154,6 +156,16 @@ describe('server', async () => {
 				expect(sectionIndex, 'Exepected [fan] section present').toBeGreaterThan(-1);
 				expect(commentIndex, 'Expected 4-pin toolboard fan comment').toEqual(1);
 				expect(pinIndex, 'expected toolboard fan pin').toEqual(commentIndex! + 1);
+			});
+			test.concurrent('can render sensorless homing files', async () => {
+				const config = await loadSerializedConfig(path.join(__dirname, 'fixtures', 'hybrid-config.json'));
+				const utils = await constructKlipperConfigUtils(config);
+				const x = sensorlessXTemplate(config, utils);
+				const y = sensorlessYTemplate(config, utils);
+				expect(x.includes(`["x"]`)).toBeTruthy();
+				expect(x.includes(`["tmc2209"]`)).toBeTruthy();
+				expect(y.includes(`["y", "y1", "y2"]`)).toBeTruthy();
+				expect(y.includes(`["tmc2209", "tmc2209", "tmc2209"]`)).toBeTruthy();
 			});
 		});
 	});
