@@ -23,8 +23,7 @@ export const constructKlipperConfigUtils = async (config: PrinterConfiguration) 
 		0,
 	);
 	const extruderLessConfigBonus = config.controlboard.extruderlessConfig != null ? 1 : 0;
-	const isExtruderlessBoard =
-		config.printer.driverCountRequired > config.controlboard.driverCount + toolboardDriverCount;
+	const isExtruderlessBoard = config.printer.driverCountRequired > config.controlboard.driverCount;
 	const cbPins = await parseBoardPinConfig(config.controlboard, isExtruderlessBoard);
 	const toolheads = await Promise.all(
 		config.toolheads.map(async (thConfig) => {

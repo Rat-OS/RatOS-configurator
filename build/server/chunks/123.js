@@ -1813,7 +1813,7 @@ class ToolheadGenerator extends helpers_toolhead/* ToolheadHelper */.D {
 const constructKlipperConfigUtils = async (config)=>{
     const toolboardDriverCount = config.toolheads.reduce((prev, current)=>prev + (current.toolboard?.driverCount ?? 0), 0);
     const extruderLessConfigBonus = config.controlboard.extruderlessConfig != null ? 1 : 0;
-    const isExtruderlessBoard = config.printer.driverCountRequired > config.controlboard.driverCount + toolboardDriverCount;
+    const isExtruderlessBoard = config.printer.driverCountRequired > config.controlboard.driverCount;
     const cbPins = await parseBoardPinConfig(config.controlboard, isExtruderlessBoard);
     const toolheads = await Promise.all(config.toolheads.map(async (thConfig)=>{
         if (thConfig.toolboard == null) {
