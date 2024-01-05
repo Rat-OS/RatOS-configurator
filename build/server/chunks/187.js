@@ -92,7 +92,6 @@ variable_start_print_park_in: "front"
 variable_start_print_park_z_height: 50
 variable_end_print_park_in: "back"
 variable_pause_print_park_in: "front"
-variable_macro_travel_speed: ${helper.getMacroTravelSpeed()}
 ${helper.renderMacroVariableOverrides()}
 
 #############################################################################################################
