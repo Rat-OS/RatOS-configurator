@@ -131,6 +131,15 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 						{toolhead.getConfig().thermistor ?? 'None selected'}
 					</dd>
 				</div>
+				{toolhead.getToolboard()?.alternativePT1000Resistor && toolhead.getThermistor() === 'PT1000' && (
+					<div className="col-span-2">
+						<WarningMessage title="RatOS uses your toolboards alternate pullup resistor setting">
+							Your toolboard has an option to use a separate pullup resistor for PT1000 sensors. This is usually done by
+							inserting a jumper. Make sure you read the documentation for your board on how to enable the alternative
+							resistor or you'll get ADC temperature errors in klipper.
+						</WarningMessage>
+					</div>
+				)}
 			</dl>
 			<dl className="grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
 				<div className="sm:col-span-1">

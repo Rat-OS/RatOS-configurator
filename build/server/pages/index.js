@@ -2215,7 +2215,23 @@ const PrinterRailSettings = (props)=>{
 
 // EXTERNAL MODULE: ./node_modules/.pnpm/@formkit+auto-animate@0.8.0/node_modules/@formkit/auto-animate/react/index.mjs + 1 modules
 var react = __webpack_require__(6187);
+;// CONCATENATED MODULE: ./components/warning-message.tsx
+
+
+
+
+const WarningMessage = (props)=>{
+    return /*#__PURE__*/ jsx_runtime_.jsx(Banner, {
+        color: "yellow",
+        Icon: _24_solid_namespaceObject.ExclamationCircleIcon,
+        title: props.title ? "Warning: " + props.title : "Warning",
+        className: props.className,
+        children: props.children
+    });
+};
+
 ;// CONCATENATED MODULE: ./components/setup-steps/toolhead-settings.tsx
+
 
 
 
@@ -2286,7 +2302,7 @@ const ToolheadSettings = (props)=>{
                     ]
                 }),
                 /*#__PURE__*/ jsx_runtime_.jsx("div", {
-                    className: "mt-4 border-t border-zinc-100 pt-4 dark:border-zinc-700 sm:grid-cols-2",
+                    className: "mt-4 border-t border-zinc-100 pt-4 sm:grid-cols-2 dark:border-zinc-700",
                     children: /*#__PURE__*/ jsx_runtime_.jsx("div", {
                         className: "mb-4 flex h-96 items-center justify-center",
                         children: /*#__PURE__*/ jsx_runtime_.jsx(Spinner, {})
@@ -2347,6 +2363,13 @@ const ToolheadSettings = (props)=>{
                             value: (0,serialization/* stringToTitleObject */.DX)(selectedThermistor)
                         })
                     }),
+                    toolhead.getToolboard()?.alternativePT1000Resistor && toolhead.getThermistor() === "PT1000" && /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                        className: "col-span-2",
+                        children: /*#__PURE__*/ jsx_runtime_.jsx(WarningMessage, {
+                            title: "RatOS uses your toolboards alternate pullup resistor setting",
+                            children: "Your toolboard has an option to use a separate pullup resistor for PT1000 sensors. This is usually done by inserting a jumper. Make sure you read the documentation for your board on how to enable the alternative resistor or you'll get ADC temperature errors in klipper."
+                        })
+                    }),
                     /*#__PURE__*/ jsx_runtime_.jsx("div", {
                         children: /*#__PURE__*/ jsx_runtime_.jsx(DropdownWithPrinterQuery, {
                             label: "Extruder",
@@ -2366,7 +2389,7 @@ const ToolheadSettings = (props)=>{
                 ]
             }),
             /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                className: "mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 dark:border-zinc-700 sm:grid-cols-2",
+                className: "mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 sm:grid-cols-2 dark:border-zinc-700",
                 children: [
                     /*#__PURE__*/ jsx_runtime_.jsx("div", {
                         children: /*#__PURE__*/ jsx_runtime_.jsx(DropdownWithPrinterQuery, {
@@ -2397,7 +2420,7 @@ const ToolheadSettings = (props)=>{
                 ]
             }),
             /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                className: "mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 dark:border-zinc-700 sm:grid-cols-2",
+                className: "mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 sm:grid-cols-2 dark:border-zinc-700",
                 children: [
                     /*#__PURE__*/ jsx_runtime_.jsx("div", {
                         children: /*#__PURE__*/ jsx_runtime_.jsx(DropdownWithPrinterQuery, {
@@ -2441,7 +2464,7 @@ const ToolheadSettings = (props)=>{
                 ]
             }),
             /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                className: "mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 dark:border-zinc-700 sm:grid-cols-2",
+                className: "mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 sm:grid-cols-2 dark:border-zinc-700",
                 children: [
                     /*#__PURE__*/ jsx_runtime_.jsx("div", {
                         children: /*#__PURE__*/ jsx_runtime_.jsx(DropdownWithPrinterQuery, {
@@ -2728,21 +2751,6 @@ const InfoMessage = (props)=>{
         color: "blue",
         Icon: _24_solid_namespaceObject.InformationCircleIcon,
         title: props.title ? "Info: " + props.title : "Info",
-        className: props.className,
-        children: props.children
-    });
-};
-
-;// CONCATENATED MODULE: ./components/warning-message.tsx
-
-
-
-
-const WarningMessage = (props)=>{
-    return /*#__PURE__*/ jsx_runtime_.jsx(Banner, {
-        color: "yellow",
-        Icon: _24_solid_namespaceObject.ExclamationCircleIcon,
-        title: props.title ? "Warning: " + props.title : "Warning",
         className: props.className,
         children: props.children
     });
@@ -4468,6 +4476,13 @@ const ConfirmToolhead = (props)=>{
                                 children: toolhead.getConfig().thermistor ?? "None selected"
                             })
                         ]
+                    }),
+                    toolhead.getToolboard()?.alternativePT1000Resistor && toolhead.getThermistor() === "PT1000" && /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                        className: "col-span-2",
+                        children: /*#__PURE__*/ jsx_runtime_.jsx(WarningMessage, {
+                            title: "RatOS uses your toolboards alternate pullup resistor setting",
+                            children: "Your toolboard has an option to use a separate pullup resistor for PT1000 sensors. This is usually done by inserting a jumper. Make sure you read the documentation for your board on how to enable the alternative resistor or you'll get ADC temperature errors in klipper."
+                        })
                     })
                 ]
             }),

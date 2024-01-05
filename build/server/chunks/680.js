@@ -148,6 +148,7 @@ var PrinterAxis;
     PrinterAxis["x1"] = "x1";
     PrinterAxis["y"] = "y";
     PrinterAxis["y1"] = "y1";
+    PrinterAxis["y2"] = "y2";
     PrinterAxis["z"] = "z";
     PrinterAxis["z1"] = "z1";
     PrinterAxis["z2"] = "z2";
