@@ -296,9 +296,10 @@ class ToolheadGenerator extends helpers_toolhead/* ToolheadHelper */.D {
         if (this.getToolboard()) {
             if (this.toolboardPins?.[alias] != null) {
                 pin = this.toolboardPins[alias];
+            } else {
+                throw new Error(`Alias "${alias}" not found in toolboard pin definition.`);
             }
-        }
-        if (this.controlboardPins?.[alias] != null) {
+        } else if (this.controlboardPins?.[alias] != null) {
             pin = this.controlboardPins[alias];
         }
         if (pin != null) {

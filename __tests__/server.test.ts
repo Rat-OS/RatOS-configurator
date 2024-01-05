@@ -133,22 +133,26 @@ describe('server', async () => {
 			});
 			test.concurrent('uses the correct heater fan', async () => {
 				const sectionIndex = generatedLines.findIndex((l) => l.includes('[heater_fan toolhead_cooling_fan]'));
-				const commentIndex = generatedLines.findIndex((l) =>
-					l.includes('# 2-pin fan connected to the toolboard on T0 (toolboard_t0)'),
-				);
-				const pinIndex = generatedLines.findIndex((l) => l.includes('pin: toolboard_t0:PA1'));
+				const commentIndex = generatedLines
+					.slice(sectionIndex > -1 ? sectionIndex : 0)
+					.findIndex((l) => l.includes('# 2-pin fan connected to the toolboard on T0 (toolboard_t0)'));
+				const pinIndex = generatedLines
+					.slice(sectionIndex > -1 ? sectionIndex : 0)
+					.findIndex((l) => l.includes('pin: toolboard_t0:PA1'));
 				expect(sectionIndex, 'Exepected [heater_fan toolhead_cooling_fan] section present').toBeGreaterThan(-1);
-				expect(commentIndex, 'Expected 2-pin toolboard fan comment').toEqual(sectionIndex! + 1);
+				expect(commentIndex, 'Expected 2-pin toolboard fan comment').toEqual(1);
 				expect(pinIndex, 'expected toolboard fan pin').toEqual(commentIndex! + 1);
 			});
 			test.concurrent('uses the correct part fan', async () => {
 				const sectionIndex = generatedLines.findIndex((l) => l.includes('[fan]'));
-				const commentIndex = generatedLines.findIndex((l) =>
-					l.includes('# 4-pin fan connected to the toolboard on T0 (toolboard_t0)'),
-				);
-				const pinIndex = generatedLines.findIndex((l) => l.includes('pin: !toolboard_t0:PA0'));
+				const commentIndex = generatedLines
+					.slice(sectionIndex > -1 ? sectionIndex : 0)
+					.findIndex((l) => l.includes('# 4-pin fan connected to the toolboard on T0 (toolboard_t0)'));
+				const pinIndex = generatedLines
+					.slice(sectionIndex > -1 ? sectionIndex : 0)
+					.findIndex((l) => l.includes('pin: !toolboard_t0:PA0'));
 				expect(sectionIndex, 'Exepected [fan] section present').toBeGreaterThan(-1);
-				expect(commentIndex, 'Expected 4-pin toolboard fan comment').toEqual(sectionIndex! + 1);
+				expect(commentIndex, 'Expected 4-pin toolboard fan comment').toEqual(1);
 				expect(pinIndex, 'expected toolboard fan pin').toEqual(commentIndex! + 1);
 			});
 		});
