@@ -75,6 +75,7 @@ export const MCUPreparation: React.FC<StepScreenProps & ExtraProps> = (props) =>
 					? undefined
 					: (selectedPrinter?.driverCountRequired ?? 0) - (selectedPrinter?.defaults.toolheads.length ?? 1),
 		},
+		toolhead: toolhead?.serialize(),
 	});
 
 	const cards: SelectableBoard[] = useMemo(() => {

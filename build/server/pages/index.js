@@ -3661,7 +3661,8 @@ const MCUPreparation = (props)=>{
         boardFilters: {
             toolboard: toolhead != null,
             driverCountRequired: toolhead != null ? undefined : (selectedPrinter?.driverCountRequired ?? 0) - (selectedPrinter?.defaults.toolheads.length ?? 1)
-        }
+        },
+        toolhead: toolhead?.serialize()
     });
     const cards = (0,react_.useMemo)(()=>{
         if (boardsQuery.isError || boardsQuery.data == null) return [];

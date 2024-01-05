@@ -162,6 +162,7 @@ export const mcuRouter = router({
 						driverCountRequired: z.number().optional(),
 					})
 					.optional(),
+				toolhead: SerializedToolheadConfiguration.optional(),
 			}),
 		)
 		.output(z.array(BoardWithDetectionStatus))

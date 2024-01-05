@@ -883,7 +883,8 @@ const mcuRouter = (0,_trpc__WEBPACK_IMPORTED_MODULE_7__/* .router */ .Nd)({
         boardFilters: zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
             toolboard: zod__WEBPACK_IMPORTED_MODULE_0__.z.boolean().optional(),
             driverCountRequired: zod__WEBPACK_IMPORTED_MODULE_0__.z.number().optional()
-        }).optional()
+        }).optional(),
+        toolhead: _zods_toolhead__WEBPACK_IMPORTED_MODULE_10__/* .SerializedToolheadConfiguration.optional */ .Qk.optional()
     })).output(zod__WEBPACK_IMPORTED_MODULE_0__.z.array(_zods_boards__WEBPACK_IMPORTED_MODULE_6__/* .BoardWithDetectionStatus */ .Ai)).query(({ ctx , input  })=>{
         let boards = ctx.boards;
         if (input.boardFilters?.toolboard === true) {

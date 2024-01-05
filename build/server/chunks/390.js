@@ -1365,7 +1365,8 @@ const mcuRouter = (0,trpc/* router */.Nd)({
         boardFilters: external_zod_.z.object({
             toolboard: external_zod_.z.boolean().optional(),
             driverCountRequired: external_zod_.z.number().optional()
-        }).optional()
+        }).optional(),
+        toolhead: toolhead/* SerializedToolheadConfiguration.optional */.Qk.optional()
     })).output(external_zod_.z.array(zods_boards/* BoardWithDetectionStatus */.Ai)).query(({ ctx , input  })=>{
         let boards = ctx.boards;
         if (input.boardFilters?.toolboard === true) {
