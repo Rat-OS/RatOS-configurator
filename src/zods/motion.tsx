@@ -125,6 +125,7 @@ export enum PrinterAxis {
 	'x1' = 'x1',
 	'y' = 'y',
 	'y1' = 'y1',
+	'y2' = 'y2',
 	'z' = 'z',
 	'z1' = 'z1',
 	'z2' = 'z2',

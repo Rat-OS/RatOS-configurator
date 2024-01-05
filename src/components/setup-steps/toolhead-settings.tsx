@@ -6,6 +6,7 @@ import { DropdownWithPrinterQuery } from '../forms/dropdown';
 import { Spinner } from '../common/spinner';
 import { twMerge } from 'tailwind-merge';
 import { badgeBackgroundColorStyle, badgeBorderColorStyle, badgeTextColorStyle } from '../common/badge';
+import { WarningMessage } from '../warning-message';
 
 interface ToolheadSettingsProps {
 	toolOrAxis: ToolOrAxis;
@@ -64,7 +65,7 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 						Configure the hardware installed on your toolhead...
 					</p>
 				</div>
-				<div className="mt-4 border-t border-zinc-100 pt-4 dark:border-zinc-700 sm:grid-cols-2">
+				<div className="mt-4 border-t border-zinc-100 pt-4 sm:grid-cols-2 dark:border-zinc-700">
 					<div className="mb-4 flex h-96 items-center justify-center">
 						<Spinner />
 					</div>
@@ -109,6 +110,15 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 						value={stringToTitleObject(selectedThermistor)}
 					/>
 				</div>
+				{toolhead.getToolboard()?.alternativePT1000Resistor && toolhead.getThermistor() === 'PT1000' && (
+					<div className="col-span-2">
+						<WarningMessage title="RatOS uses your toolboards alternate pullup resistor setting">
+							Your toolboard has an option to use a separate pullup resistor for PT1000 sensors. This is usually done by
+							inserting a jumper. Make sure you read the documentation for your board on how to enable the alternative
+							resistor or you'll get ADC temperature errors in klipper.
+						</WarningMessage>
+					</div>
+				)}
 				<div>
 					<DropdownWithPrinterQuery
 						label="Extruder"
@@ -121,7 +131,7 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 					<DropdownWithPrinterQuery label="Probe" query="probes" onSelect={setSelectedProbe} value={selectedProbe} />
 				</div>
 			</div>
-			<div className="mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 dark:border-zinc-700 sm:grid-cols-2">
+			<div className="mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 sm:grid-cols-2 dark:border-zinc-700">
 				<div>
 					<DropdownWithPrinterQuery
 						vars={{ toolOrAxis: toolhead.getTool(), config: {} }}
@@ -143,7 +153,7 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 					/>
 				</div>
 			</div>
-			<div className="mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 dark:border-zinc-700 sm:grid-cols-2">
+			<div className="mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 sm:grid-cols-2 dark:border-zinc-700">
 				<div>
 					<DropdownWithPrinterQuery
 						vars={{ toolOrAxis: toolhead.getTool(), config: {} }}
@@ -172,7 +182,7 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 					this and come back later if you change your mind.
 				</p>
 			</div>
-			<div className="mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 dark:border-zinc-700 sm:grid-cols-2">
+			<div className="mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 sm:grid-cols-2 dark:border-zinc-700">
 				<div>
 					<DropdownWithPrinterQuery
 						vars={{ toolOrAxis: toolhead.getTool(), config: {} }}
