@@ -1,5 +1,5 @@
 # .github/workflows/publish.yml
-name: Build Configurator Development
+name: Publish to dev-deployment
 on:
   workflow_run:
     workflows: ["CI"] # runs after CI workflow
