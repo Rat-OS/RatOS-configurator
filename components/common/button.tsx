@@ -7,7 +7,7 @@ import { Menu, Transition } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
 
 const buttonStyle = cva(
-	'inline-flex items-center px-4 py-2 border text-sm font-semibold rounded-md shadow-sm focus:outline-none focus:ring-2 capitalize',
+	'inline-flex space-x-2 items-center px-4 py-2 border text-sm font-semibold rounded-md shadow-sm focus:outline-none focus:ring-2 capitalize',
 	{
 		variants: {
 			color: {

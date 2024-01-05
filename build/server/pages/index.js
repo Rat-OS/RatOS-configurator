@@ -1192,7 +1192,7 @@ var link_default = /*#__PURE__*/__webpack_require__.n(next_link);
 
 
 
-const buttonStyle = (0,external_class_variance_authority_namespaceObject.cva)("inline-flex items-center px-4 py-2 border text-sm font-semibold rounded-md shadow-sm focus:outline-none focus:ring-2 capitalize", {
+const buttonStyle = (0,external_class_variance_authority_namespaceObject.cva)("inline-flex space-x-2 items-center px-4 py-2 border text-sm font-semibold rounded-md shadow-sm focus:outline-none focus:ring-2 capitalize", {
     variants: {
         color: {
             danger: "text-white bg-red-500 hover:bg-red-600 border-transparent focus:ring-offset-2 focus:ring-red-600 dark:focus:ring-offset-zinc-900",
@@ -4195,11 +4195,11 @@ const WifiSetup = (props)=>{
         className: "mb-4 h-48",
         children: [
             /*#__PURE__*/ jsx_runtime_.jsx("div", {
-                className: "mb-4 flex items-center justify-center font-bold",
+                className: "mb-4 flex items-center justify-center font-bold text-zinc-900 dark:text-zinc-100",
                 children: "Rebooting..."
             }),
             /*#__PURE__*/ jsx_runtime_.jsx("div", {
-                className: "mb-4 flex items-center justify-center",
+                className: "mb-4 flex items-center justify-center  text-zinc-600 dark:text-zinc-400",
                 children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
                     children: [
                         "Please reconnect to ",
@@ -4208,7 +4208,7 @@ const WifiSetup = (props)=>{
                         " ",
                         /*#__PURE__*/ (0,jsx_runtime_.jsxs)("a", {
                             href: `http://${hostname}.local/configure?step=1`,
-                            className: "text-brand-600",
+                            className: "text-brand-600 dark:text-brand-400",
                             children: [
                                 "http://",
                                 hostname,

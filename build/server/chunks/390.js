@@ -1384,7 +1384,7 @@ const mcuRouter = (0,trpc/* router */.Nd)({
                 message: `No supported board exists for the path ${input.boardPath}`
             });
         }
-        return detect(ctx.board);
+        return detect(ctx.board, ctx.toolhead);
     }),
     unidentifiedDevices: mcuProcedure.query(async ({ ctx  })=>{
         const detected = ctx.boards.filter((b)=>b.detected).map((b)=>external_fs_default().realpathSync(getBoardSerialPath(b)));

@@ -903,7 +903,7 @@ const mcuRouter = (0,_trpc__WEBPACK_IMPORTED_MODULE_7__/* .router */ .Nd)({
                 message: `No supported board exists for the path ${input.boardPath}`
             });
         }
-        return detect(ctx.board);
+        return detect(ctx.board, ctx.toolhead);
     }),
     unidentifiedDevices: mcuProcedure.query(async ({ ctx  })=>{
         const detected = ctx.boards.filter((b)=>b.detected).map((b)=>fs__WEBPACK_IMPORTED_MODULE_1___default().realpathSync((0,_helpers_board__WEBPACK_IMPORTED_MODULE_17__/* .getBoardSerialPath */ .e)(b)));

@@ -118,11 +118,13 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 			</div>
 		) : rebootMutation.isLoading || rebootMutation.isSuccess ? (
 			<div className="mb-4 h-48">
-				<div className="mb-4 flex items-center justify-center font-bold">Rebooting...</div>
-				<div className="mb-4 flex items-center justify-center">
+				<div className="mb-4 flex items-center justify-center font-bold text-zinc-900 dark:text-zinc-100">
+					Rebooting...
+				</div>
+				<div className="mb-4 flex items-center justify-center  text-zinc-600 dark:text-zinc-400">
 					<div>
 						Please reconnect to {selectedNetwork?.ssid ?? 'your local network'} and visit{' '}
-						<a href={`http://${hostname}.local/configure?step=1`} className="text-brand-600">
+						<a href={`http://${hostname}.local/configure?step=1`} className="text-brand-600 dark:text-brand-400">
 							http://{hostname}.local/configure?step=1
 						</a>{' '}
 						in a few minutes.
@@ -139,8 +141,8 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 					hostnameMutation.isError
 						? hostnameMutation.error.message
 						: hostnameValidation.success
-						? undefined
-						: hostnameValidation.error.issues[0].message
+							? undefined
+							: hostnameValidation.error.issues[0].message
 				}
 				onChange={(val) => setHostname(val as string)}
 				help='Only use characters from a-Z and dashes. For example, entering "RatOS" will make your printer available at http://RatOS.local/'
@@ -154,8 +156,8 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 					wifiMutation.isError
 						? wifiMutation.error.message
 						: passwordValidation.success
-						? undefined
-						: passwordValidation.error.issues[0].message
+							? undefined
+							: passwordValidation.error.issues[0].message
 				}
 				onChange={(val) => setPassword(val + '')}
 			/>
