@@ -11,9 +11,9 @@ export const sensorlessXTemplate = (config: PrinterConfiguration, utils: Klipper
 # Read the klipper documentation for more info: https://www.klipper3d.org/TMC_Drivers.html#sensorless-homing
 #
 # Note: if your board has diag jumpers, you would need to insert them for the specific drivers you want to use for sensorless homing on.
-# Note: Sensorless homing does NOT work if you drivers have a missing DIAG pins.
-    
+# Note: Sensorless homing does NOT work if you drivers have a missing DIAG pins.    
 # Check https://www.klipper3d.org/TMC_Drivers.html#sensorless-homing for tuning instructions.
+
 [${utils.getAxisDriverSectionName(PrinterAxis.x)}]
 ${utils.getAxisDriverDiagConfig(PrinterAxis.x)}
 ${utils.getAxisDriverStallGuardThreshold(PrinterAxis.x, 0.5)}
@@ -27,7 +27,7 @@ homing_retract_dist: 0
 [gcode_macro RatOS]
 variable_homing_x: "sensorless"
 variable_sensorless_x_current: ${utils.getAxisDriverHomingCurrent(PrinterAxis.x, 0.35)}
-variable_driver_type_x: "${utils.getAxisDriverType(PrinterAxis.x)}"
+${utils.getAxisDriverVariables(PrinterAxis.x)}
 `;
 
 export const sensorlessYTemplate = (config: PrinterConfiguration, utils: KlipperConfigUtils) => `
@@ -41,10 +41,8 @@ export const sensorlessYTemplate = (config: PrinterConfiguration, utils: Klipper
 #
 # Note: if your board has diag jumpers, you would need to insert them for the specific drivers you want to use for sensorless homing on.
 # Note: Sensorless homing does NOT work if you drivers have a missing DIAG pins.
-
 # Check https://www.klipper3d.org/TMC_Drivers.html#sensorless-homing for tuning instructions.
 
-# Check https://www.klipper3d.org/TMC_Drivers.html#sensorless-homing for tuning instructions.
 [${utils.getAxisDriverSectionName(PrinterAxis.y)}]
 ${utils.getAxisDriverDiagConfig(PrinterAxis.y)}
 ${utils.getAxisDriverStallGuardThreshold(PrinterAxis.y, 0.5)}
@@ -58,5 +56,5 @@ homing_retract_dist: 0
 [gcode_macro RatOS]
 variable_homing_y: "sensorless"
 variable_sensorless_y_current: ${utils.getAxisDriverHomingCurrent(PrinterAxis.y, 0.51)}
-variable_driver_type_y: "${utils.getAxisDriverType(PrinterAxis.y)}"
+${utils.getAxisDriverVariables(PrinterAxis.y)}
 `;

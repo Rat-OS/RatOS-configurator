@@ -104,6 +104,15 @@ export const constructKlipperConfigUtils = async (config: PrinterConfiguration) 
 		getAxisDriverType(axis: PrinterAxis) {
 			return this.getRail(axis).driver.type.toLowerCase();
 		},
+		getAxisDriverVariables(axis: PrinterAxis) {
+			const rails = config.rails.filter((r) => r.axis.startsWith(axis));
+			const variables: string[] = [];
+			variables.push(
+				`variable_${axis}_driver_types: [${rails.map((r) => `"${r.driver.type.toLowerCase()}"`).join(', ')}]`,
+			);
+			variables.push(`variable_${axis}_axes: [${rails.map((r) => `"${r.axis}"`).join(', ')}]`);
+			return variables.join('\n');
+		},
 		getAxisDriverSectionName(axis: PrinterAxis) {
 			return `${this.getAxisDriverType(axis)} ${this.getAxisStepperName(axis)}`;
 		},
