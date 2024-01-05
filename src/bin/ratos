@@ -1,7 +1,6 @@
 #!/bin/bash
-BIN_LOCATION=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )/ratos
-REAL_BIN_LOCATOIN=$(realpath "$BIN_LOCATION")
-SCRIPT_DIR=$(dirname "$REAL_BIN_LOCATOIN")
+BIN_LOCATION=$(realpath "$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"/ratos)
+SCRIPT_DIR=$(dirname "$BIN_LOCATION")
 RATOS_BIN_CWD=$(pwd)
 export RATOS_BIN_CWD
 pnpm run --silent -C "$SCRIPT_DIR"/.. cli "$@"
