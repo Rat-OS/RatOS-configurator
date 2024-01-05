@@ -21,3 +21,6 @@ coverage
 
 # cache
 build/cache/*
+
+# vscode (should use parent dir folder)
+.vscode
