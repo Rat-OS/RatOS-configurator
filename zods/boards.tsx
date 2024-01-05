@@ -278,7 +278,7 @@ export const BoardWithDetectionStatus = Board.extend({
 
 export const AutoFlashableBoard = z.object({
 	id: z.string(),
-	mcuType: z.string(),
+	disableAutoFlash: z.literal(false).optional(),
 	isToolboard: z.boolean().optional(),
 	compileScript: z.string(),
 	flashScript: z.string(),

@@ -4342,7 +4342,7 @@ const BoardWithDetectionStatus = Board.extend({
 });
 const AutoFlashableBoard = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
     id: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
-    mcuType: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    disableAutoFlash: zod__WEBPACK_IMPORTED_MODULE_0__.z.literal(false).optional(),
     isToolboard: zod__WEBPACK_IMPORTED_MODULE_0__.z.boolean().optional(),
     compileScript: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
     flashScript: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
