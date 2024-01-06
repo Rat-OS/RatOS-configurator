@@ -2,7 +2,7 @@ import {
 	deserializePartialPrinterConfiguration,
 	getPrinters,
 	loadSerializedConfig,
-	regenerateKlipperConfiguration,
+	getFilesToWrite,
 } from '../server/routers/printer';
 import { describe, expect, test } from 'vitest';
 import { extractToolheadFromPrinterConfiguration, serializePartialToolheadConfiguration } from '../utils/serialization';
@@ -98,12 +98,10 @@ describe('server', async () => {
 			);
 		});
 		test.concurrent('can generate idex config', async () => {
-			let res: string = await regenerateKlipperConfiguration(
-				path.join(__dirname, 'fixtures', 'idex-config.json'),
-				true,
-				true,
-			);
+			const config = await loadSerializedConfig(path.join(__dirname, 'fixtures', 'idex-config.json'));
+			const res: string = (await getFilesToWrite(config)).find((f) => f.fileName === 'RatOS.cfg')?.content ?? '';
 			const splitRes = res.split('\n').map((l: string, i: number) => `Line ${i}`.padEnd(10, ' ') + `|${l}`);
+			expect(splitRes.length).toBeGreaterThan(0);
 			const noUndefined = splitRes.filter((l: string) => l.includes('undefined')).join('\n');
 			const noPromises = splitRes.filter((l: string) => l.includes('[object Promise]')).join('\n');
 			const noObjects = splitRes.filter((l: string) => l.includes('[object Object]')).join('\n');
@@ -117,12 +115,10 @@ describe('server', async () => {
 		describe('can generate hybrid config with toolboard', async () => {
 			let generatedLines: string[] = [];
 			test('produces valid config', async () => {
-				const res: string = await regenerateKlipperConfiguration(
-					path.join(__dirname, 'fixtures', 'hybrid-config.json'),
-					true,
-					true,
-				);
+				const config = await loadSerializedConfig(path.join(__dirname, 'fixtures', 'hybrid-config.json'));
+				const res: string = (await getFilesToWrite(config)).find((f) => f.fileName === 'RatOS.cfg')?.content ?? '';
 				generatedLines = res.split('\n').map((l: string, i: number) => `Line ${i}`.padEnd(10, ' ') + `|${l}`);
+				expect(generatedLines.length).toBeGreaterThan(0);
 				const noUndefined = generatedLines.filter((l: string) => l.includes('undefined')).join('\n');
 				const noPromises = generatedLines.filter((l: string) => l.includes('[object Promise]')).join('\n');
 				const noObjects = generatedLines.filter((l: string) => l.includes('[object Object]')).join('\n');
@@ -141,7 +137,7 @@ describe('server', async () => {
 				const pinIndex = generatedLines
 					.slice(sectionIndex > -1 ? sectionIndex : 0)
 					.findIndex((l) => l.includes('pin: toolboard_t0:PA1'));
-				expect(sectionIndex, 'Exepected [heater_fan toolhead_cooling_fan] section present').toBeGreaterThan(-1);
+				expect(sectionIndex, 'Expected [heater_fan toolhead_cooling_fan] section present').toBeGreaterThan(-1);
 				expect(commentIndex, 'Expected 2-pin toolboard fan comment').toEqual(1);
 				expect(pinIndex, 'expected toolboard fan pin').toEqual(commentIndex! + 1);
 			});
@@ -153,7 +149,7 @@ describe('server', async () => {
 				const pinIndex = generatedLines
 					.slice(sectionIndex > -1 ? sectionIndex : 0)
 					.findIndex((l) => l.includes('pin: !toolboard_t0:PA0'));
-				expect(sectionIndex, 'Exepected [fan] section present').toBeGreaterThan(-1);
+				expect(sectionIndex, 'Expected [fan] section present').toBeGreaterThan(-1);
 				expect(commentIndex, 'Expected 4-pin toolboard fan comment').toEqual(1);
 				expect(pinIndex, 'expected toolboard fan pin').toEqual(commentIndex! + 1);
 			});

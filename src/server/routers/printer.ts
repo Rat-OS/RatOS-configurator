@@ -288,37 +288,46 @@ const getTimeStamp = () => {
 	return `${yyyy}${mm}${dd}-${hh}${min}${sec}`;
 };
 
-const generateKlipperConfiguration = async <T extends boolean>(
-	config: PrinterConfiguration,
-	overwritePrinterCfg = false,
-	overwriteExtras: boolean = false,
-	returnAsText: T = false as T,
-	noWrite: boolean = false,
-): Promise<T extends true ? string : { fileName: string; action: FileAction; err?: unknown }[]> => {
+export const getFilesToWrite = async (config: PrinterConfiguration, overwriteFiles?: string[]) => {
 	const utils = await constructKlipperConfigUtils(config);
 	const extrasGenerator = constructKlipperConfigExtrasGenerator(config, utils);
 	const helper = await constructKlipperConfigHelpers(config, extrasGenerator, utils);
 	const { template, initialPrinterCfg } = await import(
 		`../../templates/${config.printer.template.replace('-printer.template.cfg', '.ts')}`
 	);
-	const environment = serverSchema.parse(process.env);
 	const renderedTemplate = template(config, helper).trim();
 	const renderedPrinterCfg = initialPrinterCfg(config, helper).trim();
-	const extras = extrasGenerator.getFilesToWrite(overwriteExtras);
-	const filesToWrite = extras.concat([
-		{ fileName: 'RatOS.cfg', content: renderedTemplate, overwrite: true },
-		{
-			fileName: 'printer.cfg',
-			content: renderedPrinterCfg,
-			overwrite: !(await isPrinterCfgInitialized()) || overwritePrinterCfg,
-		},
-	]);
+	const extras: { fileName: string; content: string; overwrite: boolean }[] = extrasGenerator.getFilesToWrite();
+	return extras
+		.concat([
+			{ fileName: 'RatOS.cfg', content: renderedTemplate, overwrite: true },
+			{
+				fileName: 'printer.cfg',
+				content: renderedPrinterCfg,
+				overwrite: !(await isPrinterCfgInitialized()),
+			},
+		])
+		.map((f) => {
+			const fileWithExists = f as { fileName: string; content: string; overwrite: boolean; exists: boolean };
+			if (overwriteFiles?.includes(fileWithExists.fileName)) {
+				fileWithExists.overwrite = true;
+			}
+			fileWithExists.exists = existsSync(
+				path.join(serverSchema.parse(process.env).KLIPPER_CONFIG_PATH, fileWithExists.fileName),
+			);
+			return fileWithExists;
+		});
+};
+
+const generateKlipperConfiguration = async <T extends boolean>(
+	config: PrinterConfiguration,
+	overwriteFiles?: string[],
+): Promise<T extends true ? string : { fileName: string; action: FileAction; err?: unknown }[]> => {
+	const environment = serverSchema.parse(process.env);
+	const filesToWrite = await getFilesToWrite(config, overwriteFiles);
 	const results: { fileName: string; action: FileAction; err?: unknown }[] = await Promise.all(
 		filesToWrite.map(async (file) => {
 			let action: FileAction = 'created';
-			if (noWrite) {
-				return { fileName: file.fileName, action: 'skipped' };
-			}
 			try {
 				await promisify(access)(path.join(environment.KLIPPER_CONFIG_PATH, file.fileName), constants.F_OK);
 				// At this point we know the file exists.
@@ -361,20 +370,15 @@ const generateKlipperConfiguration = async <T extends boolean>(
 				errors.map((e) => e.fileName).join(', '),
 		);
 	}
-	if (!noWrite) {
-		try {
-			await promisify(writeFile)(
-				path.join(environment.RATOS_DATA_DIR, 'last-printer-settings.json'),
-				JSON.stringify(serializePrinterConfiguration(config)),
-			);
-		} catch (e) {
-			throw new Error(
-				"Couldn't backup your current printer settings to disk, but your klipper configuration has been generated.",
-			);
-		}
-	}
-	if (returnAsText) {
-		return renderedTemplate;
+	try {
+		await promisify(writeFile)(
+			path.join(environment.RATOS_DATA_DIR, 'last-printer-settings.json'),
+			JSON.stringify(serializePrinterConfiguration(config)),
+		);
+	} catch (e) {
+		throw new Error(
+			"Couldn't backup your current printer settings to disk, but your klipper configuration has been generated.",
+		);
 	}
 	return results as T extends true ? string : { fileName: string; action: FileAction; err?: unknown }[];
 };
@@ -386,18 +390,14 @@ export const loadSerializedConfig = async (filePath: string) => {
 	return config;
 };
 
-export const regenerateKlipperConfiguration = async <T extends boolean = false>(
-	fromFile?: string,
-	returnAsText?: T,
-	noWrite?: boolean,
-) => {
+export const regenerateKlipperConfiguration = async <T extends boolean = false>(fromFile?: string) => {
 	const environment = serverSchema.parse(process.env);
 	const filePath = fromFile ?? path.join(environment.RATOS_DATA_DIR, 'last-printer-settings.json');
 	if (!existsSync(filePath)) {
 		throw new Error("Couldn't find printer settings file: " + filePath);
 	}
 	const config = await loadSerializedConfig(filePath);
-	return await generateKlipperConfiguration<T>(config, noWrite, noWrite, returnAsText, noWrite);
+	return await generateKlipperConfiguration<T>(config);
 };
 
 const getToolhead = async <
@@ -579,17 +579,35 @@ export const printerRouter = router({
 		}
 		return res;
 	}),
+	// Has to be a mutation as printer config is too large for url string.
+	getFilesToWrite: publicProcedure
+		.input(
+			z.object({
+				config: SerializedPrinterConfiguration,
+			}),
+		)
+		.mutation(async (ctx) => {
+			const { config: serializedConfig } = ctx.input;
+			const config = await deserializePrinterConfiguration(serializedConfig);
+			return (await getFilesToWrite(config)).map((f) => {
+				return {
+					fileName: f.fileName,
+					exists: f.exists,
+					overwrite: f.overwrite,
+				};
+			});
+		}),
 	saveConfiguration: publicProcedure
 		.input(
 			z.object({
 				config: SerializedPrinterConfiguration,
-				overwritePrinterCfg: z.boolean().default(false),
+				overwriteFiles: z.array(z.string()).optional(),
 			}),
 		)
 		.mutation(async (ctx) => {
-			const { config: serializedConfig, overwritePrinterCfg } = ctx.input;
+			const { config: serializedConfig, overwriteFiles } = ctx.input;
 			const config = await deserializePrinterConfiguration(serializedConfig);
-			const configResult = await generateKlipperConfiguration(config, overwritePrinterCfg);
+			const configResult = await generateKlipperConfiguration(config, overwriteFiles);
 			restartKlipper();
 			return configResult;
 		}),

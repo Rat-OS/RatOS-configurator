@@ -178,8 +178,8 @@ export const constructKlipperConfigExtrasGenerator = (config: PrinterConfigurati
 	const _filesToWrite: WritableFiles = [];
 	const _reminders: string[] = [];
 	return {
-		getFilesToWrite(overwrite?: boolean) {
-			return _filesToWrite.slice().map((f) => ({ ...f, overwrite: overwrite != null ? overwrite : f.overwrite }));
+		getFilesToWrite() {
+			return _filesToWrite.slice();
 		},
 		addFileToRender(fileToRender: Unpacked<WritableFiles>) {
 			_filesToWrite.push(fileToRender);

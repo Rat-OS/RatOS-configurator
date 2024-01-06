@@ -12,7 +12,7 @@ export const InfoMessage: React.FC<InfoMessageProps> = (props) => {
 		<Banner
 			color="blue"
 			Icon={InformationCircleIcon}
-			title={props.title ? 'Info: ' + props.title : 'Info'}
+			title={props.title ? props.title : 'Info'}
 			className={props.className}
 		>
 			{props.children}

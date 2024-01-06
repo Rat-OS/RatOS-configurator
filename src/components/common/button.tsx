@@ -12,9 +12,10 @@ const buttonStyle = cva(
 		variants: {
 			color: {
 				danger:
-					'text-white bg-red-500 hover:bg-red-600 border-transparent focus:ring-offset-2 focus:ring-red-600 dark:focus:ring-offset-zinc-900',
+					'text-red-50 bg-red-500 hover:bg-red-600 border-transparent focus:ring-offset-2 focus:ring-red-600 dark:focus:ring-offset-zinc-900',
 				warning:
 					'text-yellow-900 bg-yellow-500 hover:bg-yellow-600 border-transparent focus:ring-offset-2 focus:ring-yellow-600 dark:focus:ring-offset-zinc-900',
+				info: 'text-blue-50 bg-blue-500 hover:bg-blue-600 border-transparent focus:ring-offset-2 focus:ring-blue-600 dark:focus:ring-offset-zinc-900',
 				brand:
 					'text-brand-900 bg-brand-500 hover:bg-brand-600 border-transparent focus:ring-offset-2 focus:ring-brand-600 dark:focus:ring-offset-zinc-900',
 				gray: 'border-zinc-300 bg-zinc-100 hover:bg-zinc-200 text-black dark:text-zinc-300 dark:bg-zinc-900 dark:border-zinc-700 dark:hover:bg-zinc-800 dark:hover:border-zinc-600 focus:ring-offset-2 focus:ring-brand-600 dark:focus:ring-offset-zinc-900',
@@ -45,6 +46,11 @@ const buttonStyle = cva(
 				color: 'gray',
 				disabled: true,
 				class: 'hover:bg-zinc-100 dark:hover:bg-zinc-900',
+			},
+			{
+				color: 'info',
+				disabled: true,
+				class: 'hover:bg-blue-500',
 			},
 		],
 		defaultVariants: {
