@@ -1195,8 +1195,9 @@ var link_default = /*#__PURE__*/__webpack_require__.n(next_link);
 const buttonStyle = (0,external_class_variance_authority_namespaceObject.cva)("inline-flex space-x-2 items-center px-4 py-2 border text-sm font-semibold rounded-md shadow-sm focus:outline-none focus:ring-2 capitalize", {
     variants: {
         color: {
-            danger: "text-white bg-red-500 hover:bg-red-600 border-transparent focus:ring-offset-2 focus:ring-red-600 dark:focus:ring-offset-zinc-900",
+            danger: "text-red-50 bg-red-500 hover:bg-red-600 border-transparent focus:ring-offset-2 focus:ring-red-600 dark:focus:ring-offset-zinc-900",
             warning: "text-yellow-900 bg-yellow-500 hover:bg-yellow-600 border-transparent focus:ring-offset-2 focus:ring-yellow-600 dark:focus:ring-offset-zinc-900",
+            info: "text-blue-50 bg-blue-500 hover:bg-blue-600 border-transparent focus:ring-offset-2 focus:ring-blue-600 dark:focus:ring-offset-zinc-900",
             brand: "text-brand-900 bg-brand-500 hover:bg-brand-600 border-transparent focus:ring-offset-2 focus:ring-brand-600 dark:focus:ring-offset-zinc-900",
             gray: "border-zinc-300 bg-zinc-100 hover:bg-zinc-200 text-black dark:text-zinc-300 dark:bg-zinc-900 dark:border-zinc-700 dark:hover:bg-zinc-800 dark:hover:border-zinc-600 focus:ring-offset-2 focus:ring-brand-600 dark:focus:ring-offset-zinc-900",
             plain: "border-transparent bg-transparent text-zinc-700 dark:text-zinc-300 hover:underline hover:text-zinc-800 dark:hover:text-zinc-200 focus:ring-offset-2 focus:ring-zinc-900 dark:focus:ring-offset-zinc-100"
@@ -1225,6 +1226,11 @@ const buttonStyle = (0,external_class_variance_authority_namespaceObject.cva)("i
             color: "gray",
             disabled: true,
             class: "hover:bg-zinc-100 dark:hover:bg-zinc-900"
+        },
+        {
+            color: "info",
+            disabled: true,
+            class: "hover:bg-blue-500"
         }
     ],
     defaultVariants: {
@@ -1703,7 +1709,7 @@ const Banner = (props)=>{
                     })
                 }),
                 /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                    className: "ml-3",
+                    className: "ml-3 flex-1",
                     children: [
                         /*#__PURE__*/ jsx_runtime_.jsx("h3", {
                             className: (0,external_tailwind_merge_namespaceObject.twJoin)("text-sm font-bold"),
@@ -2750,7 +2756,7 @@ const InfoMessage = (props)=>{
     return /*#__PURE__*/ jsx_runtime_.jsx(Banner, {
         color: "blue",
         Icon: _24_solid_namespaceObject.InformationCircleIcon,
-        title: props.title ? "Info: " + props.title : "Info",
+        title: props.title ? props.title : "Info",
         className: props.className,
         children: props.children
     });
@@ -4345,6 +4351,7 @@ const WifiSetup = (props)=>{
 
 
 
+
 const CompletionSteps = [
     {
         id: "01",
@@ -4401,10 +4408,27 @@ const ConfirmToolhead = (props)=>{
             })
         });
     }
-    return /*#__PURE__*/ (0,jsx_runtime_.jsxs)(jsx_runtime_.Fragment, {
+    return /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+        className: "col-span-1 mt-8 py-4 sm:grid-cols-2 ",
         children: [
+            /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                className: "",
+                children: [
+                    /*#__PURE__*/ (0,jsx_runtime_.jsxs)("h3", {
+                        className: "text-base font-bold leading-7 text-zinc-900 dark:text-zinc-100",
+                        children: [
+                            "Toolhead ",
+                            toolhead.getToolCommand()
+                        ]
+                    }),
+                    /*#__PURE__*/ jsx_runtime_.jsx("p", {
+                        className: "mt-2 max-w-4xl text-sm",
+                        children: toolhead.getDescription()
+                    })
+                ]
+            }),
             /*#__PURE__*/ (0,jsx_runtime_.jsxs)("dl", {
-                className: "grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700",
+                className: "mt-4 grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700",
                 children: [
                     /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
                         className: "sm:col-span-1",
@@ -4423,7 +4447,7 @@ const ConfirmToolhead = (props)=>{
                                 ]
                             }),
                             /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                className: "mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300",
+                                className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
                                 children: toolhead.getConfig().toolboard == null ? "None selected" : `${toolhead.getConfig().toolboard?.manufacturer} ${toolhead.getConfig().toolboard?.name}`
                             })
                         ]
@@ -4447,7 +4471,7 @@ const ConfirmToolhead = (props)=>{
                                 children: "Extruder"
                             }),
                             /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                className: "mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300",
+                                className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
                                 children: toolhead.getConfig().extruder?.title ?? "None selected"
                             })
                         ]
@@ -4460,7 +4484,7 @@ const ConfirmToolhead = (props)=>{
                                 children: "Hotend"
                             }),
                             /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                className: "mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300",
+                                className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
                                 children: toolhead.getConfig().hotend?.title ?? "None selected"
                             })
                         ]
@@ -4473,7 +4497,7 @@ const ConfirmToolhead = (props)=>{
                                 children: "Thermistor"
                             }),
                             /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                className: "mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300",
+                                className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
                                 children: toolhead.getConfig().thermistor ?? "None selected"
                             })
                         ]
@@ -4498,7 +4522,7 @@ const ConfirmToolhead = (props)=>{
                                 children: "X Endstop"
                             }),
                             /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                className: "mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300",
+                                className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
                                 children: toolhead.getConfig().xEndstop?.title ?? "None selected"
                             })
                         ]
@@ -4511,7 +4535,7 @@ const ConfirmToolhead = (props)=>{
                                 children: "Y Endstop"
                             }),
                             /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                className: "mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300",
+                                className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
                                 children: toolhead.getConfig().yEndstop?.title ?? "None selected"
                             })
                         ]
@@ -4524,7 +4548,7 @@ const ConfirmToolhead = (props)=>{
                                 children: "Probe"
                             }),
                             /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                className: "mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300",
+                                className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
                                 children: toolhead.getConfig().probe?.title ?? "None selected"
                             })
                         ]
@@ -4565,7 +4589,7 @@ const ConfirmToolhead = (props)=>{
                                 children: "Part cooling fan"
                             }),
                             /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                className: "mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300",
+                                className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
                                 children: toolhead.getConfig().partFan?.title ?? "None selected"
                             })
                         ]
@@ -4578,7 +4602,7 @@ const ConfirmToolhead = (props)=>{
                                 children: "Hotend cooling fan"
                             }),
                             /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                className: "mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300",
+                                className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
                                 children: toolhead.getConfig().hotendFan?.title ?? "None selected"
                             })
                         ]
@@ -4596,7 +4620,7 @@ const ConfirmToolhead = (props)=>{
                                 children: "X Accelerometer"
                             }),
                             /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                className: "mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300",
+                                className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
                                 children: toolhead.getConfig().xAccelerometer?.title ?? "None"
                             })
                         ]
@@ -4609,7 +4633,7 @@ const ConfirmToolhead = (props)=>{
                                 children: "Y Accelerometer"
                             }),
                             /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                className: "mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300",
+                                className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
                                 children: toolhead.getConfig().yAccelerometer?.title ?? "None"
                             })
                         ]
@@ -4621,7 +4645,29 @@ const ConfirmToolhead = (props)=>{
 };
 const ConfirmConfig = (props)=>{
     const { parsedPrinterConfiguration , partialPrinterConfiguration  } = (0,usePrinterConfiguration/* usePrinterConfiguration */.G3)();
+    const serializedPrinterConfiguration = (0,react_.useMemo)(()=>{
+        if (parsedPrinterConfiguration.success === true) {
+            return (0,usePrinterConfiguration/* serializePrinterConfiguration */.h$)(parsedPrinterConfiguration.data);
+        }
+        return null;
+    }, [
+        parsedPrinterConfiguration
+    ]);
     const errors = [];
+    const [filesToOverwrite, setFilesToOverwrite] = (0,react_.useState)([]);
+    const addFileToOverwrite = (0,react_.useCallback)((fileName)=>{
+        setFilesToOverwrite((files)=>files.includes(fileName) ? files : [
+                ...files,
+                fileName
+            ]);
+    }, []);
+    const [filesToIgnore, setFilesToIgnore] = (0,react_.useState)([]);
+    const addFileToIgnore = (0,react_.useCallback)((fileName)=>{
+        setFilesToIgnore((files)=>files.includes(fileName) ? files : [
+                ...files,
+                fileName
+            ]);
+    }, []);
     const controlboardDetected = trpc/* trpc.mcu.detect.useQuery */.S.mcu.detect.useQuery({
         boardPath: partialPrinterConfiguration != null ? partialPrinterConfiguration.controlboard?.path ?? "" : ""
     }, {
@@ -4631,7 +4677,8 @@ const ConfirmConfig = (props)=>{
     const saveConfiguration = (0,react_.useCallback)(async ()=>{
         if (parsedPrinterConfiguration.success) {
             saveConfigurationMutation.mutate({
-                config: (0,usePrinterConfiguration/* serializePrinterConfiguration */.h$)(parsedPrinterConfiguration.data)
+                config: (0,usePrinterConfiguration/* serializePrinterConfiguration */.h$)(parsedPrinterConfiguration.data),
+                overwriteFiles: filesToOverwrite
             }, {
                 onSuccess: props.nextScreen,
                 onError: (error)=>window.scrollTo(0, 0)
@@ -4640,8 +4687,19 @@ const ConfirmConfig = (props)=>{
     }, [
         parsedPrinterConfiguration,
         saveConfigurationMutation,
+        filesToOverwrite,
         props.nextScreen
     ]);
+    const client = trpc/* trpc.useContext */.S.useContext().client;
+    const filesToWrite = (0,external_react_query_namespaceObject.useQuery)({
+        queryFn: async ()=>{
+            const res = await client.printer.getFilesToWrite.mutate({
+                config: serializedPrinterConfiguration ?? {}
+            });
+            return res;
+        },
+        enabled: parsedPrinterConfiguration.success
+    });
     if (saveConfigurationMutation.error) {
         errors.push(saveConfigurationMutation.error.message);
     }
@@ -4691,13 +4749,6 @@ const ConfirmConfig = (props)=>{
                         className: "space-y-4 text-zinc-700 dark:text-zinc-300",
                         children: parsedPrinterConfiguration.success && /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
                             children: [
-                                /*#__PURE__*/ jsx_runtime_.jsx("div", {
-                                    className: "",
-                                    children: /*#__PURE__*/ jsx_runtime_.jsx("h3", {
-                                        className: "text-base font-medium leading-7 text-zinc-900 dark:text-zinc-100",
-                                        children: "The following setup will be written to the klipper config"
-                                    })
-                                }),
                                 errors.length > 0 && /*#__PURE__*/ jsx_runtime_.jsx("div", {
                                     className: "mt-2",
                                     children: /*#__PURE__*/ jsx_runtime_.jsx(ErrorMessage, {
@@ -4705,6 +4756,13 @@ const ConfirmConfig = (props)=>{
                                                 className: "mt-2",
                                                 children: e
                                             }, i))
+                                    })
+                                }),
+                                /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                                    className: "",
+                                    children: /*#__PURE__*/ jsx_runtime_.jsx("h3", {
+                                        className: "text-base font-bold leading-7 text-zinc-900 dark:text-zinc-100",
+                                        children: "General"
                                     })
                                 }),
                                 /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
@@ -4721,7 +4779,7 @@ const ConfirmConfig = (props)=>{
                                                             children: "Printer"
                                                         }),
                                                         /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                                            className: "mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300",
+                                                            className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
                                                             children: parsedPrinterConfiguration.data.printer != null ? `${parsedPrinterConfiguration.data.printer.manufacturer} ${parsedPrinterConfiguration.data.printer.name} ${parsedPrinterConfiguration.data.size}` : "None selected"
                                                         })
                                                     ]
@@ -4742,7 +4800,7 @@ const ConfirmConfig = (props)=>{
                                                             ]
                                                         }),
                                                         /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                                            className: "mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300",
+                                                            className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
                                                             children: parsedPrinterConfiguration.data.controlboard != null ? `${parsedPrinterConfiguration.data.controlboard.manufacturer} ${parsedPrinterConfiguration.data.controlboard.name}` : "None selected"
                                                         })
                                                     ]
@@ -4755,7 +4813,7 @@ const ConfirmConfig = (props)=>{
                                                             children: "Controller cooling fan"
                                                         }),
                                                         /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                                            className: "mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300",
+                                                            className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
                                                             children: parsedPrinterConfiguration.data.controllerFan?.title ?? "None selected"
                                                         })
                                                     ]
@@ -4773,11 +4831,21 @@ const ConfirmConfig = (props)=>{
                                                 })
                                             ]
                                         }),
-                                        parsedPrinterConfiguration.data.toolheads.map((tool)=>/*#__PURE__*/ jsx_runtime_.jsx(ConfirmToolhead, {
-                                                toolOrAxis: tool.axis
-                                            }, tool.axis)),
+                                        /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                                            className: "space-y-4",
+                                            children: parsedPrinterConfiguration.data.toolheads.map((tool)=>/*#__PURE__*/ jsx_runtime_.jsx(ConfirmToolhead, {
+                                                    toolOrAxis: tool.axis
+                                                }, tool.axis))
+                                        }),
+                                        /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                                            className: "",
+                                            children: /*#__PURE__*/ jsx_runtime_.jsx("h3", {
+                                                className: "mt-4 text-base font-bold leading-7 text-zinc-900 dark:text-zinc-100",
+                                                children: "Motion"
+                                            })
+                                        }),
                                         /*#__PURE__*/ (0,jsx_runtime_.jsxs)("dl", {
-                                            className: "grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700",
+                                            className: "mt-4 grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700",
                                             children: [
                                                 /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
                                                     className: "sm:col-span-1",
@@ -4787,7 +4855,7 @@ const ConfirmConfig = (props)=>{
                                                             children: "Performance mode"
                                                         }),
                                                         /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                                            className: "mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300",
+                                                            className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
                                                             children: parsedPrinterConfiguration.data.performanceMode ? "Enabled" : "Disabled"
                                                         })
                                                     ]
@@ -4800,7 +4868,7 @@ const ConfirmConfig = (props)=>{
                                                             children: "Stealtchop"
                                                         }),
                                                         /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                                            className: "mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300",
+                                                            className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
                                                             children: parsedPrinterConfiguration.data.stealthchop ? "Enabled" : "Disabled"
                                                         })
                                                     ]
@@ -4813,7 +4881,7 @@ const ConfirmConfig = (props)=>{
                                                             children: "Standstill Stealth"
                                                         }),
                                                         /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                                            className: "mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300",
+                                                            className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
                                                             children: parsedPrinterConfiguration.data.standstillStealth ? "Enabled" : "Disabled"
                                                         })
                                                     ]
@@ -4833,7 +4901,7 @@ const ConfirmConfig = (props)=>{
                                                             ]
                                                         }),
                                                         /*#__PURE__*/ (0,jsx_runtime_.jsxs)("dd", {
-                                                            className: "mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300",
+                                                            className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
                                                             children: [
                                                                 /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
                                                                     className: "font-medium",
@@ -4867,11 +4935,45 @@ const ConfirmConfig = (props)=>{
                                         }),
                                         /*#__PURE__*/ jsx_runtime_.jsx("dl", {
                                             className: "grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700",
-                                            children: /*#__PURE__*/ jsx_runtime_.jsx("div", {
-                                                className: " sm:col-span-2 dark:border-zinc-700",
-                                                children: /*#__PURE__*/ jsx_runtime_.jsx(InfoMessage, {
-                                                    children: 'If the above information is correct, go ahead and save the configuration. If not, go back and change the configuration by clicking the steps in the "Setup Progress" panel.'
-                                                })
+                                            children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                                                className: " space-y-4 sm:col-span-2 dark:border-zinc-700",
+                                                children: [
+                                                    filesToWrite.data?.map((file)=>{
+                                                        return file.exists && !file.overwrite && !filesToIgnore.includes(file.fileName) && !filesToOverwrite.includes(file.fileName) && /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                                                            className: "mt-2",
+                                                            children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)(InfoMessage, {
+                                                                title: `The file ${file.fileName} already exists, overwrite?`,
+                                                                children: [
+                                                                    "A backup will be created, so you can recover later.",
+                                                                    /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                                                                        className: "mt-2 flex justify-end",
+                                                                        children: [
+                                                                            /*#__PURE__*/ jsx_runtime_.jsx(Button, {
+                                                                                color: "info",
+                                                                                onClick: ()=>addFileToOverwrite(file.fileName),
+                                                                                children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)("span", {
+                                                                                    className: "normal-case",
+                                                                                    children: [
+                                                                                        "Overwrite ",
+                                                                                        file.fileName
+                                                                                    ]
+                                                                                })
+                                                                            }),
+                                                                            /*#__PURE__*/ jsx_runtime_.jsx(Button, {
+                                                                                color: "plain",
+                                                                                onClick: ()=>addFileToIgnore(file.fileName),
+                                                                                children: "Ignore"
+                                                                            })
+                                                                        ]
+                                                                    })
+                                                                ]
+                                                            })
+                                                        }, file.fileName);
+                                                    }),
+                                                    /*#__PURE__*/ jsx_runtime_.jsx(InfoMessage, {
+                                                        children: 'If the above information is correct, go ahead and save the configuration. If not, go back and change the configuration by clicking the steps in the "Setup Progress" panel.'
+                                                    })
+                                                ]
                                             })
                                         })
                                     ]

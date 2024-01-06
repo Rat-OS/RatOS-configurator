@@ -1,5 +1,5 @@
 'use client';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
 	PrinterConfigurationState,
 	serializePartialPrinterConfiguration,
@@ -21,6 +21,7 @@ import { PrinterAxis } from '../../zods/motion';
 import { ToolOrAxis } from '../../zods/toolhead';
 import { useToolheadConfiguration } from '../../hooks/useToolheadConfiguration';
 import { Spinner } from '../common/spinner';
+import { useQuery } from 'react-query';
 
 const CompletionSteps: StepScreen[] = [
 	{
@@ -84,8 +85,14 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 		);
 	}
 	return (
-		<>
-			<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
+		<div className="col-span-1 mt-8 py-4 sm:grid-cols-2 ">
+			<div className="">
+				<h3 className="text-base font-bold leading-7 text-zinc-900 dark:text-zinc-100">
+					Toolhead {toolhead.getToolCommand()}
+				</h3>
+				<p className="mt-2 max-w-4xl text-sm">{toolhead.getDescription()}</p>
+			</div>
+			<dl className="mt-4 grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
 				<div className="sm:col-span-1">
 					<dt className="space-x-2 text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">
 						<span>Toolboard</span>{' '}
@@ -95,7 +102,7 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 							</Badge>
 						)}
 					</dt>
-					<dd className="mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300">
+					<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
 						{toolhead.getConfig().toolboard == null
 							? 'None selected'
 							: `${toolhead.getConfig().toolboard?.manufacturer} ${toolhead.getConfig().toolboard?.name}`}
@@ -115,19 +122,19 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 				)}
 				<div className="sm:col-span-1">
 					<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Extruder</dt>
-					<dd className="mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300">
+					<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
 						{toolhead.getConfig().extruder?.title ?? 'None selected'}
 					</dd>
 				</div>
 				<div className="sm:col-span-1">
 					<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Hotend</dt>
-					<dd className="mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300">
+					<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
 						{toolhead.getConfig().hotend?.title ?? 'None selected'}
 					</dd>
 				</div>
 				<div className="sm:col-span-1">
 					<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Thermistor</dt>
-					<dd className="mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300">
+					<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
 						{toolhead.getConfig().thermistor ?? 'None selected'}
 					</dd>
 				</div>
@@ -144,19 +151,19 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 			<dl className="grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
 				<div className="sm:col-span-1">
 					<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">X Endstop</dt>
-					<dd className="mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300">
+					<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
 						{toolhead.getConfig().xEndstop?.title ?? 'None selected'}
 					</dd>
 				</div>
 				<div className="sm:col-span-1">
 					<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Y Endstop</dt>
-					<dd className="mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300">
+					<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
 						{toolhead.getConfig().yEndstop?.title ?? 'None selected'}
 					</dd>
 				</div>
 				<div className="sm:col-span-1">
 					<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Probe</dt>
-					<dd className="mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300">
+					<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
 						{toolhead.getConfig().probe?.title ?? 'None selected'}
 					</dd>
 				</div>
@@ -182,13 +189,13 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 			<dl className="grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
 				<div className="sm:col-span-1">
 					<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Part cooling fan</dt>
-					<dd className="mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300">
+					<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
 						{toolhead.getConfig().partFan?.title ?? 'None selected'}
 					</dd>
 				</div>
 				<div className="sm:col-span-1">
 					<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Hotend cooling fan</dt>
-					<dd className="mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300">
+					<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
 						{toolhead.getConfig().hotendFan?.title ?? 'None selected'}
 					</dd>
 				</div>
@@ -196,25 +203,43 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 			<dl className="grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
 				<div className="sm:col-span-1">
 					<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">X Accelerometer</dt>
-					<dd className="mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300">
+					<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
 						{toolhead.getConfig().xAccelerometer?.title ?? 'None'}
 					</dd>
 				</div>
 				<div className="sm:col-span-1">
 					<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Y Accelerometer</dt>
-					<dd className="mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300">
+					<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
 						{toolhead.getConfig().yAccelerometer?.title ?? 'None'}
 					</dd>
 				</div>
 			</dl>
-		</>
+		</div>
 	);
 };
 
 export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 	const { parsedPrinterConfiguration, partialPrinterConfiguration } = usePrinterConfiguration();
 
+	const serializedPrinterConfiguration = useMemo(() => {
+		if (parsedPrinterConfiguration.success === true) {
+			return serializePrinterConfiguration(parsedPrinterConfiguration.data);
+		}
+		return null;
+	}, [parsedPrinterConfiguration]);
+
 	const errors: React.ReactNode[] = [];
+
+	const [filesToOverwrite, setFilesToOverwrite] = useState<string[]>([]);
+
+	const addFileToOverwrite = useCallback((fileName: string) => {
+		setFilesToOverwrite((files) => (files.includes(fileName) ? files : [...files, fileName]));
+	}, []);
+	const [filesToIgnore, setFilesToIgnore] = useState<string[]>([]);
+
+	const addFileToIgnore = useCallback((fileName: string) => {
+		setFilesToIgnore((files) => (files.includes(fileName) ? files : [...files, fileName]));
+	}, []);
 
 	const controlboardDetected = trpc.mcu.detect.useQuery(
 		{ boardPath: partialPrinterConfiguration != null ? partialPrinterConfiguration.controlboard?.path ?? '' : '' },
@@ -226,14 +251,25 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 	const saveConfiguration = useCallback(async () => {
 		if (parsedPrinterConfiguration.success) {
 			saveConfigurationMutation.mutate(
-				{ config: serializePrinterConfiguration(parsedPrinterConfiguration.data) },
+				{ config: serializePrinterConfiguration(parsedPrinterConfiguration.data), overwriteFiles: filesToOverwrite },
 				{
 					onSuccess: props.nextScreen,
 					onError: (error) => window.scrollTo(0, 0),
 				},
 			);
 		}
-	}, [parsedPrinterConfiguration, saveConfigurationMutation, props.nextScreen]);
+	}, [parsedPrinterConfiguration, saveConfigurationMutation, filesToOverwrite, props.nextScreen]);
+
+	const client = trpc.useContext().client;
+	const filesToWrite = useQuery({
+		queryFn: async () => {
+			const res = await client.printer.getFilesToWrite.mutate({
+				config: serializedPrinterConfiguration ?? ({} as any),
+			});
+			return res;
+		},
+		enabled: parsedPrinterConfiguration.success,
+	});
 
 	if (saveConfigurationMutation.error) {
 		errors.push(saveConfigurationMutation.error.message);
@@ -268,11 +304,6 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 				<div className="space-y-4 text-zinc-700 dark:text-zinc-300">
 					{parsedPrinterConfiguration.success && (
 						<div>
-							<div className="">
-								<h3 className="text-base font-medium leading-7 text-zinc-900 dark:text-zinc-100">
-									The following setup will be written to the klipper config
-								</h3>
-							</div>
 							{errors.length > 0 && (
 								<div className="mt-2">
 									<ErrorMessage>
@@ -284,11 +315,14 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 									</ErrorMessage>
 								</div>
 							)}
+							<div className="">
+								<h3 className="text-base font-bold leading-7 text-zinc-900 dark:text-zinc-100">General</h3>
+							</div>
 							<div className="mt-4">
 								<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
 									<div className="sm:col-span-2">
 										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Printer</dt>
-										<dd className="mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300">
+										<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
 											{parsedPrinterConfiguration.data.printer != null
 												? `${parsedPrinterConfiguration.data.printer.manufacturer} ${parsedPrinterConfiguration.data.printer.name} ${parsedPrinterConfiguration.data.size}`
 												: 'None selected'}
@@ -303,7 +337,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 												</Badge>
 											)}
 										</dt>
-										<dd className="mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300">
+										<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
 											{parsedPrinterConfiguration.data.controlboard != null
 												? `${parsedPrinterConfiguration.data.controlboard.manufacturer} ${parsedPrinterConfiguration.data.controlboard.name}`
 												: 'None selected'}
@@ -313,7 +347,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">
 											Controller cooling fan
 										</dt>
-										<dd className="mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300">
+										<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
 											{parsedPrinterConfiguration.data.controllerFan?.title ?? 'None selected'}
 										</dd>
 									</div>
@@ -330,19 +364,24 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 										</div>
 									)}
 								</dl>
-								{parsedPrinterConfiguration.data.toolheads.map((tool) => (
-									<ConfirmToolhead key={tool.axis} toolOrAxis={tool.axis} />
-								))}
-								<dl className="grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
+								<div className="space-y-4">
+									{parsedPrinterConfiguration.data.toolheads.map((tool) => (
+										<ConfirmToolhead key={tool.axis} toolOrAxis={tool.axis} />
+									))}
+								</div>
+								<div className="">
+									<h3 className="mt-4 text-base font-bold leading-7 text-zinc-900 dark:text-zinc-100">Motion</h3>
+								</div>
+								<dl className="mt-4 grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
 									<div className="sm:col-span-1">
 										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Performance mode</dt>
-										<dd className="mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300">
+										<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
 											{parsedPrinterConfiguration.data.performanceMode ? 'Enabled' : 'Disabled'}
 										</dd>
 									</div>
 									<div className="sm:col-span-1">
 										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Stealtchop</dt>
-										<dd className="mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300">
+										<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
 											{parsedPrinterConfiguration.data.stealthchop ? 'Enabled' : 'Disabled'}
 										</dd>
 									</div>
@@ -350,7 +389,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">
 											Standstill Stealth
 										</dt>
-										<dd className="mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300">
+										<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
 											{parsedPrinterConfiguration.data.standstillStealth ? 'Enabled' : 'Disabled'}
 										</dd>
 									</div>
@@ -362,7 +401,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 												{rail.axis === PrinterAxis.extruder ? rail.axis : rail.axis.toLocaleUpperCase()} Motion
 												Configuration
 											</dt>
-											<dd className="mt-1 text-sm leading-6 text-zinc-700 sm:mt-2 dark:text-zinc-300">
+											<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
 												<div className="font-medium">
 													{rail.driver.title} @ {rail.voltage}V
 												</div>
@@ -375,7 +414,29 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 									))}
 								</dl>
 								<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
-									<div className=" sm:col-span-2 dark:border-zinc-700">
+									<div className=" space-y-4 sm:col-span-2 dark:border-zinc-700">
+										{filesToWrite.data?.map((file) => {
+											return (
+												file.exists &&
+												!file.overwrite &&
+												!filesToIgnore.includes(file.fileName) &&
+												!filesToOverwrite.includes(file.fileName) && (
+													<div className="mt-2" key={file.fileName}>
+														<InfoMessage title={`The file ${file.fileName} already exists, overwrite?`}>
+															A backup will be created, so you can recover later.
+															<div className="mt-2 flex justify-end">
+																<Button color="info" onClick={() => addFileToOverwrite(file.fileName)}>
+																	<span className="normal-case">Overwrite {file.fileName}</span>
+																</Button>
+																<Button color="plain" onClick={() => addFileToIgnore(file.fileName)}>
+																	Ignore
+																</Button>
+															</div>
+														</InfoMessage>
+													</div>
+												)
+											);
+										})}
 										<InfoMessage>
 											If the above information is correct, go ahead and save the configuration. If not, go back and
 											change the configuration by clicking the steps in the "Setup Progress" panel.
