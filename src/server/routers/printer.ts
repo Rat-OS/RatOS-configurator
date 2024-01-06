@@ -45,6 +45,7 @@ import { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
 import { ToolheadHelper } from '../../helpers/toolhead';
 import { PrinterAxis } from '../../zods/motion';
 import { ServerCache } from '../helpers/cache';
+import { restartKlipper } from '../helpers/klipper';
 
 function isNodeError(error: any): error is NodeJS.ErrnoException {
 	return error instanceof Error;
@@ -572,7 +573,11 @@ export const printerRouter = router({
 		};
 	}),
 	regenerateConfiguration: publicProcedure.mutation(async () => {
-		return await regenerateKlipperConfiguration<false>();
+		const res = await regenerateKlipperConfiguration();
+		if (res.some((r) => r.action === 'created' || r.action === 'overwritten')) {
+			restartKlipper();
+		}
+		return res;
 	}),
 	saveConfiguration: publicProcedure
 		.input(
@@ -584,7 +589,9 @@ export const printerRouter = router({
 		.mutation(async (ctx) => {
 			const { config: serializedConfig, overwritePrinterCfg } = ctx.input;
 			const config = await deserializePrinterConfiguration(serializedConfig);
-			return await generateKlipperConfiguration(config, overwritePrinterCfg);
+			const configResult = await generateKlipperConfiguration(config, overwritePrinterCfg);
+			restartKlipper();
+			return configResult;
 		}),
 });
 

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import fs, { readFileSync } from 'fs';
+import fs, { existsSync, readFileSync } from 'fs';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { TRPCError } from '@trpc/server';
@@ -15,7 +15,7 @@ import { copyFile } from 'fs/promises';
 import { serverSchema } from '../../env/schema.mjs';
 import { replaceInFileByLine } from '../helpers/file-operations';
 import { ToolheadHelper } from '../../helpers/toolhead';
-import { deserializeToolheadConfiguration } from './printer';
+import { deserializeToolheadConfiguration, loadSerializedConfig } from './printer';
 import { ServerCache } from '../helpers/cache';
 
 const inputSchema = z.object({
@@ -65,7 +65,7 @@ export const updateDetectionStatus = async (boards: BoardWithDetectionStatus[], 
 
 export const compileFirmware = async <T extends boolean>(
 	board: Board,
-	toolhead?: ToolheadHelper<any>,
+	toolhead?: ToolheadHelper<any> | null,
 	skipCompile?: T,
 ): Promise<T extends true ? string : Awaited<ReturnType<typeof runSudoScript>>> => {
 	let compileResult = null;
@@ -272,9 +272,34 @@ export const mcuRouter = router({
 			includeHost: true,
 		})
 		.mutation(async ({ ctx }) => {
-			const connectedBoards = ctx.boards.filter(
-				(b) => detect(b) && b.flashScript && b.compileScript && b.disableAutoFlash !== true,
-			);
+			const environment = serverSchema.parse(process.env);
+			const filePath = path.join(environment.RATOS_DATA_DIR, 'last-printer-settings.json');
+			if (!existsSync(filePath)) {
+				throw new Error("Couldn't find printer settings file: " + filePath);
+			}
+			const config = await loadSerializedConfig(filePath);
+			const toolheadHelpers = config.toolheads.map((t) => {
+				return new ToolheadHelper(t);
+			});
+			const connectedBoards: { board: Board; toolhead: ToolheadHelper<any> | null }[] = ctx.boards
+				.map((b) => {
+					if (b.flashScript && b.compileScript && b.disableAutoFlash !== true) {
+						if (detect(b)) {
+							return { board: b, toolhead: null };
+						}
+						const toolboard =
+							toolheadHelpers
+								.map((th) => {
+									if (detect(b, th)) {
+										return { board: b, toolhead: th };
+									}
+								})
+								.find((b) => b != null) ?? null;
+						return toolboard;
+					}
+					return null;
+				})
+				.filter(Boolean);
 			const flashResults: {
 				board: Board;
 				result: 'success' | 'error';
@@ -282,32 +307,39 @@ export const mcuRouter = router({
 			}[] = [];
 			for (const b of connectedBoards) {
 				try {
-					const current = AutoFlashableBoard.parse(b);
-					await runSudoScript(
-						'board-script.sh',
-						path.join(
+					const current = AutoFlashableBoard.parse(b.board);
+					compileFirmware(b.board, b.toolhead);
+					let flashResult = null;
+					try {
+						const flashScript = path.join(
 							current.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''),
-							current.compileScript,
-						),
-					);
-					await runSudoScript(
-						'board-script.sh',
-						path.join(current.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''), current.flashScript),
-					);
+							current.flashScript,
+						);
+						flashResult = b.toolhead
+							? await runSudoScript('flash-path.sh', getBoardSerialPath(b.board, b.toolhead))
+							: await runSudoScript('board-script.sh', flashScript);
+					} catch (e) {
+						const message = e instanceof Error ? e.message : e;
+						throw new TRPCError({
+							code: 'INTERNAL_SERVER_ERROR',
+							message: `Could not flash firmware to ${b.board.name}: \n\n ${flashResult?.stdout ?? message}`,
+							cause: e,
+						});
+					}
 					flashResults.push({
-						board: b,
+						board: b.board,
 						result: 'success',
-						message: `${b.manufacturer} ${b.name} was successfully flashed.`,
+						message: `${b.board.manufacturer} ${b.board.name} was successfully flashed.`,
 					});
 				} catch (e) {
 					const message = e instanceof Error ? e.message : e;
 					flashResults.push({
-						board: b,
+						board: b.board,
 						result: 'error',
 						message:
 							typeof message === 'string'
 								? message
-								: `Unknown error occured while flashing ${b.manufacturer} ${b.name}`,
+								: `Unknown error occured while flashing ${b.board.manufacturer} ${b.board.name}`,
 					});
 				}
 			}
@@ -352,21 +384,7 @@ export const mcuRouter = router({
 					message: `The path ${input.flashPath} does not exist.`,
 				});
 			}
-			let compileResult = null;
-			try {
-				const compileScript = path.join(
-					ctx.board.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ''),
-					ctx.board.compileScript,
-				);
-				compileResult = await runSudoScript('board-script.sh', compileScript);
-			} catch (e) {
-				const message = e instanceof Error ? e.message : e;
-				throw new TRPCError({
-					code: 'INTERNAL_SERVER_ERROR',
-					message: `Could not compile firmware for ${ctx.board.name}: ${compileResult?.stdout ?? message}'}`,
-					cause: e,
-				});
-			}
+			await compileFirmware(ctx.board, ctx.toolhead);
 			let flashResult = null;
 			try {
 				const flashScript = path.join(
