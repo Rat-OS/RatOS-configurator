@@ -1877,7 +1877,7 @@ var recoil_printer = __webpack_require__(5155);
 // EXTERNAL MODULE: ./zods/toolhead.tsx
 var zods_toolhead = __webpack_require__(4130);
 // EXTERNAL MODULE: ./data/endstops.ts
-var endstops = __webpack_require__(8204);
+var endstops = __webpack_require__(1572);
 ;// CONCATENATED MODULE: ./hooks/useToolheadConfiguration.tsx
 
 

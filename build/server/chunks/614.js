@@ -1,8 +1,8 @@
-exports.id = 390;
-exports.ids = [390];
+exports.id = 614;
+exports.ids = [614];
 exports.modules = {
 
-/***/ 6390:
+/***/ 9614:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -220,7 +220,7 @@ var printer_configuration = __webpack_require__(4342);
 // EXTERNAL MODULE: ./zods/toolhead.tsx
 var toolhead = __webpack_require__(4130);
 // EXTERNAL MODULE: ./data/endstops.ts
-var endstops = __webpack_require__(8204);
+var endstops = __webpack_require__(1572);
 // EXTERNAL MODULE: ./templates/extras/sensorless-homing.ts
 var sensorless_homing = __webpack_require__(1096);
 // EXTERNAL MODULE: ./zods/motion.tsx
@@ -1171,7 +1171,7 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
 // EXTERNAL MODULE: ./data/fans.ts
 var fans = __webpack_require__(7645);
 // EXTERNAL MODULE: external "@trpc/server"
-var server_ = __webpack_require__(6368);
+var server_ = __webpack_require__(2756);
 ;// CONCATENATED MODULE: ./server/helpers/run-script.ts
 
 
@@ -1471,24 +1471,63 @@ const mcuRouter = (0,trpc/* router */.Nd)({
         boardRequired: false,
         includeHost: true
     }).mutation(async ({ ctx  })=>{
-        const connectedBoards = ctx.boards.filter((b)=>detect(b) && b.flashScript && b.compileScript && b.disableAutoFlash !== true);
+        const environment = schema.serverSchema.parse(process.env);
+        const filePath = external_path_default().join(environment.RATOS_DATA_DIR, "last-printer-settings.json");
+        if (!(0,external_fs_.existsSync)(filePath)) {
+            throw new Error("Couldn't find printer settings file: " + filePath);
+        }
+        const config = await loadSerializedConfig(filePath);
+        const toolheadHelpers = config.toolheads.map((t)=>{
+            return new helpers_toolhead/* ToolheadHelper */.D(t);
+        });
+        const connectedBoards = ctx.boards.map((b)=>{
+            if (b.flashScript && b.compileScript && b.disableAutoFlash !== true) {
+                if (detect(b)) {
+                    return {
+                        board: b,
+                        toolhead: null
+                    };
+                }
+                const toolboard = toolheadHelpers.map((th)=>{
+                    if (detect(b, th)) {
+                        return {
+                            board: b,
+                            toolhead: th
+                        };
+                    }
+                }).find((b)=>b != null) ?? null;
+                return toolboard;
+            }
+            return null;
+        }).filter(Boolean);
         const flashResults = [];
         for (const b of connectedBoards){
             try {
-                const current = zods_boards/* AutoFlashableBoard.parse */.AN.parse(b);
-                await runSudoScript("board-script.sh", external_path_default().join(current.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ""), current.compileScript));
-                await runSudoScript("board-script.sh", external_path_default().join(current.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ""), current.flashScript));
+                const current = zods_boards/* AutoFlashableBoard.parse */.AN.parse(b.board);
+                compileFirmware(b.board, b.toolhead);
+                let flashResult = null;
+                try {
+                    const flashScript = external_path_default().join(current.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ""), current.flashScript);
+                    flashResult = b.toolhead ? await runSudoScript("flash-path.sh", getBoardSerialPath(b.board, b.toolhead)) : await runSudoScript("board-script.sh", flashScript);
+                } catch (e) {
+                    const message = e instanceof Error ? e.message : e;
+                    throw new server_.TRPCError({
+                        code: "INTERNAL_SERVER_ERROR",
+                        message: `Could not flash firmware to ${b.board.name}: \n\n ${flashResult?.stdout ?? message}`,
+                        cause: e
+                    });
+                }
                 flashResults.push({
-                    board: b,
+                    board: b.board,
                     result: "success",
-                    message: `${b.manufacturer} ${b.name} was successfully flashed.`
+                    message: `${b.board.manufacturer} ${b.board.name} was successfully flashed.`
                 });
             } catch (e) {
                 const message = e instanceof Error ? e.message : e;
                 flashResults.push({
-                    board: b,
+                    board: b.board,
                     result: "error",
-                    message: typeof message === "string" ? message : `Unknown error occured while flashing ${b.manufacturer} ${b.name}`
+                    message: typeof message === "string" ? message : `Unknown error occured while flashing ${b.board.manufacturer} ${b.board.name}`
                 });
             }
         }
@@ -1531,18 +1570,7 @@ const mcuRouter = (0,trpc/* router */.Nd)({
                 message: `The path ${input.flashPath} does not exist.`
             });
         }
-        let compileResult = null;
-        try {
-            const compileScript = external_path_default().join(ctx.board.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ""), ctx.board.compileScript);
-            compileResult = await runSudoScript("board-script.sh", compileScript);
-        } catch (e) {
-            const message = e instanceof Error ? e.message : e;
-            throw new server_.TRPCError({
-                code: "INTERNAL_SERVER_ERROR",
-                message: `Could not compile firmware for ${ctx.board.name}: ${compileResult?.stdout ?? message}'}`,
-                cause: e
-            });
-        }
+        await compileFirmware(ctx.board, ctx.toolhead);
         let flashResult = null;
         try {
             const flashScript = external_path_default().join(ctx.board.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ""), ctx.board.flashScript);
@@ -1665,7 +1693,54 @@ const yAccelerometerOptions = (config, toolheadConfig)=>{
 
 // EXTERNAL MODULE: ./hooks/usePrinterConfiguration.tsx
 var usePrinterConfiguration = __webpack_require__(2312);
+;// CONCATENATED MODULE: ./zods/moonraker.tsx
+
+const MoonrakerBaseResult = external_zod_.z.object({
+    eventtime: external_zod_.z.number()
+});
+const MoonrakerPrinterState = MoonrakerBaseResult.extend({
+    status: external_zod_.z.object({
+        print_state: external_zod_.z.object({
+            state: external_zod_.z.union([
+                external_zod_.z.literal("paused"),
+                external_zod_.z.literal("printing"),
+                external_zod_.z.literal("complete"),
+                external_zod_.z.literal("error"),
+                external_zod_.z.literal("canceled"),
+                external_zod_.z.literal("standby")
+            ])
+        })
+    })
+});
+const MoonrakerHTTPResponse = external_zod_.z.object({
+    result: MoonrakerBaseResult.passthrough()
+});
+const parseMoonrakerHTTPResponse = (result, responseZod)=>{
+    const response = MoonrakerHTTPResponse.parse(result);
+    return {
+        ...response,
+        result: responseZod.parse(response.result)
+    };
+};
+
+;// CONCATENATED MODULE: ./server/helpers/klipper.ts
+
+const restartKlipper = async (force = false)=>{
+    const printerState = parseMoonrakerHTTPResponse(await fetch("http://localhost:7125/printer/objects/query?query=printer"), MoonrakerPrinterState).result.status.print_state.state;
+    if (force || [
+        "error",
+        "complete",
+        "canceled",
+        "standby"
+    ].includes(printerState)) {
+        await fetch("http://localhost:7125/printer/firmware_restart", {
+            method: "POST"
+        });
+    }
+};
+
 ;// CONCATENATED MODULE: ./server/routers/printer.ts
+
 
 
 
@@ -2073,7 +2148,11 @@ const printerRouter = (0,trpc/* router */.Nd)({
         };
     }),
     regenerateConfiguration: trpc/* publicProcedure.mutation */.$y.mutation(async ()=>{
-        return await regenerateKlipperConfiguration();
+        const res = await regenerateKlipperConfiguration();
+        if (res.some((r)=>r.action === "created" || r.action === "overwritten")) {
+            restartKlipper();
+        }
+        return res;
     }),
     saveConfiguration: trpc/* publicProcedure.input */.$y.input(external_zod_.z.object({
         config: printer_configuration/* SerializedPrinterConfiguration */.q_,
@@ -2081,7 +2160,9 @@ const printerRouter = (0,trpc/* router */.Nd)({
     })).mutation(async (ctx)=>{
         const { config: serializedConfig , overwritePrinterCfg  } = ctx.input;
         const config = await deserializePrinterConfiguration(serializedConfig);
-        return await generateKlipperConfiguration(config, overwritePrinterCfg);
+        const configResult = await generateKlipperConfiguration(config, overwritePrinterCfg);
+        restartKlipper();
+        return configResult;
     })
 });
 

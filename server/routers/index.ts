@@ -51,7 +51,7 @@ export const appRouter = router({
 	reboot: publicProcedure.mutation(async () => {
 		setTimeout(() => {
 			promisify(exec)('reboot');
-		}, 2000);
+		}, 500);
 		return {
 			result: 'success',
 		};

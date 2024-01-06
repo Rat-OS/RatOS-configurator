@@ -33,7 +33,7 @@ module.exports = require("@trpc/react-query/shared");
 
 /***/ }),
 
-/***/ 6368:
+/***/ 2756:
 /***/ ((module) => {
 
 module.exports = require("@trpc/server");
@@ -363,7 +363,7 @@ var run_script = __webpack_require__(1554);
 // EXTERNAL MODULE: ./server/trpc.ts
 var trpc = __webpack_require__(8199);
 // EXTERNAL MODULE: external "@trpc/server"
-var server_ = __webpack_require__(6368);
+var server_ = __webpack_require__(2756);
 // EXTERNAL MODULE: external "path"
 var external_path_ = __webpack_require__(1017);
 var external_path_default = /*#__PURE__*/__webpack_require__.n(external_path_);
@@ -836,8 +836,8 @@ const moonrakerExtensionsRouter = (0,trpc/* router */.Nd)({
     })
 });
 
-// EXTERNAL MODULE: ./server/routers/printer.ts + 16 modules
-var printer = __webpack_require__(1572);
+// EXTERNAL MODULE: ./server/routers/printer.ts + 18 modules
+var printer = __webpack_require__(2281);
 // EXTERNAL MODULE: ./server/helpers/cache.ts
 var cache = __webpack_require__(9878);
 ;// CONCATENATED MODULE: ./server/routers/index.ts
@@ -886,7 +886,7 @@ const appRouter = (0,trpc/* router */.Nd)({
     reboot: trpc/* publicProcedure.mutation */.$y.mutation(async ()=>{
         setTimeout(()=>{
             (0,external_util_.promisify)(external_child_process_.exec)("reboot");
-        }, 2000);
+        }, 500);
         return {
             result: "success"
         };
@@ -925,7 +925,7 @@ const next_namespaceObject = require("@trpc/server/adapters/next");
 var __webpack_require__ = require("../../../webpack-api-runtime.js");
 __webpack_require__.C(exports);
 var __webpack_exec__ = (moduleId) => (__webpack_require__(__webpack_require__.s = moduleId))
-var __webpack_exports__ = __webpack_require__.X(0, [736,123], () => (__webpack_exec__(1350)));
+var __webpack_exports__ = __webpack_require__.X(0, [736,762], () => (__webpack_exec__(1350)));
 module.exports = __webpack_exports__;
 
 })();

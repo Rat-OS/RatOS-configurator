@@ -1,5 +1,5 @@
-exports.id = 123;
-exports.ids = [123];
+exports.id = 762;
+exports.ids = [762];
 exports.modules = {
 
 /***/ 5866:
@@ -734,7 +734,7 @@ const runSudoScript = (script, ...args)=>{
 /* harmony import */ var child_process__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(child_process__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var util__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(3837);
 /* harmony import */ var util__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(util__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var _trpc_server__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(6368);
+/* harmony import */ var _trpc_server__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(2756);
 /* harmony import */ var _trpc_server__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_trpc_server__WEBPACK_IMPORTED_MODULE_4__);
 /* harmony import */ var _helpers_util__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(2633);
 /* harmony import */ var _helpers_run_script__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(1554);
@@ -751,7 +751,7 @@ const runSudoScript = (script, ...args)=>{
 /* harmony import */ var _env_schema_mjs__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(954);
 /* harmony import */ var _helpers_file_operations__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(8736);
 /* harmony import */ var _helpers_toolhead__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(4204);
-/* harmony import */ var _printer__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(1572);
+/* harmony import */ var _printer__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(2281);
 /* harmony import */ var _helpers_cache__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(9878);
 
 
@@ -982,24 +982,63 @@ const mcuRouter = (0,_trpc__WEBPACK_IMPORTED_MODULE_7__/* .router */ .Nd)({
         boardRequired: false,
         includeHost: true
     }).mutation(async ({ ctx  })=>{
-        const connectedBoards = ctx.boards.filter((b)=>detect(b) && b.flashScript && b.compileScript && b.disableAutoFlash !== true);
+        const environment = _env_schema_mjs__WEBPACK_IMPORTED_MODULE_12__/* .serverSchema.parse */ .Rz.parse(process.env);
+        const filePath = path__WEBPACK_IMPORTED_MODULE_8___default().join(environment.RATOS_DATA_DIR, "last-printer-settings.json");
+        if (!(0,fs__WEBPACK_IMPORTED_MODULE_1__.existsSync)(filePath)) {
+            throw new Error("Couldn't find printer settings file: " + filePath);
+        }
+        const config = await (0,_printer__WEBPACK_IMPORTED_MODULE_15__/* .loadSerializedConfig */ .fM)(filePath);
+        const toolheadHelpers = config.toolheads.map((t)=>{
+            return new _helpers_toolhead__WEBPACK_IMPORTED_MODULE_14__/* .ToolheadHelper */ .D(t);
+        });
+        const connectedBoards = ctx.boards.map((b)=>{
+            if (b.flashScript && b.compileScript && b.disableAutoFlash !== true) {
+                if (detect(b)) {
+                    return {
+                        board: b,
+                        toolhead: null
+                    };
+                }
+                const toolboard = toolheadHelpers.map((th)=>{
+                    if (detect(b, th)) {
+                        return {
+                            board: b,
+                            toolhead: th
+                        };
+                    }
+                }).find((b)=>b != null) ?? null;
+                return toolboard;
+            }
+            return null;
+        }).filter(Boolean);
         const flashResults = [];
         for (const b of connectedBoards){
             try {
-                const current = _zods_boards__WEBPACK_IMPORTED_MODULE_6__/* .AutoFlashableBoard.parse */ .AN.parse(b);
-                await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_5__/* .runSudoScript */ .$)("board-script.sh", path__WEBPACK_IMPORTED_MODULE_8___default().join(current.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ""), current.compileScript));
-                await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_5__/* .runSudoScript */ .$)("board-script.sh", path__WEBPACK_IMPORTED_MODULE_8___default().join(current.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ""), current.flashScript));
+                const current = _zods_boards__WEBPACK_IMPORTED_MODULE_6__/* .AutoFlashableBoard.parse */ .AN.parse(b.board);
+                compileFirmware(b.board, b.toolhead);
+                let flashResult = null;
+                try {
+                    const flashScript = path__WEBPACK_IMPORTED_MODULE_8___default().join(current.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ""), current.flashScript);
+                    flashResult = b.toolhead ? await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_5__/* .runSudoScript */ .$)("flash-path.sh", (0,_helpers_board__WEBPACK_IMPORTED_MODULE_17__/* .getBoardSerialPath */ .e)(b.board, b.toolhead)) : await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_5__/* .runSudoScript */ .$)("board-script.sh", flashScript);
+                } catch (e) {
+                    const message = e instanceof Error ? e.message : e;
+                    throw new _trpc_server__WEBPACK_IMPORTED_MODULE_4__.TRPCError({
+                        code: "INTERNAL_SERVER_ERROR",
+                        message: `Could not flash firmware to ${b.board.name}: \n\n ${flashResult?.stdout ?? message}`,
+                        cause: e
+                    });
+                }
                 flashResults.push({
-                    board: b,
+                    board: b.board,
                     result: "success",
-                    message: `${b.manufacturer} ${b.name} was successfully flashed.`
+                    message: `${b.board.manufacturer} ${b.board.name} was successfully flashed.`
                 });
             } catch (e) {
                 const message = e instanceof Error ? e.message : e;
                 flashResults.push({
-                    board: b,
+                    board: b.board,
                     result: "error",
-                    message: typeof message === "string" ? message : `Unknown error occured while flashing ${b.manufacturer} ${b.name}`
+                    message: typeof message === "string" ? message : `Unknown error occured while flashing ${b.board.manufacturer} ${b.board.name}`
                 });
             }
         }
@@ -1042,18 +1081,7 @@ const mcuRouter = (0,_trpc__WEBPACK_IMPORTED_MODULE_7__/* .router */ .Nd)({
                 message: `The path ${input.flashPath} does not exist.`
             });
         }
-        let compileResult = null;
-        try {
-            const compileScript = path__WEBPACK_IMPORTED_MODULE_8___default().join(ctx.board.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ""), ctx.board.compileScript);
-            compileResult = await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_5__/* .runSudoScript */ .$)("board-script.sh", compileScript);
-        } catch (e) {
-            const message = e instanceof Error ? e.message : e;
-            throw new _trpc_server__WEBPACK_IMPORTED_MODULE_4__.TRPCError({
-                code: "INTERNAL_SERVER_ERROR",
-                message: `Could not compile firmware for ${ctx.board.name}: ${compileResult?.stdout ?? message}'}`,
-                cause: e
-            });
-        }
+        await compileFirmware(ctx.board, ctx.toolhead);
         let flashResult = null;
         try {
             const flashScript = path__WEBPACK_IMPORTED_MODULE_8___default().join(ctx.board.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ""), ctx.board.flashScript);
@@ -1125,7 +1153,7 @@ const mcuRouter = (0,_trpc__WEBPACK_IMPORTED_MODULE_7__/* .router */ .Nd)({
 
 /***/ }),
 
-/***/ 1572:
+/***/ 2281:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1134,10 +1162,11 @@ const mcuRouter = (0,_trpc__WEBPACK_IMPORTED_MODULE_7__/* .router */ .Nd)({
 __webpack_require__.d(__webpack_exports__, {
   "dj": () => (/* binding */ deserializeToolheadConfiguration),
   "VZ": () => (/* binding */ getPrinters),
+  "fM": () => (/* binding */ loadSerializedConfig),
   "Cu": () => (/* binding */ printerRouter)
 });
 
-// UNUSED EXPORTS: deserializePartialPrinterConfiguration, deserializePartialToolheadConfiguration, deserializePrinterConfiguration, loadSerializedConfig, parseDirectory, regenerateKlipperConfiguration
+// UNUSED EXPORTS: deserializePartialPrinterConfiguration, deserializePartialToolheadConfiguration, deserializePrinterConfiguration, parseDirectory, regenerateKlipperConfiguration
 
 // EXTERNAL MODULE: external "zod"
 var external_zod_ = __webpack_require__(8316);
@@ -3326,7 +3355,54 @@ const usePrinterConfiguration = ()=>{
 
 // EXTERNAL MODULE: ./server/helpers/cache.ts
 var cache = __webpack_require__(9878);
+;// CONCATENATED MODULE: ./zods/moonraker.tsx
+
+const MoonrakerBaseResult = external_zod_.z.object({
+    eventtime: external_zod_.z.number()
+});
+const MoonrakerPrinterState = MoonrakerBaseResult.extend({
+    status: external_zod_.z.object({
+        print_state: external_zod_.z.object({
+            state: external_zod_.z.union([
+                external_zod_.z.literal("paused"),
+                external_zod_.z.literal("printing"),
+                external_zod_.z.literal("complete"),
+                external_zod_.z.literal("error"),
+                external_zod_.z.literal("canceled"),
+                external_zod_.z.literal("standby")
+            ])
+        })
+    })
+});
+const MoonrakerHTTPResponse = external_zod_.z.object({
+    result: MoonrakerBaseResult.passthrough()
+});
+const parseMoonrakerHTTPResponse = (result, responseZod)=>{
+    const response = MoonrakerHTTPResponse.parse(result);
+    return {
+        ...response,
+        result: responseZod.parse(response.result)
+    };
+};
+
+;// CONCATENATED MODULE: ./server/helpers/klipper.ts
+
+const restartKlipper = async (force = false)=>{
+    const printerState = parseMoonrakerHTTPResponse(await fetch("http://localhost:7125/printer/objects/query?query=printer"), MoonrakerPrinterState).result.status.print_state.state;
+    if (force || [
+        "error",
+        "complete",
+        "canceled",
+        "standby"
+    ].includes(printerState)) {
+        await fetch("http://localhost:7125/printer/firmware_restart", {
+            method: "POST"
+        });
+    }
+};
+
 ;// CONCATENATED MODULE: ./server/routers/printer.ts
+
 
 
 
@@ -3734,7 +3810,11 @@ const printerRouter = (0,trpc/* router */.Nd)({
         };
     }),
     regenerateConfiguration: trpc/* publicProcedure.mutation */.$y.mutation(async ()=>{
-        return await regenerateKlipperConfiguration();
+        const res = await regenerateKlipperConfiguration();
+        if (res.some((r)=>r.action === "created" || r.action === "overwritten")) {
+            restartKlipper();
+        }
+        return res;
     }),
     saveConfiguration: trpc/* publicProcedure.input */.$y.input(external_zod_.z.object({
         config: SerializedPrinterConfiguration,
@@ -3742,7 +3822,9 @@ const printerRouter = (0,trpc/* router */.Nd)({
     })).mutation(async (ctx)=>{
         const { config: serializedConfig , overwritePrinterCfg  } = ctx.input;
         const config = await deserializePrinterConfiguration(serializedConfig);
-        return await generateKlipperConfiguration(config, overwritePrinterCfg);
+        const configResult = await generateKlipperConfiguration(config, overwritePrinterCfg);
+        restartKlipper();
+        return configResult;
     })
 });
 
@@ -3758,7 +3840,7 @@ const printerRouter = (0,trpc/* router */.Nd)({
 /* harmony export */   "Nd": () => (/* binding */ router),
 /* harmony export */   "qR": () => (/* binding */ middleware)
 /* harmony export */ });
-/* harmony import */ var _trpc_server__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(6368);
+/* harmony import */ var _trpc_server__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(2756);
 /* harmony import */ var _trpc_server__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_trpc_server__WEBPACK_IMPORTED_MODULE_0__);
 
 // Avoid exporting the entire t-object
