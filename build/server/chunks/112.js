@@ -1964,6 +1964,16 @@ const constructKlipperConfigUtils = async (config)=>{
             }
             return th;
         },
+        renderCommentHeader (text, lines) {
+            const separator = `------------------------------------------------------------------------------------------------------------`;
+            const textPadding = (separator.length - text.length - 2) / 2;
+            const separatorWithText = `#${"-".repeat(Math.floor(textPadding))} ${text} ${"-".repeat(Math.ceil(textPadding))}`;
+            return [
+                separatorWithText,
+                ...lines,
+                `#${separator}`
+            ];
+        },
         getToolheads: ()=>{
             return toolheads.slice();
         },
@@ -2189,18 +2199,39 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
                 return this.renderStepperSection(r);
             }).join("\n");
         },
-        renderStepperSection (axis) {
+        getMotorComments (axis) {
             const rail = typeof axis === "object" ? axis : config.rails.find((r)=>r.axis === axis);
             if (rail == null) {
                 throw new Error(`No rail found for axis ${axis}`);
             }
             const section = [
-                `[${utils.getAxisStepperName(rail.axis)}]`,
-                `step_pin: ${utils.getAxisPin(rail.axis, "_step_pin")}`,
-                `dir_pin: ${utils.getAxisPin(rail.axis, "_dir_pin")}`,
-                `enable_pin: !${utils.getAxisPin(rail.axis, "_enable_pin")}`,
-                `microsteps: ${rail.microstepping}`
+                `# ${rail.axisDescription}`
             ];
+            if (rail.motorSlot && config.controlboard.motorSlots) {
+                section.push(`# Connected to ${config.controlboard.motorSlots[rail.motorSlot].title} on ${config.controlboard.name}`);
+            } else if (this.isExtruderToolheadAxis(rail.axis)) {
+                const toolhead = utils.getToolhead(rail.axis);
+                if (toolhead == null) {
+                    throw new Error(`No toolhead found for ${rail.axis}`);
+                }
+                section.push(`# Connected to ${(toolhead.getToolboard() || config.controlboard).name}`);
+            }
+            return utils.renderCommentHeader(rail.axis.toUpperCase(), section);
+        },
+        renderMotorSections () {
+            const sections = config.rails.map((r)=>{
+                return this.getMotorComments(r).join("\n") + "\n" + this.renderDriverSection(r, true) + "\n" + this.renderStepperSection(r, true);
+            });
+            sections.push(this.renderBoardQuirks());
+            return sections.join("\n");
+        },
+        renderStepperSection (axis, noHeader = false) {
+            const rail = typeof axis === "object" ? axis : config.rails.find((r)=>r.axis === axis);
+            if (rail == null) {
+                throw new Error(`No rail found for axis ${axis}`);
+            }
+            const section = noHeader ? [] : this.getMotorComments(rail);
+            section.push(`[${utils.getAxisStepperName(rail.axis)}]`, `step_pin: ${utils.getAxisPin(rail.axis, "_step_pin")}`, `dir_pin: ${utils.getAxisPin(rail.axis, "_dir_pin")}`, `enable_pin: !${utils.getAxisPin(rail.axis, "_enable_pin")}`, `microsteps: ${rail.microstepping}`);
             if (rail.axis === motion/* PrinterAxis.extruder */.po.extruder || rail.axis === motion/* PrinterAxis.extruder1 */.po.extruder1) {
                 const toolhead = utils.getToolhead(rail.axis);
                 if (toolhead == null) {
@@ -2239,11 +2270,11 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
             if (rail == null) {
                 throw new Error(`No rail found for axis ${axis}`);
             }
-            const dirComment = directionInverted ? `# Add ! in front of pin name to reverse the direction of ${utils.getAxisStepperName(rail.axis)}` : `# Remove ! in front of pin name to reverse the direction of ${utils.getAxisStepperName(rail.axis)}`;
-            const section = [
+            const dirComment = directionInverted ? `# Remove ! in front of pin name to reverse the direction of ${utils.getAxisStepperName(rail.axis)}` : `# Add ! in front of pin name to reverse the direction of ${utils.getAxisStepperName(rail.axis)}`;
+            const section = this.getMotorComments(rail).concat([
                 `[${utils.getAxisStepperName(rail.axis)}]`,
                 `dir_pin: ${directionInverted ? "!" : ""}${utils.getAxisPin(rail.axis, "_dir_pin")} ${dirComment}`
-            ];
+            ]);
             if (rail.axis === motion/* PrinterAxis.extruder */.po.extruder || rail.axis === motion/* PrinterAxis.extruder1 */.po.extruder1) {
                 const toolhead = utils.getToolhead(rail.axis);
                 if (toolhead == null) {
@@ -2272,19 +2303,15 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
             sections.push(this.renderBoardQuirks());
             return sections.join("\n");
         },
-        renderDriverSection (axis) {
+        renderDriverSection (axis, noHeader = false) {
             const rail = typeof axis === "object" ? axis : config.rails.find((r)=>r.axis === axis);
             if (rail == null) {
                 throw new Error(`No rail found for axis ${axis}`);
             }
             const preset = (0,steppers/* findPreset */.a)(rail.stepper, rail.driver, rail.voltage, rail.current);
-            const section = [
-                `[${utils.getAxisDriverSectionName(rail.axis)}]`,
-                `stealthchop_threshold: ${config.stealthchop ? "9999999" : config.standstillStealth ? "1" : "0"}`,
-                `interpolate: ${rail.microstepping < 64 || config.stealthchop ? "True" : "False"}`
-            ];
+            const section = noHeader ? [] : this.getMotorComments(rail);
+            section.push(`[${utils.getAxisDriverSectionName(rail.axis)}]`, `stealthchop_threshold: ${config.stealthchop ? "9999999" : config.standstillStealth ? "1" : "0"}`, `interpolate: ${rail.microstepping < 64 || config.stealthchop ? "True" : "False"}`);
             if (rail.driver.protocol === "UART") {
-                section.push(`uart_pin: ${utils.getAxisPin(rail.axis, "_uart_pin")}`);
                 // Render optional motor slot pins
                 if (rail.motorSlot) {
                     const slotPins = config.controlboard.motorSlots?.[rail.motorSlot];
@@ -2294,6 +2321,8 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
                     Object.entries(boards/* UARTPins.parse */.X2.parse(slotPins)).forEach(([key, pin])=>{
                         section.push(`${key}: ${pin}`);
                     });
+                } else {
+                    section.push(`uart_pin: ${utils.getAxisPin(rail.axis, "_uart_pin")}`);
                 }
             }
             if (rail.driver.protocol === "SPI") {
@@ -3764,7 +3793,7 @@ const getFilesToWrite = async (config, overwriteFiles)=>{
         }
     ]).map((f)=>{
         const fileWithExists = f;
-        if (overwriteFiles?.includes(fileWithExists.fileName)) {
+        if (overwriteFiles?.includes(fileWithExists.fileName) || overwriteFiles?.includes("*")) {
             fileWithExists.overwrite = true;
         }
         fileWithExists.exists = (0,external_fs_.existsSync)(external_path_default().join(schema/* serverSchema.parse */.Rz.parse(process.env).KLIPPER_CONFIG_PATH, fileWithExists.fileName));
@@ -3842,14 +3871,14 @@ const loadSerializedConfig = async (filePath)=>{
     const config = await deserializePrinterConfiguration(serializedConfig);
     return config;
 };
-const regenerateKlipperConfiguration = async (fromFile)=>{
+const regenerateKlipperConfiguration = async (fromFile, overwriteFiles)=>{
     const environment = schema/* serverSchema.parse */.Rz.parse(process.env);
     const filePath = fromFile ?? external_path_default().join(environment.RATOS_DATA_DIR, "last-printer-settings.json");
     if (!(0,external_fs_.existsSync)(filePath)) {
         throw new Error("Couldn't find printer settings file: " + filePath);
     }
     const config = await loadSerializedConfig(filePath);
-    return await generateKlipperConfiguration(config);
+    return await generateKlipperConfiguration(config, overwriteFiles);
 };
 const getToolhead = async (config, toolOrAxis, serialize)=>{
     const th = (0,serialization/* extractToolheadFromPrinterConfiguration */.Pw)(toolOrAxis, await deserializePartialPrinterConfiguration(config ?? {})) ?? null;
@@ -3922,8 +3951,10 @@ const printerRouter = (0,trpc/* router */.Nd)({
             isInitialized: await isPrinterCfgInitialized()
         };
     }),
-    regenerateConfiguration: trpc/* publicProcedure.mutation */.$y.mutation(async ()=>{
-        const res = await regenerateKlipperConfiguration();
+    regenerateConfiguration: trpc/* publicProcedure.input */.$y.input(external_zod_.z.object({
+        overwriteFiles: external_zod_.z.array(external_zod_.z.string()).optional()
+    })).mutation(async ({ input  })=>{
+        const res = await regenerateKlipperConfiguration(undefined, input.overwriteFiles);
         if (res.some((r)=>r.action === "created" || r.action === "overwritten")) {
             restartKlipper();
         }

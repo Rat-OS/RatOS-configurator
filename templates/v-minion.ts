@@ -32,8 +32,7 @@ ${helper.renderInputShaper(180)}
 #############################################################################################################
 ### STEPPER MOTORS, DRIVERS & SPEED LIMITS
 #############################################################################################################
-${helper.renderStepperSections()}
-${helper.renderDriverSections()}
+${helper.renderMotorSections()}
 ${helper.renderSpeedLimits()}
 
 [bed_mesh]
