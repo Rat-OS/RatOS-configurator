@@ -17,6 +17,8 @@ const SpeedLimits = z
 		z_velocity: z.number().min(0).describe('Maximum z velocity for this printer'),
 		z_accel: z.number().min(0).describe('Maximum z acceleration for this printer'),
 		square_corner_velocity: z.number().min(0).default(5).describe('Maximum square corner velocity for this printer'),
+		travel_velocity: z.number().min(0).default(200).describe('Maximum travel velocity for this printer'),
+		travel_accel: z.number().min(0).default(3000).describe('Maximum travel velocity for this printer'),
 	})
 	.strict();
 

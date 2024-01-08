@@ -536,6 +536,7 @@ export const constructKlipperConfigHelpers = async (
 				``,
 				`[gcode_macro RatOS]`,
 				`variable_macro_travel_speed: ${this.getMacroTravelSpeed()}`,
+				`variable_macro_travel_accel: ${this.getMacroTravelAccel()}`,
 			].join('\n');
 		},
 		getMacroTravelSpeed() {
@@ -543,14 +544,14 @@ export const constructKlipperConfigHelpers = async (
 				config.performanceMode && config.printer.speedLimits.performance
 					? config.printer.speedLimits.performance
 					: config.printer.speedLimits.basic;
-			return config.stealthchop ? '135' : limits.velocity;
+			return config.stealthchop ? '135' : limits.travel_velocity;
 		},
 		getMacroTravelAccel() {
 			const limits =
 				config.performanceMode && config.printer.speedLimits.performance
 					? config.printer.speedLimits.performance
 					: config.printer.speedLimits.basic;
-			return config.stealthchop ? '1000' : limits.accel;
+			return config.stealthchop ? '1000' : limits.travel_accel;
 		},
 		renderBoardQuirks() {
 			let result: string[] = [];
@@ -713,7 +714,10 @@ export const constructKlipperConfigHelpers = async (
 			return result.join('\n');
 		},
 		renderMacroVariableOverrides(size?: number) {
-			const result: string[] = [`variable_macro_travel_speed: ${this.getMacroTravelSpeed()}`];
+			const result: string[] = [
+				`variable_macro_travel_speed: ${this.getMacroTravelSpeed()}`,
+				`variable_macro_travel_accel: ${this.getMacroTravelAccel()}`,
+			];
 			const toolheads = this.getToolheads();
 			const isIdex = toolheads.some((th) => th.getMotionAxis() === PrinterAxis.dual_carriage);
 			if (isIdex) {
