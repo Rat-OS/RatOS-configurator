@@ -55,7 +55,7 @@ __EOF
 
 install_logrotation() {
     LOGROTATE_FILE="/etc/logrotate.d/ratos-configurator"
-    LOGFILE="/home/${USER}/printer_data/logs/configurator.log"
+    LOGFILE="/home/${USER}/printer_data/logs/ratos-configurator.log"
     report_status "Installing RatOS Configurator log rotation script..."
     sudo /bin/sh -c "cat > ${LOGROTATE_FILE}" << __EOF
 #### RatOS-configurator
@@ -69,10 +69,10 @@ install_logrotation() {
 
 
 ${LOGFILE} {
-    rotate 4
+    rotate 3
     missingok
     notifempty
-    create
+    copy
     daily
     dateext
     dateformat .%Y-%m-%d
