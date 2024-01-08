@@ -836,8 +836,8 @@ const moonrakerExtensionsRouter = (0,trpc/* router */.Nd)({
     })
 });
 
-// EXTERNAL MODULE: ./server/routers/printer.ts + 18 modules
-var printer = __webpack_require__(2281);
+// EXTERNAL MODULE: ./server/routers/printer.ts + 17 modules
+var printer = __webpack_require__(5662);
 // EXTERNAL MODULE: ./server/helpers/cache.ts
 var cache = __webpack_require__(9878);
 ;// CONCATENATED MODULE: ./server/routers/index.ts
@@ -875,7 +875,7 @@ const appRouter = (0,trpc/* router */.Nd)({
         return await (0,external_util_.promisify)(external_child_process_.exec)(`ip address | grep "${iface}"`).then(({ stdout  })=>stdout.match(/inet\s(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/)?.[1]) ?? "Unknown IP";
     }),
     resetCache: trpc/* publicProcedure.mutation */.$y.mutation(async ()=>{
-        cache/* ServerCache.flushAll */.o.flushAll();
+        cache/* ServerCache.flushAll */.oA.flushAll();
         return {
             result: "success"
         };
@@ -925,7 +925,7 @@ const next_namespaceObject = require("@trpc/server/adapters/next");
 var __webpack_require__ = require("../../../webpack-api-runtime.js");
 __webpack_require__.C(exports);
 var __webpack_exec__ = (moduleId) => (__webpack_require__(__webpack_require__.s = moduleId))
-var __webpack_exports__ = __webpack_require__.X(0, [736,762], () => (__webpack_exec__(1350)));
+var __webpack_exports__ = __webpack_require__.X(0, [736,112], () => (__webpack_exec__(1350)));
 module.exports = __webpack_exports__;
 
 })();

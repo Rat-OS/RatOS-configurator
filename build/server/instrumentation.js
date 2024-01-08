@@ -31,7 +31,7 @@ const register = async ()=>{
         }
         try {
             logger.info("Symlinking klippy extensions...");
-            logger.info(await symlinkKlippyExtensions());
+            logger.info((await symlinkKlippyExtensions()).report);
         } catch (e) {
             if (e instanceof Error) {
                 logger.error(`Failed to symlink klippy extensions: ${e.message}`);
@@ -39,7 +39,7 @@ const register = async ()=>{
         }
         try {
             logger.info("Symlinking moonraker extensions...");
-            logger.info(await symlinkMoonrakerExtensions());
+            logger.info((await symlinkMoonrakerExtensions()).report);
         } catch (e) {
             if (e instanceof Error) {
                 logger.error(`Failed to symlink moonraker extensions: ${e.message}`);

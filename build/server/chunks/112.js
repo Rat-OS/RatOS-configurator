@@ -1,5 +1,5 @@
-exports.id = 762;
-exports.ids = [762];
+exports.id = 112;
+exports.ids = [112];
 exports.modules = {
 
 /***/ 5866:
@@ -503,7 +503,10 @@ const getScriptRoot = ()=>{
 
 "use strict";
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "o": () => (/* binding */ ServerCache)
+/* harmony export */   "mw": () => (/* binding */ cacheAsyncMetadataFn),
+/* harmony export */   "oA": () => (/* binding */ ServerCache),
+/* harmony export */   "w1": () => (/* binding */ cacheMetadataFn),
+/* harmony export */   "zo": () => (/* binding */ MetadataCache)
 /* harmony export */ });
 /* harmony import */ var node_cache__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(4580);
 /* harmony import */ var node_cache__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(node_cache__WEBPACK_IMPORTED_MODULE_0__);
@@ -511,6 +514,38 @@ const getScriptRoot = ()=>{
 const ServerCache = new (node_cache__WEBPACK_IMPORTED_MODULE_0___default())({
     useClones: false
 });
+const MetadataCache = new (node_cache__WEBPACK_IMPORTED_MODULE_0___default())({
+    useClones: false
+});
+const cachePromiseLookup = new Map();
+const now = new Date().getTime();
+const cacheAsyncMetadataFn = (fn, key, cache)=>{
+    return async (fileName)=>{
+        let result = cache.get(`${key}-${fileName}`);
+        if (result == null) {
+            let promise = cachePromiseLookup.get(`${key}-${fileName}`);
+            if (promise == null) {
+                promise = fn(fileName);
+                cachePromiseLookup.set(`${key}-${fileName}`, promise);
+            } else {}
+            const val = await promise;
+            cache.set(`${key}-${fileName}`, val);
+            return val;
+        }
+        return result;
+    };
+};
+const cacheMetadataFn = (fn, key, cache)=>{
+    return (fileName)=>{
+        let result = cache.get(`${key}-${fileName}`);
+        if (result == null) {
+            const val = fn(fileName);
+            cache.set(`${key}-${fileName}`, val);
+            return val;
+        }
+        return result;
+    };
+};
 
 
 /***/ }),
@@ -650,6 +685,203 @@ const getLogger = ()=>{
 
 /***/ }),
 
+/***/ 9993:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "AU": () => (/* binding */ stripIncludes),
+/* harmony export */   "BB": () => (/* binding */ parseMetadata),
+/* harmony export */   "ND": () => (/* binding */ replaceLinesStartingWith),
+/* harmony export */   "NH": () => (/* binding */ getExtruderRotationDistance),
+/* harmony export */   "Qk": () => (/* binding */ parseBoardPinConfig),
+/* harmony export */   "_s": () => (/* binding */ exportBoardPinAlias),
+/* harmony export */   "rc": () => (/* binding */ stripCommentLines),
+/* harmony export */   "sV": () => (/* binding */ stripDriverSections),
+/* harmony export */   "up": () => (/* binding */ readInclude)
+/* harmony export */ });
+/* unused harmony exports extractMcuFromFirmwareConfig, stripLinesStartingWith */
+/* harmony import */ var child_process__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(2081);
+/* harmony import */ var child_process__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(child_process__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(7147);
+/* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(fs__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(1017);
+/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var readline__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(4521);
+/* harmony import */ var readline__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(readline__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var util__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(3837);
+/* harmony import */ var util__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(util__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var _env_schema_mjs__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(954);
+/* harmony import */ var _zods_boards__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(1346);
+/* harmony import */ var _helpers_util__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(2633);
+/* harmony import */ var _logger__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(4279);
+/* harmony import */ var _cache__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(9878);
+
+
+
+
+
+
+
+
+
+
+const parseMetadata = async (cfgFile, zod)=>{
+    if (cfgFile.trim() === "") return null;
+    const hashmarkPrefixedJson = await (0,util__WEBPACK_IMPORTED_MODULE_4__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_0__.exec)(`sed -n '/^# {/{:a; N; /\\n# }/!ba; p}' ${cfgFile}`);
+    const jsonArray = hashmarkPrefixedJson.stdout.split("\n").map((l)=>l.trim()).filter((l)=>l !== "").map((l)=>l.indexOf("#") === 0 ? l.substring(1) : l);
+    if (jsonArray.length === 0) {
+        return null;
+    }
+    try {
+        const content = JSON.parse(jsonArray.join("\n"));
+        content.path = cfgFile;
+        const fileName = cfgFile.split("/").pop();
+        if (fileName == null) {
+            throw new Error("File name couldn't be parsed from path: " + cfgFile);
+        }
+        content.id = fileName.replace(/\.cfg$/g, "");
+        return zod.parse(content);
+    } catch (e) {
+        if (e instanceof Error) {
+            (0,_logger__WEBPACK_IMPORTED_MODULE_7__/* .getLogger */ .j)().error(e.message);
+        }
+        throw new Error("Failed to parse JSON from file: " + cfgFile + " with content: " + jsonArray.join("\n"));
+    }
+};
+const parsePinValue = (value)=>{
+    if (value === "null") {
+        return undefined;
+    }
+    if (value.startsWith("<") && value.endsWith(">")) {
+        return undefined;
+    }
+    return value;
+};
+const parsePinAlias = (0,_cache__WEBPACK_IMPORTED_MODULE_8__/* .cacheAsyncMetadataFn */ .mw)(async (file)=>{
+    const scriptRoot = (0,_helpers_util__WEBPACK_IMPORTED_MODULE_9__/* .getScriptRoot */ .x)();
+    const configUnparsed = await (0,util__WEBPACK_IMPORTED_MODULE_4__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_0__.exec)(`python3 ${path__WEBPACK_IMPORTED_MODULE_2___default().join(scriptRoot, "initojson.py")} ${file}`);
+    const config = JSON.parse(configUnparsed.stdout);
+    if (config == null) {
+        throw new Error("Failed to parse config file: " + file);
+    }
+    const boardPinSection = Object.keys(config).find((section)=>section.startsWith("board_pins"));
+    if (boardPinSection == null) {
+        throw new Error("Failed to find board pin section in config file: " + file);
+    }
+    const unparsedPins = config[boardPinSection].aliases.map((a)=>a.replace(",", ""));
+    const badPins = config[boardPinSection].aliases.filter((a)=>!a.includes("="));
+    if (badPins.length > 0) {
+        throw new Error('Board pin aliases do not parse correctly, got "' + badPins.join(", ") + '"');
+    }
+    const pins = {};
+    unparsedPins.forEach((p)=>{
+        const frags = p.split("=");
+        if (frags.length > 2) {
+            throw new Error('Board pin aliases do not parse correctly, got "' + p + '"');
+        }
+        pins[frags[0]] = parsePinValue(frags[1]);
+    });
+    return pins;
+}, "parsePinAlias", _cache__WEBPACK_IMPORTED_MODULE_8__/* .MetadataCache */ .zo);
+const exportBoardPinAlias = (pinAlias, pins, mcu)=>{
+    const aliases = Object.keys(pins).map((k, i)=>{
+        if (pins[k] == null) {
+            return k + "=null";
+        }
+        return k + "=" + pins[k];
+    });
+    const result = [
+        `[board_pins ${pinAlias}]`
+    ];
+    if (mcu != null) {
+        result.push(`mcu: ${mcu}`);
+    }
+    result.push(`aliases:`, `\t${aliases.join(",\n	")}`);
+    return result.join("\n");
+};
+const parseBoardPinConfig = async (board, extruderLess)=>{
+    let file = path__WEBPACK_IMPORTED_MODULE_2___default().join(board.path, board.isToolboard ? "toolboard-config.cfg" : extruderLess && board.extruderlessConfig != null ? board.extruderlessConfig : "config.cfg");
+    const zod = board.isToolboard ? _zods_boards__WEBPACK_IMPORTED_MODULE_6__/* .ToolboardPinMap */ .Oy : extruderLess ? _zods_boards__WEBPACK_IMPORTED_MODULE_6__/* .ExtruderlessControlBoardPinMap */ .Fh : _zods_boards__WEBPACK_IMPORTED_MODULE_6__/* .ControlBoardPinMap */ .MW;
+    return zod.parse(await parsePinAlias(file));
+};
+const extractMcuFromFirmwareConfig = (0,_cache__WEBPACK_IMPORTED_MODULE_8__/* .cacheAsyncMetadataFn */ .mw)(async (filePath)=>{
+    if (!(0,fs__WEBPACK_IMPORTED_MODULE_1__.existsSync)(filePath)) {
+        throw new Error("Firmware config file does not exist: " + filePath);
+    }
+    const fileStream = (0,fs__WEBPACK_IMPORTED_MODULE_1__.createReadStream)(filePath);
+    const rl = (0,readline__WEBPACK_IMPORTED_MODULE_3__.createInterface)({
+        input: fileStream,
+        crlfDelay: Infinity
+    });
+    const startOfMCULine = `CONFIG_MCU="`;
+    for await (const line of rl){
+        // Each line in input.txt will be successively available here as `line`.
+        if (line.startsWith(startOfMCULine)) {
+            return line.substring(startOfMCULine.length, line.length - 2);
+        }
+    }
+    throw new Error("Failed to find MCU in firmware config file: " + filePath);
+}, "extractMcuFromFirmwareConfig", _cache__WEBPACK_IMPORTED_MODULE_8__/* .MetadataCache */ .zo);
+const getExtruderRotationDistance = (0,_cache__WEBPACK_IMPORTED_MODULE_8__/* .cacheMetadataFn */ .w1)((extruderId)=>{
+    const environment = _env_schema_mjs__WEBPACK_IMPORTED_MODULE_5__/* .serverSchema.parse */ .Rz.parse(process.env);
+    const extruderCfgPath = path__WEBPACK_IMPORTED_MODULE_2___default().join(environment.RATOS_CONFIGURATION_PATH, "extruders", extruderId + ".cfg");
+    const scriptRoot = (0,_helpers_util__WEBPACK_IMPORTED_MODULE_9__/* .getScriptRoot */ .x)();
+    const configUnparsed = (0,child_process__WEBPACK_IMPORTED_MODULE_0__.execSync)(`python3 ${path__WEBPACK_IMPORTED_MODULE_2___default().join(scriptRoot, "initojson.py")} ${extruderCfgPath}`);
+    const config = JSON.parse(configUnparsed.toString());
+    if (config == null) {
+        throw new Error("Failed to parse config file: " + extruderCfgPath);
+    }
+    const extruderSection = Object.keys(config).find((section)=>section.startsWith("extruder"));
+    if (extruderSection == null) {
+        throw new Error("Failed to find extruder section in config file: " + extruderCfgPath);
+    }
+    const extruder = config[extruderSection];
+    if (extruder == null || extruder.rotation_distance == null) {
+        throw new Error("Failed to find extruder rotation distance");
+    }
+    return extruder.rotation_distance;
+}, "getExtruderRotationDistance", _cache__WEBPACK_IMPORTED_MODULE_8__/* .MetadataCache */ .zo);
+const readInclude = (fileName)=>{
+    const environment = _env_schema_mjs__WEBPACK_IMPORTED_MODULE_5__/* .serverSchema.parse */ .Rz.parse(process.env);
+    const fullPath = path__WEBPACK_IMPORTED_MODULE_2___default().join(environment.RATOS_CONFIGURATION_PATH, fileName);
+    if (!(0,fs__WEBPACK_IMPORTED_MODULE_1__.existsSync)(fullPath)) {
+        throw new Error("Extruder config file doesn't exist: " + fileName);
+    }
+    return (0,fs__WEBPACK_IMPORTED_MODULE_1__.readFileSync)(fullPath, "utf-8");
+};
+const stripIncludes = (content)=>{
+    return stripLinesStartingWith(content, "[include");
+};
+const stripCommentLines = (content)=>{
+    return stripLinesStartingWith(content, "#");
+};
+const stripLinesStartingWith = (content, start)=>{
+    return content.split("\n").filter((l)=>!l.trim().startsWith(start)).join("\n");
+};
+const stripDriverSections = (content)=>{
+    let insideDriverSection = false;
+    return content.split("\n").map((l)=>{
+        if (l.trim().startsWith("[tmc")) {
+            insideDriverSection = true;
+        }
+        if (insideDriverSection) {
+            if (l.trim().startsWith("[")) {
+                insideDriverSection = false;
+            } else {
+                return null;
+            }
+        }
+        return l;
+    }).filter((l)=>l != null).join("\n");
+};
+const replaceLinesStartingWith = (content, start, replace)=>{
+    return content.split("\n").map((l)=>l.trim().startsWith(start) ? replace : l).join("\n");
+};
+
+
+/***/ }),
+
 /***/ 1554:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
@@ -736,7 +968,7 @@ const runSudoScript = (script, ...args)=>{
 /* harmony import */ var util__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(util__WEBPACK_IMPORTED_MODULE_3__);
 /* harmony import */ var _trpc_server__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(2756);
 /* harmony import */ var _trpc_server__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_trpc_server__WEBPACK_IMPORTED_MODULE_4__);
-/* harmony import */ var _helpers_util__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(2633);
+/* harmony import */ var _helpers_util__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(2633);
 /* harmony import */ var _helpers_run_script__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(1554);
 /* harmony import */ var _zods_boards__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(1346);
 /* harmony import */ var _trpc__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(8199);
@@ -745,14 +977,18 @@ const runSudoScript = (script, ...args)=>{
 /* harmony import */ var glob__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(4230);
 /* harmony import */ var glob__WEBPACK_IMPORTED_MODULE_9___default = /*#__PURE__*/__webpack_require__.n(glob__WEBPACK_IMPORTED_MODULE_9__);
 /* harmony import */ var _zods_toolhead__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(2493);
-/* harmony import */ var _helpers_board__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(3806);
+/* harmony import */ var _helpers_board__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(3806);
 /* harmony import */ var fs_promises__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(3292);
 /* harmony import */ var fs_promises__WEBPACK_IMPORTED_MODULE_11___default = /*#__PURE__*/__webpack_require__.n(fs_promises__WEBPACK_IMPORTED_MODULE_11__);
 /* harmony import */ var _env_schema_mjs__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(954);
 /* harmony import */ var _helpers_file_operations__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(8736);
 /* harmony import */ var _helpers_toolhead__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(4204);
-/* harmony import */ var _printer__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(2281);
+/* harmony import */ var _printer__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(5662);
 /* harmony import */ var _helpers_cache__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(9878);
+/* harmony import */ var _zods_motion__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(6734);
+/* harmony import */ var _helpers_metadata__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(9993);
+
+
 
 
 
@@ -777,10 +1013,10 @@ const inputSchema = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
     toolhead: _zods_toolhead__WEBPACK_IMPORTED_MODULE_10__/* .SerializedToolheadConfiguration.optional */ .Qk.optional()
 });
 const detect = (board, toolhead)=>{
-    return fs__WEBPACK_IMPORTED_MODULE_1___default().existsSync((0,_helpers_board__WEBPACK_IMPORTED_MODULE_17__/* .getBoardSerialPath */ .e)(board, toolhead));
+    return fs__WEBPACK_IMPORTED_MODULE_1___default().existsSync((0,_helpers_board__WEBPACK_IMPORTED_MODULE_19__/* .getBoardSerialPath */ .e)(board, toolhead));
 };
 const getBoards = async ()=>{
-    const cached = _helpers_cache__WEBPACK_IMPORTED_MODULE_16__/* .ServerCache.get */ .o.get("boards");
+    const cached = _helpers_cache__WEBPACK_IMPORTED_MODULE_16__/* .ServerCache.get */ .oA.get("boards");
     if (cached != null && cached.length > 0) {
         return cached.map((b)=>{
             b.detected = detect(b);
@@ -795,7 +1031,7 @@ const getBoards = async ()=>{
         b.detected = detect(b);
         return b;
     }));
-    _helpers_cache__WEBPACK_IMPORTED_MODULE_16__/* .ServerCache.set */ .o.set("boards", boards);
+    _helpers_cache__WEBPACK_IMPORTED_MODULE_16__/* .ServerCache.set */ .oA.set("boards", boards);
     return boards;
 };
 const updateDetectionStatus = async (boards, toolhead)=>{
@@ -810,7 +1046,7 @@ const compileFirmware = async (board, toolhead, skipCompile)=>{
     try {
         const dest = path__WEBPACK_IMPORTED_MODULE_8___default().join(environment.KLIPPER_DIR, ".config");
         await (0,fs_promises__WEBPACK_IMPORTED_MODULE_11__.copyFile)(path__WEBPACK_IMPORTED_MODULE_8___default().join(environment.RATOS_CONFIGURATION_PATH, "boards", board.id, "firmware.config"), dest);
-        await (0,_helpers_file_operations__WEBPACK_IMPORTED_MODULE_13__/* .replaceInFileByLine */ .u)(dest, /CONFIG_USB_SERIAL_NUMBER=".+"/g, `CONFIG_USB_SERIAL_NUMBER="${(0,_helpers_board__WEBPACK_IMPORTED_MODULE_17__/* .getBoardChipId */ .m)(board, toolhead)}"`);
+        await (0,_helpers_file_operations__WEBPACK_IMPORTED_MODULE_13__/* .replaceInFileByLine */ .u)(dest, /CONFIG_USB_SERIAL_NUMBER=".+"/g, `CONFIG_USB_SERIAL_NUMBER="${(0,_helpers_board__WEBPACK_IMPORTED_MODULE_19__/* .getBoardChipId */ .m)(board, toolhead)}"`);
         if (skipCompile) {
             return (0,fs__WEBPACK_IMPORTED_MODULE_1__.readFileSync)(dest).toString();
         }
@@ -907,7 +1143,7 @@ const mcuRouter = (0,_trpc__WEBPACK_IMPORTED_MODULE_7__/* .router */ .Nd)({
         return detect(ctx.board, ctx.toolhead);
     }),
     unidentifiedDevices: mcuProcedure.query(async ({ ctx  })=>{
-        const detected = ctx.boards.filter((b)=>b.detected).map((b)=>fs__WEBPACK_IMPORTED_MODULE_1___default().realpathSync((0,_helpers_board__WEBPACK_IMPORTED_MODULE_17__/* .getBoardSerialPath */ .e)(b)));
+        const detected = ctx.boards.filter((b)=>b.detected).map((b)=>fs__WEBPACK_IMPORTED_MODULE_1___default().realpathSync((0,_helpers_board__WEBPACK_IMPORTED_MODULE_19__/* .getBoardSerialPath */ .e)(b)));
         return (await (0,glob__WEBPACK_IMPORTED_MODULE_9__.glob)("/dev/serial/by-id/usb-Klipper*")).filter((d)=>!detected.includes(fs__WEBPACK_IMPORTED_MODULE_1___default().realpathSync(d)));
     }),
     boardVersion: mcuProcedure.input(inputSchema).meta({
@@ -931,7 +1167,7 @@ const mcuRouter = (0,_trpc__WEBPACK_IMPORTED_MODULE_7__/* .router */ .Nd)({
                 message: `Environment variable KLIPPER_DIR is missing`
             });
         }
-        const scriptRoot = (0,_helpers_util__WEBPACK_IMPORTED_MODULE_18__/* .getScriptRoot */ .x)();
+        const scriptRoot = (0,_helpers_util__WEBPACK_IMPORTED_MODULE_20__/* .getScriptRoot */ .x)();
         // stop klipper
         let version = {
             stdout: ""
@@ -941,7 +1177,7 @@ const mcuRouter = (0,_trpc__WEBPACK_IMPORTED_MODULE_7__/* .router */ .Nd)({
             await fetch("http://127.0.0.1:7125/machine/services/stop?service=klipper", {
                 method: "POST"
             });
-            version = await (0,util__WEBPACK_IMPORTED_MODULE_3__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_2__.exec)(`${path__WEBPACK_IMPORTED_MODULE_8___default().join(process.env.KLIPPER_ENV, "bin", "python")} ${path__WEBPACK_IMPORTED_MODULE_8___default().join(scriptRoot, "check-version.py")} ${(0,_helpers_board__WEBPACK_IMPORTED_MODULE_17__/* .getBoardSerialPath */ .e)(ctx.board, ctx.toolhead)}`, {
+            version = await (0,util__WEBPACK_IMPORTED_MODULE_3__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_2__.exec)(`${path__WEBPACK_IMPORTED_MODULE_8___default().join(process.env.KLIPPER_ENV, "bin", "python")} ${path__WEBPACK_IMPORTED_MODULE_8___default().join(scriptRoot, "check-version.py")} ${(0,_helpers_board__WEBPACK_IMPORTED_MODULE_19__/* .getBoardSerialPath */ .e)(ctx.board, ctx.toolhead)}`, {
                 env: {
                     KLIPPER_DIR: process.env.KLIPPER_DIR,
                     NODE_ENV: "production"
@@ -977,6 +1213,24 @@ const mcuRouter = (0,_trpc__WEBPACK_IMPORTED_MODULE_7__/* .router */ .Nd)({
         }
         await compileFirmware(ctx.board, ctx.toolhead);
         return "success";
+    }),
+    guessMotorSlot: mcuProcedure.meta({
+        boardRequired: true
+    }).input(zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
+        axis: zod__WEBPACK_IMPORTED_MODULE_0__.z.nativeEnum(_zods_motion__WEBPACK_IMPORTED_MODULE_17__/* .PrinterAxis */ .po),
+        hasToolboard: zod__WEBPACK_IMPORTED_MODULE_0__.z.boolean(),
+        boardPath: zod__WEBPACK_IMPORTED_MODULE_0__.z.string()
+    })).query(async ({ ctx , input  })=>{
+        if (ctx.board == null) {
+            return undefined;
+        }
+        const isExtruderlessBoard = ctx.board.extruderlessConfig != null && input.hasToolboard;
+        const pins = await (0,_helpers_metadata__WEBPACK_IMPORTED_MODULE_18__/* .parseBoardPinConfig */ .Qk)(ctx.board, isExtruderlessBoard);
+        const axisAlias = input.axis === _zods_motion__WEBPACK_IMPORTED_MODULE_17__/* .PrinterAxis.z */ .po.z ? "z0" : input.axis === _zods_motion__WEBPACK_IMPORTED_MODULE_17__/* .PrinterAxis.extruder */ .po.extruder ? "e" : _zods_motion__WEBPACK_IMPORTED_MODULE_17__/* .PrinterAxis.extruder1 */ .po.extruder1 === input.axis ? "e1" : input.axis;
+        return (0,_zods_boards__WEBPACK_IMPORTED_MODULE_6__/* .guessMotorSlotFromPins */ .h_)({
+            step_pin: pins[`${axisAlias}_step_pin`],
+            dir_pin: pins[`${axisAlias}_dir_pin`]
+        }, ctx.board);
     }),
     flashAllConnected: mcuProcedure.meta({
         boardRequired: false,
@@ -1019,7 +1273,7 @@ const mcuRouter = (0,_trpc__WEBPACK_IMPORTED_MODULE_7__/* .router */ .Nd)({
                 let flashResult = null;
                 try {
                     const flashScript = path__WEBPACK_IMPORTED_MODULE_8___default().join(current.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ""), current.flashScript);
-                    flashResult = b.toolhead ? await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_5__/* .runSudoScript */ .$)("flash-path.sh", (0,_helpers_board__WEBPACK_IMPORTED_MODULE_17__/* .getBoardSerialPath */ .e)(b.board, b.toolhead)) : await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_5__/* .runSudoScript */ .$)("board-script.sh", flashScript);
+                    flashResult = b.toolhead ? await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_5__/* .runSudoScript */ .$)("flash-path.sh", (0,_helpers_board__WEBPACK_IMPORTED_MODULE_19__/* .getBoardSerialPath */ .e)(b.board, b.toolhead)) : await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_5__/* .runSudoScript */ .$)("board-script.sh", flashScript);
                 } catch (e) {
                     const message = e instanceof Error ? e.message : e;
                     throw new _trpc_server__WEBPACK_IMPORTED_MODULE_4__.TRPCError({
@@ -1085,7 +1339,7 @@ const mcuRouter = (0,_trpc__WEBPACK_IMPORTED_MODULE_7__/* .router */ .Nd)({
         let flashResult = null;
         try {
             const flashScript = path__WEBPACK_IMPORTED_MODULE_8___default().join(ctx.board.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ""), ctx.board.flashScript);
-            flashResult = input.flashPath ? await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_5__/* .runSudoScript */ .$)("flash-path.sh", (0,_helpers_board__WEBPACK_IMPORTED_MODULE_17__/* .getBoardSerialPath */ .e)(ctx.board, ctx.toolhead), input.flashPath) : ctx.toolhead ? await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_5__/* .runSudoScript */ .$)("flash-path.sh", (0,_helpers_board__WEBPACK_IMPORTED_MODULE_17__/* .getBoardSerialPath */ .e)(ctx.board, ctx.toolhead)) : await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_5__/* .runSudoScript */ .$)("board-script.sh", flashScript);
+            flashResult = input.flashPath ? await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_5__/* .runSudoScript */ .$)("flash-path.sh", (0,_helpers_board__WEBPACK_IMPORTED_MODULE_19__/* .getBoardSerialPath */ .e)(ctx.board, ctx.toolhead), input.flashPath) : ctx.toolhead ? await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_5__/* .runSudoScript */ .$)("flash-path.sh", (0,_helpers_board__WEBPACK_IMPORTED_MODULE_19__/* .getBoardSerialPath */ .e)(ctx.board, ctx.toolhead)) : await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_5__/* .runSudoScript */ .$)("board-script.sh", flashScript);
         } catch (e) {
             const message = e instanceof Error ? e.message : e;
             throw new _trpc_server__WEBPACK_IMPORTED_MODULE_4__.TRPCError({
@@ -1138,7 +1392,7 @@ const mcuRouter = (0,_trpc__WEBPACK_IMPORTED_MODULE_7__/* .router */ .Nd)({
             });
         }
         try {
-            const flashResult = await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_5__/* .runSudoScript */ .$)("dfu-flash.sh", (0,_helpers_board__WEBPACK_IMPORTED_MODULE_17__/* .getBoardSerialPath */ .e)(ctx.board, ctx.toolhead));
+            const flashResult = await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_5__/* .runSudoScript */ .$)("dfu-flash.sh", (0,_helpers_board__WEBPACK_IMPORTED_MODULE_19__/* .getBoardSerialPath */ .e)(ctx.board, ctx.toolhead));
             return flashResult.stdout;
         } catch (e) {
             throw new _trpc_server__WEBPACK_IMPORTED_MODULE_4__.TRPCError({
@@ -1153,7 +1407,7 @@ const mcuRouter = (0,_trpc__WEBPACK_IMPORTED_MODULE_7__/* .router */ .Nd)({
 
 /***/ }),
 
-/***/ 2281:
+/***/ 5662:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1174,186 +1428,17 @@ var external_zod_ = __webpack_require__(8316);
 var logger = __webpack_require__(4279);
 // EXTERNAL MODULE: external "util"
 var external_util_ = __webpack_require__(3837);
-// EXTERNAL MODULE: external "child_process"
-var external_child_process_ = __webpack_require__(2081);
+// EXTERNAL MODULE: ./server/helpers/metadata.ts
+var metadata = __webpack_require__(9993);
+// EXTERNAL MODULE: ./zods/hardware.tsx
+var hardware = __webpack_require__(2174);
 // EXTERNAL MODULE: external "fs"
 var external_fs_ = __webpack_require__(7147);
+// EXTERNAL MODULE: ./env/schema.mjs
+var schema = __webpack_require__(954);
 // EXTERNAL MODULE: external "path"
 var external_path_ = __webpack_require__(1017);
 var external_path_default = /*#__PURE__*/__webpack_require__.n(external_path_);
-// EXTERNAL MODULE: external "readline"
-var external_readline_ = __webpack_require__(4521);
-// EXTERNAL MODULE: ./env/schema.mjs
-var schema = __webpack_require__(954);
-// EXTERNAL MODULE: ./zods/boards.tsx
-var boards = __webpack_require__(1346);
-// EXTERNAL MODULE: ./helpers/util.ts
-var util = __webpack_require__(2633);
-;// CONCATENATED MODULE: ./server/helpers/metadata.ts
-
-
-
-
-
-
-
-
-
-const parseMetadata = async (cfgFile, zod)=>{
-    if (cfgFile.trim() === "") return null;
-    const hashmarkPrefixedJson = await (0,external_util_.promisify)(external_child_process_.exec)(`sed -n '/^# {/{:a; N; /\\n# }/!ba; p}' ${cfgFile}`);
-    const jsonArray = hashmarkPrefixedJson.stdout.split("\n").map((l)=>l.trim()).filter((l)=>l !== "").map((l)=>l.indexOf("#") === 0 ? l.substring(1) : l);
-    if (jsonArray.length === 0) {
-        return null;
-    }
-    try {
-        const content = JSON.parse(jsonArray.join("\n"));
-        content.path = cfgFile;
-        const fileName = cfgFile.split("/").pop();
-        if (fileName == null) {
-            throw new Error("File name couldn't be parsed from path: " + cfgFile);
-        }
-        content.id = fileName.replace(/\.cfg$/g, "");
-        return zod.parse(content);
-    } catch (e) {
-        if (e instanceof Error) {
-            (0,logger/* getLogger */.j)().error(e.message);
-        }
-        throw new Error("Failed to parse JSON from file: " + cfgFile + " with content: " + jsonArray.join("\n"));
-    }
-};
-const parsePinValue = (value)=>{
-    if (value === "null") {
-        return undefined;
-    }
-    if (value.startsWith("<") && value.endsWith(">")) {
-        return undefined;
-    }
-    return value;
-};
-const parsePinAlias = async (file)=>{
-    const scriptRoot = (0,util/* getScriptRoot */.x)();
-    const configUnparsed = await (0,external_util_.promisify)(external_child_process_.exec)(`python3 ${external_path_default().join(scriptRoot, "initojson.py")} ${file}`);
-    const config = JSON.parse(configUnparsed.stdout);
-    if (config == null) {
-        throw new Error("Failed to parse config file: " + file);
-    }
-    const boardPinSection = Object.keys(config).find((section)=>section.startsWith("board_pins"));
-    if (boardPinSection == null) {
-        throw new Error("Failed to find board pin section in config file: " + file);
-    }
-    const unparsedPins = config[boardPinSection].aliases.map((a)=>a.replace(",", ""));
-    const badPins = config[boardPinSection].aliases.filter((a)=>!a.includes("="));
-    if (badPins.length > 0) {
-        throw new Error('Board pin aliases do not parse correctly, got "' + badPins.join(", ") + '"');
-    }
-    const pins = {};
-    unparsedPins.forEach((p)=>{
-        const frags = p.split("=");
-        if (frags.length > 2) {
-            throw new Error('Board pin aliases do not parse correctly, got "' + p + '"');
-        }
-        pins[frags[0]] = parsePinValue(frags[1]);
-    });
-    return pins;
-};
-const exportBoardPinAlias = (pinAlias, pins, mcu)=>{
-    const aliases = Object.keys(pins).map((k, i)=>{
-        if (pins[k] == null) {
-            return k + "=null";
-        }
-        return k + "=" + pins[k];
-    });
-    const result = [
-        `[board_pins ${pinAlias}]`
-    ];
-    if (mcu != null) {
-        result.push(`mcu: ${mcu}`);
-    }
-    result.push(`aliases:`, `\t${aliases.join(",\n	")}`);
-    return result.join("\n");
-};
-const parseBoardPinConfig = async (board, extruderLess)=>{
-    let file = external_path_default().join(board.path, board.isToolboard ? "toolboard-config.cfg" : extruderLess && board.extruderlessConfig != null ? board.extruderlessConfig : "config.cfg");
-    const zod = board.isToolboard ? boards/* ToolboardPinMap */.Oy : extruderLess ? boards/* ExtruderlessControlBoardPinMap */.Fh : boards/* ControlBoardPinMap */.MW;
-    return zod.parse(await parsePinAlias(file));
-};
-const extractMcuFromFirmwareConfig = async (filePath)=>{
-    if (!existsSync(filePath)) {
-        throw new Error("Firmware config file does not exist: " + filePath);
-    }
-    const fileStream = createReadStream(filePath);
-    const rl = createInterface({
-        input: fileStream,
-        crlfDelay: Infinity
-    });
-    const startOfMCULine = `CONFIG_MCU="`;
-    for await (const line of rl){
-        // Each line in input.txt will be successively available here as `line`.
-        if (line.startsWith(startOfMCULine)) {
-            return line.substring(startOfMCULine.length, line.length - 2);
-        }
-    }
-    throw new Error("Failed to find MCU in firmware config file: " + filePath);
-};
-const getExtruderRotationDistance = (extruderId)=>{
-    const environment = schema/* serverSchema.parse */.Rz.parse(process.env);
-    const extruderCfgPath = external_path_default().join(environment.RATOS_CONFIGURATION_PATH, "extruders", extruderId + ".cfg");
-    const scriptRoot = (0,util/* getScriptRoot */.x)();
-    const configUnparsed = (0,external_child_process_.execSync)(`python3 ${external_path_default().join(scriptRoot, "initojson.py")} ${extruderCfgPath}`);
-    const config = JSON.parse(configUnparsed.toString());
-    if (config == null) {
-        throw new Error("Failed to parse config file: " + extruderCfgPath);
-    }
-    const extruderSection = Object.keys(config).find((section)=>section.startsWith("extruder"));
-    if (extruderSection == null) {
-        throw new Error("Failed to find extruder section in config file: " + extruderCfgPath);
-    }
-    const extruder = config[extruderSection];
-    if (extruder == null || extruder.rotation_distance == null) {
-        throw new Error("Failed to find extruder rotation distance");
-    }
-    return extruder.rotation_distance;
-};
-const readInclude = (fileName)=>{
-    const environment = schema/* serverSchema.parse */.Rz.parse(process.env);
-    const fullPath = external_path_default().join(environment.RATOS_CONFIGURATION_PATH, fileName);
-    if (!(0,external_fs_.existsSync)(fullPath)) {
-        throw new Error("Extruder config file doesn't exist: " + fileName);
-    }
-    return (0,external_fs_.readFileSync)(fullPath, "utf-8");
-};
-const stripIncludes = (content)=>{
-    return stripLinesStartingWith(content, "[include");
-};
-const stripCommentLines = (content)=>{
-    return stripLinesStartingWith(content, "#");
-};
-const stripLinesStartingWith = (content, start)=>{
-    return content.split("\n").filter((l)=>!l.trim().startsWith(start)).join("\n");
-};
-const stripDriverSections = (content)=>{
-    let insideDriverSection = false;
-    return content.split("\n").map((l)=>{
-        if (l.trim().startsWith("[tmc")) {
-            insideDriverSection = true;
-        }
-        if (insideDriverSection) {
-            if (l.trim().startsWith("[")) {
-                insideDriverSection = false;
-            } else {
-                return null;
-            }
-        }
-        return l;
-    }).filter((l)=>l != null).join("\n");
-};
-const replaceLinesStartingWith = (content, start, replace)=>{
-    return content.split("\n").map((l)=>l.trim().startsWith(start) ? replace : l).join("\n");
-};
-
-// EXTERNAL MODULE: ./zods/hardware.tsx
-var hardware = __webpack_require__(2174);
 // EXTERNAL MODULE: ./zods/motion.tsx
 var motion = __webpack_require__(6734);
 // EXTERNAL MODULE: ./zods/toolhead.tsx
@@ -1403,6 +1488,8 @@ const PrinterDefinitionWithResolvedToolheads = PrinterDefinition.extend({
     }).strict()
 });
 
+// EXTERNAL MODULE: ./zods/boards.tsx
+var boards = __webpack_require__(1346);
 ;// CONCATENATED MODULE: ./zods/printer-configuration.tsx
 
 
@@ -1547,7 +1634,7 @@ var board = __webpack_require__(3806);
 
 class ToolheadGenerator extends helpers_toolhead/* ToolheadHelper */.D {
     static async fromConfig(config, controlPins) {
-        const toolboardPins = config.toolboard ? await parseBoardPinConfig(config.toolboard) : null;
+        const toolboardPins = config.toolboard ? await (0,metadata/* parseBoardPinConfig */.Qk)(config.toolboard) : null;
         return new ToolheadGenerator(config, toolboardPins, controlPins);
     }
     constructor(toolhead, toolboardPins, controlboardPins){
@@ -1657,7 +1744,7 @@ class ToolheadGenerator extends helpers_toolhead/* ToolheadHelper */.D {
         }
         const result = [
             "",
-            exportBoardPinAlias(this.getToolboardName(), pins, this.getToolboardName()),
+            (0,metadata/* exportBoardPinAlias */._s)(this.getToolboardName(), pins, this.getToolboardName()),
             "",
             `[mcu ${this.getToolboardName()}]`,
             `serial: ${(0,board/* getBoardSerialPath */.e)(toolboard, this)}`
@@ -1693,20 +1780,20 @@ class ToolheadGenerator extends helpers_toolhead/* ToolheadHelper */.D {
     renderHotend() {
         // Todo parse modify and output hotend config
         let result = [];
-        let hotend = readInclude(`hotends/${this.getHotend().id}.cfg`);
-        hotend = stripCommentLines(hotend);
-        hotend = stripIncludes(hotend);
-        hotend = replaceLinesStartingWith(hotend, "[extruder]", `[${this.getExtruderAxis()}]`);
-        hotend = replaceLinesStartingWith(hotend, "heater_pin", `heater_pin: ${this.getToolheadPin(this.getExtruderAxis(), "_heater_pin")}`);
-        hotend = replaceLinesStartingWith(hotend, "sensor_pin", `sensor_pin: ${this.getToolheadPin(this.getExtruderAxis(), "_sensor_pin")}`);
+        let hotend = (0,metadata/* readInclude */.up)(`hotends/${this.getHotend().id}.cfg`);
+        hotend = (0,metadata/* stripCommentLines */.rc)(hotend);
+        hotend = (0,metadata/* stripIncludes */.AU)(hotend);
+        hotend = (0,metadata/* replaceLinesStartingWith */.ND)(hotend, "[extruder]", `[${this.getExtruderAxis()}]`);
+        hotend = (0,metadata/* replaceLinesStartingWith */.ND)(hotend, "heater_pin", `heater_pin: ${this.getToolheadPin(this.getExtruderAxis(), "_heater_pin")}`);
+        hotend = (0,metadata/* replaceLinesStartingWith */.ND)(hotend, "sensor_pin", `sensor_pin: ${this.getToolheadPin(this.getExtruderAxis(), "_sensor_pin")}`);
         if (this.getThermistor() === "PT1000" && this.getToolboard()?.alternativePT1000Resistor != null) {
             if (hotend.split("\n").some((line)=>line.trim().startsWith("pullup_resistor"))) {
-                hotend = replaceLinesStartingWith(hotend, "pullup_resistor", `pullup_resistor: ${this.getToolboard()?.alternativePT1000Resistor}`);
+                hotend = (0,metadata/* replaceLinesStartingWith */.ND)(hotend, "pullup_resistor", `pullup_resistor: ${this.getToolboard()?.alternativePT1000Resistor}`);
             } else {
-                hotend = replaceLinesStartingWith(hotend, "sensor_type", `sensor_type: ${this.getThermistor()}\npullup_resistor: ${this.getToolboard()?.alternativePT1000Resistor}`);
+                hotend = (0,metadata/* replaceLinesStartingWith */.ND)(hotend, "sensor_type", `sensor_type: ${this.getThermistor()}\npullup_resistor: ${this.getToolboard()?.alternativePT1000Resistor}`);
             }
         } else {
-            hotend = replaceLinesStartingWith(hotend, "sensor_type", `sensor_type: ${this.getThermistor()}`);
+            hotend = (0,metadata/* replaceLinesStartingWith */.ND)(hotend, "sensor_type", `sensor_type: ${this.getThermistor()}`);
         }
         result.push(`# ${this.getToolCommand()} ${this.getHotend().title} definition (from RatOS/hotends/${this.getHotend().id}.cfg)`);
         result.push(hotend.trim());
@@ -1716,8 +1803,8 @@ class ToolheadGenerator extends helpers_toolhead/* ToolheadHelper */.D {
         let result = [];
         // Get rid of the stepper/driver includes in the extruder config and paste it inline (backwards compatibility with 2.0).
         result.push(`# ${this.getToolCommand()} ${this.getExtruder().title} definition (from RatOS/extruders/${this.getExtruder().id}.cfg)`);
-        let extruder = stripCommentLines(stripIncludes(stripDriverSections(readInclude(`extruders/${this.getExtruder().id}.cfg`))));
-        extruder = replaceLinesStartingWith(extruder, "[extruder]", `[${this.getExtruderAxis()}]`);
+        let extruder = (0,metadata/* stripCommentLines */.rc)((0,metadata/* stripIncludes */.AU)((0,metadata/* stripDriverSections */.sV)((0,metadata/* readInclude */.up)(`extruders/${this.getExtruder().id}.cfg`))));
+        extruder = (0,metadata/* replaceLinesStartingWith */.ND)(extruder, "[extruder]", `[${this.getExtruderAxis()}]`);
         result.push(extruder.trim());
         return result.join("\n");
     }
@@ -1838,11 +1925,12 @@ class ToolheadGenerator extends helpers_toolhead/* ToolheadHelper */.D {
 
 
 
+
 const constructKlipperConfigUtils = async (config)=>{
     const toolboardDriverCount = config.toolheads.reduce((prev, current)=>prev + (current.toolboard?.driverCount ?? 0), 0);
     const extruderLessConfigBonus = config.controlboard.extruderlessConfig != null ? 1 : 0;
     const isExtruderlessBoard = config.printer.driverCountRequired > config.controlboard.driverCount;
-    const cbPins = await parseBoardPinConfig(config.controlboard, isExtruderlessBoard);
+    const cbPins = await (0,metadata/* parseBoardPinConfig */.Qk)(config.controlboard, isExtruderlessBoard);
     const toolheads = await Promise.all(config.toolheads.map(async (thConfig)=>{
         if (thConfig.toolboard == null) {
             if (isExtruderlessBoard) {
@@ -1892,7 +1980,16 @@ const constructKlipperConfigUtils = async (config)=>{
             if (this.isExtruderToolheadAxis(axis)) {
                 pinValue = this.getToolhead(axis).getToolheadPin(axis, alias);
             } else {
-                pinValue = cbPins[pinName];
+                const rail = this.getRail(axis);
+                const slotPin = alias.startsWith("_") ? alias.substring(1) : alias;
+                if (config.controlboard.motorSlots != null && rail.motorSlot != null && slotPin in config.controlboard.motorSlots[rail.motorSlot]) {
+                    pinValue = config.controlboard.motorSlots[rail.motorSlot][slotPin];
+                    if (pinValue == null) {
+                        throw new Error(`Motor slot was selected, but pin ${slotPin} wasn't found in motor slot config.`);
+                    }
+                } else {
+                    pinValue = cbPins[pinName];
+                }
             }
             if (pinValue == null) {
                 throw new Error(`Pin name "${pinName}" constructed from axis "${axis}" and alias "${alias}" not found in board pin configs.`);
@@ -2042,7 +2139,7 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
         renderControlboard () {
             const result = [
                 "",
-                exportBoardPinAlias(config.controlboard.id, utils.getControlboardPins()),
+                (0,metadata/* exportBoardPinAlias */._s)(config.controlboard.id, utils.getControlboardPins()),
                 "",
                 `[mcu]`,
                 `serial: ${(0,board/* getBoardSerialPath */.e)(config.controlboard)}`
@@ -2109,7 +2206,7 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
                 if (toolhead == null) {
                     throw new Error(`No toolhead found for ${rail.axis}`);
                 }
-                section.push(`rotation_distance: ${getExtruderRotationDistance(toolhead.getExtruder().id)}`);
+                section.push(`rotation_distance: ${(0,metadata/* getExtruderRotationDistance */.NH)(toolhead.getExtruder().id)}`);
             } else {
                 section.push(`rotation_distance: ${rail.rotationDistance}`);
             }
@@ -2152,7 +2249,7 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
                 if (toolhead == null) {
                     throw new Error(`No toolhead found for ${rail.axis}`);
                 }
-                section.push(`rotation_distance: ${getExtruderRotationDistance(toolhead.getExtruder().id)} # ${toolhead.getExtruder().title} default`);
+                section.push(`rotation_distance: ${(0,metadata/* getExtruderRotationDistance */.NH)(toolhead.getExtruder().id)} # ${toolhead.getExtruder().title} default`);
             } else {
                 section.push(`rotation_distance: ${rail.rotationDistance} ${rotationComment ? `# ${rotationComment}` : ""}`);
             }
@@ -2188,21 +2285,41 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
             ];
             if (rail.driver.protocol === "UART") {
                 section.push(`uart_pin: ${utils.getAxisPin(rail.axis, "_uart_pin")}`);
+                // Render optional motor slot pins
+                if (rail.motorSlot) {
+                    const slotPins = config.controlboard.motorSlots?.[rail.motorSlot];
+                    if (slotPins == null || !(0,boards/* hasUART */.uh)(config.controlboard.motorSlots?.[rail.motorSlot])) {
+                        throw new Error(`No controlboard motor slot UART pins defined for motor slot ${rail.motorSlot}`);
+                    }
+                    Object.entries(boards/* UARTPins.parse */.X2.parse(slotPins)).forEach(([key, pin])=>{
+                        section.push(`${key}: ${pin}`);
+                    });
+                }
             }
             if (rail.driver.protocol === "SPI") {
-                section.push(`cs_pin: ${utils.getAxisPin(rail.axis, "_uart_pin")}`);
-                if (config.controlboard.stepperSPI != null) {
-                    if ("hardware" in config.controlboard.stepperSPI) {
-                        section.push(`spi_bus: ${config.controlboard.stepperSPI.hardware.bus}`);
-                    } else {
-                        section.push(`spi_software_mosi_pin: ${config.controlboard.stepperSPI.software.mosi}`);
-                        section.push(`spi_software_miso_pin: ${config.controlboard.stepperSPI.software.miso}`);
-                        section.push(`spi_software_sclk_pin: ${config.controlboard.stepperSPI.software.sclk}`);
+                if (rail.motorSlot) {
+                    const slotPins = config.controlboard.motorSlots?.[rail.motorSlot];
+                    if (slotPins == null || !(0,boards/* hasSPI */._u)(config.controlboard.motorSlots?.[rail.motorSlot])) {
+                        throw new Error(`No controlboard motor slot SPI pins defined for motor slot ${rail.motorSlot}`);
                     }
+                    Object.entries(boards/* SPIPins.parse */.WX.parse(slotPins)).forEach(([key, pin])=>{
+                        section.push(`${key}: ${pin}`);
+                    });
                 } else {
-                    section.push(`spi_software_mosi_pin: stepper_spi_mosi_pin`);
-                    section.push(`spi_software_miso_pin: stepper_spi_miso_pin`);
-                    section.push(`spi_software_sclk_pin: stepper_spi_sclk_pin`);
+                    section.push(`cs_pin: ${utils.getAxisPin(rail.axis, "_uart_pin")}`);
+                    if (config.controlboard.stepperSPI != null) {
+                        if ("hardware" in config.controlboard.stepperSPI) {
+                            section.push(`spi_bus: ${config.controlboard.stepperSPI.hardware.bus}`);
+                        } else {
+                            section.push(`spi_software_mosi_pin: ${config.controlboard.stepperSPI.software.mosi}`);
+                            section.push(`spi_software_miso_pin: ${config.controlboard.stepperSPI.software.miso}`);
+                            section.push(`spi_software_sclk_pin: ${config.controlboard.stepperSPI.software.sclk}`);
+                        }
+                    } else {
+                        section.push(`spi_software_mosi_pin: stepper_spi_mosi_pin`);
+                        section.push(`spi_software_miso_pin: stepper_spi_miso_pin`);
+                        section.push(`spi_software_sclk_pin: stepper_spi_sclk_pin`);
+                    }
                 }
             }
             if (preset) {
@@ -3426,20 +3543,20 @@ function isNodeError(error) {
     return error instanceof Error;
 }
 const parseDirectory = async (directory, zod)=>{
-    const cached = cache/* ServerCache.get */.o.get(directory);
+    const cached = cache/* ServerCache.get */.oA.get(directory);
     if (cached != null) {
         return external_zod_.z.array(zod).parse(cached);
     }
     const defs = await (0,external_glob_.glob)(`${process.env.RATOS_CONFIGURATION_PATH}/${directory}/*.cfg`);
     const res = (await Promise.all(defs.map((f)=>f.trim()).filter((f)=>f !== "").map(async (f)=>{
-        const parsedFile = await parseMetadata(f, zod);
+        const parsedFile = await (0,metadata/* parseMetadata */.BB)(f, zod);
         if (parsedFile == null) {
             (0,logger/* getLogger */.j)().warn(`No metadata present in ${f} skipping..`);
             return null;
         }
         return parsedFile;
     }))).filter((f)=>f != null);
-    cache/* ServerCache.set */.o.set(directory, res);
+    cache/* ServerCache.set */.oA.set(directory, res);
     return res;
 };
 const serializedPartialConfigFromPrinterDefinition = (def)=>{
@@ -4195,9 +4312,14 @@ const extractToolheadFromPrinterConfiguration = (toolOrAxis, config)=>{
 /* harmony export */   "MG": () => (/* binding */ Toolboard),
 /* harmony export */   "MW": () => (/* binding */ ControlBoardPinMap),
 /* harmony export */   "Oy": () => (/* binding */ ToolboardPinMap),
-/* harmony export */   "m9": () => (/* binding */ ToolboardWithDetectionStatus)
+/* harmony export */   "WX": () => (/* binding */ SPIPins),
+/* harmony export */   "X2": () => (/* binding */ UARTPins),
+/* harmony export */   "_u": () => (/* binding */ hasSPI),
+/* harmony export */   "h_": () => (/* binding */ guessMotorSlotFromPins),
+/* harmony export */   "m9": () => (/* binding */ ToolboardWithDetectionStatus),
+/* harmony export */   "uh": () => (/* binding */ hasUART)
 /* harmony export */ });
-/* unused harmony export PinMap */
+/* unused harmony exports PinMap, MotorSlot, MotorSlotKey */
 /* harmony import */ var zod__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8316);
 /* harmony import */ var zod__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(zod__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _motion__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(6734);
@@ -4373,6 +4495,63 @@ const ToolboardPinMap = PinMap.extend({
     "4p_toolhead_cooling_pin": zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
     "4p_toolhead_cooling_tach_pin": zod__WEBPACK_IMPORTED_MODULE_0__.z.string()
 })));
+const UARTPins = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
+    uart_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    uart_address: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional(),
+    rx_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional(),
+    tx_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional()
+});
+const SPIPins = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
+    cs_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string()
+}).and(zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
+    spi_bus: zod__WEBPACK_IMPORTED_MODULE_0__.z.string()
+}).or(zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
+    spi_software_mosi_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional(),
+    spi_software_miso_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional(),
+    spi_software_sclk_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional()
+})));
+const hasSPI = (slot)=>{
+    return SPIPins.safeParse(slot).success;
+};
+const hasUART = (slot)=>{
+    return UARTPins.safeParse(slot).success;
+};
+const MotorSlot = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
+    title: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    step_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    dir_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    enable_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    diag_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    endstop_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    // UART
+    uart_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional(),
+    uart_address: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional(),
+    rx_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional(),
+    tx_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional(),
+    // SPI
+    cs_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional(),
+    spi_bus: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional(),
+    spi_software_mosi_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional(),
+    spi_software_miso_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional(),
+    spi_software_sclk_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional()
+}).refine((slot)=>{
+    return hasSPI(slot) || hasUART(slot);
+}, {
+    message: "Motor slot must have either SPI or UART pins"
+});
+const AnySlotPin = MotorSlot.innerType().omit({
+    title: true
+}).partial();
+const MotorSlotKey = zod__WEBPACK_IMPORTED_MODULE_0__.z.string();
+const guessMotorSlotFromPins = (pins, board)=>{
+    const slots = Object.entries(board.motorSlots ?? {});
+    for (const [key, slot] of slots){
+        if (Object.entries(pins).every(([pin, value])=>slot[pin] === value)) {
+            return key;
+        }
+    }
+    return undefined;
+};
 const Board = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
     id: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
     isToolboard: zod__WEBPACK_IMPORTED_MODULE_0__.z.boolean().optional(),
@@ -4396,6 +4575,7 @@ const Board = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
     ]),
     hasMcuTempSensor: zod__WEBPACK_IMPORTED_MODULE_0__.z.boolean().default(true),
     alternativePT1000Resistor: zod__WEBPACK_IMPORTED_MODULE_0__.z.number().optional(),
+    motorSlots: zod__WEBPACK_IMPORTED_MODULE_0__.z.record(MotorSlotKey, MotorSlot).optional(),
     outputPins: zod__WEBPACK_IMPORTED_MODULE_0__.z.array(zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
         pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
         name: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
@@ -4707,6 +4887,7 @@ const BasePrinterRail = zod__WEBPACK_IMPORTED_MODULE_0__.object({
     driver: Driver.describe("Stepper driver used on this axis"),
     voltage: Voltage.default(StepperVoltage["24V"]).describe("Voltage of the stepper driver"),
     stepper: Stepper.describe("Stepper motor connected to this axis"),
+    motorSlot: zod__WEBPACK_IMPORTED_MODULE_0__.string().optional().describe("Optional board motor slot of the stepper driver"),
     current: zod__WEBPACK_IMPORTED_MODULE_0__.number().min(0),
     rotationDistance: zod__WEBPACK_IMPORTED_MODULE_0__.number().min(0).describe("Distance in mm the axis travels per stepper rotation"),
     gearRatio: zod__WEBPACK_IMPORTED_MODULE_0__.string().regex(/^\d+:\d+$/).optional().describe("Optional gear ratio of the axis"),

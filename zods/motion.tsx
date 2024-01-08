@@ -1,6 +1,5 @@
 import * as z from 'zod';
-import { Board, Toolboard } from './boards';
-import { deserializeStepper, deserializeDriver } from '../utils/serialization';
+import type { Board, Toolboard } from './boards';
 export enum StepperVoltage {
 	'24V' = 24,
 	'36V' = 36,
@@ -140,6 +139,7 @@ export const BasePrinterRail = z.object({
 	driver: Driver.describe('Stepper driver used on this axis'),
 	voltage: Voltage.default(StepperVoltage['24V']).describe('Voltage of the stepper driver'),
 	stepper: Stepper.describe('Stepper motor connected to this axis'),
+	motorSlot: z.string().optional().describe('Optional board motor slot of the stepper driver'),
 	current: z.number().min(0),
 	rotationDistance: z.number().min(0).describe('Distance in mm the axis travels per stepper rotation'),
 	gearRatio: z

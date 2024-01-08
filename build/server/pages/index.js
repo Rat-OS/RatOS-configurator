@@ -1991,6 +1991,7 @@ const useToolheadConfiguration = (toolOrAxis, errorIfNotExist = true)=>{
 
 
 
+
 const PrinterRailSettings = (props)=>{
     const toolhead = useToolhead(props.printerRailDefault.axis);
     const board = toolhead?.getExtruderAxis() === props.printerRailDefault.axis && toolhead?.hasToolboard() ? toolhead.getToolboard() : props.selectedBoard;
@@ -1999,6 +2000,22 @@ const PrinterRailSettings = (props)=>{
     const [driver, setDriver] = (0,react_.useState)(integratedDriver != null ? (0,serialization/* deserializeDriver */.Df)(integratedDriver) ?? props.printerRail.driver : props.printerRail.driver);
     const [stepper, setStepper] = (0,react_.useState)(props.printerRail.stepper);
     const [homingSpeed, setHomingSpeed] = (0,react_.useState)(props.performanceMode ? props.printerRailDefault.performanceMode?.homingSpeed ?? props.printerRailDefault.homingSpeed : props.printerRailDefault.homingSpeed);
+    const [motorSlot, setMotorSlot] = (0,react_.useState)(props.printerRail.motorSlot);
+    const guessMotorSlot = utils_trpc/* trpc.mcu.guessMotorSlot.useQuery */.SX.mcu.guessMotorSlot.useQuery({
+        axis: props.printerRail.axis,
+        hasToolboard: toolhead?.hasToolboard() ?? false,
+        boardPath: board?.path ?? ""
+    }, {
+        enabled: !!board
+    });
+    (0,react_.useEffect)(()=>{
+        if (guessMotorSlot.data && motorSlot == null) {
+            setMotorSlot(guessMotorSlot.data);
+        }
+    }, [
+        guessMotorSlot.data,
+        motorSlot
+    ]);
     const supportedVoltages = (0,motion/* getSupportedVoltages */.Wx)(board, driver).map((v)=>{
         return {
             ...v,
@@ -2088,6 +2105,7 @@ const PrinterRailSettings = (props)=>{
             axisDescription: props.printerRail.axisDescription,
             rotationDistance: props.printerRail.rotationDistance,
             homingSpeed: homingSpeed,
+            motorSlot: motorSlot,
             driver,
             voltage: voltage.id,
             stepper,
@@ -2102,7 +2120,8 @@ const PrinterRailSettings = (props)=>{
         props.printerRail.rotationDistance,
         setPrinterRail,
         stepper,
-        voltage.id
+        voltage.id,
+        motorSlot
     ]);
     const isRecommendedPresetCompatible = recommendedPreset && recommendedPreset.run_current === current;
     const extruderName = props.printerRail.axis === "extruder" ? "Extruder T0" : props.printerRail.axis === motion/* PrinterAxis.extruder1 */.po.extruder1 ? "Extruder T1" : "Stepper " + props.printerRail.axis.toLocaleUpperCase();
@@ -2125,6 +2144,28 @@ const PrinterRailSettings = (props)=>{
             /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
                 className: "mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2",
                 children: [
+                    board?.motorSlots != null && motorSlot != null && Object.keys(board.motorSlots).length > 0 && /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                        className: "col-span-2",
+                        children: /*#__PURE__*/ jsx_runtime_.jsx(Dropdown, {
+                            label: "Motor Slot",
+                            options: Object.keys(board.motorSlots).map((ms)=>{
+                                if (board.motorSlots?.[ms].title == null) {
+                                    return null;
+                                }
+                                return {
+                                    id: ms,
+                                    title: board.motorSlots?.[ms].title
+                                };
+                            }).filter(Boolean),
+                            onSelect: (ms)=>{
+                                setMotorSlot(ms.id);
+                            },
+                            value: motorSlot ? {
+                                id: motorSlot,
+                                title: board.motorSlots?.[motorSlot].title
+                            } : undefined
+                        })
+                    }),
                     /*#__PURE__*/ jsx_runtime_.jsx("div", {
                         className: "col-span-2",
                         children: /*#__PURE__*/ jsx_runtime_.jsx(Dropdown, {

@@ -19,6 +19,7 @@ import {
 import { deserializeDriver, serializePrinterRail } from '../../utils/serialization';
 import { PrinterRailState } from '../../recoil/printer';
 import { useToolhead } from '../../hooks/useToolheadConfiguration';
+import { trpc } from '../../utils/trpc';
 
 interface PrinterRailSettingsProps {
 	selectedBoard: Board | null;
@@ -55,6 +56,18 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 			? props.printerRailDefault.performanceMode?.homingSpeed ?? props.printerRailDefault.homingSpeed
 			: props.printerRailDefault.homingSpeed,
 	);
+	const [motorSlot, setMotorSlot] = useState(props.printerRail.motorSlot);
+	const guessMotorSlot = trpc.mcu.guessMotorSlot.useQuery(
+		{ axis: props.printerRail.axis, hasToolboard: toolhead?.hasToolboard() ?? false, boardPath: board?.path ?? '' },
+		{ enabled: !!board },
+	);
+
+	useEffect(() => {
+		if (guessMotorSlot.data && motorSlot == null) {
+			setMotorSlot(guessMotorSlot.data);
+		}
+	}, [guessMotorSlot.data, motorSlot]);
+
 	const supportedVoltages = getSupportedVoltages(board, driver).map((v) => {
 		return {
 			...v,
@@ -174,6 +187,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 				axisDescription: props.printerRail.axisDescription,
 				rotationDistance: props.printerRail.rotationDistance,
 				homingSpeed: homingSpeed,
+				motorSlot: motorSlot,
 				driver,
 				voltage: voltage.id,
 				stepper,
@@ -190,6 +204,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 		setPrinterRail,
 		stepper,
 		voltage.id,
+		motorSlot,
 	]);
 
 	const isRecommendedPresetCompatible = recommendedPreset && recommendedPreset.run_current === current;
@@ -206,6 +221,28 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 				<p className="text-sm text-zinc-500 dark:text-zinc-400">{props.printerRail.axisDescription}</p>
 			</div>
 			<div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+				{board?.motorSlots != null && motorSlot != null && Object.keys(board.motorSlots).length > 0 && (
+					<div className="col-span-2">
+						<Dropdown
+							label="Motor Slot"
+							options={Object.keys(board.motorSlots)
+								.map((ms) => {
+									if (board.motorSlots?.[ms].title == null) {
+										return null;
+									}
+									return {
+										id: ms,
+										title: board.motorSlots?.[ms].title,
+									};
+								})
+								.filter(Boolean)}
+							onSelect={(ms) => {
+								setMotorSlot(ms.id);
+							}}
+							value={motorSlot ? { id: motorSlot, title: board.motorSlots?.[motorSlot].title } : undefined}
+						/>
+					</div>
+				)}
 				<div className="col-span-2">
 					<Dropdown
 						label="Driver"

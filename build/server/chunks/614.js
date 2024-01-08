@@ -49,7 +49,49 @@ const getScriptRoot = ()=>{
     return process.env.RATOS_SCRIPT_DIR ?? __dirname.split("configurator/")[0] + "configurator/scripts/";
 };
 
+// EXTERNAL MODULE: external "node-cache"
+var external_node_cache_ = __webpack_require__(4580);
+var external_node_cache_default = /*#__PURE__*/__webpack_require__.n(external_node_cache_);
+;// CONCATENATED MODULE: ./server/helpers/cache.ts
+
+const ServerCache = new (external_node_cache_default())({
+    useClones: false
+});
+const MetadataCache = new (external_node_cache_default())({
+    useClones: false
+});
+const cachePromiseLookup = new Map();
+const now = new Date().getTime();
+const cacheAsyncMetadataFn = (fn, key, cache)=>{
+    return async (fileName)=>{
+        let result = cache.get(`${key}-${fileName}`);
+        if (result == null) {
+            let promise = cachePromiseLookup.get(`${key}-${fileName}`);
+            if (promise == null) {
+                promise = fn(fileName);
+                cachePromiseLookup.set(`${key}-${fileName}`, promise);
+            } else {}
+            const val = await promise;
+            cache.set(`${key}-${fileName}`, val);
+            return val;
+        }
+        return result;
+    };
+};
+const cacheMetadataFn = (fn, key, cache)=>{
+    return (fileName)=>{
+        let result = cache.get(`${key}-${fileName}`);
+        if (result == null) {
+            const val = fn(fileName);
+            cache.set(`${key}-${fileName}`, val);
+            return val;
+        }
+        return result;
+    };
+};
+
 ;// CONCATENATED MODULE: ./server/helpers/metadata.ts
+
 
 
 
@@ -91,7 +133,7 @@ const parsePinValue = (value)=>{
     }
     return value;
 };
-const parsePinAlias = async (file)=>{
+const parsePinAlias = cacheAsyncMetadataFn(async (file)=>{
     const scriptRoot = getScriptRoot();
     const configUnparsed = await (0,external_util_.promisify)(external_child_process_.exec)(`python3 ${external_path_default().join(scriptRoot, "initojson.py")} ${file}`);
     const config = JSON.parse(configUnparsed.stdout);
@@ -116,7 +158,7 @@ const parsePinAlias = async (file)=>{
         pins[frags[0]] = parsePinValue(frags[1]);
     });
     return pins;
-};
+}, "parsePinAlias", MetadataCache);
 const exportBoardPinAlias = (pinAlias, pins, mcu)=>{
     const aliases = Object.keys(pins).map((k, i)=>{
         if (pins[k] == null) {
@@ -138,12 +180,12 @@ const parseBoardPinConfig = async (board, extruderLess)=>{
     const zod = board.isToolboard ? zods_boards/* ToolboardPinMap */.Oy : extruderLess ? zods_boards/* ExtruderlessControlBoardPinMap */.Fh : zods_boards/* ControlBoardPinMap */.MW;
     return zod.parse(await parsePinAlias(file));
 };
-const extractMcuFromFirmwareConfig = async (filePath)=>{
-    if (!existsSync(filePath)) {
+const extractMcuFromFirmwareConfig = cacheAsyncMetadataFn(async (filePath)=>{
+    if (!(0,external_fs_.existsSync)(filePath)) {
         throw new Error("Firmware config file does not exist: " + filePath);
     }
-    const fileStream = createReadStream(filePath);
-    const rl = createInterface({
+    const fileStream = (0,external_fs_.createReadStream)(filePath);
+    const rl = (0,external_readline_.createInterface)({
         input: fileStream,
         crlfDelay: Infinity
     });
@@ -155,8 +197,8 @@ const extractMcuFromFirmwareConfig = async (filePath)=>{
         }
     }
     throw new Error("Failed to find MCU in firmware config file: " + filePath);
-};
-const getExtruderRotationDistance = (extruderId)=>{
+}, "extractMcuFromFirmwareConfig", MetadataCache);
+const getExtruderRotationDistance = cacheMetadataFn((extruderId)=>{
     const environment = schema.serverSchema.parse(process.env);
     const extruderCfgPath = external_path_default().join(environment.RATOS_CONFIGURATION_PATH, "extruders", extruderId + ".cfg");
     const scriptRoot = getScriptRoot();
@@ -174,7 +216,7 @@ const getExtruderRotationDistance = (extruderId)=>{
         throw new Error("Failed to find extruder rotation distance");
     }
     return extruder.rotation_distance;
-};
+}, "getExtruderRotationDistance", MetadataCache);
 const readInclude = (fileName)=>{
     const environment = schema.serverSchema.parse(process.env);
     const fullPath = external_path_default().join(environment.RATOS_CONFIGURATION_PATH, fileName);
@@ -544,6 +586,7 @@ class ToolheadGenerator extends helpers_toolhead/* ToolheadHelper */.D {
 
 
 
+
 const constructKlipperConfigUtils = async (config)=>{
     const toolboardDriverCount = config.toolheads.reduce((prev, current)=>prev + (current.toolboard?.driverCount ?? 0), 0);
     const extruderLessConfigBonus = config.controlboard.extruderlessConfig != null ? 1 : 0;
@@ -598,7 +641,16 @@ const constructKlipperConfigUtils = async (config)=>{
             if (this.isExtruderToolheadAxis(axis)) {
                 pinValue = this.getToolhead(axis).getToolheadPin(axis, alias);
             } else {
-                pinValue = cbPins[pinName];
+                const rail = this.getRail(axis);
+                const slotPin = alias.startsWith("_") ? alias.substring(1) : alias;
+                if (config.controlboard.motorSlots != null && rail.motorSlot != null && slotPin in config.controlboard.motorSlots[rail.motorSlot]) {
+                    pinValue = config.controlboard.motorSlots[rail.motorSlot][slotPin];
+                    if (pinValue == null) {
+                        throw new Error(`Motor slot was selected, but pin ${slotPin} wasn't found in motor slot config.`);
+                    }
+                } else {
+                    pinValue = cbPins[pinName];
+                }
             }
             if (pinValue == null) {
                 throw new Error(`Pin name "${pinName}" constructed from axis "${axis}" and alias "${alias}" not found in board pin configs.`);
@@ -894,21 +946,41 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
             ];
             if (rail.driver.protocol === "UART") {
                 section.push(`uart_pin: ${utils.getAxisPin(rail.axis, "_uart_pin")}`);
+                // Render optional motor slot pins
+                if (rail.motorSlot) {
+                    const slotPins = config.controlboard.motorSlots?.[rail.motorSlot];
+                    if (slotPins == null || !(0,zods_boards/* hasUART */.uh)(config.controlboard.motorSlots?.[rail.motorSlot])) {
+                        throw new Error(`No controlboard motor slot UART pins defined for motor slot ${rail.motorSlot}`);
+                    }
+                    Object.entries(zods_boards/* UARTPins.parse */.X2.parse(slotPins)).forEach(([key, pin])=>{
+                        section.push(`${key}: ${pin}`);
+                    });
+                }
             }
             if (rail.driver.protocol === "SPI") {
-                section.push(`cs_pin: ${utils.getAxisPin(rail.axis, "_uart_pin")}`);
-                if (config.controlboard.stepperSPI != null) {
-                    if ("hardware" in config.controlboard.stepperSPI) {
-                        section.push(`spi_bus: ${config.controlboard.stepperSPI.hardware.bus}`);
-                    } else {
-                        section.push(`spi_software_mosi_pin: ${config.controlboard.stepperSPI.software.mosi}`);
-                        section.push(`spi_software_miso_pin: ${config.controlboard.stepperSPI.software.miso}`);
-                        section.push(`spi_software_sclk_pin: ${config.controlboard.stepperSPI.software.sclk}`);
+                if (rail.motorSlot) {
+                    const slotPins = config.controlboard.motorSlots?.[rail.motorSlot];
+                    if (slotPins == null || !(0,zods_boards/* hasSPI */._u)(config.controlboard.motorSlots?.[rail.motorSlot])) {
+                        throw new Error(`No controlboard motor slot SPI pins defined for motor slot ${rail.motorSlot}`);
                     }
+                    Object.entries(zods_boards/* SPIPins.parse */.WX.parse(slotPins)).forEach(([key, pin])=>{
+                        section.push(`${key}: ${pin}`);
+                    });
                 } else {
-                    section.push(`spi_software_mosi_pin: stepper_spi_mosi_pin`);
-                    section.push(`spi_software_miso_pin: stepper_spi_miso_pin`);
-                    section.push(`spi_software_sclk_pin: stepper_spi_sclk_pin`);
+                    section.push(`cs_pin: ${utils.getAxisPin(rail.axis, "_uart_pin")}`);
+                    if (config.controlboard.stepperSPI != null) {
+                        if ("hardware" in config.controlboard.stepperSPI) {
+                            section.push(`spi_bus: ${config.controlboard.stepperSPI.hardware.bus}`);
+                        } else {
+                            section.push(`spi_software_mosi_pin: ${config.controlboard.stepperSPI.software.mosi}`);
+                            section.push(`spi_software_miso_pin: ${config.controlboard.stepperSPI.software.miso}`);
+                            section.push(`spi_software_sclk_pin: ${config.controlboard.stepperSPI.software.sclk}`);
+                        }
+                    } else {
+                        section.push(`spi_software_mosi_pin: stepper_spi_mosi_pin`);
+                        section.push(`spi_software_miso_pin: stepper_spi_miso_pin`);
+                        section.push(`spi_software_sclk_pin: stepper_spi_sclk_pin`);
+                    }
                 }
             }
             if (preset) {
@@ -1230,16 +1302,9 @@ var external_glob_ = __webpack_require__(4230);
 var promises_ = __webpack_require__(3292);
 // EXTERNAL MODULE: ./server/helpers/file-operations.ts
 var file_operations = __webpack_require__(8145);
-// EXTERNAL MODULE: external "node-cache"
-var external_node_cache_ = __webpack_require__(4580);
-var external_node_cache_default = /*#__PURE__*/__webpack_require__.n(external_node_cache_);
-;// CONCATENATED MODULE: ./server/helpers/cache.ts
-
-const ServerCache = new (external_node_cache_default())({
-    useClones: false
-});
-
 ;// CONCATENATED MODULE: ./server/routers/mcu.ts
+
+
 
 
 
@@ -1464,6 +1529,24 @@ const mcuRouter = (0,trpc/* router */.Nd)({
         }
         await compileFirmware(ctx.board, ctx.toolhead);
         return "success";
+    }),
+    guessMotorSlot: mcuProcedure.meta({
+        boardRequired: true
+    }).input(external_zod_.z.object({
+        axis: external_zod_.z.nativeEnum(motion/* PrinterAxis */.po),
+        hasToolboard: external_zod_.z.boolean(),
+        boardPath: external_zod_.z.string()
+    })).query(async ({ ctx , input  })=>{
+        if (ctx.board == null) {
+            return undefined;
+        }
+        const isExtruderlessBoard = ctx.board.extruderlessConfig != null && input.hasToolboard;
+        const pins = await parseBoardPinConfig(ctx.board, isExtruderlessBoard);
+        const axisAlias = input.axis === motion/* PrinterAxis.z */.po.z ? "z0" : input.axis === motion/* PrinterAxis.extruder */.po.extruder ? "e" : motion/* PrinterAxis.extruder1 */.po.extruder1 === input.axis ? "e1" : input.axis;
+        return (0,zods_boards/* guessMotorSlotFromPins */.h_)({
+            step_pin: pins[`${axisAlias}_step_pin`],
+            dir_pin: pins[`${axisAlias}_dir_pin`]
+        }, ctx.board);
     }),
     flashAllConnected: mcuProcedure.meta({
         boardRequired: false,

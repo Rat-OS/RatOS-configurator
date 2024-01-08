@@ -162,6 +162,7 @@ const BasePrinterRail = zod__WEBPACK_IMPORTED_MODULE_0__.object({
     driver: Driver.describe("Stepper driver used on this axis"),
     voltage: Voltage.default(StepperVoltage["24V"]).describe("Voltage of the stepper driver"),
     stepper: Stepper.describe("Stepper motor connected to this axis"),
+    motorSlot: zod__WEBPACK_IMPORTED_MODULE_0__.string().optional().describe("Optional board motor slot of the stepper driver"),
     current: zod__WEBPACK_IMPORTED_MODULE_0__.number().min(0),
     rotationDistance: zod__WEBPACK_IMPORTED_MODULE_0__.number().min(0).describe("Distance in mm the axis travels per stepper rotation"),
     gearRatio: zod__WEBPACK_IMPORTED_MODULE_0__.string().regex(/^\d+:\d+$/).optional().describe("Optional gear ratio of the axis"),

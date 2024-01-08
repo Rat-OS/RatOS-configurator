@@ -1652,9 +1652,14 @@ const extractToolheadFromPrinterConfiguration = (toolOrAxis, config)=>{
 /* harmony export */   "MG": () => (/* binding */ Toolboard),
 /* harmony export */   "MW": () => (/* binding */ ControlBoardPinMap),
 /* harmony export */   "Oy": () => (/* binding */ ToolboardPinMap),
-/* harmony export */   "m9": () => (/* binding */ ToolboardWithDetectionStatus)
+/* harmony export */   "WX": () => (/* binding */ SPIPins),
+/* harmony export */   "X2": () => (/* binding */ UARTPins),
+/* harmony export */   "_u": () => (/* binding */ hasSPI),
+/* harmony export */   "h_": () => (/* binding */ guessMotorSlotFromPins),
+/* harmony export */   "m9": () => (/* binding */ ToolboardWithDetectionStatus),
+/* harmony export */   "uh": () => (/* binding */ hasUART)
 /* harmony export */ });
-/* unused harmony export PinMap */
+/* unused harmony exports PinMap, MotorSlot, MotorSlotKey */
 /* harmony import */ var zod__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8316);
 /* harmony import */ var zod__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(zod__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _motion__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(6680);
@@ -1830,6 +1835,63 @@ const ToolboardPinMap = PinMap.extend({
     "4p_toolhead_cooling_pin": zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
     "4p_toolhead_cooling_tach_pin": zod__WEBPACK_IMPORTED_MODULE_0__.z.string()
 })));
+const UARTPins = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
+    uart_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    uart_address: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional(),
+    rx_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional(),
+    tx_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional()
+});
+const SPIPins = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
+    cs_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string()
+}).and(zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
+    spi_bus: zod__WEBPACK_IMPORTED_MODULE_0__.z.string()
+}).or(zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
+    spi_software_mosi_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional(),
+    spi_software_miso_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional(),
+    spi_software_sclk_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional()
+})));
+const hasSPI = (slot)=>{
+    return SPIPins.safeParse(slot).success;
+};
+const hasUART = (slot)=>{
+    return UARTPins.safeParse(slot).success;
+};
+const MotorSlot = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
+    title: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    step_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    dir_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    enable_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    diag_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    endstop_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    // UART
+    uart_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional(),
+    uart_address: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional(),
+    rx_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional(),
+    tx_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional(),
+    // SPI
+    cs_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional(),
+    spi_bus: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional(),
+    spi_software_mosi_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional(),
+    spi_software_miso_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional(),
+    spi_software_sclk_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional()
+}).refine((slot)=>{
+    return hasSPI(slot) || hasUART(slot);
+}, {
+    message: "Motor slot must have either SPI or UART pins"
+});
+const AnySlotPin = MotorSlot.innerType().omit({
+    title: true
+}).partial();
+const MotorSlotKey = zod__WEBPACK_IMPORTED_MODULE_0__.z.string();
+const guessMotorSlotFromPins = (pins, board)=>{
+    const slots = Object.entries(board.motorSlots ?? {});
+    for (const [key, slot] of slots){
+        if (Object.entries(pins).every(([pin, value])=>slot[pin] === value)) {
+            return key;
+        }
+    }
+    return undefined;
+};
 const Board = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
     id: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
     isToolboard: zod__WEBPACK_IMPORTED_MODULE_0__.z.boolean().optional(),
@@ -1853,6 +1915,7 @@ const Board = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
     ]),
     hasMcuTempSensor: zod__WEBPACK_IMPORTED_MODULE_0__.z.boolean().default(true),
     alternativePT1000Resistor: zod__WEBPACK_IMPORTED_MODULE_0__.z.number().optional(),
+    motorSlots: zod__WEBPACK_IMPORTED_MODULE_0__.z.record(MotorSlotKey, MotorSlot).optional(),
     outputPins: zod__WEBPACK_IMPORTED_MODULE_0__.z.array(zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
         pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
         name: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
