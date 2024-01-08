@@ -57,7 +57,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 			: props.printerRailDefault.homingSpeed,
 	);
 	const [motorSlot, setMotorSlot] = useState(props.printerRail.motorSlot);
-	const guessMotorSlot = trpc.mcu.guessMotorSlot.useQuery(
+	const guessMotorSlot = trpc.mcu.reversePinLookup.useQuery(
 		{ axis: props.printerRail.axis, hasToolboard: toolhead?.hasToolboard() ?? false, boardPath: board?.path ?? '' },
 		{ enabled: !!board },
 	);

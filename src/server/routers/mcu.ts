@@ -10,7 +10,7 @@ import {
 	Board,
 	BoardWithDetectionStatus,
 	ToolboardWithDetectionStatus,
-	guessMotorSlotFromPins,
+	reversePinLookup,
 } from '../../zods/boards';
 import { middleware, publicProcedure, router } from '../trpc';
 import path from 'path';
@@ -274,7 +274,7 @@ export const mcuRouter = router({
 			await compileFirmware(ctx.board, ctx.toolhead);
 			return 'success';
 		}),
-	guessMotorSlot: mcuProcedure
+	reversePinLookup: mcuProcedure
 		.meta({
 			boardRequired: true,
 		})
@@ -294,7 +294,7 @@ export const mcuRouter = router({
 						: PrinterAxis.extruder1 === input.axis
 							? 'e1'
 							: input.axis;
-			return guessMotorSlotFromPins(
+			return reversePinLookup(
 				{
 					step_pin: pins[`${axisAlias}_step_pin` as keyof typeof pins],
 					dir_pin: pins[`${axisAlias}_dir_pin` as keyof typeof pins],
