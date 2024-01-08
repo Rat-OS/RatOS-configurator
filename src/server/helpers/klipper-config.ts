@@ -66,6 +66,12 @@ export const constructKlipperConfigUtils = async (config: PrinterConfiguration) 
 			}
 			return th;
 		},
+		renderCommentHeader(text: string, lines: string[]) {
+			const separator = `------------------------------------------------------------------------------------------------------------`;
+			const textPadding = (separator.length - text.length - 2) / 2;
+			const separatorWithText = `#${'-'.repeat(Math.floor(textPadding))} ${text} ${'-'.repeat(Math.ceil(textPadding))}`;
+			return [separatorWithText, ...lines, `#${separator}`];
+		},
 		getToolheads: () => {
 			return toolheads.slice();
 		},
@@ -324,18 +330,51 @@ export const constructKlipperConfigHelpers = async (
 				})
 				.join('\n');
 		},
-		renderStepperSection(axis: PrinterAxis | Zod.infer<typeof PrinterRail>) {
+		getMotorComments(axis: PrinterAxis | Zod.infer<typeof PrinterRail>) {
 			const rail = typeof axis === 'object' ? axis : config.rails.find((r) => r.axis === axis);
 			if (rail == null) {
 				throw new Error(`No rail found for axis ${axis}`);
 			}
-			const section = [
+			const section = [`# ${rail.axisDescription}`];
+			if (rail.motorSlot && config.controlboard.motorSlots) {
+				section.push(
+					`# Connected to ${config.controlboard.motorSlots[rail.motorSlot].title} on ${config.controlboard.name}`,
+				);
+			} else if (this.isExtruderToolheadAxis(rail.axis)) {
+				const toolhead = utils.getToolhead(rail.axis as ToolOrAxis);
+				if (toolhead == null) {
+					throw new Error(`No toolhead found for ${rail.axis}`);
+				}
+				section.push(`# Connected to ${(toolhead.getToolboard() || config.controlboard).name}`);
+			}
+			return utils.renderCommentHeader(rail.axis.toUpperCase(), section);
+		},
+		renderMotorSections() {
+			const sections = config.rails.map((r) => {
+				return (
+					this.getMotorComments(r).join('\n') +
+					'\n' +
+					this.renderDriverSection(r, true) +
+					'\n' +
+					this.renderStepperSection(r, true)
+				);
+			});
+			sections.push(this.renderBoardQuirks());
+			return sections.join('\n');
+		},
+		renderStepperSection(axis: PrinterAxis | Zod.infer<typeof PrinterRail>, noHeader = false) {
+			const rail = typeof axis === 'object' ? axis : config.rails.find((r) => r.axis === axis);
+			if (rail == null) {
+				throw new Error(`No rail found for axis ${axis}`);
+			}
+			const section = noHeader ? [] : this.getMotorComments(rail);
+			section.push(
 				`[${utils.getAxisStepperName(rail.axis)}]`,
 				`step_pin: ${utils.getAxisPin(rail.axis, '_step_pin')}`,
 				`dir_pin: ${utils.getAxisPin(rail.axis, '_dir_pin')}`,
 				`enable_pin: !${utils.getAxisPin(rail.axis, '_enable_pin')}`,
 				`microsteps: ${rail.microstepping}`,
-			];
+			);
 			if (rail.axis === PrinterAxis.extruder || rail.axis === PrinterAxis.extruder1) {
 				const toolhead = utils.getToolhead(rail.axis);
 				if (toolhead == null) {
@@ -383,12 +422,12 @@ export const constructKlipperConfigHelpers = async (
 				throw new Error(`No rail found for axis ${axis}`);
 			}
 			const dirComment = directionInverted
-				? `# Add ! in front of pin name to reverse the direction of ${utils.getAxisStepperName(rail.axis)}`
-				: `# Remove ! in front of pin name to reverse the direction of ${utils.getAxisStepperName(rail.axis)}`;
-			const section = [
+				? `# Remove ! in front of pin name to reverse the direction of ${utils.getAxisStepperName(rail.axis)}`
+				: `# Add ! in front of pin name to reverse the direction of ${utils.getAxisStepperName(rail.axis)}`;
+			const section = this.getMotorComments(rail).concat([
 				`[${utils.getAxisStepperName(rail.axis)}]`,
 				`dir_pin: ${directionInverted ? '!' : ''}${utils.getAxisPin(rail.axis, '_dir_pin')} ${dirComment}`,
-			];
+			]);
 			if (rail.axis === PrinterAxis.extruder || rail.axis === PrinterAxis.extruder1) {
 				const toolhead = utils.getToolhead(rail.axis);
 				if (toolhead == null) {
@@ -417,19 +456,19 @@ export const constructKlipperConfigHelpers = async (
 			sections.push(this.renderBoardQuirks());
 			return sections.join('\n');
 		},
-		renderDriverSection(axis: PrinterAxis | Zod.infer<typeof PrinterRail>) {
+		renderDriverSection(axis: PrinterAxis | Zod.infer<typeof PrinterRail>, noHeader = false) {
 			const rail = typeof axis === 'object' ? axis : config.rails.find((r) => r.axis === axis);
 			if (rail == null) {
 				throw new Error(`No rail found for axis ${axis}`);
 			}
 			const preset = findPreset(rail.stepper, rail.driver, rail.voltage, rail.current);
-			const section = [
+			const section = noHeader ? [] : this.getMotorComments(rail);
+			section.push(
 				`[${utils.getAxisDriverSectionName(rail.axis)}]`,
 				`stealthchop_threshold: ${config.stealthchop ? '9999999' : config.standstillStealth ? '1' : '0'}`,
 				`interpolate: ${rail.microstepping < 64 || config.stealthchop ? 'True' : 'False'}`,
-			];
+			);
 			if (rail.driver.protocol === 'UART') {
-				section.push(`uart_pin: ${utils.getAxisPin(rail.axis, '_uart_pin')}`);
 				// Render optional motor slot pins
 				if (rail.motorSlot) {
 					const slotPins = config.controlboard.motorSlots?.[rail.motorSlot];
@@ -439,6 +478,8 @@ export const constructKlipperConfigHelpers = async (
 					Object.entries(UARTPins.parse(slotPins)).forEach(([key, pin]) => {
 						section.push(`${key}: ${pin}`);
 					});
+				} else {
+					section.push(`uart_pin: ${utils.getAxisPin(rail.axis, '_uart_pin')}`);
 				}
 			}
 			if (rail.driver.protocol === 'SPI') {
