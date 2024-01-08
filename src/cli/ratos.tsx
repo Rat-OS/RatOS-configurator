@@ -302,9 +302,18 @@ program
 	.command('config')
 	.description('Commands for managing the RatOS configuration')
 	.command('regenerate')
-	.action(async () => {
+	.option('-o, --overwrite-all', "Overwrite all existing files, even if they haven't been modified")
+	.option('-p, --overwrite-printer-cfg', "Overwrite the printer.cfg file, even if it hasn't been modified")
+	.action(async (options) => {
 		try {
-			const result = await client['printer'].regenerateConfiguration.mutate();
+			const overwriteFiles = [];
+			if (options.overwriteAll) {
+				overwriteFiles.push('*');
+			}
+			if (options.overwritePrinterCfg) {
+				overwriteFiles.push('printer.cfg');
+			}
+			const result = await client['printer'].regenerateConfiguration.mutate({ overwriteFiles: overwriteFiles });
 			renderApiResults(
 				result.map((file) => {
 					let action =

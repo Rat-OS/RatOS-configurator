@@ -309,7 +309,7 @@ export const getFilesToWrite = async (config: PrinterConfiguration, overwriteFil
 		])
 		.map((f) => {
 			const fileWithExists = f as { fileName: string; content: string; overwrite: boolean; exists: boolean };
-			if (overwriteFiles?.includes(fileWithExists.fileName)) {
+			if (overwriteFiles?.includes(fileWithExists.fileName) || overwriteFiles?.includes('*')) {
 				fileWithExists.overwrite = true;
 			}
 			fileWithExists.exists = existsSync(
@@ -390,14 +390,17 @@ export const loadSerializedConfig = async (filePath: string) => {
 	return config;
 };
 
-export const regenerateKlipperConfiguration = async <T extends boolean = false>(fromFile?: string) => {
+export const regenerateKlipperConfiguration = async <T extends boolean = false>(
+	fromFile?: string,
+	overwriteFiles?: string[],
+) => {
 	const environment = serverSchema.parse(process.env);
 	const filePath = fromFile ?? path.join(environment.RATOS_DATA_DIR, 'last-printer-settings.json');
 	if (!existsSync(filePath)) {
 		throw new Error("Couldn't find printer settings file: " + filePath);
 	}
 	const config = await loadSerializedConfig(filePath);
-	return await generateKlipperConfiguration<T>(config);
+	return await generateKlipperConfiguration<T>(config, overwriteFiles);
 };
 
 const getToolhead = async <
@@ -572,13 +575,15 @@ export const printerRouter = router({
 			isInitialized: await isPrinterCfgInitialized(),
 		};
 	}),
-	regenerateConfiguration: publicProcedure.mutation(async () => {
-		const res = await regenerateKlipperConfiguration();
-		if (res.some((r) => r.action === 'created' || r.action === 'overwritten')) {
-			restartKlipper();
-		}
-		return res;
-	}),
+	regenerateConfiguration: publicProcedure
+		.input(z.object({ overwriteFiles: z.array(z.string()).optional() }))
+		.mutation(async ({ input }) => {
+			const res = await regenerateKlipperConfiguration(undefined, input.overwriteFiles);
+			if (res.some((r) => r.action === 'created' || r.action === 'overwritten')) {
+				restartKlipper();
+			}
+			return res;
+		}),
 	// Has to be a mutation as printer config is too large for url string.
 	getFilesToWrite: publicProcedure
 		.input(
