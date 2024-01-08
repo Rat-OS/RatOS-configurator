@@ -2001,7 +2001,7 @@ const PrinterRailSettings = (props)=>{
     const [stepper, setStepper] = (0,react_.useState)(props.printerRail.stepper);
     const [homingSpeed, setHomingSpeed] = (0,react_.useState)(props.performanceMode ? props.printerRailDefault.performanceMode?.homingSpeed ?? props.printerRailDefault.homingSpeed : props.printerRailDefault.homingSpeed);
     const [motorSlot, setMotorSlot] = (0,react_.useState)(props.printerRail.motorSlot);
-    const guessMotorSlot = utils_trpc/* trpc.mcu.guessMotorSlot.useQuery */.SX.mcu.guessMotorSlot.useQuery({
+    const guessMotorSlot = utils_trpc/* trpc.mcu.reversePinLookup.useQuery */.SX.mcu.reversePinLookup.useQuery({
         axis: props.printerRail.axis,
         hasToolboard: toolhead?.hasToolboard() ?? false,
         boardPath: board?.path ?? ""

@@ -1650,12 +1650,12 @@ const extractToolheadFromPrinterConfiguration = (toolOrAxis, config)=>{
 /* harmony export */   "Ai": () => (/* binding */ BoardWithDetectionStatus),
 /* harmony export */   "Fh": () => (/* binding */ ExtruderlessControlBoardPinMap),
 /* harmony export */   "MG": () => (/* binding */ Toolboard),
+/* harmony export */   "MO": () => (/* binding */ reversePinLookup),
 /* harmony export */   "MW": () => (/* binding */ ControlBoardPinMap),
 /* harmony export */   "Oy": () => (/* binding */ ToolboardPinMap),
 /* harmony export */   "WX": () => (/* binding */ SPIPins),
 /* harmony export */   "X2": () => (/* binding */ UARTPins),
 /* harmony export */   "_u": () => (/* binding */ hasSPI),
-/* harmony export */   "h_": () => (/* binding */ guessMotorSlotFromPins),
 /* harmony export */   "m9": () => (/* binding */ ToolboardWithDetectionStatus),
 /* harmony export */   "uh": () => (/* binding */ hasUART)
 /* harmony export */ });
@@ -1883,7 +1883,7 @@ const AnySlotPin = MotorSlot.innerType().omit({
     title: true
 }).partial();
 const MotorSlotKey = zod__WEBPACK_IMPORTED_MODULE_0__.z.string();
-const guessMotorSlotFromPins = (pins, board)=>{
+const reversePinLookup = (pins, board)=>{
     const slots = Object.entries(board.motorSlots ?? {});
     for (const [key, slot] of slots){
         if (Object.entries(pins).every(([pin, value])=>slot[pin] === value)) {

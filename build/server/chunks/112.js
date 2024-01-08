@@ -1214,7 +1214,7 @@ const mcuRouter = (0,_trpc__WEBPACK_IMPORTED_MODULE_7__/* .router */ .Nd)({
         await compileFirmware(ctx.board, ctx.toolhead);
         return "success";
     }),
-    guessMotorSlot: mcuProcedure.meta({
+    reversePinLookup: mcuProcedure.meta({
         boardRequired: true
     }).input(zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
         axis: zod__WEBPACK_IMPORTED_MODULE_0__.z.nativeEnum(_zods_motion__WEBPACK_IMPORTED_MODULE_17__/* .PrinterAxis */ .po),
@@ -1227,7 +1227,7 @@ const mcuRouter = (0,_trpc__WEBPACK_IMPORTED_MODULE_7__/* .router */ .Nd)({
         const isExtruderlessBoard = ctx.board.extruderlessConfig != null && input.hasToolboard;
         const pins = await (0,_helpers_metadata__WEBPACK_IMPORTED_MODULE_18__/* .parseBoardPinConfig */ .Qk)(ctx.board, isExtruderlessBoard);
         const axisAlias = input.axis === _zods_motion__WEBPACK_IMPORTED_MODULE_17__/* .PrinterAxis.z */ .po.z ? "z0" : input.axis === _zods_motion__WEBPACK_IMPORTED_MODULE_17__/* .PrinterAxis.extruder */ .po.extruder ? "e" : _zods_motion__WEBPACK_IMPORTED_MODULE_17__/* .PrinterAxis.extruder1 */ .po.extruder1 === input.axis ? "e1" : input.axis;
-        return (0,_zods_boards__WEBPACK_IMPORTED_MODULE_6__/* .guessMotorSlotFromPins */ .h_)({
+        return (0,_zods_boards__WEBPACK_IMPORTED_MODULE_6__/* .reversePinLookup */ .MO)({
             step_pin: pins[`${axisAlias}_step_pin`],
             dir_pin: pins[`${axisAlias}_dir_pin`]
         }, ctx.board);
@@ -1588,7 +1588,7 @@ homing_retract_dist: 0
 [gcode_macro RatOS]
 variable_homing_x: "sensorless"
 variable_sensorless_x_current: ${utils.getAxisDriverHomingCurrent(motion/* PrinterAxis.x */.po.x, 0.35)}
-${utils.getAxisDriverVariables(motion/* PrinterAxis.x */.po.x)}
+${utils.getAxisDriverVariables(motion/* PrinterAxis.x */.po.x, config.printer.id === "v-core-3-hybrid" ? false : true)}
 `;
 const sensorlessYTemplate = (config, utils)=>`
 # Sensorless homing.
@@ -1616,7 +1616,9 @@ homing_retract_dist: 0
 [gcode_macro RatOS]
 variable_homing_y: "sensorless"
 variable_sensorless_y_current: ${utils.getAxisDriverHomingCurrent(motion/* PrinterAxis.y */.po.y, 0.51)}
-${utils.getAxisDriverVariables(motion/* PrinterAxis.y */.po.y)}
+${utils.getAxisDriverVariables(motion/* PrinterAxis.y */.po.y, true, config.printer.id === "v-core-3-hybrid" ? [
+        motion/* PrinterAxis.x1 */.po.x1
+    ] : [])}
 `;
 
 // EXTERNAL MODULE: ./data/steppers.ts
@@ -2021,8 +2023,8 @@ const constructKlipperConfigUtils = async (config)=>{
         getAxisDriverType (axis) {
             return this.getRail(axis).driver.type.toLowerCase();
         },
-        getAxisDriverVariables (axis) {
-            const rails = config.rails.filter((r)=>r.axis.startsWith(axis));
+        getAxisDriverVariables (axis, enumerate = false, additionalAxes = []) {
+            const rails = config.rails.filter((r)=>(enumerate ? r.axis.startsWith(axis) : r.axis === axis) || additionalAxes.includes(r.axis));
             const variables = [];
             variables.push(`variable_${axis}_driver_types: [${rails.map((r)=>`"${r.driver.type.toLowerCase()}"`).join(", ")}]`);
             variables.push(`variable_${axis}_axes: [${rails.map((r)=>`"${r.axis}"`).join(", ")}]`);
@@ -4341,12 +4343,12 @@ const extractToolheadFromPrinterConfiguration = (toolOrAxis, config)=>{
 /* harmony export */   "Ai": () => (/* binding */ BoardWithDetectionStatus),
 /* harmony export */   "Fh": () => (/* binding */ ExtruderlessControlBoardPinMap),
 /* harmony export */   "MG": () => (/* binding */ Toolboard),
+/* harmony export */   "MO": () => (/* binding */ reversePinLookup),
 /* harmony export */   "MW": () => (/* binding */ ControlBoardPinMap),
 /* harmony export */   "Oy": () => (/* binding */ ToolboardPinMap),
 /* harmony export */   "WX": () => (/* binding */ SPIPins),
 /* harmony export */   "X2": () => (/* binding */ UARTPins),
 /* harmony export */   "_u": () => (/* binding */ hasSPI),
-/* harmony export */   "h_": () => (/* binding */ guessMotorSlotFromPins),
 /* harmony export */   "m9": () => (/* binding */ ToolboardWithDetectionStatus),
 /* harmony export */   "uh": () => (/* binding */ hasUART)
 /* harmony export */ });
@@ -4574,7 +4576,7 @@ const AnySlotPin = MotorSlot.innerType().omit({
     title: true
 }).partial();
 const MotorSlotKey = zod__WEBPACK_IMPORTED_MODULE_0__.z.string();
-const guessMotorSlotFromPins = (pins, board)=>{
+const reversePinLookup = (pins, board)=>{
     const slots = Object.entries(board.motorSlots ?? {});
     for (const [key, slot] of slots){
         if (Object.entries(pins).every(([pin, value])=>slot[pin] === value)) {

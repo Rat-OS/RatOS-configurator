@@ -159,7 +159,7 @@ describe('server', async () => {
 				const y = sensorlessYTemplate(config, utils);
 				expect(x.includes(`["x"]`)).toBeTruthy();
 				expect(x.includes(`["tmc2209"]`)).toBeTruthy();
-				expect(y.includes(`["y", "y1", "y2"]`)).toBeTruthy();
+				expect(y.includes(`["x1", "y", "y1"]`)).toBeTruthy();
 				expect(y.includes(`["tmc2209", "tmc2209", "tmc2209"]`)).toBeTruthy();
 			});
 		});

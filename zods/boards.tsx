@@ -255,7 +255,7 @@ export type AnySlotPin = z.infer<typeof AnySlotPin>;
 
 export const MotorSlotKey = z.string();
 
-export const guessMotorSlotFromPins: (pins: AnySlotPin, board: Board) => z.infer<typeof MotorSlotKey> | undefined = (
+export const reversePinLookup: (pins: AnySlotPin, board: Board) => z.infer<typeof MotorSlotKey> | undefined = (
 	pins,
 	board,
 ) => {

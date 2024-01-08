@@ -682,8 +682,8 @@ const constructKlipperConfigUtils = async (config)=>{
         getAxisDriverType (axis) {
             return this.getRail(axis).driver.type.toLowerCase();
         },
-        getAxisDriverVariables (axis) {
-            const rails = config.rails.filter((r)=>r.axis.startsWith(axis));
+        getAxisDriverVariables (axis, enumerate = false, additionalAxes = []) {
+            const rails = config.rails.filter((r)=>(enumerate ? r.axis.startsWith(axis) : r.axis === axis) || additionalAxes.includes(r.axis));
             const variables = [];
             variables.push(`variable_${axis}_driver_types: [${rails.map((r)=>`"${r.driver.type.toLowerCase()}"`).join(", ")}]`);
             variables.push(`variable_${axis}_axes: [${rails.map((r)=>`"${r.axis}"`).join(", ")}]`);
@@ -1559,7 +1559,7 @@ const mcuRouter = (0,trpc/* router */.Nd)({
         await compileFirmware(ctx.board, ctx.toolhead);
         return "success";
     }),
-    guessMotorSlot: mcuProcedure.meta({
+    reversePinLookup: mcuProcedure.meta({
         boardRequired: true
     }).input(external_zod_.z.object({
         axis: external_zod_.z.nativeEnum(motion/* PrinterAxis */.po),
@@ -1572,7 +1572,7 @@ const mcuRouter = (0,trpc/* router */.Nd)({
         const isExtruderlessBoard = ctx.board.extruderlessConfig != null && input.hasToolboard;
         const pins = await parseBoardPinConfig(ctx.board, isExtruderlessBoard);
         const axisAlias = input.axis === motion/* PrinterAxis.z */.po.z ? "z0" : input.axis === motion/* PrinterAxis.extruder */.po.extruder ? "e" : motion/* PrinterAxis.extruder1 */.po.extruder1 === input.axis ? "e1" : input.axis;
-        return (0,zods_boards/* guessMotorSlotFromPins */.h_)({
+        return (0,zods_boards/* reversePinLookup */.MO)({
             step_pin: pins[`${axisAlias}_step_pin`],
             dir_pin: pins[`${axisAlias}_dir_pin`]
         }, ctx.board);
