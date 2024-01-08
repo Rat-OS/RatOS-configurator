@@ -128,8 +128,10 @@ export const constructKlipperConfigUtils = async (config: PrinterConfiguration) 
 		getAxisDriverType(axis: PrinterAxis) {
 			return this.getRail(axis).driver.type.toLowerCase();
 		},
-		getAxisDriverVariables(axis: PrinterAxis) {
-			const rails = config.rails.filter((r) => r.axis.startsWith(axis));
+		getAxisDriverVariables(axis: PrinterAxis, enumerate: boolean = false, additionalAxes: PrinterAxis[] = []) {
+			const rails = config.rails.filter(
+				(r) => (enumerate ? r.axis.startsWith(axis) : r.axis === axis) || additionalAxes.includes(r.axis),
+			);
 			const variables: string[] = [];
 			variables.push(
 				`variable_${axis}_driver_types: [${rails.map((r) => `"${r.driver.type.toLowerCase()}"`).join(', ')}]`,
