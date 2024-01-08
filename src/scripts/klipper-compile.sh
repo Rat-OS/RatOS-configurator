@@ -10,5 +10,6 @@ pushd "/home/pi/klipper" || exit 1
 make olddefconfig
 make clean
 make
+chown pi:pi -R /home/pi/klipper
 
 popd || exit 1
