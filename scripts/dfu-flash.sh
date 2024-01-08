@@ -12,6 +12,7 @@ pushd /home/pi/klipper || exit
 service klipper stop
 echo "Flashing DFU device"
 make flash FLASH_DEVICE=0483:df11
+chown pi:pi -R /home/pi/klipper
 sleep 5
 if [ -h "$MCU" ]; then
     echo "Flashing Successful!"
@@ -19,9 +20,7 @@ else
     echo "Flashing failed :("
     service klipper start
     popd || exit
-    chown pi:pi -R /home/pi/klipper
     exit 1
 fi
-chown pi:pi -R /home/pi/klipper
 service klipper start
 popd || exit
