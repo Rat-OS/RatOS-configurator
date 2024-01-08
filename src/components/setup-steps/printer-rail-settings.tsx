@@ -35,10 +35,8 @@ interface PrinterRailSettingsProps {
 
 export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) => {
 	const toolhead = useToolhead(props.printerRailDefault.axis);
-	const board =
-		toolhead?.getExtruderAxis() === props.printerRailDefault.axis && toolhead?.hasToolboard()
-			? toolhead.getToolboard()
-			: props.selectedBoard;
+	const usesToolboard = toolhead?.getExtruderAxis() === props.printerRailDefault.axis && toolhead?.hasToolboard();
+	const board = usesToolboard ? toolhead.getToolboard() : props.selectedBoard;
 	const setPrinterRail = useSetRecoilState(PrinterRailState(props.printerRail.axis));
 	const integratedDriver =
 		board?.integratedDrivers &&
@@ -250,9 +248,10 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 						onSelect={setDriver}
 						value={driver}
 						disabled={integratedDriver != null}
-						badge={
-							integratedDriver != null ? ({ children: 'Integrated', color: 'sky' } satisfies BadgeProps) : undefined
-						}
+						badge={[
+							integratedDriver != null ? ({ children: 'Integrated', color: 'sky' } satisfies BadgeProps) : undefined,
+							usesToolboard ? ({ children: 'Toolboard', color: 'yellow' } satisfies BadgeProps) : undefined,
+						].filter(Boolean)}
 					/>
 				</div>
 				<div className="col-span-2">

@@ -64,8 +64,8 @@ export const badgeBorderColorStyle = cva('', {
 const badgeStyle = cva('flex-0 inline-flex w-auto items-center rounded-md font-medium ring-1 ring-inset', {
 	variants: {
 		size: {
-			sm: 'px-1 py-0 text-2xs',
-			md: 'px-2 py-1 text-xs',
+			sm: 'px-1 py-0 text-2xs leading-5',
+			md: 'px-2 py-1 text-xs leading-6',
 		},
 		color: {
 			red: [
