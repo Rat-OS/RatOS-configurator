@@ -65,7 +65,8 @@
 		"tsx": "^4.7.0",
 		"typescript": "5.3.3",
 		"zod": "^3.20.2",
-		"zod-refine": "^1.1.1"
+		"zod-refine": "^1.1.1",
+		"zx": "^7.2.3"
 	},
 	"devDependencies": {
 		"@jest/globals": "^29.5.0",

@@ -36,7 +36,7 @@ ensure_pnpm_installation() {
 ensure_service_permission()
 {
 	report_status "Updating service permissions"
-	if ! cat /home/pi/printer_data/moonraker.asvc | grep "ratos-configurator" &>/dev/null; then
+	if ! grep -q "ratos-configurator" /home/pi/printer_data/moonraker.asvc; then
 		printf '\nratos-configurator' >> /home/pi/printer_data/moonraker.asvc
 		report_status "Configurator added to moonraker service permissions"
 	fi
@@ -53,6 +53,14 @@ install_hooks()
     report_status "Installing git hooks"
 	if [ ! -L "$GIT_DIR/hooks/post-merge" ]; then
  	   ln -s "$SCRIPT_DIR/post-merge.sh" "$GIT_DIR/hooks/post-merge"
+	fi
+}
+
+patch_log_rotation() {
+	if grep -q "/printer_data/logs/configurator.log" /etc/logrotate.d/ratos-configurator; then
+		report_status "Patching log rotation"
+		sudo sed -i 's|rotate 4|rotate 3|g' /etc/logrotate.d/ratos-configurator
+		sudo sed -i 's|/printer_data/logs/configurator.log"|/printer_data/logs/ratos-configurator.log"|g' /etc/logrotate.d/ratos-configurator
 	fi
 }
 

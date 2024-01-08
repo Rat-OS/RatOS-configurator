@@ -2,7 +2,7 @@ import * as commander from 'commander';
 import type { AppRouter } from '../server/routers/index.js';
 import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
 import trpc from '../utils/trpc.js';
-import { realpath, stat } from 'fs/promises';
+import { realpath, stat, readFile } from 'fs/promises';
 import path from 'path';
 import React from 'react';
 import { Box, Text, render } from 'ink';
@@ -10,6 +10,10 @@ import { Container } from './components/container.jsx';
 import { APIResult, Status } from './components/status.jsx';
 import { Table } from './components/table.jsx';
 import { readPackageUp } from 'read-package-up';
+import { $ } from 'zx';
+import { serverSchema } from '../env/schema.mjs';
+import dotenv from 'dotenv';
+import { existsSync } from 'fs';
 
 function renderError(str: string, options: { exitCode: number } = { exitCode: 1 }) {
 	render(
@@ -363,6 +367,34 @@ program
 			}
 			return renderError("Failed to flash mcu's", { exitCode: 2 });
 		}
+	});
+
+const log = program.command('logs').description('Commands for managing the RatOS log');
+
+log
+	.command('tail')
+	.option('-f, --follow', 'Follow the log')
+	.option('-n, --lines <lines>', 'Number of lines to show')
+	.description('Tail the RatOS log')
+	.action(async (options) => {
+		const flags = [];
+		if (options.follow) {
+			flags.push('-f');
+		}
+		if (options.lines) {
+			flags.push(`-n${options.lines}`);
+		}
+		const envFile = existsSync('./.env.local') ? await readFile('.env.local') : await readFile('.env');
+		const log = serverSchema.parse({ NODE_ENV: 'production', ...dotenv.parse(envFile) }).LOG_FILE;
+		$`tail ${flags} ${log}`.pipe($`pino-pretty`);
+	});
+
+log
+	.command('rotate')
+	.description('force rotate the RatOS configurator log')
+	.action(async () => {
+		const log = '/etc/logrotate.d/ratos-configurator';
+		$`logrotate -f ${log}`;
 	});
 
 program.parseAsync();
