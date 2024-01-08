@@ -88,7 +88,8 @@ extensions
 				{klippyExtensions.length ? (
 					<Box flexDirection="column">
 						<Text>
-							{klippyExtensions.length} Registered Klipper Extensions{klippyExtensions.length ? ':' : ''}
+							{klippyExtensions.length} Registered Klipper {klippyExtensions.length === 1 ? 'Extension' : 'Extensions'}
+							{klippyExtensions.length ? ':' : ''}
 						</Text>
 						<Table
 							data={klippyExtensions}
@@ -112,7 +113,9 @@ extensions
 				{moonrakerExtensions.length ? (
 					<Box flexDirection="column">
 						<Text>
-							{moonrakerExtensions.length} Registered Klipper Extensions{moonrakerExtensions.length ? ':' : ''}
+							{moonrakerExtensions.length} Registered Moonraker{' '}
+							{klippyExtensions.length === 1 ? 'Extension' : 'Extensions'}
+							{moonrakerExtensions.length ? ':' : ''}
 						</Text>
 
 						<Table data={moonrakerExtensions}></Table>

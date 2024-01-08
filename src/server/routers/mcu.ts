@@ -5,7 +5,13 @@ import { promisify } from 'util';
 import { TRPCError } from '@trpc/server';
 import { getScriptRoot } from '../../helpers/util';
 import { runSudoScript } from '../helpers/run-script';
-import { AutoFlashableBoard, Board, BoardWithDetectionStatus, ToolboardWithDetectionStatus } from '../../zods/boards';
+import {
+	AutoFlashableBoard,
+	Board,
+	BoardWithDetectionStatus,
+	ToolboardWithDetectionStatus,
+	guessMotorSlotFromPins,
+} from '../../zods/boards';
 import { middleware, publicProcedure, router } from '../trpc';
 import path from 'path';
 import { glob } from 'glob';
@@ -17,6 +23,8 @@ import { replaceInFileByLine } from '../helpers/file-operations';
 import { ToolheadHelper } from '../../helpers/toolhead';
 import { deserializeToolheadConfiguration, loadSerializedConfig } from './printer';
 import { ServerCache } from '../helpers/cache';
+import { PrinterAxis } from '../../zods/motion';
+import { parseBoardPinConfig } from '../helpers/metadata';
 
 const inputSchema = z.object({
 	boardPath: z.string().optional(),
@@ -265,6 +273,34 @@ export const mcuRouter = router({
 			}
 			await compileFirmware(ctx.board, ctx.toolhead);
 			return 'success';
+		}),
+	guessMotorSlot: mcuProcedure
+		.meta({
+			boardRequired: true,
+		})
+		.input(z.object({ axis: z.nativeEnum(PrinterAxis), hasToolboard: z.boolean(), boardPath: z.string() }))
+		.query(async ({ ctx, input }) => {
+			if (ctx.board == null) {
+				return undefined;
+			}
+			const isExtruderlessBoard = ctx.board.extruderlessConfig != null && input.hasToolboard;
+			const pins = await parseBoardPinConfig(ctx.board, isExtruderlessBoard);
+
+			const axisAlias =
+				input.axis === PrinterAxis.z
+					? 'z0'
+					: input.axis === PrinterAxis.extruder
+						? 'e'
+						: PrinterAxis.extruder1 === input.axis
+							? 'e1'
+							: input.axis;
+			return guessMotorSlotFromPins(
+				{
+					step_pin: pins[`${axisAlias}_step_pin` as keyof typeof pins],
+					dir_pin: pins[`${axisAlias}_dir_pin` as keyof typeof pins],
+				},
+				ctx.board,
+			);
 		}),
 	flashAllConnected: mcuProcedure
 		.meta({

@@ -192,6 +192,82 @@ export const ToolboardPinMap = PinMap.extend({
 		),
 );
 
+export const UARTPins = z.object({
+	uart_pin: z.string(),
+	uart_address: z.string().optional(),
+	rx_pin: z.string().optional(),
+	tx_pin: z.string().optional(),
+});
+
+export const SPIPins = z
+	.object({
+		cs_pin: z.string(),
+	})
+	.and(
+		z.object({ spi_bus: z.string() }).or(
+			z.object({
+				spi_software_mosi_pin: z.string().optional(),
+				spi_software_miso_pin: z.string().optional(),
+				spi_software_sclk_pin: z.string().optional(),
+			}),
+		),
+	);
+
+export const hasSPI = (slot: unknown) => {
+	return SPIPins.safeParse(slot).success;
+};
+
+export const hasUART = (slot: unknown) => {
+	return UARTPins.safeParse(slot).success;
+};
+
+export const MotorSlot = z
+	.object({
+		title: z.string(),
+		step_pin: z.string(),
+		dir_pin: z.string(),
+		enable_pin: z.string(),
+		diag_pin: z.string(),
+		endstop_pin: z.string(),
+		// UART
+		uart_pin: z.string().optional(),
+		uart_address: z.string().optional(),
+		rx_pin: z.string().optional(),
+		tx_pin: z.string().optional(),
+		// SPI
+		cs_pin: z.string().optional(),
+		spi_bus: z.string().optional(),
+		spi_software_mosi_pin: z.string().optional(),
+		spi_software_miso_pin: z.string().optional(),
+		spi_software_sclk_pin: z.string().optional(),
+	})
+	.refine(
+		(slot) => {
+			return hasSPI(slot) || hasUART(slot);
+		},
+		{ message: 'Motor slot must have either SPI or UART pins' },
+	);
+
+export type MotorSlot = z.output<typeof MotorSlot>;
+
+const AnySlotPin = MotorSlot.innerType().omit({ title: true }).partial();
+export type AnySlotPin = z.infer<typeof AnySlotPin>;
+
+export const MotorSlotKey = z.string();
+
+export const guessMotorSlotFromPins: (pins: AnySlotPin, board: Board) => z.infer<typeof MotorSlotKey> | undefined = (
+	pins,
+	board,
+) => {
+	const slots = Object.entries(board.motorSlots ?? {});
+	for (const [key, slot] of slots) {
+		if (Object.entries(pins).every(([pin, value]) => slot[pin as keyof typeof slot] === value)) {
+			return key;
+		}
+	}
+	return undefined;
+};
+
 export const Board = z.object({
 	id: z.string(),
 	isToolboard: z.boolean().optional(),
@@ -213,6 +289,7 @@ export const Board = z.object({
 	driverVoltages: Voltage.array().default([24]),
 	hasMcuTempSensor: z.boolean().default(true),
 	alternativePT1000Resistor: z.number().optional(),
+	motorSlots: z.record(MotorSlotKey, MotorSlot).optional(),
 	outputPins: z
 		.array(
 			z.object({

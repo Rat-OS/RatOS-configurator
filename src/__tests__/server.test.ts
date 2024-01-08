@@ -13,7 +13,6 @@ import { ToolheadHelper } from '../helpers/toolhead';
 import { getBoardChipId } from '../helpers/board';
 import { constructKlipperConfigUtils } from '../server/helpers/klipper-config';
 import { sensorlessXTemplate, sensorlessYTemplate } from '../templates/extras/sensorless-homing';
-
 describe('server', async () => {
 	const parsedPrinters = await getPrinters();
 	describe('metadata', async () => {

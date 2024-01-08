@@ -2,7 +2,7 @@
 	"name": "ratos-configurator",
 	"private": true,
 	"scripts": {
-		"dev": "next dev | pino-pretty -m message -i time -c",
+		"dev": "next dev | pino-pretty -c",
 		"build": "next build",
 		"start": "next start",
 		"lint": "next lint",

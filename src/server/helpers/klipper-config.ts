@@ -14,6 +14,8 @@ import {
 import { ToolheadGenerator } from './config-generation/toolhead';
 import { getBoardSerialPath } from '../../helpers/board';
 import { ToolOrAxis } from '../../zods/toolhead';
+import { MotorSlotKey, SPIPins, UARTPins, hasSPI, hasUART } from '../../zods/boards';
+import { z } from 'zod';
 
 type WritableFiles = { fileName: string; content: string; overwrite: boolean }[];
 
@@ -80,7 +82,23 @@ export const constructKlipperConfigUtils = async (config: PrinterConfiguration) 
 			if (this.isExtruderToolheadAxis(axis)) {
 				pinValue = this.getToolhead(axis as ToolOrAxis).getToolheadPin(axis, alias);
 			} else {
-				pinValue = cbPins[pinName as keyof ControlPins<false>];
+				const rail = this.getRail(axis);
+				const slotPin = alias.startsWith('_') ? alias.substring(1) : alias;
+				if (
+					config.controlboard.motorSlots != null &&
+					rail.motorSlot != null &&
+					slotPin in config.controlboard.motorSlots[rail.motorSlot]
+				) {
+					pinValue =
+						config.controlboard.motorSlots[rail.motorSlot][
+							slotPin as keyof (typeof config.controlboard.motorSlots)[z.infer<typeof MotorSlotKey>]
+						];
+					if (pinValue == null) {
+						throw new Error(`Motor slot was selected, but pin ${slotPin} wasn't found in motor slot config.`);
+					}
+				} else {
+					pinValue = cbPins[pinName as keyof ControlPins<false>];
+				}
 			}
 			if (pinValue == null) {
 				throw new Error(
@@ -412,21 +430,41 @@ export const constructKlipperConfigHelpers = async (
 			];
 			if (rail.driver.protocol === 'UART') {
 				section.push(`uart_pin: ${utils.getAxisPin(rail.axis, '_uart_pin')}`);
+				// Render optional motor slot pins
+				if (rail.motorSlot) {
+					const slotPins = config.controlboard.motorSlots?.[rail.motorSlot];
+					if (slotPins == null || !hasUART(config.controlboard.motorSlots?.[rail.motorSlot])) {
+						throw new Error(`No controlboard motor slot UART pins defined for motor slot ${rail.motorSlot}`);
+					}
+					Object.entries(UARTPins.parse(slotPins)).forEach(([key, pin]) => {
+						section.push(`${key}: ${pin}`);
+					});
+				}
 			}
 			if (rail.driver.protocol === 'SPI') {
-				section.push(`cs_pin: ${utils.getAxisPin(rail.axis, '_uart_pin')}`);
-				if (config.controlboard.stepperSPI != null) {
-					if ('hardware' in config.controlboard.stepperSPI) {
-						section.push(`spi_bus: ${config.controlboard.stepperSPI.hardware.bus}`);
-					} else {
-						section.push(`spi_software_mosi_pin: ${config.controlboard.stepperSPI.software.mosi}`);
-						section.push(`spi_software_miso_pin: ${config.controlboard.stepperSPI.software.miso}`);
-						section.push(`spi_software_sclk_pin: ${config.controlboard.stepperSPI.software.sclk}`);
+				if (rail.motorSlot) {
+					const slotPins = config.controlboard.motorSlots?.[rail.motorSlot];
+					if (slotPins == null || !hasSPI(config.controlboard.motorSlots?.[rail.motorSlot])) {
+						throw new Error(`No controlboard motor slot SPI pins defined for motor slot ${rail.motorSlot}`);
 					}
+					Object.entries(SPIPins.parse(slotPins)).forEach(([key, pin]) => {
+						section.push(`${key}: ${pin}`);
+					});
 				} else {
-					section.push(`spi_software_mosi_pin: stepper_spi_mosi_pin`);
-					section.push(`spi_software_miso_pin: stepper_spi_miso_pin`);
-					section.push(`spi_software_sclk_pin: stepper_spi_sclk_pin`);
+					section.push(`cs_pin: ${utils.getAxisPin(rail.axis, '_uart_pin')}`);
+					if (config.controlboard.stepperSPI != null) {
+						if ('hardware' in config.controlboard.stepperSPI) {
+							section.push(`spi_bus: ${config.controlboard.stepperSPI.hardware.bus}`);
+						} else {
+							section.push(`spi_software_mosi_pin: ${config.controlboard.stepperSPI.software.mosi}`);
+							section.push(`spi_software_miso_pin: ${config.controlboard.stepperSPI.software.miso}`);
+							section.push(`spi_software_sclk_pin: ${config.controlboard.stepperSPI.software.sclk}`);
+						}
+					} else {
+						section.push(`spi_software_mosi_pin: stepper_spi_mosi_pin`);
+						section.push(`spi_software_miso_pin: stepper_spi_miso_pin`);
+						section.push(`spi_software_sclk_pin: stepper_spi_sclk_pin`);
+					}
 				}
 			}
 			if (preset) {
