@@ -330,8 +330,8 @@ const badgeBorderColorStyle = (0,external_class_variance_authority_namespaceObje
 const badgeStyle = (0,external_class_variance_authority_namespaceObject.cva)("flex-0 inline-flex w-auto items-center rounded-md font-medium ring-1 ring-inset", {
     variants: {
         size: {
-            sm: "px-1 py-0 text-2xs",
-            md: "px-2 py-1 text-xs"
+            sm: "px-1 py-0 text-2xs leading-5",
+            md: "px-2 py-1 text-xs leading-6"
         },
         color: {
             red: [
@@ -1393,6 +1393,7 @@ var usePrinterConfiguration = __webpack_require__(2312);
 
 
 
+
 const OnDropdownOpened = ({ open , onShown  })=>{
     (0,react_.useEffect)(()=>{
         if (open) {
@@ -1462,7 +1463,7 @@ const Dropdown = (props)=>{
                         className: "relative mt-1",
                         children: [
                             /*#__PURE__*/ (0,jsx_runtime_.jsxs)(external_headlessui_react_.Listbox.Button, {
-                                className: "relative flex w-full cursor-default items-center justify-between rounded-md bg-white py-1.5 pl-3 pr-3 text-left text-zinc-900 shadow-sm ring-1 ring-inset ring-zinc-300 focus:outline-none focus:ring-2 focus:ring-brand-600 dark:bg-zinc-900 dark:text-zinc-300 dark:ring-zinc-700 dark:focus:ring-brand-400 sm:text-sm sm:leading-6",
+                                className: "relative flex w-full cursor-default items-center justify-between rounded-md bg-white py-1.5 pl-3 pr-3 text-left text-zinc-900 shadow-sm ring-1 ring-inset ring-zinc-300 focus:outline-none focus:ring-2 focus:ring-brand-600 sm:text-sm sm:leading-6 dark:bg-zinc-900 dark:text-zinc-300 dark:ring-zinc-700 dark:focus:ring-brand-400",
                                 disabled: props.disabled,
                                 title: value?.title,
                                 children: [
@@ -1470,11 +1471,16 @@ const Dropdown = (props)=>{
                                         className: "flex-1 truncate",
                                         children: value?.title ?? "Pick from the list..."
                                     }),
-                                    props.badge && /*#__PURE__*/ jsx_runtime_.jsx(Badge, {
-                                        ...props.badge,
-                                        color: props.badge.color ?? (props.disabled ? "plain" : props.badge.color),
-                                        size: "sm",
-                                        className: "-mr-1.5"
+                                    /*#__PURE__*/ jsx_runtime_.jsx("span", {
+                                        className: "-mr-1.5 flex items-center space-x-1",
+                                        children: props.badge && (!Array.isArray(props.badge) ? [
+                                            props.badge
+                                        ] : props.badge).map((badge, i)=>/*#__PURE__*/ (0,react_.createElement)(Badge, {
+                                                ...badge,
+                                                key: i,
+                                                color: badge.color ?? (props.disabled ? "plain" : badge.color),
+                                                size: "sm"
+                                            }))
                                     }),
                                     !props.disabled && /*#__PURE__*/ jsx_runtime_.jsx("span", {
                                         className: "pointer-events-none -mr-4 flex items-center pr-2",
@@ -1495,7 +1501,7 @@ const Dropdown = (props)=>{
                                 leaveFrom: "transform translate-y-0 opacity-100",
                                 leaveTo: "transform translate-y-1 opacity-0",
                                 children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)(external_headlessui_react_.Listbox.Options, {
-                                    className: "absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-zinc-400 scrollbar-thumb-rounded-md focus:outline-none dark:bg-zinc-900 dark:scrollbar-thumb-zinc-600 sm:text-sm",
+                                    className: "absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-zinc-400 scrollbar-thumb-rounded-md focus:outline-none sm:text-sm dark:bg-zinc-900 dark:scrollbar-thumb-zinc-600",
                                     children: [
                                         props.isFetching && /*#__PURE__*/ jsx_runtime_.jsx("div", {
                                             className: "px-3 py-2 text-sm text-zinc-400 dark:text-zinc-500",
@@ -1994,7 +2000,8 @@ const useToolheadConfiguration = (toolOrAxis, errorIfNotExist = true)=>{
 
 const PrinterRailSettings = (props)=>{
     const toolhead = useToolhead(props.printerRailDefault.axis);
-    const board = toolhead?.getExtruderAxis() === props.printerRailDefault.axis && toolhead?.hasToolboard() ? toolhead.getToolboard() : props.selectedBoard;
+    const usesToolboard = toolhead?.getExtruderAxis() === props.printerRailDefault.axis && toolhead?.hasToolboard();
+    const board = usesToolboard ? toolhead.getToolboard() : props.selectedBoard;
     const setPrinterRail = (0,external_recoil_.useSetRecoilState)((0,recoil_printer/* PrinterRailState */.ew)(props.printerRail.axis));
     const integratedDriver = board?.integratedDrivers && board.integratedDrivers[props.printerRail.axis.startsWith("extruder") ? motion/* PrinterAxis.extruder */.po.extruder : props.printerRail.axis];
     const [driver, setDriver] = (0,react_.useState)(integratedDriver != null ? (0,serialization/* deserializeDriver */.Df)(integratedDriver) ?? props.printerRail.driver : props.printerRail.driver);
@@ -2174,10 +2181,16 @@ const PrinterRailSettings = (props)=>{
                             onSelect: setDriver,
                             value: driver,
                             disabled: integratedDriver != null,
-                            badge: integratedDriver != null ? {
-                                children: "Integrated",
-                                color: "sky"
-                            } : undefined
+                            badge: [
+                                integratedDriver != null ? {
+                                    children: "Integrated",
+                                    color: "sky"
+                                } : undefined,
+                                usesToolboard ? {
+                                    children: "Toolboard",
+                                    color: "yellow"
+                                } : undefined
+                            ].filter(Boolean)
                         })
                     }),
                     /*#__PURE__*/ jsx_runtime_.jsx("div", {

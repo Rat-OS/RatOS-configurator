@@ -1034,16 +1034,17 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
                 `square_corner_velocity: ${limits.square_corner_velocity}`,
                 ``,
                 `[gcode_macro RatOS]`,
-                `variable_macro_travel_speed: ${this.getMacroTravelSpeed()}`
+                `variable_macro_travel_speed: ${this.getMacroTravelSpeed()}`,
+                `variable_macro_travel_accel: ${this.getMacroTravelAccel()}`
             ].join("\n");
         },
         getMacroTravelSpeed () {
             const limits = config.performanceMode && config.printer.speedLimits.performance ? config.printer.speedLimits.performance : config.printer.speedLimits.basic;
-            return config.stealthchop ? "135" : limits.velocity;
+            return config.stealthchop ? "135" : limits.travel_velocity;
         },
         getMacroTravelAccel () {
             const limits = config.performanceMode && config.printer.speedLimits.performance ? config.printer.speedLimits.performance : config.printer.speedLimits.basic;
-            return config.stealthchop ? "1000" : limits.accel;
+            return config.stealthchop ? "1000" : limits.travel_accel;
         },
         renderBoardQuirks () {
             let result = [];
@@ -1182,7 +1183,8 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
         },
         renderMacroVariableOverrides (size) {
             const result = [
-                `variable_macro_travel_speed: ${this.getMacroTravelSpeed()}`
+                `variable_macro_travel_speed: ${this.getMacroTravelSpeed()}`,
+                `variable_macro_travel_accel: ${this.getMacroTravelAccel()}`
             ];
             const toolheads = this.getToolheads();
             const isIdex = toolheads.some((th)=>th.getMotionAxis() === motion/* PrinterAxis.dual_carriage */.po.dual_carriage);
