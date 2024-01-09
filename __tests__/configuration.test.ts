@@ -25,6 +25,8 @@ import { parseBoardPinConfig } from '../server/helpers/metadata';
 import { getBoardChipId } from '../helpers/board';
 import { ToolheadConfiguration } from '../zods/toolhead';
 import { ServerCache } from '../server/helpers/cache';
+import { glob } from 'glob';
+import { readFile } from 'fs/promises';
 
 describe('configuration', async () => {
 	ServerCache.flushAll();
@@ -50,6 +52,21 @@ describe('configuration', async () => {
 	});
 	test.concurrent('has non zero bash scripts', async () => {
 		expect(scripts.length).toBeGreaterThan(0);
+	});
+	test.concurrent('is free of dumb typos', async () => {
+		const files = (await glob(environment.RATOS_CONFIGURATION_PATH + '/**/*.cfg'));
+		const fileContents = files.map((f) => readFile(f));
+		let noAmpersands = '';
+		let noElseIfs = '';
+		let f = 0;
+		for await (const file of fileContents) {
+			const generatedLines = file.toString().split('\n').map((l: string, i: number) => `${files[f].split('/').pop()}:${i+1}`.padEnd(15, ' ') + `| ${l.replace(/\t/g, '')}`);
+			noAmpersands += generatedLines.filter((l: string) => l.includes('&&')).join('\n');
+			noElseIfs += generatedLines.filter((l: string) => l.includes('else if')).join('\n');
+			f++;
+		}
+		expect(noAmpersands, `Expected no &&'s in config`).to.eq('');
+		expect(noElseIfs, 'Expected no `else ifs` in config').to.eq('');
 	});
 	describe('has executable bash scripts', async () => {
 		test.concurrent.each(scripts)('%s is executable', async (script) => {

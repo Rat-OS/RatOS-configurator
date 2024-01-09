@@ -99,7 +99,7 @@ describe('server', async () => {
 		test.concurrent('can generate idex config', async () => {
 			const config = await loadSerializedConfig(path.join(__dirname, 'fixtures', 'idex-config.json'));
 			const res: string = (await getFilesToWrite(config)).find((f) => f.fileName === 'RatOS.cfg')?.content ?? '';
-			const splitRes = res.split('\n').map((l: string, i: number) => `Line ${i}`.padEnd(10, ' ') + `|${l}`);
+			const splitRes = res.split('\n').map((l: string, i: number) => `Line ${i+1}`.padEnd(10, ' ') + `|${l}`);
 			expect(splitRes.length).toBeGreaterThan(0);
 			const noUndefined = splitRes.filter((l: string) => l.includes('undefined')).join('\n');
 			const noPromises = splitRes.filter((l: string) => l.includes('[object Promise]')).join('\n');
@@ -116,7 +116,7 @@ describe('server', async () => {
 			test('produces valid config', async () => {
 				const config = await loadSerializedConfig(path.join(__dirname, 'fixtures', 'hybrid-config.json'));
 				const res: string = (await getFilesToWrite(config)).find((f) => f.fileName === 'RatOS.cfg')?.content ?? '';
-				generatedLines = res.split('\n').map((l: string, i: number) => `Line ${i}`.padEnd(10, ' ') + `|${l}`);
+				generatedLines = res.split('\n').map((l: string, i: number) => `Line ${i+1}`.padEnd(10, ' ') + `|${l}`);
 				expect(generatedLines.length).toBeGreaterThan(0);
 				const noUndefined = generatedLines.filter((l: string) => l.includes('undefined')).join('\n');
 				const noPromises = generatedLines.filter((l: string) => l.includes('[object Promise]')).join('\n');
