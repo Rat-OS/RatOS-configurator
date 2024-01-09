@@ -725,9 +725,9 @@ export const constructKlipperConfigHelpers = async (
 				result.push(
 					`variable_default_toolhead: ${probeTool}                             # the toolhead with the z-probe, 0=left 1=right toolhead`,
 				);
-				const dcParkX = (size ?? config.size ?? 300) + 72;
+				const dcParkX = (size ?? config.size ?? 300) + 49;
 				result.push(
-					`variable_parking_position: [-69.5, ${dcParkX}]                      # toolhead x parking position`,
+					`variable_parking_position: [-49, ${dcParkX}]                      # toolhead x parking position`,
 				);
 				result.push(`variable_toolchange_travel_speed: ${this.getMacroTravelSpeed()}     # parking travel speed`);
 				result.push(`variable_toolchange_travel_accel: ${this.getMacroTravelAccel()}     # parking travel accel`);
