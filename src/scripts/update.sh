@@ -19,3 +19,4 @@ ensure_pnpm_installation
 pnpm_install
 install_udev_rule root
 install_cli
+patch_log_rotation
