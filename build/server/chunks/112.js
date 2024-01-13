@@ -3974,6 +3974,8 @@ const printerRouter = (0,trpc/* router */.Nd)({
         const printer = (await getPrinters()).find((p)=>p.id === ctx.input);
         if (printer) {
             printer.defaults.toolheads = await Promise.all(printer.defaults.toolheads.map((th)=>deserializeToolheadConfiguration(th, serializedPartialConfigFromPrinterDefinition(printer))));
+        } else {
+            return null;
         }
         return PrinterDefinitionWithResolvedToolheads.parse(printer);
     }),
