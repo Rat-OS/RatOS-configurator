@@ -20,7 +20,7 @@ const register = async ()=>{
         const { serverSchema  } = await __webpack_require__.e(/* import() */ 876).then(__webpack_require__.bind(__webpack_require__, 6165));
         const { symlinkKlippyExtensions  } = await Promise.all(/* import() */[__webpack_require__.e(876), __webpack_require__.e(815), __webpack_require__.e(581), __webpack_require__.e(4)]).then(__webpack_require__.bind(__webpack_require__, 4004));
         const { symlinkMoonrakerExtensions  } = await Promise.all(/* import() */[__webpack_require__.e(876), __webpack_require__.e(815), __webpack_require__.e(581), __webpack_require__.e(974)]).then(__webpack_require__.bind(__webpack_require__, 7974));
-        const { klipperRestart  } = await __webpack_require__.e(/* import() */ 140).then(__webpack_require__.bind(__webpack_require__, 7140));
+        const { klipperRestart  } = await Promise.all(/* import() */[__webpack_require__.e(876), __webpack_require__.e(140), __webpack_require__.e(711)]).then(__webpack_require__.bind(__webpack_require__, 7140));
         const dns = await Promise.resolve(/* import() */).then(__webpack_require__.t.bind(__webpack_require__, 9523, 23));
         dns.setDefaultResultOrder("ipv4first");
         const logger = getLogger();
@@ -54,13 +54,20 @@ const register = async ()=>{
             if (e instanceof Error) {
                 logger.error(`Failed to regenerate config: ${e.message}`);
             }
+            return;
         }
         logger.info("Restart klipper..");
-        const restarted = await klipperRestart();
-        if (restarted) {
-            logger.info("Klipper restarted!");
-        } else {
-            logger.info(`Klipper was in a busy state. Please restart manually.`);
+        try {
+            const restarted = await klipperRestart();
+            if (restarted) {
+                logger.info("Klipper restarted!");
+            } else {
+                logger.info(`Klipper was in a busy state. Please restart manually.`);
+            }
+        } catch (e) {
+            if (e instanceof Error) {
+                logger.error(`Failed to restart klipper: ${e.message}`);
+            }
         }
     }
 };

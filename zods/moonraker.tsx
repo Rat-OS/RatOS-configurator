@@ -1,11 +1,12 @@
 import { z } from 'zod';
+import { getLogger } from '../server/helpers/logger';
 
 export const MoonrakerBaseResult = z.object({
 	eventtime: z.number(),
 });
 export const MoonrakerPrinterState = MoonrakerBaseResult.extend({
 	status: z.object({
-		print_state: z.object({
+		print_stats: z.object({
 			state: z.union([
 				z.literal('paused'),
 				z.literal('printing'),
@@ -26,9 +27,16 @@ export const parseMoonrakerHTTPResponse = async <T extends z.ZodType<z.output<ty
 	response: Response,
 	responseZod: T,
 ): Promise<z.output<typeof MoonrakerHTTPResponse> & { result: z.output<T> }> => {
-	const res = MoonrakerHTTPResponse.parse(await response.json());
-	return {
-		...res,
-		result: responseZod.parse(res.result),
-	};
+	const jsonResult = await response.json();
+	try {
+		const res = MoonrakerHTTPResponse.parse(jsonResult);
+		return {
+			...res,
+			result: responseZod.parse(res.result),
+		};
+	} catch (e) {
+		getLogger().error('Error parsing moonraker response');
+		getLogger().error(jsonResult);
+		throw e;
+	}
 };

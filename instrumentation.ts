@@ -41,13 +41,20 @@ export const register = async () => {
 			if (e instanceof Error) {
 				logger.error(`Failed to regenerate config: ${e.message}`);
 			}
+			return;
 		}
 		logger.info('Restart klipper..');
-		const restarted = await klipperRestart();
-		if (restarted) {
-			logger.info('Klipper restarted!');
-		} else {
-			logger.info(`Klipper was in a busy state. Please restart manually.`);
+		try {
+			const restarted = await klipperRestart();
+			if (restarted) {
+				logger.info('Klipper restarted!');
+			} else {
+				logger.info(`Klipper was in a busy state. Please restart manually.`);
+			}
+		} catch (e) {
+			if (e instanceof Error) {
+				logger.error(`Failed to restart klipper: ${e.message}`);
+			}
 		}
 	}
 };
