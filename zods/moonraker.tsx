@@ -22,13 +22,13 @@ export const MoonrakerHTTPResponse = z.object({
 	result: MoonrakerBaseResult.passthrough(),
 });
 
-export const parseMoonrakerHTTPResponse = <T extends z.ZodType<z.output<typeof MoonrakerBaseResult>>>(
-	result: unknown,
+export const parseMoonrakerHTTPResponse = async <T extends z.ZodType<z.output<typeof MoonrakerBaseResult>>>(
+	response: Response,
 	responseZod: T,
-): z.output<typeof MoonrakerHTTPResponse> & { result: z.output<T> } => {
-	const response = MoonrakerHTTPResponse.parse(result);
+): Promise<z.output<typeof MoonrakerHTTPResponse> & { result: z.output<T> }> => {
+	const res = MoonrakerHTTPResponse.parse(await response.json());
 	return {
-		...response,
-		result: responseZod.parse(response.result),
+		...res,
+		result: responseZod.parse(res.result),
 	};
 };

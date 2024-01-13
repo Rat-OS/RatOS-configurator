@@ -38,18 +38,18 @@ const MoonrakerPrinterState = MoonrakerBaseResult.extend({
 const MoonrakerHTTPResponse = external_zod_.z.object({
     result: MoonrakerBaseResult.passthrough()
 });
-const parseMoonrakerHTTPResponse = (result, responseZod)=>{
-    const response = MoonrakerHTTPResponse.parse(result);
+const parseMoonrakerHTTPResponse = async (response, responseZod)=>{
+    const res = MoonrakerHTTPResponse.parse(await response.json());
     return {
-        ...response,
-        result: responseZod.parse(response.result)
+        ...res,
+        result: responseZod.parse(res.result)
     };
 };
 
 ;// CONCATENATED MODULE: ./server/helpers/klipper.ts
 
 const klipperRestart = async (force = false)=>{
-    const printerState = parseMoonrakerHTTPResponse(await fetch("http://localhost:7125/printer/objects/query?query=printer"), MoonrakerPrinterState).result.status.print_state.state;
+    const printerState = (await parseMoonrakerHTTPResponse(await fetch("http://localhost:7125/printer/objects/query?query=printer"), MoonrakerPrinterState)).result.status.print_state.state;
     if (force || [
         "error",
         "complete",

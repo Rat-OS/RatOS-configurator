@@ -50,17 +50,17 @@ const register = async ()=>{
             logger.info("Regenerating last known config...");
             await regenerateKlipperConfiguration();
             logger.info("Config regenerated!");
-            logger.info("Restart klipper..");
-            const restarted = await klipperRestart();
-            if (restarted) {
-                logger.info("Klipper restarted!");
-            } else {
-                logger.info(`Klipper was in a busy state. Please restart manually.`);
-            }
         } catch (e) {
             if (e instanceof Error) {
                 logger.error(`Failed to regenerate config: ${e.message}`);
             }
+        }
+        logger.info("Restart klipper..");
+        const restarted = await klipperRestart();
+        if (restarted) {
+            logger.info("Klipper restarted!");
+        } else {
+            logger.info(`Klipper was in a busy state. Please restart manually.`);
         }
     }
 };
