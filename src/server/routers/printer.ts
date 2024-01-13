@@ -462,6 +462,8 @@ export const printerRouter = router({
 						deserializeToolheadConfiguration(th, serializedPartialConfigFromPrinterDefinition(printer)),
 					),
 				);
+			} else {
+				return null;
 			}
 			return PrinterDefinitionWithResolvedToolheads.parse(printer);
 		}),
