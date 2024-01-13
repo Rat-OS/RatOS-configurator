@@ -7,5 +7,7 @@ export const klipperRestart = async (force = false) => {
 	).result.status.print_state.state;
 	if (force || ['error', 'complete', 'canceled', 'standby'].includes(printerState)) {
 		await fetch('http://localhost:7125/printer/restart', { method: 'POST' });
+		return true;
 	}
+	return false;
 };
