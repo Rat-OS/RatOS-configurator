@@ -386,6 +386,11 @@ export const constructKlipperConfigHelpers = async (
 			} else {
 				section.push(`rotation_distance: ${rail.rotationDistance}`);
 			}
+			if (rail.axis === PrinterAxis.z) {
+				// Lower position_min to allow for probe calibration (and componensation functions). 
+				// Very much dislike that this is necessary.
+				section.push(`position_min: -5`);
+			}
 			if ([PrinterAxis.x, PrinterAxis.y, PrinterAxis.z].includes(rail.axis)) {
 				section.push(`homing_speed: ${rail.homingSpeed}`);
 			}
