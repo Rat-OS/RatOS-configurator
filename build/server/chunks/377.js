@@ -119,7 +119,7 @@ const Drivers = zod__WEBPACK_IMPORTED_MODULE_0__.z.array(_zods_motion__WEBPACK_I
     },
     {
         id: "BTT-TMC5160-PRO-11",
-        title: "BTT TMC5160 Pro v1.1",
+        title: "BTT TMC5160(T) Pro v1.1",
         type: "TMC5160",
         protocol: "SPI",
         senseResistor: 0.075,

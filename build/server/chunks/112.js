@@ -982,7 +982,7 @@ const runSudoScript = (script, ...args)=>{
 /* harmony import */ var child_process__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(child_process__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var util__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(3837);
 /* harmony import */ var util__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(util__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var _trpc_server__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(6368);
+/* harmony import */ var _trpc_server__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(2756);
 /* harmony import */ var _trpc_server__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_trpc_server__WEBPACK_IMPORTED_MODULE_4__);
 /* harmony import */ var _helpers_util__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(2633);
 /* harmony import */ var _helpers_run_script__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(1554);
@@ -4068,7 +4068,7 @@ const printerRouter = (0,trpc/* router */.Nd)({
 /* harmony export */   "Nd": () => (/* binding */ router),
 /* harmony export */   "qR": () => (/* binding */ middleware)
 /* harmony export */ });
-/* harmony import */ var _trpc_server__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(6368);
+/* harmony import */ var _trpc_server__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(2756);
 /* harmony import */ var _trpc_server__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_trpc_server__WEBPACK_IMPORTED_MODULE_0__);
 
 // Avoid exporting the entire t-object
@@ -4136,7 +4136,7 @@ const Drivers = external_zod_.z.array(motion/* Driver */.HB).parse([
     },
     {
         id: "BTT-TMC5160-PRO-11",
-        title: "BTT TMC5160 Pro v1.1",
+        title: "BTT TMC5160(T) Pro v1.1",
         type: "TMC5160",
         protocol: "SPI",
         senseResistor: 0.075,
