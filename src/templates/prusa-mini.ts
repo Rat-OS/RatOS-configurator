@@ -85,7 +85,7 @@ variable_filament_unload_length: 100
 variable_filament_unload_speed: 5
 variable_filament_load_length: 100
 variable_filament_load_speed: 10
-${helper.renderMacroVariableOverrides()}
+${helper.renderUserMacroVariableOverrides()}
 
 #############################################################################################################
 ### LCD

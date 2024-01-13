@@ -1,5 +1,5 @@
 {
-	"printer": "v-core-3-hybrid",
+	"printer": "caramba-hybrid",
 	"controlboard": "btt-octopus-pro-446",
 	"toolheads": [
 		{

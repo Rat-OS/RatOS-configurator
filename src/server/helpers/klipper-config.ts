@@ -715,8 +715,8 @@ export const constructKlipperConfigHelpers = async (
 		},
 		renderMacroVariableOverrides(size?: number) {
 			const result: string[] = [
-				`variable_macro_travel_speed: ${this.getMacroTravelSpeed()}`,
-				`variable_macro_travel_accel: ${this.getMacroTravelAccel()}`,
+				`variable_bed_margin_x: [${config.printer.bedMargin.x[0]}, ${config.printer.bedMargin.x[1]}]`,
+				`variable_bed_margin_y: [${config.printer.bedMargin.y[0]}, ${config.printer.bedMargin.y[1]}]`,
 			];
 			const toolheads = this.getToolheads();
 			const isIdex = toolheads.some((th) => th.getMotionAxis() === PrinterAxis.dual_carriage);
@@ -725,15 +725,28 @@ export const constructKlipperConfigHelpers = async (
 				result.push(
 					`variable_default_toolhead: ${probeTool}                             # the toolhead with the z-probe, 0=left 1=right toolhead`,
 				);
-				const dcParkX = (size ?? config.size ?? 300) + 49;
-				result.push(
-					`variable_parking_position: [-49, ${dcParkX}]                      # toolhead x parking position`,
-				);
-				result.push(`variable_toolchange_travel_speed: ${this.getMacroTravelSpeed()}     # parking travel speed`);
-				result.push(`variable_toolchange_travel_accel: ${this.getMacroTravelAccel()}     # parking travel accel`);
 				const firstADXL = this.getToolhead(0).getXAccelerometerName();
 				const secondADXL = this.getToolhead(1).getXAccelerometerName();
 				result.push(`variable_adxl_chip: [${firstADXL}, ${secondADXL}]           # toolheads adxl chip names`);
+			}
+			return this.formatInlineComments(result).join('\n');
+		},
+		renderUserMacroVariableOverrides(size?: number) {
+
+			const result: string[] = [
+				`variable_macro_travel_speed: ${this.getMacroTravelSpeed()}`,
+				`variable_macro_travel_accel: ${this.getMacroTravelAccel()}`,
+			];
+			const toolheads = this.getToolheads();
+			const isIdex = toolheads.some((th) => th.getMotionAxis() === PrinterAxis.dual_carriage);
+			if (isIdex) {
+				const endstopSafetyMargin = 5
+				const dcParkX = (size ?? config.size ?? 300) + config.printer.bedMargin.x[1] - endstopSafetyMargin;
+				result.push(
+					`variable_parking_position: [-${config.printer.bedMargin.x[0] + endstopSafetyMargin}, ${dcParkX}]                      # toolhead x parking position`,
+				);
+				result.push(`variable_toolchange_travel_speed: ${this.getMacroTravelSpeed()}     # parking travel speed`);
+				result.push(`variable_toolchange_travel_accel: ${this.getMacroTravelAccel()}     # parking travel accel`);
 			}
 			return this.formatInlineComments(result).join('\n');
 		},

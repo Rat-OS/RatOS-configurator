@@ -27,7 +27,7 @@ homing_retract_dist: 0
 [gcode_macro RatOS]
 variable_homing_x: "sensorless"
 variable_sensorless_x_current: ${utils.getAxisDriverHomingCurrent(PrinterAxis.x, 0.35)}
-${utils.getAxisDriverVariables(PrinterAxis.x, config.printer.id === 'v-core-3-hybrid' ? false : true)}
+${utils.getAxisDriverVariables(PrinterAxis.x, config.printer.id === 'caramba-hybrid' ? false : true)}
 `;
 
 export const sensorlessYTemplate = (config: PrinterConfiguration, utils: KlipperConfigUtils) => `
@@ -56,5 +56,5 @@ homing_retract_dist: 0
 [gcode_macro RatOS]
 variable_homing_y: "sensorless"
 variable_sensorless_y_current: ${utils.getAxisDriverHomingCurrent(PrinterAxis.y, 0.51)}
-${utils.getAxisDriverVariables(PrinterAxis.y, true, config.printer.id === 'v-core-3-hybrid' ? [PrinterAxis.x1] : [])}
+${utils.getAxisDriverVariables(PrinterAxis.y, true, config.printer.id === 'caramba-hybrid' ? [PrinterAxis.x1] : [])}
 `;

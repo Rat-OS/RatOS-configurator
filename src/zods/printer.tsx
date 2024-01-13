@@ -34,6 +34,13 @@ export const PrinterDefinition = z
 		template: z.string().describe('Printer.cfg template for this printer'),
 		path: z.string().startsWith(startsWithServerValidation),
 		driverCountRequired: z.number().describe('Number of drivers required for this printer'),
+		bedMargin: z
+			.object({
+				x: z.tuple([z.number().default(0), z.number().default(0)]),
+				y: z.tuple([z.number().default(0), z.number().default(0)]),
+			})
+			.describe('Margin of available movement around the bed for this printer')
+			.default({ x: [0, 0], y: [0, 0] }),
 		speedLimits: z
 			.object({
 				basic: SpeedLimits,
