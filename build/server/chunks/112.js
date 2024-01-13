@@ -3599,7 +3599,9 @@ const klipperRestart = async (force = false)=>{
         await fetch("http://localhost:7125/printer/restart", {
             method: "POST"
         });
+        return true;
     }
+    return false;
 };
 
 ;// CONCATENATED MODULE: ./server/routers/printer.ts
