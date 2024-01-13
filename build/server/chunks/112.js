@@ -3588,7 +3588,7 @@ const parseMoonrakerHTTPResponse = (result, responseZod)=>{
 
 ;// CONCATENATED MODULE: ./server/helpers/klipper.ts
 
-const restartKlipper = async (force = false)=>{
+const klipperRestart = async (force = false)=>{
     const printerState = parseMoonrakerHTTPResponse(await fetch("http://localhost:7125/printer/objects/query?query=printer"), MoonrakerPrinterState).result.status.print_state.state;
     if (force || [
         "error",
@@ -3596,7 +3596,7 @@ const restartKlipper = async (force = false)=>{
         "canceled",
         "standby"
     ].includes(printerState)) {
-        await fetch("http://localhost:7125/printer/firmware_restart", {
+        await fetch("http://localhost:7125/printer/restart", {
             method: "POST"
         });
     }
@@ -4014,7 +4014,7 @@ const printerRouter = (0,trpc/* router */.Nd)({
     })).mutation(async ({ input  })=>{
         const res = await regenerateKlipperConfiguration(undefined, input.overwriteFiles);
         if (res.some((r)=>r.action === "created" || r.action === "overwritten")) {
-            restartKlipper();
+            klipperRestart();
         }
         return res;
     }),
@@ -4039,7 +4039,7 @@ const printerRouter = (0,trpc/* router */.Nd)({
         const { config: serializedConfig , overwriteFiles  } = ctx.input;
         const config = await deserializePrinterConfiguration(serializedConfig);
         const configResult = await generateKlipperConfiguration(config, overwriteFiles);
-        restartKlipper();
+        klipperRestart();
         return configResult;
     })
 });

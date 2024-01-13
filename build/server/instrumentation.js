@@ -16,10 +16,11 @@ const register = async ()=>{
     if (true) {
         const { getLogger  } = await Promise.all(/* import() */[__webpack_require__.e(876), __webpack_require__.e(799)]).then(__webpack_require__.bind(__webpack_require__, 799));
         const { existsSync , mkdirSync  } = await Promise.resolve(/* import() */).then(__webpack_require__.t.bind(__webpack_require__, 7147, 23));
-        const { regenerateKlipperConfiguration  } = await Promise.all(/* import() */[__webpack_require__.e(323), __webpack_require__.e(876), __webpack_require__.e(680), __webpack_require__.e(815), __webpack_require__.e(945), __webpack_require__.e(377), __webpack_require__.e(96), __webpack_require__.e(614)]).then(__webpack_require__.bind(__webpack_require__, 9614));
+        const { regenerateKlipperConfiguration  } = await Promise.all(/* import() */[__webpack_require__.e(323), __webpack_require__.e(876), __webpack_require__.e(680), __webpack_require__.e(815), __webpack_require__.e(945), __webpack_require__.e(377), __webpack_require__.e(96), __webpack_require__.e(140), __webpack_require__.e(390)]).then(__webpack_require__.bind(__webpack_require__, 6390));
         const { serverSchema  } = await __webpack_require__.e(/* import() */ 876).then(__webpack_require__.bind(__webpack_require__, 6165));
         const { symlinkKlippyExtensions  } = await Promise.all(/* import() */[__webpack_require__.e(876), __webpack_require__.e(815), __webpack_require__.e(581), __webpack_require__.e(4)]).then(__webpack_require__.bind(__webpack_require__, 4004));
         const { symlinkMoonrakerExtensions  } = await Promise.all(/* import() */[__webpack_require__.e(876), __webpack_require__.e(815), __webpack_require__.e(581), __webpack_require__.e(974)]).then(__webpack_require__.bind(__webpack_require__, 7974));
+        const { klipperRestart  } = await __webpack_require__.e(/* import() */ 140).then(__webpack_require__.bind(__webpack_require__, 7140));
         const dns = await Promise.resolve(/* import() */).then(__webpack_require__.t.bind(__webpack_require__, 9523, 23));
         dns.setDefaultResultOrder("ipv4first");
         const logger = getLogger();
@@ -48,6 +49,7 @@ const register = async ()=>{
         try {
             logger.info("Regenerating last known config...");
             await regenerateKlipperConfiguration();
+            await klipperRestart();
             logger.info("Config regenerated!");
         } catch (e) {
             if (e instanceof Error) {

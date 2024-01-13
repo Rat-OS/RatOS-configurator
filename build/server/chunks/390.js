@@ -1,8 +1,8 @@
-exports.id = 614;
-exports.ids = [614];
+exports.id = 390;
+exports.ids = [390];
 exports.modules = {
 
-/***/ 9614:
+/***/ 6390:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -1822,52 +1822,8 @@ const yAccelerometerOptions = (config, toolheadConfig)=>{
 
 // EXTERNAL MODULE: ./hooks/usePrinterConfiguration.tsx
 var usePrinterConfiguration = __webpack_require__(2312);
-;// CONCATENATED MODULE: ./zods/moonraker.tsx
-
-const MoonrakerBaseResult = external_zod_.z.object({
-    eventtime: external_zod_.z.number()
-});
-const MoonrakerPrinterState = MoonrakerBaseResult.extend({
-    status: external_zod_.z.object({
-        print_state: external_zod_.z.object({
-            state: external_zod_.z.union([
-                external_zod_.z.literal("paused"),
-                external_zod_.z.literal("printing"),
-                external_zod_.z.literal("complete"),
-                external_zod_.z.literal("error"),
-                external_zod_.z.literal("canceled"),
-                external_zod_.z.literal("standby")
-            ])
-        })
-    })
-});
-const MoonrakerHTTPResponse = external_zod_.z.object({
-    result: MoonrakerBaseResult.passthrough()
-});
-const parseMoonrakerHTTPResponse = (result, responseZod)=>{
-    const response = MoonrakerHTTPResponse.parse(result);
-    return {
-        ...response,
-        result: responseZod.parse(response.result)
-    };
-};
-
-;// CONCATENATED MODULE: ./server/helpers/klipper.ts
-
-const restartKlipper = async (force = false)=>{
-    const printerState = parseMoonrakerHTTPResponse(await fetch("http://localhost:7125/printer/objects/query?query=printer"), MoonrakerPrinterState).result.status.print_state.state;
-    if (force || [
-        "error",
-        "complete",
-        "canceled",
-        "standby"
-    ].includes(printerState)) {
-        await fetch("http://localhost:7125/printer/firmware_restart", {
-            method: "POST"
-        });
-    }
-};
-
+// EXTERNAL MODULE: ./server/helpers/klipper.ts + 1 modules
+var klipper = __webpack_require__(7140);
 ;// CONCATENATED MODULE: ./server/routers/printer.ts
 
 
@@ -2280,7 +2236,7 @@ const printerRouter = (0,trpc/* router */.Nd)({
     })).mutation(async ({ input  })=>{
         const res = await regenerateKlipperConfiguration(undefined, input.overwriteFiles);
         if (res.some((r)=>r.action === "created" || r.action === "overwritten")) {
-            restartKlipper();
+            (0,klipper.klipperRestart)();
         }
         return res;
     }),
@@ -2305,7 +2261,7 @@ const printerRouter = (0,trpc/* router */.Nd)({
         const { config: serializedConfig , overwriteFiles  } = ctx.input;
         const config = await deserializePrinterConfiguration(serializedConfig);
         const configResult = await generateKlipperConfiguration(config, overwriteFiles);
-        restartKlipper();
+        (0,klipper.klipperRestart)();
         return configResult;
     })
 });
