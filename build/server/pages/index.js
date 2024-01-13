@@ -3585,6 +3585,7 @@ const MCUPicker = (props)=>{
         selectedControlboard,
         selectedPrinter
     ]);
+    const isBoardDetected = toolhead ? selectedToolboard?.board.detected : selectedControlboard?.board.detected;
     let content = /*#__PURE__*/ jsx_runtime_.jsx(CardSelector, {
         cards: cards,
         value: toolhead ? selectedToolboard : selectedControlboard,
@@ -3625,7 +3626,7 @@ const MCUPicker = (props)=>{
         skipSteps,
         setSelectedBoard
     ]);
-    let skipButton = toolhead && !isToolboardRequired() && props.skipSteps ? {
+    let skipButton = (toolhead && !isToolboardRequired() || isBoardDetected) && props.skipSteps ? {
         onClick: skip,
         label: "Skip"
     } : undefined;

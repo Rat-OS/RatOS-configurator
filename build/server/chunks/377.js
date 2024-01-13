@@ -2162,6 +2162,25 @@ const PrinterDefinition = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
     template: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().describe("Printer.cfg template for this printer"),
     path: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().startsWith(startsWithServerValidation),
     driverCountRequired: zod__WEBPACK_IMPORTED_MODULE_0__.z.number().describe("Number of drivers required for this printer"),
+    bedMargin: zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
+        x: zod__WEBPACK_IMPORTED_MODULE_0__.z.tuple([
+            zod__WEBPACK_IMPORTED_MODULE_0__.z.number().default(0),
+            zod__WEBPACK_IMPORTED_MODULE_0__.z.number().default(0)
+        ]),
+        y: zod__WEBPACK_IMPORTED_MODULE_0__.z.tuple([
+            zod__WEBPACK_IMPORTED_MODULE_0__.z.number().default(0),
+            zod__WEBPACK_IMPORTED_MODULE_0__.z.number().default(0)
+        ])
+    }).describe("Margin of available movement around the bed for this printer").default({
+        x: [
+            0,
+            0
+        ],
+        y: [
+            0,
+            0
+        ]
+    }),
     speedLimits: zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
         basic: SpeedLimits,
         performance: SpeedLimits.optional()

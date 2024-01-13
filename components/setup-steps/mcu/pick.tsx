@@ -17,6 +17,8 @@ export const MCUPicker: React.FC<MCUStepScreenProps> = (props) => {
 		[selectedControlboard, selectedPrinter],
 	);
 
+	const isBoardDetected = toolhead ? selectedToolboard?.board.detected : selectedControlboard?.board.detected;
+
 	let content = (
 		<CardSelector<SelectableBoard>
 			cards={cards}
@@ -57,11 +59,11 @@ export const MCUPicker: React.FC<MCUStepScreenProps> = (props) => {
 	}, [toolhead, skipSteps, setSelectedBoard]);
 
 	let skipButton: StepNavButton | undefined =
-		toolhead && !isToolboardRequired() && props.skipSteps
+		((toolhead && !isToolboardRequired()) || isBoardDetected) && props.skipSteps
 			? {
 					onClick: skip,
 					label: 'Skip',
-			  }
+				}
 			: undefined;
 
 	if ((toolhead && selectedToolboard != null) || (!toolhead && selectedControlboard != null)) {

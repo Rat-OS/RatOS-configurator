@@ -15,9 +15,9 @@ ${helper.renderBoards()}
 ### BASE SETUP
 #############################################################################################################
 ${helper.renderBase()}
-[include RatOS/printers/v-core-3-hybrid/v-core-3.cfg]
-[include RatOS/printers/v-core-3-hybrid/macros.cfg]
-[include RatOS/printers/v-core-3-hybrid/${config.size ?? 300}.cfg]
+[include RatOS/printers/caramba-hybrid/caramba.cfg]
+[include RatOS/printers/caramba-hybrid/macros.cfg]
+[include RatOS/printers/caramba-hybrid/${config.size ?? 300}.cfg]
 
 # Extruder
 ${helper.renderExtruder()}
@@ -82,7 +82,7 @@ variable_start_print_park_in: "back"
 variable_start_print_park_z_height: 50
 variable_end_print_park_in: "back"
 variable_pause_print_park_in: "back"
-${helper.renderMacroVariableOverrides()}
+${helper.renderUserMacroVariableOverrides()}
 
 #############################################################################################################
 ### USER OVERRIDES & CUSTOM CONFIGURATION

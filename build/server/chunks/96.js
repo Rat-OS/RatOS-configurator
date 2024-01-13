@@ -39,7 +39,7 @@ homing_retract_dist: 0
 [gcode_macro RatOS]
 variable_homing_x: "sensorless"
 variable_sensorless_x_current: ${utils.getAxisDriverHomingCurrent(_zods_motion__WEBPACK_IMPORTED_MODULE_0__/* .PrinterAxis.x */ .po.x, 0.35)}
-${utils.getAxisDriverVariables(_zods_motion__WEBPACK_IMPORTED_MODULE_0__/* .PrinterAxis.x */ .po.x, config.printer.id === "v-core-3-hybrid" ? false : true)}
+${utils.getAxisDriverVariables(_zods_motion__WEBPACK_IMPORTED_MODULE_0__/* .PrinterAxis.x */ .po.x, config.printer.id === "caramba-hybrid" ? false : true)}
 `;
 const sensorlessYTemplate = (config, utils)=>`
 # Sensorless homing.
@@ -67,7 +67,7 @@ homing_retract_dist: 0
 [gcode_macro RatOS]
 variable_homing_y: "sensorless"
 variable_sensorless_y_current: ${utils.getAxisDriverHomingCurrent(_zods_motion__WEBPACK_IMPORTED_MODULE_0__/* .PrinterAxis.y */ .po.y, 0.51)}
-${utils.getAxisDriverVariables(_zods_motion__WEBPACK_IMPORTED_MODULE_0__/* .PrinterAxis.y */ .po.y, true, config.printer.id === "v-core-3-hybrid" ? [
+${utils.getAxisDriverVariables(_zods_motion__WEBPACK_IMPORTED_MODULE_0__/* .PrinterAxis.y */ .po.y, true, config.printer.id === "caramba-hybrid" ? [
         _zods_motion__WEBPACK_IMPORTED_MODULE_0__/* .PrinterAxis.x1 */ .po.x1
     ] : [])}
 `;

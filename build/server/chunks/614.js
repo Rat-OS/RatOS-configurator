@@ -902,6 +902,11 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
             } else {
                 section.push(`rotation_distance: ${rail.rotationDistance}`);
             }
+            if (rail.axis === motion/* PrinterAxis.z */.po.z) {
+                // Lower position_min to allow for probe calibration (and componensation functions). 
+                // Very much dislike that this is necessary.
+                section.push(`position_min: -5`);
+            }
             if ([
                 motion/* PrinterAxis.x */.po.x,
                 motion/* PrinterAxis.y */.po.y,
@@ -1183,21 +1188,33 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
         },
         renderMacroVariableOverrides (size) {
             const result = [
-                `variable_macro_travel_speed: ${this.getMacroTravelSpeed()}`,
-                `variable_macro_travel_accel: ${this.getMacroTravelAccel()}`
+                `variable_bed_margin_x: [${config.printer.bedMargin.x[0]}, ${config.printer.bedMargin.x[1]}]`,
+                `variable_bed_margin_y: [${config.printer.bedMargin.y[0]}, ${config.printer.bedMargin.y[1]}]`
             ];
             const toolheads = this.getToolheads();
             const isIdex = toolheads.some((th)=>th.getMotionAxis() === motion/* PrinterAxis.dual_carriage */.po.dual_carriage);
             if (isIdex) {
                 const probeTool = toolheads.find((th)=>th.getProbe() != null)?.getTool();
                 result.push(`variable_default_toolhead: ${probeTool}                             # the toolhead with the z-probe, 0=left 1=right toolhead`);
-                const dcParkX = (size ?? config.size ?? 300) + 49;
-                result.push(`variable_parking_position: [-49, ${dcParkX}]                      # toolhead x parking position`);
-                result.push(`variable_toolchange_travel_speed: ${this.getMacroTravelSpeed()}     # parking travel speed`);
-                result.push(`variable_toolchange_travel_accel: ${this.getMacroTravelAccel()}     # parking travel accel`);
                 const firstADXL = this.getToolhead(0).getXAccelerometerName();
                 const secondADXL = this.getToolhead(1).getXAccelerometerName();
                 result.push(`variable_adxl_chip: [${firstADXL}, ${secondADXL}]           # toolheads adxl chip names`);
+            }
+            return this.formatInlineComments(result).join("\n");
+        },
+        renderUserMacroVariableOverrides (size) {
+            const result = [
+                `variable_macro_travel_speed: ${this.getMacroTravelSpeed()}`,
+                `variable_macro_travel_accel: ${this.getMacroTravelAccel()}`
+            ];
+            const toolheads = this.getToolheads();
+            const isIdex = toolheads.some((th)=>th.getMotionAxis() === motion/* PrinterAxis.dual_carriage */.po.dual_carriage);
+            if (isIdex) {
+                const endstopSafetyMargin = 5;
+                const dcParkX = (size ?? config.size ?? 300) + config.printer.bedMargin.x[1] - endstopSafetyMargin;
+                result.push(`variable_parking_position: [-${config.printer.bedMargin.x[0] + endstopSafetyMargin}, ${dcParkX}]                      # toolhead x parking position`);
+                result.push(`variable_toolchange_travel_speed: ${this.getMacroTravelSpeed()}     # parking travel speed`);
+                result.push(`variable_toolchange_travel_accel: ${this.getMacroTravelAccel()}     # parking travel accel`);
             }
             return this.formatInlineComments(result).join("\n");
         },
@@ -2300,6 +2317,30 @@ const printerRouter = (0,trpc/* router */.Nd)({
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 var map = {
+	"./caramba": [
+		2490,
+		490
+	],
+	"./caramba-hybrid": [
+		4487,
+		487
+	],
+	"./caramba-hybrid.ts": [
+		4487,
+		487
+	],
+	"./caramba-idex": [
+		1868,
+		868
+	],
+	"./caramba-idex.ts": [
+		1868,
+		868
+	],
+	"./caramba.ts": [
+		2490,
+		490
+	],
 	"./extras/sensorless-homing": [
 		1096,
 		680,
@@ -2329,14 +2370,6 @@ var map = {
 	"./v-core-3": [
 		9263,
 		263
-	],
-	"./v-core-3-hybrid": [
-		4091,
-		91
-	],
-	"./v-core-3-hybrid.ts": [
-		4091,
-		91
 	],
 	"./v-core-3.ts": [
 		9263,
