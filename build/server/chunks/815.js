@@ -145,7 +145,7 @@ const getLogger = ()=>{
 /* harmony export */   "Nd": () => (/* binding */ router),
 /* harmony export */   "qR": () => (/* binding */ middleware)
 /* harmony export */ });
-/* harmony import */ var _trpc_server__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(2756);
+/* harmony import */ var _trpc_server__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(6368);
 /* harmony import */ var _trpc_server__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_trpc_server__WEBPACK_IMPORTED_MODULE_0__);
 
 // Avoid exporting the entire t-object

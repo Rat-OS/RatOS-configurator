@@ -127,7 +127,7 @@ ${helper.renderUserStepperSections({
             rotationComment: "40 for 20 tooth 2GT pulleys, 32 for 16 tooth 2GT pulleys"
         },
         y: {
-            directionInverted: false,
+            directionInverted: true,
             rotationComment: "40 for 20 tooth 2GT pulleys, 32 for 16 tooth 2GT pulleys"
         },
         y1: {
