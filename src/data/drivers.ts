@@ -24,7 +24,7 @@ export const Drivers = z.array(Driver).parse([
 	},
 	{
 		id: 'BTT-TMC5160-PRO-11',
-		title: 'BTT TMC5160 Pro v1.1',
+		title: 'BTT TMC5160(T) Pro v1.1',
 		type: 'TMC5160',
 		protocol: 'SPI',
 		senseResistor: 0.075,
