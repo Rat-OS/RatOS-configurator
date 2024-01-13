@@ -6,6 +6,7 @@ export const register = async () => {
 		const { serverSchema } = await import('./env/schema.mjs');
 		const { symlinkKlippyExtensions } = await import('./server/routers/klippy-extensions');
 		const { symlinkMoonrakerExtensions } = await import('./server/routers/moonraker-extensions');
+		const { klipperRestart } = await import('./server/helpers/klipper');
 		const dns = await import('dns');
 		dns.setDefaultResultOrder('ipv4first');
 		const logger = getLogger();
@@ -35,6 +36,7 @@ export const register = async () => {
 		try {
 			logger.info('Regenerating last known config...');
 			await regenerateKlipperConfiguration();
+			await klipperRestart();
 			logger.info('Config regenerated!');
 		} catch (e) {
 			if (e instanceof Error) {
