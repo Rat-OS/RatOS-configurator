@@ -1409,8 +1409,10 @@ const compileFirmware = async (board, toolhead, skipCompile)=>{
     const environment = schema.serverSchema.parse(process.env);
     try {
         const dest = external_path_default().join(environment.KLIPPER_DIR, ".config");
-        await (0,promises_.copyFile)(external_path_default().join(environment.RATOS_CONFIGURATION_PATH, "boards", board.id, "firmware.config"), dest);
-        await (0,file_operations/* replaceInFileByLine */.u)(dest, /CONFIG_USB_SERIAL_NUMBER=".+"/g, `CONFIG_USB_SERIAL_NUMBER="${getBoardChipId(board, toolhead)}"`);
+        await (0,promises_.copyFile)(external_path_default().join(board.path, "firmware.config"), dest);
+        if (!board.isHost) {
+            await (0,file_operations/* replaceInFileByLine */.u)(dest, /CONFIG_USB_SERIAL_NUMBER=".+"/g, `CONFIG_USB_SERIAL_NUMBER="${getBoardChipId(board, toolhead)}"`);
+        }
         if (skipCompile) {
             return (0,external_fs_.readFileSync)(dest).toString();
         }

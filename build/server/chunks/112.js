@@ -1064,8 +1064,10 @@ const compileFirmware = async (board, toolhead, skipCompile)=>{
     const environment = _env_schema_mjs__WEBPACK_IMPORTED_MODULE_12__/* .serverSchema.parse */ .Rz.parse(process.env);
     try {
         const dest = path__WEBPACK_IMPORTED_MODULE_8___default().join(environment.KLIPPER_DIR, ".config");
-        await (0,fs_promises__WEBPACK_IMPORTED_MODULE_11__.copyFile)(path__WEBPACK_IMPORTED_MODULE_8___default().join(environment.RATOS_CONFIGURATION_PATH, "boards", board.id, "firmware.config"), dest);
-        await (0,_helpers_file_operations__WEBPACK_IMPORTED_MODULE_13__/* .replaceInFileByLine */ .u)(dest, /CONFIG_USB_SERIAL_NUMBER=".+"/g, `CONFIG_USB_SERIAL_NUMBER="${(0,_helpers_board__WEBPACK_IMPORTED_MODULE_19__/* .getBoardChipId */ .m)(board, toolhead)}"`);
+        await (0,fs_promises__WEBPACK_IMPORTED_MODULE_11__.copyFile)(path__WEBPACK_IMPORTED_MODULE_8___default().join(board.path, "firmware.config"), dest);
+        if (!board.isHost) {
+            await (0,_helpers_file_operations__WEBPACK_IMPORTED_MODULE_13__/* .replaceInFileByLine */ .u)(dest, /CONFIG_USB_SERIAL_NUMBER=".+"/g, `CONFIG_USB_SERIAL_NUMBER="${(0,_helpers_board__WEBPACK_IMPORTED_MODULE_19__/* .getBoardChipId */ .m)(board, toolhead)}"`);
+        }
         if (skipCompile) {
             return (0,fs__WEBPACK_IMPORTED_MODULE_1__.readFileSync)(dest).toString();
         }
