@@ -79,13 +79,15 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 		};
 	});
 	const [voltage, setVoltage] = useState(
-		supportedVoltages.find(
-			(v) =>
-				v.id ===
-				(props.performanceMode && props.printerRailDefault.performanceMode?.voltage
-					? props.printerRailDefault.performanceMode.voltage
-					: props.printerRailDefault.voltage),
-		) ?? supportedVoltages[0],
+		supportedVoltages.find((v) => v.id === props.printerRail.voltage) ??
+			supportedVoltages.find(
+				(v) =>
+					v.id ===
+					(props.performanceMode && props.printerRailDefault.performanceMode?.voltage
+						? props.printerRailDefault.performanceMode.voltage
+						: props.printerRailDefault.voltage),
+			) ??
+			supportedVoltages[0],
 	);
 	const [current, setCurrent] = useState(
 		props.performanceMode && props.printerRailDefault.performanceMode
@@ -179,31 +181,26 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 	}, [supportedVoltages, voltage, recommendedPreset]);
 
 	useEffect(() => {
-		setPrinterRail(
-			serializePrinterRail({
-				axis: props.printerRail.axis,
-				axisDescription: props.printerRail.axisDescription,
-				rotationDistance: props.printerRail.rotationDistance,
-				homingSpeed: homingSpeed,
-				motorSlot: motorSlot,
-				driver,
-				voltage: voltage.id,
-				stepper,
-				current,
-			}),
-		);
-	}, [
-		current,
-		driver,
-		props.printerRail.axis,
-		props.printerRail.axisDescription,
-		homingSpeed,
-		props.printerRail.rotationDistance,
-		setPrinterRail,
-		stepper,
-		voltage.id,
-		motorSlot,
-	]);
+		const newState = {
+			axis: props.printerRail.axis,
+			axisDescription: props.printerRail.axisDescription,
+			rotationDistance: props.printerRail.rotationDistance,
+			homingSpeed: homingSpeed,
+			motorSlot: motorSlot,
+			driver,
+			voltage: voltage.id,
+			stepper,
+			current,
+		};
+		const serializedNew = serializePrinterRail(newState);
+		const serializedOld = serializePrinterRail(props.printerRail);
+		const isDirty = Object.keys(serializedNew).some((key) => {
+			return serializedNew[key as keyof typeof serializedNew] !== serializedOld[key as keyof typeof serializedNew];
+		});
+		if (isDirty) {
+			setPrinterRail(serializedNew);
+		}
+	}, [current, driver, props.printerRail, homingSpeed, setPrinterRail, stepper, voltage.id, motorSlot]);
 
 	const isRecommendedPresetCompatible = recommendedPreset && recommendedPreset.run_current === current;
 	const extruderName =
