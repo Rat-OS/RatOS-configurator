@@ -7,9 +7,9 @@ fi
 
 pushd "/home/pi/klipper" || exit 1
 
-make olddefconfig
-make clean
-make
 chown pi:pi -R /home/pi/klipper
+sudo -u pi make olddefconfig
+sudo -u pi make clean
+sudo -u pi make
 
 popd || exit 1
