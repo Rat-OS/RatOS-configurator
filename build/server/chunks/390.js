@@ -1198,7 +1198,7 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
                 result.push(`variable_default_toolhead: ${probeTool}                             # the toolhead with the z-probe, 0=left 1=right toolhead`);
                 const firstADXL = this.getToolhead(0).getXAccelerometerName();
                 const secondADXL = this.getToolhead(1).getXAccelerometerName();
-                result.push(`variable_adxl_chip: [${firstADXL}, ${secondADXL}]           # toolheads adxl chip names`);
+                result.push(`variable_adxl_chip: ["${firstADXL}", "${secondADXL}"]           # toolheads adxl chip names`);
             }
             return this.formatInlineComments(result).join("\n");
         },

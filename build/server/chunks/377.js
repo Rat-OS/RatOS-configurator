@@ -651,6 +651,9 @@ class ToolheadHelper {
         return this.config.toolboard;
     }
     getMotionStepperName() {
+        if (this.config.axis === _zods_motion__WEBPACK_IMPORTED_MODULE_1__/* .PrinterAxis.dual_carriage */ .po.dual_carriage) {
+            return "dual_carriage";
+        }
         return `stepper_${this.getMotionAxis()}`;
     }
     getToolboardName() {

@@ -366,6 +366,9 @@ class ToolheadHelper {
         return this.config.toolboard;
     }
     getMotionStepperName() {
+        if (this.config.axis === _zods_motion__WEBPACK_IMPORTED_MODULE_1__/* .PrinterAxis.dual_carriage */ .po.dual_carriage) {
+            return "dual_carriage";
+        }
         return `stepper_${this.getMotionAxis()}`;
     }
     getToolboardName() {
@@ -2576,7 +2579,7 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
                 result.push(`variable_default_toolhead: ${probeTool}                             # the toolhead with the z-probe, 0=left 1=right toolhead`);
                 const firstADXL = this.getToolhead(0).getXAccelerometerName();
                 const secondADXL = this.getToolhead(1).getXAccelerometerName();
-                result.push(`variable_adxl_chip: [${firstADXL}, ${secondADXL}]           # toolheads adxl chip names`);
+                result.push(`variable_adxl_chip: ["${firstADXL}", "${secondADXL}"]           # toolheads adxl chip names`);
             }
             return this.formatInlineComments(result).join("\n");
         },

@@ -120,11 +120,21 @@ ${helper.renderUserMacroVariableOverrides()}
 ${helper.renderUserStepperSections({
         x: {
             directionInverted: false,
-            rotationComment: "40 for 20 tooth 2GT pulleys, 32 for 16 tooth 2GT pulleys"
+            rotationComment: "40 for 20 tooth 2GT pulleys, 32 for 16 tooth 2GT pulleys",
+            additionalLines: [
+                `position_endstop: ${(config.size ?? 300) - config.printer.bedMargin.x[1]}`,
+                `position_max: ${config.size ?? 300}`,
+                `position_min: ${(config.size ?? 300) - config.printer.bedMargin.x[1]}`
+            ]
         },
-        x1: {
+        dual_carriage: {
             directionInverted: false,
-            rotationComment: "40 for 20 tooth 2GT pulleys, 32 for 16 tooth 2GT pulleys"
+            rotationComment: "40 for 20 tooth 2GT pulleys, 32 for 16 tooth 2GT pulleys",
+            additionalLines: [
+                `position_endstop: ${(config.size ?? 300) + config.printer.bedMargin.x[1]}`,
+                `position_max: ${(config.size ?? 300) + config.printer.bedMargin.x[1]}`,
+                `position_min: 0`
+            ]
         },
         y: {
             directionInverted: false,
@@ -147,6 +157,17 @@ ${helper.renderUserStepperSections({
             rotationComment: "4 for TR8*4 lead screws"
         },
         extruder: {
+            directionInverted: true,
+            additionalLines: [
+                "#pressure_advance: 0.05 # Check https://www.klipper3d.org/Pressure_Advance.html for pressure advance tuning.",
+                "nozzle_diameter: 0.4 # Remember to change this if you change nozzle diameter.",
+                "control: pid",
+                "pid_kp: 28.413",
+                "pid_ki: 1.334",
+                "pid_kd: 151.300"
+            ]
+        },
+        extruder1: {
             directionInverted: true,
             additionalLines: [
                 "#pressure_advance: 0.05 # Check https://www.klipper3d.org/Pressure_Advance.html for pressure advance tuning.",
