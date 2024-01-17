@@ -762,6 +762,9 @@ export const constructKlipperConfigHelpers = async (
 			}
 			return this.formatInlineComments(result).join('\n');
 		},
+		renderSaveVariables() {
+			return extrasGenerator.generateSaveVariables().join('\n');
+		},
 		renderUserMacroVariableOverrides(size?: number) {
 
 			const result: string[] = [
