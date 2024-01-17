@@ -308,8 +308,10 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 		return result.join('\n');
 	}
 	public renderHotendFan() {
-		let result: string[] = [];
-		result.push(`[heater_fan toolhead_cooling_fan${this.getTool() > 0 ? `_${this.getShortToolName()}` : ''}]`);
+		let result: string[] = [
+			`[heater_fan toolhead_cooling_fan${this.getTool() > 0 ? `_${this.getShortToolName()}` : ''}]`,
+			`heater: ${this.getExtruderAxis().toLocaleLowerCase()}`
+		];
 		switch (this.getHotendFan().id) {
 			case '2pin':
 				this.requireControlboardPin('fan_toolhead_cooling_pin');
