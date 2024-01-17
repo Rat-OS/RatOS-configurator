@@ -1232,6 +1232,9 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
             }
             return this.formatInlineComments(result).join("\n");
         },
+        renderSaveVariables () {
+            return extrasGenerator.generateSaveVariables().join("\n");
+        },
         renderUserMacroVariableOverrides (size) {
             const result = [
                 `variable_macro_travel_speed: ${this.getMacroTravelSpeed()}`,

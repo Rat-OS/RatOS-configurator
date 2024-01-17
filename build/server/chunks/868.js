@@ -71,6 +71,9 @@ ${helper.renderFans()}
 # Macro variable overrides
 [gcode_macro RatOS]
 ${helper.renderMacroVariableOverrides()}
+
+# Save variables
+${helper.renderSaveVariables()}
 `;
 const initialPrinterCfg = (config, helper)=>`
 #############################################################################################################
