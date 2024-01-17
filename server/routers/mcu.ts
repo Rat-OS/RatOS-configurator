@@ -17,7 +17,7 @@ import path from 'path';
 import { glob } from 'glob';
 import { SerializedToolheadConfiguration } from '../../zods/toolhead';
 import { getBoardSerialPath, getBoardChipId } from '../../helpers/board';
-import { copyFile } from 'fs/promises';
+import { copyFile, unlink } from 'fs/promises';
 import { serverSchema } from '../../env/schema.mjs';
 import { replaceInFileByLine } from '../helpers/file-operations';
 import { ToolheadHelper } from '../../helpers/toolhead';
@@ -92,6 +92,16 @@ export const compileFirmware = async <T extends boolean>(
 			return readFileSync(dest).toString() as T extends true ? string : Awaited<ReturnType<typeof runSudoScript>>;
 		}
 		compileResult = await runSudoScript('klipper-compile.sh');
+		const binaryName = board.firmwareBinaryName;
+		const extension = path.extname(binaryName);
+		const klipperOut = path.join(environment.KLIPPER_DIR, 'klipper', 'out', `klipper.${extension}`);
+		const firmwareDest = path.join(environment.RATOS_DATA_DIR, binaryName);
+		existsSync(firmwareDest) && await unlink(firmwareDest);
+		if (existsSync(klipperOut)) {
+			await copyFile(klipperOut, firmwareDest)
+		} else {
+			throw new Error(`Could not find compiled firmware at ${klipperOut}`);
+		}
 		return compileResult as T extends true ? string : Awaited<ReturnType<typeof runSudoScript>>;
 	} catch (e) {
 		const message = e instanceof Error ? e.message : e;

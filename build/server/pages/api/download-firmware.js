@@ -209,6 +209,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var _server_routers_mcu__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(3459);
 /* harmony import */ var file_type__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(5379);
+/* harmony import */ var _env_schema_mjs__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(954);
+
 
 
 
@@ -242,7 +244,8 @@ async function handler(req, res) {
                 }
             });
         }
-        const firmwarePath = path__WEBPACK_IMPORTED_MODULE_2___default().join(process.env.RATOS_CONFIGURATION_PATH, "..", "firmware_binaries", board.firmwareBinaryName);
+        const environment = _env_schema_mjs__WEBPACK_IMPORTED_MODULE_5__/* .serverSchema.parse */ .Rz.parse(process.env);
+        const firmwarePath = path__WEBPACK_IMPORTED_MODULE_2___default().join(environment.RATOS_DATA_DIR, board.firmwareBinaryName);
         try {
             const buf = await (0,util__WEBPACK_IMPORTED_MODULE_1__.promisify)((fs__WEBPACK_IMPORTED_MODULE_0___default().readFile))(firmwarePath);
             res.setHeader("Content-Type", (await (0,file_type__WEBPACK_IMPORTED_MODULE_4__/* .fileTypeFromFile */ .lb)(firmwarePath))?.mime ?? "application/octet-stream");

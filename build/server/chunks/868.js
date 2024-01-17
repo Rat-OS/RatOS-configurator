@@ -122,9 +122,9 @@ ${helper.renderUserStepperSections({
             directionInverted: false,
             rotationComment: "40 for 20 tooth 2GT pulleys, 32 for 16 tooth 2GT pulleys",
             additionalLines: [
-                `position_endstop: ${(config.size ?? 300) - config.printer.bedMargin.x[1]}`,
+                `position_endstop: ${0 - config.printer.bedMargin.x[0]}`,
                 `position_max: ${config.size ?? 300}`,
-                `position_min: ${(config.size ?? 300) - config.printer.bedMargin.x[1]}`
+                `position_min: ${0 - config.printer.bedMargin.x[1]}`
             ]
         },
         dual_carriage: {
@@ -133,11 +133,12 @@ ${helper.renderUserStepperSections({
             additionalLines: [
                 `position_endstop: ${(config.size ?? 300) + config.printer.bedMargin.x[1]}`,
                 `position_max: ${(config.size ?? 300) + config.printer.bedMargin.x[1]}`,
-                `position_min: 0`
+                `position_min: 0`,
+                `safe_distance: 70`
             ]
         },
         y: {
-            directionInverted: false,
+            directionInverted: true,
             rotationComment: "40 for 20 tooth 2GT pulleys, 32 for 16 tooth 2GT pulleys"
         },
         y1: {

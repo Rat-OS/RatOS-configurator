@@ -526,8 +526,10 @@ class ToolheadGenerator extends helpers_toolhead/* ToolheadHelper */.D {
         return result.join("\n");
     }
     renderHotendFan() {
-        let result = [];
-        result.push(`[heater_fan toolhead_cooling_fan${this.getTool() > 0 ? `_${this.getShortToolName()}` : ""}]`);
+        let result = [
+            `[heater_fan toolhead_cooling_fan${this.getTool() > 0 ? `_${this.getShortToolName()}` : ""}]`,
+            `heater: ${this.getExtruderAxis().toLocaleLowerCase()}`
+        ];
         switch(this.getHotendFan().id){
             case "2pin":
                 this.requireControlboardPin("fan_toolhead_cooling_pin");
@@ -579,6 +581,8 @@ class ToolheadGenerator extends helpers_toolhead/* ToolheadHelper */.D {
 }
 
 ;// CONCATENATED MODULE: ./server/helpers/klipper-config.ts
+
+
 
 
 
@@ -761,6 +765,32 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
         },
         getReminders () {
             return _reminders.slice();
+        },
+        generateSaveVariables () {
+            const environment = schema.serverSchema.parse(process.env);
+            return [
+                {
+                    fileName: external_path_default().join(environment.KLIPPER_CONFIG_PATH, "ratos-variables.cfg"),
+                    content: [
+                        `[Variables]`,
+                        `idex_applied_offset = 1`,
+                        `idex_xcontrolpoint = 150.0`,
+                        `idex_xoffset = 0.0`,
+                        `idex_ycontrolpoint = 50.0`,
+                        `idex_yoffset = 0.0`,
+                        `idex_zcontrolpoint = 50.0`,
+                        `idex_zoffset = 0.0`,
+                        `idex_zoffsetcontrolpoint = 25.0`
+                    ].join("\n"),
+                    overwrite: false
+                }
+            ].map((f)=>{
+                this.addFileToRender(f);
+                return [
+                    `[save_variables]`,
+                    `filename: ${f.fileName}`
+                ].join("\n");
+            });
         },
         generateSensorlessHomingIncludes () {
             const filesToWrite = [];
@@ -1417,6 +1447,16 @@ const compileFirmware = async (board, toolhead, skipCompile)=>{
             return (0,external_fs_.readFileSync)(dest).toString();
         }
         compileResult = await runSudoScript("klipper-compile.sh");
+        const binaryName = board.firmwareBinaryName;
+        const extension = external_path_default().extname(binaryName);
+        const klipperOut = external_path_default().join(environment.KLIPPER_DIR, "klipper", "out", `klipper.${extension}`);
+        const firmwareDest = external_path_default().join(environment.RATOS_DATA_DIR, binaryName);
+        (0,external_fs_.existsSync)(firmwareDest) && await (0,promises_.unlink)(firmwareDest);
+        if ((0,external_fs_.existsSync)(klipperOut)) {
+            await (0,promises_.copyFile)(klipperOut, firmwareDest);
+        } else {
+            throw new Error(`Could not find compiled firmware at ${klipperOut}`);
+        }
         return compileResult;
     } catch (e) {
         const message = e instanceof Error ? e.message : e;

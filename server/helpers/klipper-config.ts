@@ -16,6 +16,8 @@ import { getBoardSerialPath } from '../../helpers/board';
 import { ToolOrAxis } from '../../zods/toolhead';
 import { MotorSlotKey, SPIPins, UARTPins, hasSPI, hasUART } from '../../zods/boards';
 import { z } from 'zod';
+import path from 'path';
+import { serverSchema } from '../../env/schema.mjs';
 
 type WritableFiles = { fileName: string; content: string; overwrite: boolean }[];
 
@@ -212,6 +214,30 @@ export const constructKlipperConfigExtrasGenerator = (config: PrinterConfigurati
 		},
 		getReminders() {
 			return _reminders.slice();
+		},
+		generateSaveVariables() {
+			const environment = serverSchema.parse(process.env);
+			return [{
+					fileName: path.join(environment.KLIPPER_CONFIG_PATH, 'ratos-variables.cfg'),
+					content: [
+						`[Variables]`,
+						`idex_applied_offset = 1`,
+						`idex_xcontrolpoint = 150.0`,
+						`idex_xoffset = 0.0`,
+						`idex_ycontrolpoint = 50.0`,
+						`idex_yoffset = 0.0`,
+						`idex_zcontrolpoint = 50.0`,
+						`idex_zoffset = 0.0`,
+						`idex_zoffsetcontrolpoint = 25.0`,
+					].join('\n'),
+					overwrite: false,
+			}].map((f) => {
+				this.addFileToRender(f);
+				return [
+					`[save_variables]`,
+					`filename: ${f.fileName}`
+				].join('\n');
+			});
 		},
 		generateSensorlessHomingIncludes() {
 			const filesToWrite: WritableFiles = [];
