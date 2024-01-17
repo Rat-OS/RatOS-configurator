@@ -50,13 +50,6 @@ const SyncWithMoonraker = ({ children  })=>{
     }, [
         moonraker
     ]);
-    const write = (0,react__WEBPACK_IMPORTED_MODULE_1__.useCallback)(async ({ diff  })=>{
-        console.debug("Currently sidestepping recoil sync writes because of major bug: https://github.com/facebookexperimental/Recoil/issues/2059");
-        return;
-    // for (const [key, value] of diff) {
-    // await moonraker.saveItem(key, value);
-    // }
-    }, []);
     const saveAtom = (0,react__WEBPACK_IMPORTED_MODULE_1__.useCallback)(async (event)=>{
         const { itemKey , value  } = event.detail;
         await moonraker.saveItem(itemKey, value);
@@ -73,7 +66,6 @@ const SyncWithMoonraker = ({ children  })=>{
     ]);
     return /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(recoil_sync__WEBPACK_IMPORTED_MODULE_3__.RecoilSync, {
         read: read,
-        write: write,
         children: children
     });
 };

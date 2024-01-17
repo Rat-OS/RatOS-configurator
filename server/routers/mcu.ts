@@ -300,7 +300,7 @@ export const mcuRouter = router({
 					dir_pin: pins[`${axisAlias}_dir_pin` as keyof typeof pins],
 				},
 				ctx.board,
-			);
+			) ?? null;
 		}),
 	flashAllConnected: mcuProcedure
 		.meta({

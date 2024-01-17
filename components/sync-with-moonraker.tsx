@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect } from 'react';
 import { useMoonraker } from '../hooks/useMoonraker';
-import { ReadItem, RecoilSync, WriteItems } from 'recoil-sync';
+import { ReadItem, RecoilSync } from 'recoil-sync';
 import { AtomEffect, DefaultValue } from 'recoil';
 
 const moonrakerSyncEventEmitter = new EventTarget();
@@ -42,15 +42,6 @@ export const SyncWithMoonraker: React.FC<React.PropsWithChildren> = ({ children 
 		},
 		[moonraker],
 	);
-	const write: WriteItems = useCallback(async ({ diff }) => {
-		console.debug(
-			'Currently sidestepping recoil sync writes because of major bug: https://github.com/facebookexperimental/Recoil/issues/2059',
-		);
-		return;
-		// for (const [key, value] of diff) {
-		// await moonraker.saveItem(key, value);
-		// }
-	}, []);
 
 	const saveAtom = useCallback(
 		async (event: Event) => {
@@ -66,9 +57,5 @@ export const SyncWithMoonraker: React.FC<React.PropsWithChildren> = ({ children 
 			moonrakerSyncEventEmitter.removeEventListener('saveAtom', saveAtom);
 		};
 	}, [saveAtom]);
-	return (
-		<RecoilSync read={read} write={write}>
-			{children}
-		</RecoilSync>
-	);
+	return <RecoilSync read={read}>{children}</RecoilSync>;
 };

@@ -1249,7 +1249,7 @@ const mcuRouter = (0,_trpc__WEBPACK_IMPORTED_MODULE_7__/* .router */ .Nd)({
         return (0,_zods_boards__WEBPACK_IMPORTED_MODULE_6__/* .reversePinLookup */ .MO)({
             step_pin: pins[`${axisAlias}_step_pin`],
             dir_pin: pins[`${axisAlias}_dir_pin`]
-        }, ctx.board);
+        }, ctx.board) ?? null;
     }),
     flashAllConnected: mcuProcedure.meta({
         boardRequired: false,
@@ -3063,13 +3063,6 @@ const SyncWithMoonraker = ({ children  })=>{
     }, [
         moonraker
     ]);
-    const write = useCallback(async ({ diff  })=>{
-        console.debug("Currently sidestepping recoil sync writes because of major bug: https://github.com/facebookexperimental/Recoil/issues/2059");
-        return;
-    // for (const [key, value] of diff) {
-    // await moonraker.saveItem(key, value);
-    // }
-    }, []);
     const saveAtom = useCallback(async (event)=>{
         const { itemKey , value  } = event.detail;
         await moonraker.saveItem(itemKey, value);
@@ -3086,7 +3079,6 @@ const SyncWithMoonraker = ({ children  })=>{
     ]);
     return /*#__PURE__*/ _jsx(RecoilSync, {
         read: read,
-        write: write,
         children: children
     });
 };

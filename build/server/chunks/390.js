@@ -1594,7 +1594,7 @@ const mcuRouter = (0,trpc/* router */.Nd)({
         return (0,zods_boards/* reversePinLookup */.MO)({
             step_pin: pins[`${axisAlias}_step_pin`],
             dir_pin: pins[`${axisAlias}_dir_pin`]
-        }, ctx.board);
+        }, ctx.board) ?? null;
     }),
     flashAllConnected: mcuProcedure.meta({
         boardRequired: false,

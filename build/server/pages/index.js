@@ -2032,7 +2032,7 @@ const PrinterRailSettings = (props)=>{
             } : undefined
         };
     });
-    const [voltage, setVoltage] = (0,react_.useState)(supportedVoltages.find((v)=>v.id === (props.performanceMode && props.printerRailDefault.performanceMode?.voltage ? props.printerRailDefault.performanceMode.voltage : props.printerRailDefault.voltage)) ?? supportedVoltages[0]);
+    const [voltage, setVoltage] = (0,react_.useState)(supportedVoltages.find((v)=>v.id === props.printerRail.voltage) ?? supportedVoltages.find((v)=>v.id === (props.performanceMode && props.printerRailDefault.performanceMode?.voltage ? props.printerRailDefault.performanceMode.voltage : props.printerRailDefault.voltage)) ?? supportedVoltages[0]);
     const [current, setCurrent] = (0,react_.useState)(props.performanceMode && props.printerRailDefault.performanceMode ? props.printerRailDefault.performanceMode.current : props.printerRail.current);
     const defaultPreset = (0,react_.useMemo)(()=>(0,data_steppers/* findPreset */.a)(props.printerRailDefault.stepper, props.printerRailDefault.driver, props.printerRailDefault.voltage, props.printerRailDefault.current), [
         props.printerRailDefault
@@ -2107,7 +2107,7 @@ const PrinterRailSettings = (props)=>{
         recommendedPreset
     ]);
     (0,react_.useEffect)(()=>{
-        setPrinterRail((0,serialization/* serializePrinterRail */.Yz)({
+        const newState = {
             axis: props.printerRail.axis,
             axisDescription: props.printerRail.axisDescription,
             rotationDistance: props.printerRail.rotationDistance,
@@ -2117,14 +2117,20 @@ const PrinterRailSettings = (props)=>{
             voltage: voltage.id,
             stepper,
             current
-        }));
+        };
+        const serializedNew = (0,serialization/* serializePrinterRail */.Yz)(newState);
+        const serializedOld = (0,serialization/* serializePrinterRail */.Yz)(props.printerRail);
+        const isDirty = Object.keys(serializedNew).some((key)=>{
+            return serializedNew[key] !== serializedOld[key];
+        });
+        if (isDirty) {
+            setPrinterRail(serializedNew);
+        }
     }, [
         current,
         driver,
-        props.printerRail.axis,
-        props.printerRail.axisDescription,
+        props.printerRail,
         homingSpeed,
-        props.printerRail.rotationDistance,
         setPrinterRail,
         stepper,
         voltage.id,
