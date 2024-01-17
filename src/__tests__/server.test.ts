@@ -137,7 +137,7 @@ describe('server', async () => {
 					.slice(sectionIndex > -1 ? sectionIndex : 0)
 					.findIndex((l) => l.includes('pin: toolboard_t0:PA1'));
 				expect(sectionIndex, 'Expected [heater_fan toolhead_cooling_fan] section present').toBeGreaterThan(-1);
-				expect(commentIndex, 'Expected 2-pin toolboard fan comment').toEqual(1);
+				expect(commentIndex, 'Expected 2-pin toolboard fan comment').toEqual(2);
 				expect(pinIndex, 'expected toolboard fan pin').toEqual(commentIndex! + 1);
 			});
 			test.concurrent('uses the correct part fan', async () => {
