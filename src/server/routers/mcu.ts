@@ -80,12 +80,14 @@ export const compileFirmware = async <T extends boolean>(
 	const environment = serverSchema.parse(process.env);
 	try {
 		const dest = path.join(environment.KLIPPER_DIR, '.config');
-		await copyFile(path.join(environment.RATOS_CONFIGURATION_PATH, 'boards', board.id, 'firmware.config'), dest);
-		await replaceInFileByLine(
-			dest,
-			/CONFIG_USB_SERIAL_NUMBER=".+"/g,
-			`CONFIG_USB_SERIAL_NUMBER="${getBoardChipId(board, toolhead)}"`,
-		);
+		await copyFile(path.join(board.path, 'firmware.config'), dest);
+		if (!board.isHost) {
+			await replaceInFileByLine(
+				dest,
+				/CONFIG_USB_SERIAL_NUMBER=".+"/g,
+				`CONFIG_USB_SERIAL_NUMBER="${getBoardChipId(board, toolhead)}"`,
+			);
+		}
 		if (skipCompile) {
 			return readFileSync(dest).toString() as T extends true ? string : Awaited<ReturnType<typeof runSudoScript>>;
 		}
