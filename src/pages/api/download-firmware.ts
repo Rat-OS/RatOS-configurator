@@ -5,6 +5,7 @@ import path from 'path';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getBoards } from '../../server/routers/mcu';
 import { fileTypeFromFile } from 'file-type';
+import { serverSchema } from '../../env/schema.mjs';
 
 type DownloadFirmwareSuccessResponseData = Buffer;
 
@@ -40,12 +41,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 				},
 			});
 		}
-		const firmwarePath = path.join(
-			process.env.RATOS_CONFIGURATION_PATH,
-			'..',
-			'firmware_binaries',
-			board.firmwareBinaryName,
-		);
+		const environment = serverSchema.parse(process.env);
+		const firmwarePath = path.join(environment.RATOS_DATA_DIR, board.firmwareBinaryName);
 		try {
 			const buf = await promisify(fs.readFile)(firmwarePath);
 			res.setHeader('Content-Type', (await fileTypeFromFile(firmwarePath))?.mime ?? 'application/octet-stream');
