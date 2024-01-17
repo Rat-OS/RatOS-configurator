@@ -24,6 +24,9 @@ export class ToolheadHelper<IsToolboard extends boolean> {
 		return this.config.toolboard;
 	}
 	public getMotionStepperName() {
+		if (this.config.axis === PrinterAxis.dual_carriage) {
+			return 'dual_carriage';
+		}
 		return `stepper_${this.getMotionAxis()}`;
 	}
 	public getToolboardName(): `toolboard_${ToolboardShortName}` {
