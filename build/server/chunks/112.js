@@ -1071,12 +1071,12 @@ const compileFirmware = async (board, toolhead, skipCompile)=>{
         if (skipCompile) {
             return (0,fs__WEBPACK_IMPORTED_MODULE_1__.readFileSync)(dest).toString();
         }
-        compileResult = await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_5__/* .runSudoScript */ .$)("klipper-compile.sh");
         const binaryName = board.firmwareBinaryName;
         const extension = path__WEBPACK_IMPORTED_MODULE_8___default().extname(binaryName);
         const klipperOut = path__WEBPACK_IMPORTED_MODULE_8___default().join(environment.KLIPPER_DIR, "klipper", "out", `klipper.${extension}`);
         const firmwareDest = path__WEBPACK_IMPORTED_MODULE_8___default().join(environment.RATOS_DATA_DIR, binaryName);
         (0,fs__WEBPACK_IMPORTED_MODULE_1__.existsSync)(firmwareDest) && await (0,fs_promises__WEBPACK_IMPORTED_MODULE_11__.unlink)(firmwareDest);
+        compileResult = await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_5__/* .runSudoScript */ .$)("klipper-compile.sh");
         if ((0,fs__WEBPACK_IMPORTED_MODULE_1__.existsSync)(klipperOut)) {
             await (0,fs_promises__WEBPACK_IMPORTED_MODULE_11__.copyFile)(klipperOut, firmwareDest);
         } else {

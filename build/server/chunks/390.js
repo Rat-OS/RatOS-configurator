@@ -1449,12 +1449,12 @@ const compileFirmware = async (board, toolhead, skipCompile)=>{
         if (skipCompile) {
             return (0,external_fs_.readFileSync)(dest).toString();
         }
-        compileResult = await runSudoScript("klipper-compile.sh");
         const binaryName = board.firmwareBinaryName;
         const extension = external_path_default().extname(binaryName);
         const klipperOut = external_path_default().join(environment.KLIPPER_DIR, "klipper", "out", `klipper.${extension}`);
         const firmwareDest = external_path_default().join(environment.RATOS_DATA_DIR, binaryName);
         (0,external_fs_.existsSync)(firmwareDest) && await (0,promises_.unlink)(firmwareDest);
+        compileResult = await runSudoScript("klipper-compile.sh");
         if ((0,external_fs_.existsSync)(klipperOut)) {
             await (0,promises_.copyFile)(klipperOut, firmwareDest);
         } else {
