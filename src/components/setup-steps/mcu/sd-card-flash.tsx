@@ -16,6 +16,7 @@ import { Spinner } from '../../common/spinner';
 import { useMoonraker } from '../../../hooks/useMoonraker';
 import { Board } from '../../../zods/boards';
 import { ToolheadHelper } from '../../../helpers/toolhead';
+import { ErrorMessage } from '../../common/error-message';
 
 interface SDCardFlashingProps {
 	board: Board;
@@ -80,6 +81,8 @@ export const SDCardFlashing: React.FC<SDCardFlashingProps> = (props) => {
 					compileButton
 				)}
 			</Button>
+
+			{compile.error?.message ? <ErrorMessage>{compile.error?.message}</ErrorMessage> : null}
 
 			<div className="prose mt-4 text-base text-zinc-500 dark:text-zinc-400">
 				<ol className="mb-4 list-decimal pl-4">

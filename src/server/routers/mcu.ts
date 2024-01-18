@@ -93,7 +93,7 @@ export const compileFirmware = async <T extends boolean>(
 		}
 		const binaryName = board.firmwareBinaryName;
 		const extension = path.extname(binaryName);
-		const klipperOut = path.join(environment.KLIPPER_DIR, 'klipper', 'out', `klipper.${extension}`);
+		const klipperOut = path.join(environment.KLIPPER_DIR, 'klipper', 'out', `klipper${extension}`);
 		const firmwareDest = path.join(environment.RATOS_DATA_DIR, binaryName);
 		existsSync(firmwareDest) && await unlink(firmwareDest);
 		compileResult = await runSudoScript('klipper-compile.sh');
@@ -107,7 +107,7 @@ export const compileFirmware = async <T extends boolean>(
 		const message = e instanceof Error ? e.message : e;
 		throw new TRPCError({
 			code: 'INTERNAL_SERVER_ERROR',
-			message: `Could not compile firmware for ${board.name}: ${compileResult?.stdout ?? message}'}`,
+			message: `Could not compile firmware for ${board.name}: ${message} \n\n ${compileResult?.stdout}`,
 			cause: e,
 		});
 	}
