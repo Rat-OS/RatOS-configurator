@@ -1073,7 +1073,7 @@ const compileFirmware = async (board, toolhead, skipCompile)=>{
         }
         const binaryName = board.firmwareBinaryName;
         const extension = path__WEBPACK_IMPORTED_MODULE_8___default().extname(binaryName);
-        const klipperOut = path__WEBPACK_IMPORTED_MODULE_8___default().join(environment.KLIPPER_DIR, "klipper", "out", `klipper.${extension}`);
+        const klipperOut = path__WEBPACK_IMPORTED_MODULE_8___default().join(environment.KLIPPER_DIR, "klipper", "out", `klipper${extension}`);
         const firmwareDest = path__WEBPACK_IMPORTED_MODULE_8___default().join(environment.RATOS_DATA_DIR, binaryName);
         (0,fs__WEBPACK_IMPORTED_MODULE_1__.existsSync)(firmwareDest) && await (0,fs_promises__WEBPACK_IMPORTED_MODULE_11__.unlink)(firmwareDest);
         compileResult = await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_5__/* .runSudoScript */ .$)("klipper-compile.sh");
@@ -1087,7 +1087,7 @@ const compileFirmware = async (board, toolhead, skipCompile)=>{
         const message = e instanceof Error ? e.message : e;
         throw new _trpc_server__WEBPACK_IMPORTED_MODULE_4__.TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: `Could not compile firmware for ${board.name}: ${compileResult?.stdout ?? message}'}`,
+            message: `Could not compile firmware for ${board.name}: ${message} \n\n ${compileResult?.stdout}`,
             cause: e
         });
     }

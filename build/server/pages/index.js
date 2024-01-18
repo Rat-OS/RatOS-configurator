@@ -3035,6 +3035,7 @@ const Modal = (props)=>{
 
 
 
+
 const SDCardFlashing = (props)=>{
     const [shutdownModalVisible, setShutdownModalVisible] = (0,react_.useState)(false);
     const { query: moonrakerQuery , isReady  } = (0,useMoonraker/* useMoonraker */.o)();
@@ -3101,6 +3102,9 @@ const SDCardFlashing = (props)=>{
                     ]
                 }) : compileButton
             }),
+            compile.error?.message ? /*#__PURE__*/ jsx_runtime_.jsx(ErrorMessage, {
+                children: compile.error?.message
+            }) : null,
             /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
                 className: "prose mt-4 text-base text-zinc-500 dark:text-zinc-400",
                 children: [
