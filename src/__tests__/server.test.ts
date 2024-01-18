@@ -112,28 +112,35 @@ describe('server', async () => {
 			expect(noObjects, 'Expected no objects in config').to.eq('');
 		});
 		describe('can generate hybrid config with toolboard', async () => {
+			let debugLines: string[] = [];
 			let generatedLines: string[] = [];
 			test('produces valid config', async () => {
 				const config = await loadSerializedConfig(path.join(__dirname, 'fixtures', 'hybrid-config.json'));
+				expect(config.printer.kinematics).toEqual('hybrid-corexy');
 				const res: string = (await getFilesToWrite(config)).find((f) => f.fileName === 'RatOS.cfg')?.content ?? '';
-				generatedLines = res.split('\n').map((l: string, i: number) => `Line ${i+1}`.padEnd(10, ' ') + `|${l}`);
-				expect(generatedLines.length).toBeGreaterThan(0);
-				const noUndefined = generatedLines.filter((l: string) => l.includes('undefined')).join('\n');
-				const noPromises = generatedLines.filter((l: string) => l.includes('[object Promise]')).join('\n');
-				const noObjects = generatedLines.filter((l: string) => l.includes('[object Object]')).join('\n');
+				generatedLines = res.split('\n');
+				debugLines = generatedLines.map((l: string, i: number) => `Line ${i+1}`.padEnd(10, ' ') + `|${l}`);
+				expect(debugLines.length).toBeGreaterThan(0);
+				const noUndefined = debugLines.filter((l: string) => l.includes('undefined')).join('\n');
+				const noPromises = debugLines.filter((l: string) => l.includes('[object Promise]')).join('\n');
+				const noObjects = debugLines.filter((l: string) => l.includes('[object Object]')).join('\n');
 				if (noUndefined || noPromises || noObjects) {
-					console.log(generatedLines.join('\n'));
+					console.log(debugLines.join('\n'));
 				}
 				expect(noUndefined, 'Expected no undefined values in config').to.eq('');
 				expect(noPromises, 'Expected no promises in config').to.eq('');
 				expect(noObjects, 'Expected no objects in config').to.eq('');
+				expect(generatedLines.includes(`variable_x_axes: ["x"]`)).toBeTruthy();
+				expect(generatedLines.includes(`variable_x_driver_types: ["tmc2209"]`)).toBeTruthy();
+				expect(generatedLines.includes(`variable_y_axes: ["x1", "y", "y1"]`)).toBeTruthy();
+				expect(generatedLines.includes(`variable_y_driver_types: ["tmc2209", "tmc2209", "tmc2209"]`)).toBeTruthy();
 			});
 			test.concurrent('uses the correct heater fan', async () => {
-				const sectionIndex = generatedLines.findIndex((l) => l.includes('[heater_fan toolhead_cooling_fan]'));
-				const commentIndex = generatedLines
+				const sectionIndex = debugLines.findIndex((l) => l.includes('[heater_fan toolhead_cooling_fan]'));
+				const commentIndex = debugLines
 					.slice(sectionIndex > -1 ? sectionIndex : 0)
 					.findIndex((l) => l.includes('# 2-pin fan connected to the toolboard on T0 (toolboard_t0)'));
-				const pinIndex = generatedLines
+				const pinIndex = debugLines
 					.slice(sectionIndex > -1 ? sectionIndex : 0)
 					.findIndex((l) => l.includes('pin: toolboard_t0:PA1'));
 				expect(sectionIndex, 'Expected [heater_fan toolhead_cooling_fan] section present').toBeGreaterThan(-1);
@@ -141,11 +148,11 @@ describe('server', async () => {
 				expect(pinIndex, 'expected toolboard fan pin').toEqual(commentIndex! + 1);
 			});
 			test.concurrent('uses the correct part fan', async () => {
-				const sectionIndex = generatedLines.findIndex((l) => l.includes('[fan]'));
-				const commentIndex = generatedLines
+				const sectionIndex = debugLines.findIndex((l) => l.includes('[fan]'));
+				const commentIndex = debugLines
 					.slice(sectionIndex > -1 ? sectionIndex : 0)
 					.findIndex((l) => l.includes('# 4-pin fan connected to the toolboard on T0 (toolboard_t0)'));
-				const pinIndex = generatedLines
+				const pinIndex = debugLines
 					.slice(sectionIndex > -1 ? sectionIndex : 0)
 					.findIndex((l) => l.includes('pin: !toolboard_t0:PA0'));
 				expect(sectionIndex, 'Expected [fan] section present').toBeGreaterThan(-1);
@@ -157,10 +164,6 @@ describe('server', async () => {
 				const utils = await constructKlipperConfigUtils(config);
 				const x = sensorlessXTemplate(config, utils);
 				const y = sensorlessYTemplate(config, utils);
-				expect(x.includes(`["x"]`)).toBeTruthy();
-				expect(x.includes(`["tmc2209"]`)).toBeTruthy();
-				expect(y.includes(`["x1", "y", "y1"]`)).toBeTruthy();
-				expect(y.includes(`["tmc2209", "tmc2209", "tmc2209"]`)).toBeTruthy();
 			});
 		});
 	});

@@ -34,6 +34,9 @@ export const PrinterDefinition = z
 		template: z.string().describe('Printer.cfg template for this printer'),
 		path: z.string().startsWith(startsWithServerValidation),
 		driverCountRequired: z.number().describe('Number of drivers required for this printer'),
+		kinematics: z
+			.union([z.literal('cartesian'), z.literal('corexy'), z.literal('hybrid-corexy'), z.literal('hybrid-corexy-idex')])
+			.optional(),
 		bedMargin: z
 			.object({
 				x: z.tuple([z.number().default(0), z.number().default(0)]),
