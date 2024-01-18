@@ -2157,6 +2157,12 @@ const PrinterDefinition = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
     template: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().describe("Printer.cfg template for this printer"),
     path: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().startsWith(startsWithServerValidation),
     driverCountRequired: zod__WEBPACK_IMPORTED_MODULE_0__.z.number().describe("Number of drivers required for this printer"),
+    kinematics: zod__WEBPACK_IMPORTED_MODULE_0__.z.union([
+        zod__WEBPACK_IMPORTED_MODULE_0__.z.literal("cartesian"),
+        zod__WEBPACK_IMPORTED_MODULE_0__.z.literal("corexy"),
+        zod__WEBPACK_IMPORTED_MODULE_0__.z.literal("hybrid-corexy"),
+        zod__WEBPACK_IMPORTED_MODULE_0__.z.literal("hybrid-corexy-idex")
+    ]).optional(),
     bedMargin: zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
         x: zod__WEBPACK_IMPORTED_MODULE_0__.z.tuple([
             zod__WEBPACK_IMPORTED_MODULE_0__.z.number().default(0),

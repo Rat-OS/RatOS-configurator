@@ -1223,6 +1223,7 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
             ];
             const toolheads = this.getToolheads();
             const isIdex = toolheads.some((th)=>th.getMotionAxis() === motion/* PrinterAxis.dual_carriage */.po.dual_carriage);
+            // IDEX variables
             if (isIdex) {
                 const probeTool = toolheads.find((th)=>th.getProbe() != null)?.getTool();
                 result.push(`variable_default_toolhead: ${probeTool}                             # the toolhead with the z-probe, 0=left 1=right toolhead`);
@@ -1230,6 +1231,12 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
                 const secondADXL = this.getToolhead(1).getXAccelerometerName();
                 result.push(`variable_adxl_chip: ["${firstADXL}", "${secondADXL}"]           # toolheads adxl chip names`);
             }
+            // Driver type variables (X1 is Y on hybrid)
+            result.push(utils.getAxisDriverVariables(motion/* PrinterAxis.x */.po.x, config.printer.kinematics === "hybrid-corexy" ? false : true));
+            result.push(utils.getAxisDriverVariables(motion/* PrinterAxis.y */.po.y, true, config.printer.kinematics === "hybrid-corexy" ? [
+                motion/* PrinterAxis.x1 */.po.x1
+            ] : []));
+            result.push(utils.getAxisDriverVariables(motion/* PrinterAxis.z */.po.z, true));
             return this.formatInlineComments(result).join("\n");
         },
         renderSaveVariables () {

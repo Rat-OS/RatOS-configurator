@@ -1505,6 +1505,12 @@ const PrinterDefinition = external_zod_.z.object({
     template: external_zod_.z.string().describe("Printer.cfg template for this printer"),
     path: external_zod_.z.string().startsWith(startsWithServerValidation),
     driverCountRequired: external_zod_.z.number().describe("Number of drivers required for this printer"),
+    kinematics: external_zod_.z.union([
+        external_zod_.z.literal("cartesian"),
+        external_zod_.z.literal("corexy"),
+        external_zod_.z.literal("hybrid-corexy"),
+        external_zod_.z.literal("hybrid-corexy-idex")
+    ]).optional(),
     bedMargin: external_zod_.z.object({
         x: external_zod_.z.tuple([
             external_zod_.z.number().default(0),
@@ -1640,7 +1646,6 @@ homing_retract_dist: 0
 [gcode_macro RatOS]
 variable_homing_x: "sensorless"
 variable_sensorless_x_current: ${utils.getAxisDriverHomingCurrent(motion/* PrinterAxis.x */.po.x, 0.35)}
-${utils.getAxisDriverVariables(motion/* PrinterAxis.x */.po.x, config.printer.id === "caramba-hybrid" ? false : true)}
 `;
 const sensorlessYTemplate = (config, utils)=>`
 # Sensorless homing.
@@ -1668,9 +1673,6 @@ homing_retract_dist: 0
 [gcode_macro RatOS]
 variable_homing_y: "sensorless"
 variable_sensorless_y_current: ${utils.getAxisDriverHomingCurrent(motion/* PrinterAxis.y */.po.y, 0.51)}
-${utils.getAxisDriverVariables(motion/* PrinterAxis.y */.po.y, true, config.printer.id === "caramba-hybrid" ? [
-        motion/* PrinterAxis.x1 */.po.x1
-    ] : [])}
 `;
 
 // EXTERNAL MODULE: ./data/steppers.ts
@@ -2616,6 +2618,7 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
             ];
             const toolheads = this.getToolheads();
             const isIdex = toolheads.some((th)=>th.getMotionAxis() === motion/* PrinterAxis.dual_carriage */.po.dual_carriage);
+            // IDEX variables
             if (isIdex) {
                 const probeTool = toolheads.find((th)=>th.getProbe() != null)?.getTool();
                 result.push(`variable_default_toolhead: ${probeTool}                             # the toolhead with the z-probe, 0=left 1=right toolhead`);
@@ -2623,6 +2626,12 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
                 const secondADXL = this.getToolhead(1).getXAccelerometerName();
                 result.push(`variable_adxl_chip: ["${firstADXL}", "${secondADXL}"]           # toolheads adxl chip names`);
             }
+            // Driver type variables (X1 is Y on hybrid)
+            result.push(utils.getAxisDriverVariables(motion/* PrinterAxis.x */.po.x, config.printer.kinematics === "hybrid-corexy" ? false : true));
+            result.push(utils.getAxisDriverVariables(motion/* PrinterAxis.y */.po.y, true, config.printer.kinematics === "hybrid-corexy" ? [
+                motion/* PrinterAxis.x1 */.po.x1
+            ] : []));
+            result.push(utils.getAxisDriverVariables(motion/* PrinterAxis.z */.po.z, true));
             return this.formatInlineComments(result).join("\n");
         },
         renderSaveVariables () {
