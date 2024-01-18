@@ -108,6 +108,9 @@ describe('configuration', async () => {
 				expect(ruleContents.includes(symlink)).toBeTruthy();
 				expect(ruleContents.includes(devlink)).toBeTruthy();
 			});
+			test.concurrent('has alphanumeric firmwareBinaryName', async () => {
+				expect(board.firmwareBinaryName).toMatch(/^[a-zA-Z0-9\.\-_]+$/);
+			})
 			test.concurrent('has config file', async () => {
 				expect(
 					fs.existsSync(path.join(board.path, board.isToolboard ? 'toolboard-config.cfg' : 'config.cfg')),
