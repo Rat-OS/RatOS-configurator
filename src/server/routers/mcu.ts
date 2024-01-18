@@ -99,7 +99,7 @@ export const compileFirmware = async <T extends boolean>(
 		compileResult = await runSudoScript('klipper-compile.sh');
 		if (existsSync(klipperOut)) {
 			await copyFile(klipperOut, firmwareDest)
-		} else {
+		} else if (!board.isHost) {
 			throw new Error(`Could not find compiled firmware at ${klipperOut}`);
 		}
 		return compileResult as T extends true ? string : Awaited<ReturnType<typeof runSudoScript>>;
@@ -356,7 +356,7 @@ export const mcuRouter = router({
 			for (const b of connectedBoards) {
 				try {
 					const current = AutoFlashableBoard.parse(b.board);
-					compileFirmware(b.board, b.toolhead);
+					await compileFirmware(b.board, b.toolhead);
 					let flashResult = null;
 					try {
 						const flashScript = path.join(
