@@ -1464,7 +1464,7 @@ const compileFirmware = async (board, toolhead, skipCompile)=>{
         compileResult = await runSudoScript("klipper-compile.sh");
         if ((0,external_fs_.existsSync)(klipperOut)) {
             await (0,promises_.copyFile)(klipperOut, firmwareDest);
-        } else {
+        } else if (!board.isHost) {
             throw new Error(`Could not find compiled firmware at ${klipperOut}`);
         }
         return compileResult;
@@ -1685,7 +1685,7 @@ const mcuRouter = (0,trpc/* router */.Nd)({
         for (const b of connectedBoards){
             try {
                 const current = zods_boards/* AutoFlashableBoard.parse */.AN.parse(b.board);
-                compileFirmware(b.board, b.toolhead);
+                await compileFirmware(b.board, b.toolhead);
                 let flashResult = null;
                 try {
                     const flashScript = external_path_default().join(current.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ""), current.flashScript);

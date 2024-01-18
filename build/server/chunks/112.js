@@ -1079,7 +1079,7 @@ const compileFirmware = async (board, toolhead, skipCompile)=>{
         compileResult = await (0,_helpers_run_script__WEBPACK_IMPORTED_MODULE_5__/* .runSudoScript */ .$)("klipper-compile.sh");
         if ((0,fs__WEBPACK_IMPORTED_MODULE_1__.existsSync)(klipperOut)) {
             await (0,fs_promises__WEBPACK_IMPORTED_MODULE_11__.copyFile)(klipperOut, firmwareDest);
-        } else {
+        } else if (!board.isHost) {
             throw new Error(`Could not find compiled firmware at ${klipperOut}`);
         }
         return compileResult;
@@ -1300,7 +1300,7 @@ const mcuRouter = (0,_trpc__WEBPACK_IMPORTED_MODULE_7__/* .router */ .Nd)({
         for (const b of connectedBoards){
             try {
                 const current = _zods_boards__WEBPACK_IMPORTED_MODULE_6__/* .AutoFlashableBoard.parse */ .AN.parse(b.board);
-                compileFirmware(b.board, b.toolhead);
+                await compileFirmware(b.board, b.toolhead);
                 let flashResult = null;
                 try {
                     const flashScript = path__WEBPACK_IMPORTED_MODULE_8___default().join(current.path.replace(`${process.env.RATOS_CONFIGURATION_PATH}/boards/`, ""), current.flashScript);
