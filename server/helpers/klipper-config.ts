@@ -218,7 +218,7 @@ export const constructKlipperConfigExtrasGenerator = (config: PrinterConfigurati
 		generateSaveVariables() {
 			const environment = serverSchema.parse(process.env);
 			return [{
-					fileName: path.join(environment.KLIPPER_CONFIG_PATH, 'ratos-variables.cfg'),
+					fileName:  'ratos-variables.cfg',
 					content: [
 						`[Variables]`,
 						`idex_applied_offset = 1`,
@@ -235,7 +235,7 @@ export const constructKlipperConfigExtrasGenerator = (config: PrinterConfigurati
 				this.addFileToRender(f);
 				return [
 					`[save_variables]`,
-					`filename: ${f.fileName}`
+					`filename: ${path.join(environment.KLIPPER_CONFIG_PATH, f.fileName)}`
 				].join('\n');
 			});
 		},

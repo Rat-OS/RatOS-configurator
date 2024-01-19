@@ -365,6 +365,7 @@ const generateKlipperConfiguration = async <T extends boolean>(
 	);
 	const errors = results.filter((r) => r.action === 'error');
 	if (errors.length > 0) {
+		errors.map((e) => getLogger().error(e));
 		throw new Error(
 			"Something went wrong when saving the configuration. The following files couldn't be written: " +
 				errors.map((e) => e.fileName).join(', '),

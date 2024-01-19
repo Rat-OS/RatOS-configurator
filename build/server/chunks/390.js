@@ -770,7 +770,7 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
             const environment = schema.serverSchema.parse(process.env);
             return [
                 {
-                    fileName: external_path_default().join(environment.KLIPPER_CONFIG_PATH, "ratos-variables.cfg"),
+                    fileName: "ratos-variables.cfg",
                     content: [
                         `[Variables]`,
                         `idex_applied_offset = 1`,
@@ -788,7 +788,7 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
                 this.addFileToRender(f);
                 return [
                     `[save_variables]`,
-                    `filename: ${f.fileName}`
+                    `filename: ${external_path_default().join(environment.KLIPPER_CONFIG_PATH, f.fileName)}`
                 ].join("\n");
             });
         },
@@ -2188,6 +2188,7 @@ const generateKlipperConfiguration = async (config, overwriteFiles)=>{
     }));
     const errors = results.filter((r)=>r.action === "error");
     if (errors.length > 0) {
+        errors.map((e)=>(0,logger.getLogger)().error(e));
         throw new Error("Something went wrong when saving the configuration. The following files couldn't be written: " + errors.map((e)=>e.fileName).join(", "));
     }
     try {
