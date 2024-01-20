@@ -4,6 +4,7 @@ import { twMerge } from 'tailwind-merge';
 export const badgeTextColorStyle = cva('', {
 	variants: {
 		color: {
+			rose: 'text-rose-700 dark:text-rose-400',
 			red: 'text-red-700 dark:text-red-400',
 			yellow: 'text-yellow-800 dark:text-yellow-500',
 			orange: 'text-orange-800 dark:text-orange-500',
@@ -24,6 +25,7 @@ export const badgeTextColorStyle = cva('', {
 export const badgeBackgroundColorStyle = cva('', {
 	variants: {
 		color: {
+			rose: 'bg-rose-50 dark:bg-rose-400/10',
 			red: 'bg-red-50 dark:bg-red-400/10',
 			yellow: 'bg-yellow-50 dark:bg-yellow-400/10',
 			orange: 'bg-orange-50 dark:bg-orange-400/10',
@@ -44,6 +46,7 @@ export const badgeBackgroundColorStyle = cva('', {
 export const badgeBorderColorStyle = cva('', {
 	variants: {
 		color: {
+			rose: 'border-rose-600/10 dark:border-rose-400/20 ring-rose-600/10 dark:ring-rose-400/20',
 			red: 'border-red-600/10 dark:border-red-400/20 ring-red-600/10 dark:ring-red-400/20',
 			yellow: 'border-yellow-600/20 dark:border-yellow-400/20 ring-yellow-600/20 dark:ring-yellow-400/20',
 			orange: 'border-orange-600/20 dark:border-orange-400/20 ring-orange-600/20 dark:ring-orange-400/20',
@@ -64,10 +67,16 @@ export const badgeBorderColorStyle = cva('', {
 const badgeStyle = cva('flex-0 inline-flex w-auto items-center rounded-md font-medium ring-1 ring-inset', {
 	variants: {
 		size: {
-			sm: 'px-1 py-0 text-2xs leading-5',
-			md: 'px-2 py-1 text-xs leading-6',
+			sm: 'px-1.5 py-1 text-2xs leading-3',
+			md: 'px-2 py-1 text-xs leading-4',
+			lg: 'px-2 py-1 text-xs leading-6',
 		},
 		color: {
+			rose: [
+				badgeBackgroundColorStyle({ color: 'rose' }),
+				badgeBorderColorStyle({ color: 'rose' }),
+				badgeTextColorStyle({ color: 'rose' }),
+			],
 			red: [
 				badgeBackgroundColorStyle({ color: 'red' }),
 				badgeBorderColorStyle({ color: 'red' }),

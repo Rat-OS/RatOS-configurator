@@ -63,7 +63,7 @@ export const SDCardFlashing: React.FC<SDCardFlashingProps> = (props) => {
 			</h3>
 
 			<Button
-				color="brand"
+				intent="primary"
 				onClick={
 					isFirmwareReady
 						? undefined
@@ -110,10 +110,10 @@ export const SDCardFlashing: React.FC<SDCardFlashingProps> = (props) => {
 					<li>Click "Check board status" below.</li>
 				</ol>
 				<div className="flex gap-x-4">
-					<Button color="gray" onClick={onShutdown}>
+					<Button intent="indeterminate" onClick={onShutdown}>
 						Shutdown RatOS
 					</Button>
-					<Button color="brand" onClick={props.onSuccess}>
+					<Button intent="primary" onClick={props.onSuccess}>
 						Check board status
 					</Button>
 				</div>

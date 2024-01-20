@@ -10,17 +10,20 @@ const buttonStyle = cva(
 	'inline-flex space-x-2 items-center px-4 py-2 border text-sm font-semibold rounded-md shadow-sm focus:outline-none focus:ring-2 capitalize',
 	{
 		variants: {
-			color: {
+			intent: {
 				danger:
 					'text-red-50 bg-red-500 hover:bg-red-600 border-transparent focus:ring-offset-2 focus:ring-red-600 dark:focus:ring-offset-zinc-900',
 				warning:
-					'text-yellow-900 bg-yellow-500 hover:bg-yellow-600 border-transparent focus:ring-offset-2 focus:ring-yellow-600 dark:focus:ring-offset-zinc-900',
+					'text-white bg-yellow-500 hover:bg-yellow-600 border-transparent focus:ring-offset-2 focus:ring-yellow-600 dark:focus:ring-offset-zinc-900',
 				info: 'text-blue-50 bg-blue-500 hover:bg-blue-600 border-transparent focus:ring-offset-2 focus:ring-blue-600 dark:focus:ring-offset-zinc-900',
-				brand:
+				primary:
 					'text-brand-900 bg-brand-500 hover:bg-brand-600 border-transparent focus:ring-offset-2 focus:ring-brand-600 dark:focus:ring-offset-zinc-900',
-				gray: 'border-zinc-300 bg-zinc-100 hover:bg-zinc-200 text-black dark:text-zinc-300 dark:bg-zinc-900 dark:border-zinc-700 dark:hover:bg-zinc-800 dark:hover:border-zinc-600 focus:ring-offset-2 focus:ring-brand-600 dark:focus:ring-offset-zinc-900',
+				success:
+					'text-green-100 bg-green-500 hover:bg-green-600 border-transparent focus:ring-offset-2 focus:ring-green-600 dark:focus:ring-offset-zinc-900',
+				indeterminate:
+					'border-zinc-300 bg-zinc-100 hover:bg-zinc-200 text-black dark:text-zinc-300 dark:bg-zinc-900 dark:border-zinc-700 dark:hover:bg-zinc-800 dark:hover:border-zinc-600 focus:ring-offset-2 focus:ring-green-600 dark:focus:ring-offset-zinc-900',
 				plain:
-					'border-transparent bg-transparent text-zinc-700 dark:text-zinc-300 hover:underline hover:text-zinc-800 dark:hover:text-zinc-200 focus:ring-offset-2 focus:ring-zinc-900 dark:focus:ring-offset-zinc-100',
+					'border-transparent shadow-none bg-transparent text-zinc-700 dark:text-zinc-300 hover:underline hover:text-zinc-800 dark:hover:text-zinc-200 focus:ring-offset-2 focus:ring-zinc-900 dark:focus:ring-offset-zinc-100',
 			},
 			disabled: {
 				true: 'opacity-60 cursor-not-allowed',
@@ -28,37 +31,39 @@ const buttonStyle = cva(
 		},
 		compoundVariants: [
 			{
-				color: 'brand',
+				intent: 'primary',
 				disabled: true,
 				class: 'hover:bg-brand-500',
 			},
 			{
-				color: 'danger',
+				intent: 'danger',
 				disabled: true,
 				class: 'hover:bg-red-500',
 			},
 			{
-				color: 'warning',
+				intent: 'warning',
 				disabled: true,
 				class: 'hover:bg-yellow-500',
 			},
 			{
-				color: 'gray',
+				intent: 'indeterminate',
 				disabled: true,
 				class: 'hover:bg-zinc-100 dark:hover:bg-zinc-900',
 			},
 			{
-				color: 'info',
+				intent: 'info',
 				disabled: true,
 				class: 'hover:bg-blue-500',
 			},
 		],
 		defaultVariants: {
-			color: 'brand',
+			intent: 'primary',
 			disabled: false,
 		},
 	},
 );
+
+export type Intents = NonNullable<Required<VariantProps<typeof buttonStyle>>['intent']>;
 
 interface ButtonProps extends React.PropsWithChildren<VariantProps<typeof buttonStyle>> {
 	onClick?: () => void;
@@ -72,7 +77,7 @@ interface ButtonProps extends React.PropsWithChildren<VariantProps<typeof button
 }
 
 export const Button: React.FC<ButtonProps> = (props) => {
-	const buttonClasses = twMerge(buttonStyle({ color: props.color, disabled: props.disabled }), props.className);
+	const buttonClasses = twMerge(buttonStyle({ intent: props.intent, disabled: props.disabled }), props.className);
 	if (props.href) {
 		return (
 			<Link href={props.href} className={buttonClasses} onClick={props.onClick} title={props.title}>

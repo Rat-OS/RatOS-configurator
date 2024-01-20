@@ -5,7 +5,7 @@ exports.id = 405;
 exports.ids = [405];
 exports.modules = {
 
-/***/ 642:
+/***/ 4596:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 // ESM COMPAT FLAG
@@ -273,6 +273,7 @@ const external_class_variance_authority_namespaceObject = require("class-varianc
 const badgeTextColorStyle = (0,external_class_variance_authority_namespaceObject.cva)("", {
     variants: {
         color: {
+            rose: "text-rose-700 dark:text-rose-400",
             red: "text-red-700 dark:text-red-400",
             yellow: "text-yellow-800 dark:text-yellow-500",
             orange: "text-orange-800 dark:text-orange-500",
@@ -292,6 +293,7 @@ const badgeTextColorStyle = (0,external_class_variance_authority_namespaceObject
 const badgeBackgroundColorStyle = (0,external_class_variance_authority_namespaceObject.cva)("", {
     variants: {
         color: {
+            rose: "bg-rose-50 dark:bg-rose-400/10",
             red: "bg-red-50 dark:bg-red-400/10",
             yellow: "bg-yellow-50 dark:bg-yellow-400/10",
             orange: "bg-orange-50 dark:bg-orange-400/10",
@@ -311,6 +313,7 @@ const badgeBackgroundColorStyle = (0,external_class_variance_authority_namespace
 const badgeBorderColorStyle = (0,external_class_variance_authority_namespaceObject.cva)("", {
     variants: {
         color: {
+            rose: "border-rose-600/10 dark:border-rose-400/20 ring-rose-600/10 dark:ring-rose-400/20",
             red: "border-red-600/10 dark:border-red-400/20 ring-red-600/10 dark:ring-red-400/20",
             yellow: "border-yellow-600/20 dark:border-yellow-400/20 ring-yellow-600/20 dark:ring-yellow-400/20",
             orange: "border-orange-600/20 dark:border-orange-400/20 ring-orange-600/20 dark:ring-orange-400/20",
@@ -330,10 +333,22 @@ const badgeBorderColorStyle = (0,external_class_variance_authority_namespaceObje
 const badgeStyle = (0,external_class_variance_authority_namespaceObject.cva)("flex-0 inline-flex w-auto items-center rounded-md font-medium ring-1 ring-inset", {
     variants: {
         size: {
-            sm: "px-1 py-0 text-2xs leading-5",
-            md: "px-2 py-1 text-xs leading-6"
+            sm: "px-1.5 py-1 text-2xs leading-3",
+            md: "px-2 py-1 text-xs leading-4",
+            lg: "px-2 py-1 text-xs leading-6"
         },
         color: {
+            rose: [
+                badgeBackgroundColorStyle({
+                    color: "rose"
+                }),
+                badgeBorderColorStyle({
+                    color: "rose"
+                }),
+                badgeTextColorStyle({
+                    color: "rose"
+                })
+            ],
             red: [
                 badgeBackgroundColorStyle({
                     color: "red"
@@ -1194,13 +1209,14 @@ var link_default = /*#__PURE__*/__webpack_require__.n(next_link);
 
 const buttonStyle = (0,external_class_variance_authority_namespaceObject.cva)("inline-flex space-x-2 items-center px-4 py-2 border text-sm font-semibold rounded-md shadow-sm focus:outline-none focus:ring-2 capitalize", {
     variants: {
-        color: {
+        intent: {
             danger: "text-red-50 bg-red-500 hover:bg-red-600 border-transparent focus:ring-offset-2 focus:ring-red-600 dark:focus:ring-offset-zinc-900",
-            warning: "text-yellow-900 bg-yellow-500 hover:bg-yellow-600 border-transparent focus:ring-offset-2 focus:ring-yellow-600 dark:focus:ring-offset-zinc-900",
+            warning: "text-white bg-yellow-500 hover:bg-yellow-600 border-transparent focus:ring-offset-2 focus:ring-yellow-600 dark:focus:ring-offset-zinc-900",
             info: "text-blue-50 bg-blue-500 hover:bg-blue-600 border-transparent focus:ring-offset-2 focus:ring-blue-600 dark:focus:ring-offset-zinc-900",
-            brand: "text-brand-900 bg-brand-500 hover:bg-brand-600 border-transparent focus:ring-offset-2 focus:ring-brand-600 dark:focus:ring-offset-zinc-900",
-            gray: "border-zinc-300 bg-zinc-100 hover:bg-zinc-200 text-black dark:text-zinc-300 dark:bg-zinc-900 dark:border-zinc-700 dark:hover:bg-zinc-800 dark:hover:border-zinc-600 focus:ring-offset-2 focus:ring-brand-600 dark:focus:ring-offset-zinc-900",
-            plain: "border-transparent bg-transparent text-zinc-700 dark:text-zinc-300 hover:underline hover:text-zinc-800 dark:hover:text-zinc-200 focus:ring-offset-2 focus:ring-zinc-900 dark:focus:ring-offset-zinc-100"
+            primary: "text-brand-900 bg-brand-500 hover:bg-brand-600 border-transparent focus:ring-offset-2 focus:ring-brand-600 dark:focus:ring-offset-zinc-900",
+            success: "text-green-100 bg-green-500 hover:bg-green-600 border-transparent focus:ring-offset-2 focus:ring-green-600 dark:focus:ring-offset-zinc-900",
+            indeterminate: "border-zinc-300 bg-zinc-100 hover:bg-zinc-200 text-black dark:text-zinc-300 dark:bg-zinc-900 dark:border-zinc-700 dark:hover:bg-zinc-800 dark:hover:border-zinc-600 focus:ring-offset-2 focus:ring-green-600 dark:focus:ring-offset-zinc-900",
+            plain: "border-transparent shadow-none bg-transparent text-zinc-700 dark:text-zinc-300 hover:underline hover:text-zinc-800 dark:hover:text-zinc-200 focus:ring-offset-2 focus:ring-zinc-900 dark:focus:ring-offset-zinc-100"
         },
         disabled: {
             true: "opacity-60 cursor-not-allowed"
@@ -1208,39 +1224,39 @@ const buttonStyle = (0,external_class_variance_authority_namespaceObject.cva)("i
     },
     compoundVariants: [
         {
-            color: "brand",
+            intent: "primary",
             disabled: true,
             class: "hover:bg-brand-500"
         },
         {
-            color: "danger",
+            intent: "danger",
             disabled: true,
             class: "hover:bg-red-500"
         },
         {
-            color: "warning",
+            intent: "warning",
             disabled: true,
             class: "hover:bg-yellow-500"
         },
         {
-            color: "gray",
+            intent: "indeterminate",
             disabled: true,
             class: "hover:bg-zinc-100 dark:hover:bg-zinc-900"
         },
         {
-            color: "info",
+            intent: "info",
             disabled: true,
             class: "hover:bg-blue-500"
         }
     ],
     defaultVariants: {
-        color: "brand",
+        intent: "primary",
         disabled: false
     }
 });
 const Button = (props)=>{
     const buttonClasses = (0,external_tailwind_merge_namespaceObject.twMerge)(buttonStyle({
-        color: props.color,
+        intent: props.intent,
         disabled: props.disabled
     }), props.className);
     if (props.href) {
@@ -1319,7 +1335,7 @@ const StepNavButtons = (props)=>{
     const left = props.left.onClick ? /*#__PURE__*/ jsx_runtime_.jsx("div", {
         className: "flex flex-1 justify-start",
         children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)(Button, {
-            color: "gray",
+            intent: "indeterminate",
             disabled: props.left.disabled,
             onClick: !props.left.isLoading ? props.left.onClick : undefined,
             title: props.left.title,
@@ -1341,7 +1357,7 @@ const StepNavButtons = (props)=>{
         className: "flex flex-1 justify-end space-x-4",
         children: [
             props.skip && /*#__PURE__*/ (0,jsx_runtime_.jsxs)(Button, {
-                color: "gray",
+                intent: "indeterminate",
                 onClick: props.skip.onClick,
                 disabled: props.skip.disabled,
                 title: props.skip.title,
@@ -1354,7 +1370,7 @@ const StepNavButtons = (props)=>{
                 ]
             }),
             /*#__PURE__*/ (0,jsx_runtime_.jsxs)(Button, {
-                color: "brand",
+                intent: "primary",
                 disabled: props.right.disabled,
                 onClick: !props.right.isLoading ? props.right.onClick : undefined,
                 title: props.right.title,
@@ -2887,7 +2903,7 @@ const DFUFlash = (props)=>{
             }),
             jumperReminder,
             /*#__PURE__*/ jsx_runtime_.jsx(Button, {
-                color: "brand",
+                intent: "primary",
                 disabled: !dfuDetected || isFlashing,
                 onClick: startFlash,
                 children: flashButtonTitle
@@ -3085,7 +3101,7 @@ const SDCardFlashing = (props)=>{
                 ]
             }),
             /*#__PURE__*/ jsx_runtime_.jsx(Button, {
-                color: "brand",
+                intent: "primary",
                 onClick: isFirmwareReady ? undefined : ()=>compile.mutate({
                         boardPath: props.board.path,
                         toolhead: props.toolhead?.serialize()
@@ -3144,12 +3160,12 @@ const SDCardFlashing = (props)=>{
                         className: "flex gap-x-4",
                         children: [
                             /*#__PURE__*/ jsx_runtime_.jsx(Button, {
-                                color: "gray",
+                                intent: "indeterminate",
                                 onClick: onShutdown,
                                 children: "Shutdown RatOS"
                             }),
                             /*#__PURE__*/ jsx_runtime_.jsx(Button, {
-                                color: "brand",
+                                intent: "primary",
                                 onClick: props.onSuccess,
                                 children: "Check board status"
                             })
@@ -3262,7 +3278,7 @@ const MCUFlashing = (props)=>{
                 }),
                 /*#__PURE__*/ jsx_runtime_.jsx("p", {
                     children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)(Button, {
-                        color: "gray",
+                        intent: "indeterminate",
                         onClick: reflash,
                         children: [
                             /*#__PURE__*/ jsx_runtime_.jsx("span", {
@@ -3332,7 +3348,7 @@ const MCUFlashing = (props)=>{
                         "Proceed to the next step or",
                         " ",
                         /*#__PURE__*/ (0,jsx_runtime_.jsxs)(Button, {
-                            color: "gray",
+                            intent: "indeterminate",
                             onClick: reflash,
                             children: [
                                 /*#__PURE__*/ jsx_runtime_.jsx("span", {
@@ -3354,7 +3370,7 @@ const MCUFlashing = (props)=>{
         const pathStrategyEnabled = boardDetected.data && selectedBoard?.flashScript != null;
         const unidentifiedPathStrategyEnabled = unidentifiedBoards.data?.length;
         const dfu = /*#__PURE__*/ jsx_runtime_.jsx(Button, {
-            color: "gray",
+            intent: "indeterminate",
             onClick: ()=>setFlashStrategy("dfu"),
             disabled: !dfuStrategyEnabled,
             className: "justify-center",
@@ -3362,7 +3378,7 @@ const MCUFlashing = (props)=>{
             children: "Flash manually via DFU"
         });
         const sdCard = /*#__PURE__*/ jsx_runtime_.jsx(Button, {
-            color: "gray",
+            intent: "indeterminate",
             onClick: ()=>setFlashStrategy("sdcard"),
             disabled: !sdCardStrategyEnabled,
             className: "justify-center",
@@ -3370,7 +3386,7 @@ const MCUFlashing = (props)=>{
             children: "Flash manually via SD card"
         });
         const path = /*#__PURE__*/ jsx_runtime_.jsx(Button, {
-            color: "gray",
+            intent: "indeterminate",
             onClick: onFlashViaPath,
             disabled: !pathStrategyEnabled,
             className: "justify-center",
@@ -3378,7 +3394,7 @@ const MCUFlashing = (props)=>{
             children: "Flash automatically"
         });
         const unidentifiedPath = /*#__PURE__*/ jsx_runtime_.jsx(Button, {
-            color: "gray",
+            intent: "indeterminate",
             className: "justify-center",
             disabled: !unidentifiedPathStrategyEnabled,
             title: unidentifiedPathStrategyEnabled ? undefined : "No unidentified boards detected.",
@@ -3671,7 +3687,7 @@ const MCUPicker = (props)=>{
                             toolhead && selectedToolboard != null && /*#__PURE__*/ jsx_runtime_.jsx("div", {
                                 children: /*#__PURE__*/ jsx_runtime_.jsx(Button, {
                                     onClick: ()=>setSelectedBoard(null),
-                                    color: "danger",
+                                    intent: "danger",
                                     children: "Clear selection"
                                 })
                             })
@@ -4398,7 +4414,557 @@ const WifiSetup = (props)=>{
     });
 };
 
+;// CONCATENATED MODULE: external "react-diff-view"
+const external_react_diff_view_namespaceObject = require("react-diff-view");
+// EXTERNAL MODULE: ./node_modules/.pnpm/react-diff-view@3.2.0_react@18.2.0/node_modules/react-diff-view/style/index.css
+var style = __webpack_require__(9496);
+;// CONCATENATED MODULE: ./components/setup-steps/diff-modal.tsx
+
+/* This example requires Tailwind CSS v2.0+ */ 
+
+
+
+
+
+
+const TwoColumns = (props)=>{
+    return /*#__PURE__*/ jsx_runtime_.jsx("svg", {
+        viewBox: "0 0 24 24",
+        fill: "none",
+        strokeWidth: "1.5",
+        stroke: "currentColor",
+        xmlns: "http://www.w3.org/2000/svg",
+        className: (0,external_tailwind_merge_namespaceObject.twMerge)("h-6 w-6", props.className),
+        children: /*#__PURE__*/ jsx_runtime_.jsx("path", {
+            strokeLinecap: "round",
+            strokeLinejoin: "round",
+            d: "M 12 4.5 L 12 19.5 M 4.125 19.5 L 19.875 19.5 C 20.496 19.5 21 18.996 21 18.375 L 21 5.625 C 21 5.004 20.496 4.5 19.875 4.5 L 4.125 4.5 C 3.504 4.5 3 5.004 3 5.625 L 3 18.375 C 3 18.996 3.504 19.5 4.125 19.5 Z"
+        })
+    });
+};
+const SingleColumn = (props)=>{
+    return /*#__PURE__*/ jsx_runtime_.jsx("svg", {
+        viewBox: "0 0 24 24",
+        fill: "none",
+        strokeWidth: "1.5",
+        stroke: "currentColor",
+        xmlns: "http://www.w3.org/2000/svg",
+        className: (0,external_tailwind_merge_namespaceObject.twMerge)("h-6 w-6", props.className),
+        children: /*#__PURE__*/ jsx_runtime_.jsx("path", {
+            strokeLinecap: "round",
+            strokeLinejoin: "round",
+            d: "M 4.125 19.5 L 19.875 19.5 C 20.496 19.5 21 18.996 21 18.375 L 21 5.625 C 21 5.004 20.496 4.5 19.875 4.5 L 4.125 4.5 C 3.504 4.5 3 5.004 3 5.625 L 3 18.375 C 3 18.996 3.504 19.5 4.125 19.5 Z"
+        })
+    });
+};
+const DiffModal = (props)=>{
+    const { isOpen , setIsOpen  } = props;
+    const [viewType, setViewType] = (0,react_.useState)("unified");
+    const close = (0,react_.useCallback)(()=>{
+        setIsOpen(false);
+    }, [
+        setIsOpen
+    ]);
+    const files = (0,react_.useMemo)(()=>{
+        return (0,external_react_diff_view_namespaceObject.parseDiff)(props.diff);
+    }, [
+        props.diff
+    ]);
+    const diffType = props.state === "changed" ? "modify" : props.state === "created" ? "add" : "delete";
+    return /*#__PURE__*/ jsx_runtime_.jsx(external_headlessui_react_.Transition.Root, {
+        show: isOpen,
+        as: react_.Fragment,
+        appear: true,
+        children: /*#__PURE__*/ jsx_runtime_.jsx(external_headlessui_react_.Dialog, {
+            as: "div",
+            className: "git-diff fixed inset-0 z-10 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-400 scrollbar-thumb-rounded-md dark:scrollbar-thumb-zinc-600",
+            onClose: close,
+            children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                className: "flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0",
+                children: [
+                    /*#__PURE__*/ jsx_runtime_.jsx(external_headlessui_react_.Transition.Child, {
+                        as: react_.Fragment,
+                        enter: "ease-out duration-300",
+                        enterFrom: "opacity-0",
+                        enterTo: "opacity-100",
+                        leave: "ease-in duration-200",
+                        leaveFrom: "opacity-100",
+                        leaveTo: "opacity-0",
+                        children: /*#__PURE__*/ jsx_runtime_.jsx(external_headlessui_react_.Dialog.Overlay, {
+                            className: "fixed inset-0 bg-zinc-500 bg-opacity-75 transition-opacity dark:bg-zinc-950 dark:bg-opacity-75"
+                        })
+                    }),
+                    /*#__PURE__*/ jsx_runtime_.jsx("span", {
+                        className: "hidden sm:inline-block sm:h-screen sm:align-middle",
+                        "aria-hidden": "true",
+                        children: "​"
+                    }),
+                    /*#__PURE__*/ jsx_runtime_.jsx(external_headlessui_react_.Transition.Child, {
+                        as: react_.Fragment,
+                        enter: "ease-out duration-300",
+                        enterFrom: "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95",
+                        enterTo: "opacity-100 translate-y-0 sm:scale-100",
+                        leave: "ease-in duration-200",
+                        leaveFrom: "opacity-100 translate-y-0 sm:scale-100",
+                        leaveTo: "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95",
+                        children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                            className: "relative inline-flex max-h-[80vh] max-w-screen-2xl transform flex-col overflow-hidden rounded-lg bg-white py-4 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:py-6 sm:align-middle dark:bg-zinc-800",
+                            children: [
+                                /*#__PURE__*/ (0,jsx_runtime_.jsxs)(external_headlessui_react_.Dialog.Title, {
+                                    as: "h3",
+                                    className: "flex items-center justify-between border-b border-zinc-200 px-4 pb-4 text-lg font-semibold leading-6 text-zinc-900 sm:px-6 dark:border-zinc-700 dark:text-zinc-100",
+                                    children: [
+                                        /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                                            children: props.title
+                                        }),
+                                        /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                                            className: "relative flex flex-nowrap items-center space-x-2 text-zinc-500 dark:text-zinc-400",
+                                            children: [
+                                                /*#__PURE__*/ jsx_runtime_.jsx("button", {
+                                                    className: (0,external_tailwind_merge_namespaceObject.twJoin)(viewType === "unified" ? "cursor-default text-sky-600 dark:text-sky-400" : "hover:text-zinc-800 dark:hover:text-zinc-100"),
+                                                    onClick: ()=>setViewType("unified"),
+                                                    title: "Unified View",
+                                                    children: /*#__PURE__*/ jsx_runtime_.jsx(SingleColumn, {
+                                                        className: "h-6 w-6"
+                                                    })
+                                                }),
+                                                /*#__PURE__*/ jsx_runtime_.jsx("button", {
+                                                    className: (0,external_tailwind_merge_namespaceObject.twJoin)(viewType === "split" ? "cursor-default text-sky-600 dark:text-sky-400" : "hover:text-zinc-800 dark:hover:text-zinc-100"),
+                                                    onClick: ()=>setViewType("split"),
+                                                    title: "Split View",
+                                                    children: /*#__PURE__*/ jsx_runtime_.jsx(TwoColumns, {
+                                                        className: "h-6 w-6"
+                                                    })
+                                                }),
+                                                /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                                                    className: "!ml-4 !mr-1 h-6 border-l border-l-zinc-200 dark:border-l-zinc-800"
+                                                }),
+                                                /*#__PURE__*/ jsx_runtime_.jsx("button", {
+                                                    className: "hover:text-zinc-800 dark:hover:text-zinc-100",
+                                                    onClick: close,
+                                                    children: /*#__PURE__*/ jsx_runtime_.jsx(solid_namespaceObject.XMarkIcon, {
+                                                        className: "h-6 w-6"
+                                                    })
+                                                })
+                                            ]
+                                        })
+                                    ]
+                                }),
+                                /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                                    className: "flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-400 scrollbar-thumb-rounded-md dark:scrollbar-thumb-zinc-600",
+                                    children: files.map(({ hunks  }, i)=>/*#__PURE__*/ jsx_runtime_.jsx(external_react_diff_view_namespaceObject.Diff, {
+                                            hunks: hunks,
+                                            viewType: viewType,
+                                            diffType: diffType
+                                        }, i))
+                                }),
+                                /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                                    className: "flex-end flex flex-row items-center justify-end space-x-2 border-t border-zinc-200 px-4 pt-4 sm:px-6 sm:pt-6 dark:border-zinc-700",
+                                    children: [
+                                        props.buttons ?? null,
+                                        /*#__PURE__*/ jsx_runtime_.jsx(Button, {
+                                            intent: "plain",
+                                            onClick: close,
+                                            children: "Close"
+                                        })
+                                    ]
+                                })
+                            ]
+                        })
+                    })
+                ]
+            })
+        })
+    });
+};
+
+;// CONCATENATED MODULE: ./components/common/state-circle.tsx
+
+
+
+
+const StateCircleVariants = (0,external_class_variance_authority_namespaceObject.cva)("flex-none rounded-full p-1 relative flex", {
+    variants: {
+        state: {
+            success: "dark:text-green-400 text-green-500 bg-green-400/20",
+            info: "dark:text-sky-400 text-sky-500 bg-sky-400/20",
+            warning: "dark:text-yellow-400 text-yellow-500 bg-yellow-400/20",
+            danger: "dark:text-rose-400 text-rose-500 bg-rose-400/20",
+            indeterminate: "dark:text-zinc-400 text-zinc-500 bg-zinc-500/20",
+            plain: "dark:text-zinc-400 text-zinc-500 bg-zinc-500/20",
+            primary: "dark:text-brand-400 text-brand-500 bg-brand-500/20"
+        }
+    }
+});
+const StateCircle = (props)=>{
+    return /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+        className: StateCircleVariants(props),
+        children: [
+            /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                title: props.title,
+                className: (0,external_tailwind_merge_namespaceObject.twMerge)("absolute inset-0 transition-all duration-700", props.ping ? "opacity-100" : "opacity-0", props.pingClassName ?? "z-2"),
+                children: /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                    className: (0,external_tailwind_merge_namespaceObject.twMerge)("absolute inset-0 inline-flex animate-ping rounded-full bg-current opacity-0 ease-out")
+                })
+            }),
+            /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                className: "h-2 w-2 rounded-full bg-current"
+            })
+        ]
+    });
+};
+
+;// CONCATENATED MODULE: ./hooks/useChangeEffect.tsx
+
+const useChangeEffect = (deps, clearAfter)=>{
+    const [hasChanged, setHasChanged] = (0,react_.useState)(false);
+    const lastDeps = (0,react_.useRef)([
+        ...deps
+    ]);
+    (0,react_.useEffect)(()=>{
+        let changed = false;
+        lastDeps.current.forEach((dep, i)=>{
+            if (dep !== deps[i]) {
+                changed = true;
+            }
+        });
+        if (changed) {
+            setHasChanged(true);
+        }
+        lastDeps.current = [
+            ...deps
+        ];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+        ...deps
+    ]);
+    const clear = (0,react_.useCallback)(()=>{
+        setHasChanged(false);
+    }, []);
+    (0,react_.useEffect)(()=>{
+        if (clearAfter != null && hasChanged) {
+            const timeout = setTimeout(()=>{
+                setHasChanged(false);
+            }, clearAfter);
+            return ()=>{
+                clearTimeout(timeout);
+            };
+        }
+        return;
+    }, [
+        clearAfter,
+        hasChanged
+    ]);
+    return [
+        hasChanged,
+        clear
+    ];
+};
+
+;// CONCATENATED MODULE: ./components/setup-steps/file-changes.tsx
+
+
+
+
+
+
+
+
+
+
+
+
+const statuses = {
+    created: "text-green-700 bg-green-50 ring-green-600/20",
+    unchanged: "text-zinc-600 bg-zinc-50 ring-zinc-500/10",
+    changed: "text-yellow-800 bg-yellow-50 ring-yellow-600/20",
+    removed: "text-rose-700 bg-rose-50 ring-rose-600/20"
+};
+const ChangedFile = (props)=>{
+    const { addFileToIgnore , addFileToOverwrite , file , removeFileToIgnore , removeFileToOverwrite , isMarkedIgnored , isMarkedOverwritten  } = props;
+    const [isDiffModalOpen, setIsDiffModalOpen] = (0,react_.useState)(false);
+    const showDiffModal = (0,react_.useCallback)((file)=>{
+        setIsDiffModalOpen(true);
+    }, []);
+    const wouldOtherwiseBeWritten = file.state === "changed" && (file.overwrite || isMarkedOverwritten) || file.state === "created" || file.state === "removed";
+    const isOverwritable = file.state === "changed";
+    const isIgnorable = file.state === "created" || file.state === "removed";
+    const isIgnored = isMarkedIgnored || !wouldOtherwiseBeWritten;
+    const isOverwritten = isMarkedOverwritten || file.overwrite && file.exists;
+    const isDeleted = file.state === "removed" && !isIgnored;
+    const isCreated = file.state === "created" && !isIgnored;
+    const isChanged = file.state === "changed" && !isIgnored && isOverwritten;
+    const actions = (0,react_.useMemo)(()=>{
+        if (file.fileName === "RatOS.cfg") {
+            return [];
+        }
+        let skip = null;
+        let ignore = null;
+        let overwrite = null;
+        let write = null;
+        let remove = null;
+        if (isOverwritten && !isIgnored) {
+            skip = {
+                title: "Skip",
+                intent: "indeterminate",
+                action: isMarkedOverwritten ? removeFileToOverwrite : addFileToIgnore
+            };
+        } else if (isOverwritable) {
+            overwrite = {
+                title: "Overwrite",
+                intent: "warning",
+                action: isMarkedIgnored ? removeFileToIgnore : addFileToOverwrite
+            };
+        }
+        if (isIgnorable && !isIgnored) {
+            ignore = {
+                title: "Ignore",
+                intent: "indeterminate",
+                action: addFileToIgnore
+            };
+        } else if (isIgnored) {
+            if (file.state === "removed") {
+                remove = {
+                    title: "Delete",
+                    intent: "danger",
+                    action: removeFileToIgnore
+                };
+            } else if (isIgnorable) {
+                write = {
+                    title: "Write",
+                    intent: "success",
+                    action: removeFileToIgnore
+                };
+            }
+        }
+        return [
+            skip,
+            ignore,
+            overwrite,
+            write,
+            remove
+        ].filter(Boolean);
+    }, [
+        addFileToIgnore,
+        addFileToOverwrite,
+        file.fileName,
+        file.state,
+        isIgnorable,
+        isIgnored,
+        isMarkedIgnored,
+        isMarkedOverwritten,
+        isOverwritable,
+        isOverwritten,
+        removeFileToIgnore,
+        removeFileToOverwrite
+    ]);
+    const fileState = (0,react_.useMemo)(()=>{
+        if (file.state === "changed") {
+            if (isIgnored && file.overwrite || isOverwritten && !file.overwrite) {
+                return "warning";
+            } else if (isOverwritten) {
+                return "success";
+            } else {
+                return "indeterminate";
+            }
+        }
+        if (file.state === "created") {
+            if (isIgnored) {
+                return "danger";
+            } else {
+                return "success";
+            }
+        }
+        if (file.state === "removed") {
+            if (!isIgnored) {
+                return "warning";
+            }
+        }
+        return "indeterminate";
+    }, [
+        file.overwrite,
+        file.state,
+        isIgnored,
+        isOverwritten
+    ]);
+    const [shouldPing] = useChangeEffect([
+        fileState
+    ], 4000);
+    return /*#__PURE__*/ (0,jsx_runtime_.jsxs)("li", {
+        className: "flex items-center justify-between gap-x-6 py-5",
+        children: [
+            file?.diff != null && /*#__PURE__*/ jsx_runtime_.jsx(DiffModal, {
+                diff: file.diff,
+                title: `Changes to ${file.fileName}`,
+                state: file.state,
+                setIsOpen: setIsDiffModalOpen,
+                buttons: actions.map((a)=>{
+                    return /*#__PURE__*/ jsx_runtime_.jsx(Button, {
+                        onClick: ()=>{
+                            a.action(file.fileName);
+                            setIsDiffModalOpen(false);
+                        },
+                        intent: a.intent,
+                        children: a.title
+                    }, a.title);
+                }),
+                isOpen: isDiffModalOpen
+            }),
+            /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                className: "min-w-0",
+                children: [
+                    /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                        className: "flex items-center gap-x-3",
+                        children: [
+                            /*#__PURE__*/ jsx_runtime_.jsx(StateCircle, {
+                                state: fileState,
+                                ping: shouldPing
+                            }),
+                            /*#__PURE__*/ jsx_runtime_.jsx("p", {
+                                className: "text-sm font-semibold leading-6 text-zinc-900 dark:text-zinc-100",
+                                children: file.fileName
+                            }),
+                            /*#__PURE__*/ jsx_runtime_.jsx(Badge, {
+                                size: "sm",
+                                color: file.state === "changed" ? "yellow" : file.state === "created" ? "green" : file.state === "removed" ? "rose" : "gray",
+                                children: file.state === "changed" ? "Pending changes" : file.state === "created" ? "New file" : file.state === "removed" ? "Deleted" : "Unchanged"
+                            })
+                        ]
+                    }),
+                    /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                        className: "mt-1 flex items-center gap-x-2 text-xs leading-5 text-zinc-500 dark:text-zinc-400",
+                        children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)("p", {
+                            className: "",
+                            children: [
+                                file.state === "changed" && (isOverwritten && !isIgnored ? "File will be backed up and overwritten." + (file.fileName != "RatOS.cfg" ? ` Any changes you've made can be recovered from the backup.` : "") : "File will be skipped."),
+                                file.state === "created" && (isIgnored ? "File will be skipped." : "File will be created."),
+                                file.state === "removed" && (!isIgnored ? "File will be deleted." : "File will remain untouched.")
+                            ]
+                        })
+                    })
+                ]
+            }),
+            /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                className: "flex flex-none items-center gap-x-4",
+                children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)(external_headlessui_react_.Menu, {
+                    as: "div",
+                    className: "relative flex-none",
+                    children: [
+                        /*#__PURE__*/ (0,jsx_runtime_.jsxs)(external_headlessui_react_.Menu.Button, {
+                            className: "-m-2.5 block p-2.5 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100",
+                            children: [
+                                /*#__PURE__*/ jsx_runtime_.jsx("span", {
+                                    className: "sr-only",
+                                    children: "Open options"
+                                }),
+                                /*#__PURE__*/ jsx_runtime_.jsx(solid_namespaceObject.EllipsisVerticalIcon, {
+                                    className: "h-5 w-5",
+                                    "aria-hidden": "true"
+                                })
+                            ]
+                        }),
+                        /*#__PURE__*/ jsx_runtime_.jsx(external_headlessui_react_.Transition, {
+                            as: react_.Fragment,
+                            enter: "transition ease-out duration-100",
+                            enterFrom: "transform opacity-0 scale-95",
+                            enterTo: "transform opacity-100 scale-100",
+                            leave: "transition ease-in duration-75",
+                            leaveFrom: "transform opacity-100 scale-100",
+                            leaveTo: "transform opacity-0 scale-95",
+                            children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)(external_headlessui_react_.Menu.Items, {
+                                className: "absolute right-0 z-10 mt-2 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-zinc-900/5 focus:outline-none dark:bg-zinc-900 dark:ring-zinc-100/5",
+                                children: [
+                                    actions.map((action)=>/*#__PURE__*/ jsx_runtime_.jsx(external_headlessui_react_.Menu.Item, {
+                                            children: ({ active , disabled  })=>/*#__PURE__*/ jsx_runtime_.jsx("span", {
+                                                    onClick: ()=>action.action(file.fileName),
+                                                    className: (0,external_tailwind_merge_namespaceObject.twJoin)(active ? "bg-zinc-50 dark:bg-zinc-800" : "", disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer", "block px-3 py-1 text-sm leading-6 text-zinc-800 dark:text-zinc-200"),
+                                                    children: action.title
+                                                })
+                                        }, action.title)),
+                                    /*#__PURE__*/ jsx_runtime_.jsx(external_headlessui_react_.Menu.Item, {
+                                        disabled: file.diff == null,
+                                        children: ({ active , disabled  })=>/*#__PURE__*/ jsx_runtime_.jsx("span", {
+                                                onClick: ()=>showDiffModal(file),
+                                                className: (0,external_tailwind_merge_namespaceObject.twJoin)(active ? "bg-zinc-50 dark:bg-zinc-800" : "", disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer", "block px-3 py-1 text-sm leading-6 text-zinc-800 dark:text-zinc-200"),
+                                                children: "View diff"
+                                            })
+                                    })
+                                ]
+                            })
+                        })
+                    ]
+                })
+            })
+        ]
+    }, file.fileName);
+};
+const FileChanges = (props)=>{
+    const { serializedConfig , onFilesToIgnoreChange , onFilesToOverwriteChange  } = props;
+    const [filesToOverwrite, setFilesToOverwrite] = (0,react_.useState)([]);
+    const addFileToOverwrite = (0,react_.useCallback)((fileName)=>{
+        setFilesToOverwrite((files)=>files.includes(fileName) ? files : [
+                ...files,
+                fileName
+            ]);
+    }, []);
+    const removeFileToOverwrite = (0,react_.useCallback)((fileName)=>{
+        setFilesToOverwrite((files)=>files.includes(fileName) ? files.filter((file)=>file !== fileName) : files);
+    }, []);
+    const [filesToIgnore, setFilesToIgnore] = (0,react_.useState)([]);
+    const addFileToIgnore = (0,react_.useCallback)((fileName)=>{
+        setFilesToIgnore((files)=>files.includes(fileName) ? files : [
+                ...files,
+                fileName
+            ]);
+    }, []);
+    const removeFileToIgnore = (0,react_.useCallback)((fileName)=>{
+        setFilesToIgnore((files)=>files.includes(fileName) ? files.filter((file)=>file !== fileName) : files);
+    }, []);
+    (0,react_.useEffect)(()=>{
+        onFilesToOverwriteChange(filesToOverwrite);
+    }, [
+        filesToOverwrite,
+        onFilesToOverwriteChange
+    ]);
+    (0,react_.useEffect)(()=>{
+        onFilesToIgnoreChange(filesToIgnore);
+    }, [
+        filesToIgnore,
+        onFilesToIgnoreChange
+    ]);
+    const client = utils_trpc/* trpc.useUtils */.SX.useUtils().client;
+    const filesToWrite = (0,external_react_query_namespaceObject.useQuery)({
+        queryFn: async ()=>{
+            const res = await client.printer.getFilesToWrite.mutate({
+                config: serializedConfig ?? {}
+            });
+            return res;
+        },
+        enabled: serializedConfig != null
+    });
+    return /*#__PURE__*/ jsx_runtime_.jsx("ul", {
+        role: "list",
+        className: "divide-y divide-zinc-100 dark:divide-zinc-700",
+        children: filesToWrite.data?.map((fileToWrite)=>{
+            return /*#__PURE__*/ jsx_runtime_.jsx(ChangedFile, {
+                file: fileToWrite,
+                isMarkedIgnored: filesToIgnore.includes(fileToWrite.fileName),
+                isMarkedOverwritten: filesToOverwrite.includes(fileToWrite.fileName),
+                addFileToIgnore: addFileToIgnore,
+                addFileToOverwrite: addFileToOverwrite,
+                removeFileToIgnore: removeFileToIgnore,
+                removeFileToOverwrite: removeFileToOverwrite
+            }, fileToWrite.fileName);
+        })
+    });
+};
+
 ;// CONCATENATED MODULE: ./components/setup-steps/wizard-complete.tsx
+
+
+
+
+
 
 
 
@@ -4461,6 +5027,7 @@ const ConfirmToolhead = (props)=>{
                 });
             }
         }, []);
+    const [animateRef] = (0,react/* useAutoAnimate */.u)();
     if (toolhead == null) {
         return /*#__PURE__*/ jsx_runtime_.jsx("dl", {
             className: "grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700",
@@ -4473,168 +5040,263 @@ const ConfirmToolhead = (props)=>{
             })
         });
     }
-    return /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-        className: "col-span-1 mt-8 py-4 sm:grid-cols-2 ",
-        children: [
-            /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                className: "",
+    const hasWarnings = toolhead.getToolboard() != null && !toolboardDetected.data || toolhead.getToolboard()?.alternativePT1000Resistor && toolhead.getThermistor() === "PT1000";
+    return /*#__PURE__*/ jsx_runtime_.jsx(external_headlessui_react_.Disclosure, {
+        as: "div",
+        className: "",
+        children: ({ open  })=>/*#__PURE__*/ (0,jsx_runtime_.jsxs)(jsx_runtime_.Fragment, {
                 children: [
-                    /*#__PURE__*/ (0,jsx_runtime_.jsxs)("h3", {
-                        className: "text-base font-bold leading-7 text-zinc-900 dark:text-zinc-100",
+                    /*#__PURE__*/ (0,jsx_runtime_.jsxs)(external_headlessui_react_.Disclosure.Button, {
+                        as: "div",
+                        className: "cursor-pointer border-b border-zinc-100 py-4 dark:border-zinc-700",
                         children: [
-                            "Toolhead ",
-                            toolhead.getToolCommand()
-                        ]
-                    }),
-                    /*#__PURE__*/ jsx_runtime_.jsx("p", {
-                        className: "mt-2 max-w-4xl text-sm",
-                        children: toolhead.getDescription()
-                    })
-                ]
-            }),
-            /*#__PURE__*/ (0,jsx_runtime_.jsxs)("dl", {
-                className: "mt-4 grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700",
-                children: [
-                    /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                        className: "sm:col-span-1",
-                        children: [
-                            /*#__PURE__*/ (0,jsx_runtime_.jsxs)("dt", {
-                                className: "space-x-2 text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100",
+                            /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                                className: "flex items-center justify-between",
                                 children: [
-                                    /*#__PURE__*/ jsx_runtime_.jsx("span", {
-                                        children: "Toolboard"
+                                    /*#__PURE__*/ (0,jsx_runtime_.jsxs)("h3", {
+                                        className: "flex items-center space-x-2 text-base font-bold leading-7 text-zinc-900 dark:text-zinc-100",
+                                        children: [
+                                            /*#__PURE__*/ (0,jsx_runtime_.jsxs)("span", {
+                                                children: [
+                                                    "Toolhead ",
+                                                    toolhead.getToolCommand()
+                                                ]
+                                            }),
+                                            hasWarnings && /*#__PURE__*/ jsx_runtime_.jsx(Badge, {
+                                                color: "orange",
+                                                size: "md",
+                                                children: "Has Warnings"
+                                            })
+                                        ]
                                     }),
-                                    " ",
-                                    toolhead.getConfig().toolboard && /*#__PURE__*/ jsx_runtime_.jsx(Badge, {
-                                        color: toolboardDetected.data === true ? "green" : "red",
-                                        children: toolboardDetected.data === true ? "Detected" : "Not detected"
+                                    /*#__PURE__*/ jsx_runtime_.jsx("button", {
+                                        children: /*#__PURE__*/ jsx_runtime_.jsx(solid_namespaceObject.ChevronRightIcon, {
+                                            className: (0,external_tailwind_merge_namespaceObject.twJoin)("h-6 w-6 transition-all duration-200 ease-in-out", open ? "rotate-90" : "rotate-0")
+                                        })
                                     })
                                 ]
                             }),
-                            /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
-                                children: toolhead.getConfig().toolboard == null ? "None selected" : `${toolhead.getConfig().toolboard?.manufacturer} ${toolhead.getConfig().toolboard?.name}`
+                            /*#__PURE__*/ jsx_runtime_.jsx("p", {
+                                className: "mt-2 max-w-4xl text-sm",
+                                children: toolhead.getDescription()
                             })
                         ]
                     }),
-                    toolhead.getToolboard() != null && !toolboardDetected.data && /*#__PURE__*/ jsx_runtime_.jsx("div", {
-                        className: "sm:col-span-2",
-                        children: /*#__PURE__*/ jsx_runtime_.jsx(WarningMessage, {
-                            children: /*#__PURE__*/ jsx_runtime_.jsx("div", {
-                                className: "space-y-2",
-                                children: /*#__PURE__*/ jsx_runtime_.jsx("div", {
-                                    children: "The toolboard you have selected does not seem to be connected, you can still save the config and proceed to mainsail, but you will get an 'mcu' connection error."
-                                })
-                            })
-                        })
-                    }),
-                    /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                        className: "sm:col-span-1",
-                        children: [
-                            /*#__PURE__*/ jsx_runtime_.jsx("dt", {
-                                className: "text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100",
-                                children: "Extruder"
-                            }),
-                            /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
-                                children: toolhead.getConfig().extruder?.title ?? "None selected"
-                            })
-                        ]
-                    }),
-                    /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                        className: "sm:col-span-1",
-                        children: [
-                            /*#__PURE__*/ jsx_runtime_.jsx("dt", {
-                                className: "text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100",
-                                children: "Hotend"
-                            }),
-                            /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
-                                children: toolhead.getConfig().hotend?.title ?? "None selected"
-                            })
-                        ]
-                    }),
-                    /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                        className: "sm:col-span-1",
-                        children: [
-                            /*#__PURE__*/ jsx_runtime_.jsx("dt", {
-                                className: "text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100",
-                                children: "Thermistor"
-                            }),
-                            /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
-                                children: toolhead.getConfig().thermistor ?? "None selected"
-                            })
-                        ]
-                    }),
-                    toolhead.getToolboard()?.alternativePT1000Resistor && toolhead.getThermistor() === "PT1000" && /*#__PURE__*/ jsx_runtime_.jsx("div", {
-                        className: "col-span-2",
-                        children: /*#__PURE__*/ jsx_runtime_.jsx(WarningMessage, {
-                            title: "RatOS uses your toolboards alternate pullup resistor setting",
-                            children: "Your toolboard has an option to use a separate pullup resistor for PT1000 sensors. This is usually done by inserting a jumper. Make sure you read the documentation for your board on how to enable the alternative resistor or you'll get ADC temperature errors in klipper."
-                        })
-                    })
-                ]
-            }),
-            /*#__PURE__*/ (0,jsx_runtime_.jsxs)("dl", {
-                className: "grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700",
-                children: [
-                    /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                        className: "sm:col-span-1",
-                        children: [
-                            /*#__PURE__*/ jsx_runtime_.jsx("dt", {
-                                className: "text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100",
-                                children: "X Endstop"
-                            }),
-                            /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
-                                children: toolhead.getConfig().xEndstop?.title ?? "None selected"
-                            })
-                        ]
-                    }),
-                    /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                        className: "sm:col-span-1",
-                        children: [
-                            /*#__PURE__*/ jsx_runtime_.jsx("dt", {
-                                className: "text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100",
-                                children: "Y Endstop"
-                            }),
-                            /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
-                                children: toolhead.getConfig().yEndstop?.title ?? "None selected"
-                            })
-                        ]
-                    }),
-                    /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                        className: "sm:col-span-1",
-                        children: [
-                            /*#__PURE__*/ jsx_runtime_.jsx("dt", {
-                                className: "text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100",
-                                children: "Probe"
-                            }),
-                            /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
-                                children: toolhead.getConfig().probe?.title ?? "None selected"
-                            })
-                        ]
-                    }),
-                    toolhead.getConfig().toolboard != null && toolhead.getConfig().xEndstop?.id === "endstop" && !ignoreEndstopWarning && /*#__PURE__*/ jsx_runtime_.jsx("div", {
-                        className: "sm:col-span-2",
-                        children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)(WarningMessage, {
+                    /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                        ref: animateRef,
+                        children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)(external_headlessui_react_.Disclosure.Panel, {
+                            className: "pt-4",
                             children: [
-                                "The current configuration assumes the X endstop is connected to your controlboard, do you want to use an endstop connected to the toolboard instead?",
-                                /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                                    className: "mt-4 flex justify-end space-x-2",
+                                /*#__PURE__*/ (0,jsx_runtime_.jsxs)("dl", {
+                                    className: "grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2",
                                     children: [
-                                        /*#__PURE__*/ jsx_runtime_.jsx(Button, {
-                                            onClick: setToolboardEndstop,
-                                            color: "warning",
-                                            children: "Yes, use the toolboard connection"
+                                        /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                                            className: "sm:col-span-1",
+                                            children: [
+                                                /*#__PURE__*/ (0,jsx_runtime_.jsxs)("dt", {
+                                                    className: "space-x-2 text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100",
+                                                    children: [
+                                                        /*#__PURE__*/ jsx_runtime_.jsx("span", {
+                                                            children: "Toolboard"
+                                                        }),
+                                                        " ",
+                                                        toolhead.getConfig().toolboard && /*#__PURE__*/ jsx_runtime_.jsx(Badge, {
+                                                            color: toolboardDetected.data === true ? "green" : "red",
+                                                            children: toolboardDetected.data === true ? "Detected" : "Not detected"
+                                                        })
+                                                    ]
+                                                }),
+                                                /*#__PURE__*/ jsx_runtime_.jsx("dd", {
+                                                    className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
+                                                    children: toolhead.getConfig().toolboard == null ? "None selected" : `${toolhead.getConfig().toolboard?.manufacturer} ${toolhead.getConfig().toolboard?.name}`
+                                                })
+                                            ]
                                         }),
-                                        /*#__PURE__*/ jsx_runtime_.jsx(Button, {
-                                            onClick: ()=>setIgnoreEndstopWarning(true),
-                                            color: "plain",
-                                            children: "No, use the controlboard connection"
+                                        toolhead.getToolboard() != null && !toolboardDetected.data && /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                                            className: "sm:col-span-2",
+                                            children: /*#__PURE__*/ jsx_runtime_.jsx(WarningMessage, {
+                                                children: /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                                                    className: "space-y-2",
+                                                    children: /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                                                        children: "The toolboard you have selected does not seem to be connected, you can still save the config and proceed to mainsail, but you will get an 'mcu' connection error."
+                                                    })
+                                                })
+                                            })
+                                        }),
+                                        /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                                            className: "sm:col-span-1",
+                                            children: [
+                                                /*#__PURE__*/ jsx_runtime_.jsx("dt", {
+                                                    className: "text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100",
+                                                    children: "Extruder"
+                                                }),
+                                                /*#__PURE__*/ jsx_runtime_.jsx("dd", {
+                                                    className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
+                                                    children: toolhead.getConfig().extruder?.title ?? "None selected"
+                                                })
+                                            ]
+                                        }),
+                                        /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                                            className: "sm:col-span-1",
+                                            children: [
+                                                /*#__PURE__*/ jsx_runtime_.jsx("dt", {
+                                                    className: "text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100",
+                                                    children: "Hotend"
+                                                }),
+                                                /*#__PURE__*/ jsx_runtime_.jsx("dd", {
+                                                    className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
+                                                    children: toolhead.getConfig().hotend?.title ?? "None selected"
+                                                })
+                                            ]
+                                        }),
+                                        /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                                            className: "sm:col-span-1",
+                                            children: [
+                                                /*#__PURE__*/ jsx_runtime_.jsx("dt", {
+                                                    className: "text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100",
+                                                    children: "Thermistor"
+                                                }),
+                                                /*#__PURE__*/ jsx_runtime_.jsx("dd", {
+                                                    className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
+                                                    children: toolhead.getConfig().thermistor ?? "None selected"
+                                                })
+                                            ]
+                                        }),
+                                        toolhead.getToolboard()?.alternativePT1000Resistor && toolhead.getThermistor() === "PT1000" && /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                                            className: "col-span-2",
+                                            children: /*#__PURE__*/ jsx_runtime_.jsx(WarningMessage, {
+                                                title: "RatOS uses your toolboards alternate pullup resistor setting",
+                                                children: "Your toolboard has an option to use a separate pullup resistor for PT1000 sensors. This is usually done by inserting a jumper. Make sure you read the documentation for your board on how to enable the alternative resistor or you'll get ADC temperature errors in klipper."
+                                            })
+                                        })
+                                    ]
+                                }),
+                                /*#__PURE__*/ (0,jsx_runtime_.jsxs)("dl", {
+                                    className: "grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700",
+                                    children: [
+                                        /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                                            className: "sm:col-span-1",
+                                            children: [
+                                                /*#__PURE__*/ jsx_runtime_.jsx("dt", {
+                                                    className: "text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100",
+                                                    children: "X Endstop"
+                                                }),
+                                                /*#__PURE__*/ jsx_runtime_.jsx("dd", {
+                                                    className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
+                                                    children: toolhead.getConfig().xEndstop?.title ?? "None selected"
+                                                })
+                                            ]
+                                        }),
+                                        /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                                            className: "sm:col-span-1",
+                                            children: [
+                                                /*#__PURE__*/ jsx_runtime_.jsx("dt", {
+                                                    className: "text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100",
+                                                    children: "Y Endstop"
+                                                }),
+                                                /*#__PURE__*/ jsx_runtime_.jsx("dd", {
+                                                    className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
+                                                    children: toolhead.getConfig().yEndstop?.title ?? "None selected"
+                                                })
+                                            ]
+                                        }),
+                                        /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                                            className: "sm:col-span-1",
+                                            children: [
+                                                /*#__PURE__*/ jsx_runtime_.jsx("dt", {
+                                                    className: "text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100",
+                                                    children: "Probe"
+                                                }),
+                                                /*#__PURE__*/ jsx_runtime_.jsx("dd", {
+                                                    className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
+                                                    children: toolhead.getConfig().probe?.title ?? "None selected"
+                                                })
+                                            ]
+                                        }),
+                                        toolhead.getConfig().toolboard != null && toolhead.getConfig().xEndstop?.id === "endstop" && !ignoreEndstopWarning && /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                                            className: "sm:col-span-2",
+                                            children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)(WarningMessage, {
+                                                children: [
+                                                    "The current configuration assumes the X endstop is connected to your controlboard, do you want to use an endstop connected to the toolboard instead?",
+                                                    /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                                                        className: "mt-4 flex justify-end space-x-2",
+                                                        children: [
+                                                            /*#__PURE__*/ jsx_runtime_.jsx(Button, {
+                                                                onClick: setToolboardEndstop,
+                                                                intent: "warning",
+                                                                children: "Yes, use the toolboard connection"
+                                                            }),
+                                                            /*#__PURE__*/ jsx_runtime_.jsx(Button, {
+                                                                onClick: ()=>setIgnoreEndstopWarning(true),
+                                                                intent: "plain",
+                                                                children: "No, use the controlboard connection"
+                                                            })
+                                                        ]
+                                                    })
+                                                ]
+                                            })
+                                        })
+                                    ]
+                                }),
+                                /*#__PURE__*/ (0,jsx_runtime_.jsxs)("dl", {
+                                    className: "grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700",
+                                    children: [
+                                        /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                                            className: "sm:col-span-1",
+                                            children: [
+                                                /*#__PURE__*/ jsx_runtime_.jsx("dt", {
+                                                    className: "text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100",
+                                                    children: "Part cooling fan"
+                                                }),
+                                                /*#__PURE__*/ jsx_runtime_.jsx("dd", {
+                                                    className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
+                                                    children: toolhead.getConfig().partFan?.title ?? "None selected"
+                                                })
+                                            ]
+                                        }),
+                                        /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                                            className: "sm:col-span-1",
+                                            children: [
+                                                /*#__PURE__*/ jsx_runtime_.jsx("dt", {
+                                                    className: "text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100",
+                                                    children: "Hotend cooling fan"
+                                                }),
+                                                /*#__PURE__*/ jsx_runtime_.jsx("dd", {
+                                                    className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
+                                                    children: toolhead.getConfig().hotendFan?.title ?? "None selected"
+                                                })
+                                            ]
+                                        })
+                                    ]
+                                }),
+                                /*#__PURE__*/ (0,jsx_runtime_.jsxs)("dl", {
+                                    className: "grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700",
+                                    children: [
+                                        /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                                            className: "sm:col-span-1",
+                                            children: [
+                                                /*#__PURE__*/ jsx_runtime_.jsx("dt", {
+                                                    className: "text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100",
+                                                    children: "X Accelerometer"
+                                                }),
+                                                /*#__PURE__*/ jsx_runtime_.jsx("dd", {
+                                                    className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
+                                                    children: toolhead.getConfig().xAccelerometer?.title ?? "None"
+                                                })
+                                            ]
+                                        }),
+                                        /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                                            className: "sm:col-span-1",
+                                            children: [
+                                                /*#__PURE__*/ jsx_runtime_.jsx("dt", {
+                                                    className: "text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100",
+                                                    children: "Y Accelerometer"
+                                                }),
+                                                /*#__PURE__*/ jsx_runtime_.jsx("dd", {
+                                                    className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
+                                                    children: toolhead.getConfig().yAccelerometer?.title ?? "None"
+                                                })
+                                            ]
                                         })
                                     ]
                                 })
@@ -4642,70 +5304,7 @@ const ConfirmToolhead = (props)=>{
                         })
                     })
                 ]
-            }),
-            /*#__PURE__*/ (0,jsx_runtime_.jsxs)("dl", {
-                className: "grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700",
-                children: [
-                    /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                        className: "sm:col-span-1",
-                        children: [
-                            /*#__PURE__*/ jsx_runtime_.jsx("dt", {
-                                className: "text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100",
-                                children: "Part cooling fan"
-                            }),
-                            /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
-                                children: toolhead.getConfig().partFan?.title ?? "None selected"
-                            })
-                        ]
-                    }),
-                    /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                        className: "sm:col-span-1",
-                        children: [
-                            /*#__PURE__*/ jsx_runtime_.jsx("dt", {
-                                className: "text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100",
-                                children: "Hotend cooling fan"
-                            }),
-                            /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
-                                children: toolhead.getConfig().hotendFan?.title ?? "None selected"
-                            })
-                        ]
-                    })
-                ]
-            }),
-            /*#__PURE__*/ (0,jsx_runtime_.jsxs)("dl", {
-                className: "grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700",
-                children: [
-                    /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                        className: "sm:col-span-1",
-                        children: [
-                            /*#__PURE__*/ jsx_runtime_.jsx("dt", {
-                                className: "text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100",
-                                children: "X Accelerometer"
-                            }),
-                            /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
-                                children: toolhead.getConfig().xAccelerometer?.title ?? "None"
-                            })
-                        ]
-                    }),
-                    /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                        className: "sm:col-span-1",
-                        children: [
-                            /*#__PURE__*/ jsx_runtime_.jsx("dt", {
-                                className: "text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100",
-                                children: "Y Accelerometer"
-                            }),
-                            /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
-                                children: toolhead.getConfig().yAccelerometer?.title ?? "None"
-                            })
-                        ]
-                    })
-                ]
             })
-        ]
     });
 };
 const ConfirmConfig = (props)=>{
@@ -4720,19 +5319,7 @@ const ConfirmConfig = (props)=>{
     ]);
     const errors = [];
     const [filesToOverwrite, setFilesToOverwrite] = (0,react_.useState)([]);
-    const addFileToOverwrite = (0,react_.useCallback)((fileName)=>{
-        setFilesToOverwrite((files)=>files.includes(fileName) ? files : [
-                ...files,
-                fileName
-            ]);
-    }, []);
     const [filesToIgnore, setFilesToIgnore] = (0,react_.useState)([]);
-    const addFileToIgnore = (0,react_.useCallback)((fileName)=>{
-        setFilesToIgnore((files)=>files.includes(fileName) ? files : [
-                ...files,
-                fileName
-            ]);
-    }, []);
     const controlboardDetected = trpc/* trpc.mcu.detect.useQuery */.S.mcu.detect.useQuery({
         boardPath: partialPrinterConfiguration != null ? partialPrinterConfiguration.controlboard?.path ?? "" : ""
     }, {
@@ -4791,6 +5378,7 @@ const ConfirmConfig = (props)=>{
             }
         }
     }
+    const [animateRef] = (0,react/* useAutoAnimate */.u)();
     return /*#__PURE__*/ (0,jsx_runtime_.jsxs)(jsx_runtime_.Fragment, {
         children: [
             /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
@@ -4823,222 +5411,260 @@ const ConfirmConfig = (props)=>{
                                             }, i))
                                     })
                                 }),
-                                /*#__PURE__*/ jsx_runtime_.jsx("div", {
-                                    className: "",
-                                    children: /*#__PURE__*/ jsx_runtime_.jsx("h3", {
-                                        className: "text-base font-bold leading-7 text-zinc-900 dark:text-zinc-100",
-                                        children: "General"
-                                    })
-                                }),
                                 /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
                                     className: "mt-4",
+                                    ref: animateRef,
                                     children: [
-                                        /*#__PURE__*/ (0,jsx_runtime_.jsxs)("dl", {
-                                            className: "grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700",
-                                            children: [
-                                                /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                                                    className: "sm:col-span-2",
+                                        /*#__PURE__*/ jsx_runtime_.jsx(external_headlessui_react_.Disclosure, {
+                                            as: react_.Fragment,
+                                            children: ({ open  })=>/*#__PURE__*/ (0,jsx_runtime_.jsxs)(jsx_runtime_.Fragment, {
                                                     children: [
-                                                        /*#__PURE__*/ jsx_runtime_.jsx("dt", {
-                                                            className: "text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100",
-                                                            children: "Printer"
+                                                        /*#__PURE__*/ jsx_runtime_.jsx(external_headlessui_react_.Disclosure.Button, {
+                                                            as: "div",
+                                                            className: "border-b border-zinc-100 py-4 dark:border-zinc-700",
+                                                            children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                                                                className: "flex cursor-pointer items-center justify-between",
+                                                                children: [
+                                                                    /*#__PURE__*/ (0,jsx_runtime_.jsxs)("h3", {
+                                                                        className: "flex items-center space-x-2 text-base font-bold leading-7 text-zinc-900 dark:text-zinc-100",
+                                                                        children: [
+                                                                            /*#__PURE__*/ jsx_runtime_.jsx("span", {
+                                                                                children: "General"
+                                                                            }),
+                                                                            parsedPrinterConfiguration.data.controlboard != null && !controlboardDetected.data && /*#__PURE__*/ jsx_runtime_.jsx(Badge, {
+                                                                                color: "orange",
+                                                                                children: "Has Warnings"
+                                                                            })
+                                                                        ]
+                                                                    }),
+                                                                    /*#__PURE__*/ jsx_runtime_.jsx("button", {
+                                                                        children: /*#__PURE__*/ jsx_runtime_.jsx(solid_namespaceObject.ChevronRightIcon, {
+                                                                            className: (0,external_tailwind_merge_namespaceObject.twJoin)("h-6 w-6 transition-all duration-200 ease-in-out", open ? "rotate-90" : "rotate-0")
+                                                                        })
+                                                                    })
+                                                                ]
+                                                            })
                                                         }),
-                                                        /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                                            className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
-                                                            children: parsedPrinterConfiguration.data.printer != null ? `${parsedPrinterConfiguration.data.printer.manufacturer} ${parsedPrinterConfiguration.data.printer.name} ${parsedPrinterConfiguration.data.size}` : "None selected"
-                                                        })
-                                                    ]
-                                                }),
-                                                /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                                                    className: "sm:col-span-1",
-                                                    children: [
-                                                        /*#__PURE__*/ (0,jsx_runtime_.jsxs)("dt", {
-                                                            className: "space-x-2 text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100",
+                                                        /*#__PURE__*/ (0,jsx_runtime_.jsxs)(external_headlessui_react_.Disclosure.Panel, {
+                                                            as: "dl",
+                                                            className: "grid grid-cols-1 gap-x-4 gap-y-4 py-4 sm:grid-cols-2",
                                                             children: [
-                                                                /*#__PURE__*/ jsx_runtime_.jsx("span", {
-                                                                    children: "Controlboard"
+                                                                /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                                                                    className: "sm:col-span-2",
+                                                                    children: [
+                                                                        /*#__PURE__*/ jsx_runtime_.jsx("dt", {
+                                                                            className: "text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100",
+                                                                            children: "Printer"
+                                                                        }),
+                                                                        /*#__PURE__*/ jsx_runtime_.jsx("dd", {
+                                                                            className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
+                                                                            children: parsedPrinterConfiguration.data.printer != null ? `${parsedPrinterConfiguration.data.printer.manufacturer} ${parsedPrinterConfiguration.data.printer.name} ${parsedPrinterConfiguration.data.size}` : "None selected"
+                                                                        })
+                                                                    ]
                                                                 }),
-                                                                parsedPrinterConfiguration.data.controlboard && /*#__PURE__*/ jsx_runtime_.jsx(Badge, {
-                                                                    color: controlboardDetected.data === true ? "green" : "red",
-                                                                    children: controlboardDetected.data === true ? "Detected" : "Not detected"
+                                                                /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                                                                    className: "sm:col-span-1",
+                                                                    children: [
+                                                                        /*#__PURE__*/ (0,jsx_runtime_.jsxs)("dt", {
+                                                                            className: "space-x-2 text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100",
+                                                                            children: [
+                                                                                /*#__PURE__*/ jsx_runtime_.jsx("span", {
+                                                                                    children: "Controlboard"
+                                                                                }),
+                                                                                parsedPrinterConfiguration.data.controlboard && /*#__PURE__*/ jsx_runtime_.jsx(Badge, {
+                                                                                    color: controlboardDetected.data === true ? "green" : "red",
+                                                                                    children: controlboardDetected.data === true ? "Detected" : "Not detected"
+                                                                                })
+                                                                            ]
+                                                                        }),
+                                                                        /*#__PURE__*/ jsx_runtime_.jsx("dd", {
+                                                                            className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
+                                                                            children: parsedPrinterConfiguration.data.controlboard != null ? `${parsedPrinterConfiguration.data.controlboard.manufacturer} ${parsedPrinterConfiguration.data.controlboard.name}` : "None selected"
+                                                                        })
+                                                                    ]
+                                                                }),
+                                                                /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                                                                    className: "sm:col-span-1",
+                                                                    children: [
+                                                                        /*#__PURE__*/ jsx_runtime_.jsx("dt", {
+                                                                            className: "text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100",
+                                                                            children: "Controller cooling fan"
+                                                                        }),
+                                                                        /*#__PURE__*/ jsx_runtime_.jsx("dd", {
+                                                                            className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
+                                                                            children: parsedPrinterConfiguration.data.controllerFan?.title ?? "None selected"
+                                                                        })
+                                                                    ]
+                                                                }),
+                                                                parsedPrinterConfiguration.data.controlboard != null && !controlboardDetected.data && /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                                                                    className: "sm:col-span-2",
+                                                                    children: /*#__PURE__*/ jsx_runtime_.jsx(WarningMessage, {
+                                                                        children: /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                                                                            className: "space-y-2",
+                                                                            children: /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                                                                                children: "The controlboard you have selected does not seem to be connected, you can still save the config and proceed to mainsail, but you will get an 'mcu' connection error."
+                                                                            })
+                                                                        })
+                                                                    })
                                                                 })
                                                             ]
-                                                        }),
-                                                        /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                                            className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
-                                                            children: parsedPrinterConfiguration.data.controlboard != null ? `${parsedPrinterConfiguration.data.controlboard.manufacturer} ${parsedPrinterConfiguration.data.controlboard.name}` : "None selected"
                                                         })
                                                     ]
-                                                }),
-                                                /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                                                    className: "sm:col-span-1",
-                                                    children: [
-                                                        /*#__PURE__*/ jsx_runtime_.jsx("dt", {
-                                                            className: "text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100",
-                                                            children: "Controller cooling fan"
-                                                        }),
-                                                        /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                                            className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
-                                                            children: parsedPrinterConfiguration.data.controllerFan?.title ?? "None selected"
-                                                        })
-                                                    ]
-                                                }),
-                                                parsedPrinterConfiguration.data.controlboard != null && !controlboardDetected.data && /*#__PURE__*/ jsx_runtime_.jsx("div", {
-                                                    className: "sm:col-span-2",
-                                                    children: /*#__PURE__*/ jsx_runtime_.jsx(WarningMessage, {
-                                                        children: /*#__PURE__*/ jsx_runtime_.jsx("div", {
-                                                            className: "space-y-2",
-                                                            children: /*#__PURE__*/ jsx_runtime_.jsx("div", {
-                                                                children: "The controlboard you have selected does not seem to be connected, you can still save the config and proceed to mainsail, but you will get an 'mcu' connection error."
-                                                            })
-                                                        })
-                                                    })
                                                 })
-                                            ]
                                         }),
                                         /*#__PURE__*/ jsx_runtime_.jsx("div", {
-                                            className: "space-y-4",
+                                            className: "",
                                             children: parsedPrinterConfiguration.data.toolheads.map((tool)=>/*#__PURE__*/ jsx_runtime_.jsx(ConfirmToolhead, {
                                                     toolOrAxis: tool.axis
                                                 }, tool.axis))
                                         }),
-                                        /*#__PURE__*/ jsx_runtime_.jsx("div", {
-                                            className: "",
-                                            children: /*#__PURE__*/ jsx_runtime_.jsx("h3", {
-                                                className: "mt-4 text-base font-bold leading-7 text-zinc-900 dark:text-zinc-100",
-                                                children: "Motion"
-                                            })
-                                        }),
-                                        /*#__PURE__*/ (0,jsx_runtime_.jsxs)("dl", {
-                                            className: "mt-4 grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700",
-                                            children: [
-                                                /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                                                    className: "sm:col-span-1",
+                                        /*#__PURE__*/ jsx_runtime_.jsx(external_headlessui_react_.Disclosure, {
+                                            as: react_.Fragment,
+                                            defaultOpen: false,
+                                            children: ({ open  })=>/*#__PURE__*/ (0,jsx_runtime_.jsxs)(jsx_runtime_.Fragment, {
                                                     children: [
-                                                        /*#__PURE__*/ jsx_runtime_.jsx("dt", {
-                                                            className: "text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100",
-                                                            children: "Performance mode"
+                                                        /*#__PURE__*/ jsx_runtime_.jsx(external_headlessui_react_.Disclosure.Button, {
+                                                            as: "div",
+                                                            className: "border-b border-zinc-100 py-4 dark:border-zinc-700",
+                                                            children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                                                                className: "flex cursor-pointer items-center justify-between",
+                                                                children: [
+                                                                    /*#__PURE__*/ jsx_runtime_.jsx("h3", {
+                                                                        className: "flex items-center space-x-2 text-base font-bold leading-7 text-zinc-900 dark:text-zinc-100",
+                                                                        children: "Motion"
+                                                                    }),
+                                                                    /*#__PURE__*/ jsx_runtime_.jsx("button", {
+                                                                        children: /*#__PURE__*/ jsx_runtime_.jsx(solid_namespaceObject.ChevronRightIcon, {
+                                                                            className: (0,external_tailwind_merge_namespaceObject.twJoin)("h-6 w-6 transition-all duration-200 ease-in-out", open ? "rotate-90" : "rotate-0")
+                                                                        })
+                                                                    })
+                                                                ]
+                                                            })
                                                         }),
-                                                        /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                                            className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
-                                                            children: parsedPrinterConfiguration.data.performanceMode ? "Enabled" : "Disabled"
-                                                        })
-                                                    ]
-                                                }),
-                                                /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                                                    className: "sm:col-span-1",
-                                                    children: [
-                                                        /*#__PURE__*/ jsx_runtime_.jsx("dt", {
-                                                            className: "text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100",
-                                                            children: "Stealtchop"
-                                                        }),
-                                                        /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                                            className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
-                                                            children: parsedPrinterConfiguration.data.stealthchop ? "Enabled" : "Disabled"
-                                                        })
-                                                    ]
-                                                }),
-                                                /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                                                    className: "sm:col-span-1",
-                                                    children: [
-                                                        /*#__PURE__*/ jsx_runtime_.jsx("dt", {
-                                                            className: "text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100",
-                                                            children: "Standstill Stealth"
-                                                        }),
-                                                        /*#__PURE__*/ jsx_runtime_.jsx("dd", {
-                                                            className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
-                                                            children: parsedPrinterConfiguration.data.standstillStealth ? "Enabled" : "Disabled"
-                                                        })
-                                                    ]
-                                                })
-                                            ]
-                                        }),
-                                        /*#__PURE__*/ jsx_runtime_.jsx("dl", {
-                                            className: "grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700",
-                                            children: parsedPrinterConfiguration.data.rails?.map((rail, i)=>/*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                                                    className: "sm:col-span-1",
-                                                    children: [
-                                                        /*#__PURE__*/ (0,jsx_runtime_.jsxs)("dt", {
-                                                            className: "text-sm font-medium capitalize leading-6 text-zinc-900 dark:text-zinc-100",
+                                                        /*#__PURE__*/ (0,jsx_runtime_.jsxs)(external_headlessui_react_.Disclosure.Panel, {
                                                             children: [
-                                                                rail.axis === motion/* PrinterAxis.extruder */.po.extruder ? rail.axis : rail.axis.toLocaleUpperCase(),
-                                                                " Motion Configuration"
-                                                            ]
-                                                        }),
-                                                        /*#__PURE__*/ (0,jsx_runtime_.jsxs)("dd", {
-                                                            className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
-                                                            children: [
-                                                                /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                                                                    className: "font-medium",
+                                                                /*#__PURE__*/ (0,jsx_runtime_.jsxs)("dl", {
+                                                                    className: "grid grid-cols-1 gap-x-4 gap-y-4 py-4 sm:grid-cols-2",
                                                                     children: [
-                                                                        rail.driver.title,
-                                                                        " @ ",
-                                                                        rail.voltage,
-                                                                        "V"
+                                                                        /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                                                                            className: "sm:col-span-1",
+                                                                            children: [
+                                                                                /*#__PURE__*/ jsx_runtime_.jsx("dt", {
+                                                                                    className: "text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100",
+                                                                                    children: "Performance mode"
+                                                                                }),
+                                                                                /*#__PURE__*/ jsx_runtime_.jsx("dd", {
+                                                                                    className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
+                                                                                    children: parsedPrinterConfiguration.data.performanceMode ? "Enabled" : "Disabled"
+                                                                                })
+                                                                            ]
+                                                                        }),
+                                                                        /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                                                                            className: "sm:col-span-1",
+                                                                            children: [
+                                                                                /*#__PURE__*/ jsx_runtime_.jsx("dt", {
+                                                                                    className: "text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100",
+                                                                                    children: "Stealtchop"
+                                                                                }),
+                                                                                /*#__PURE__*/ jsx_runtime_.jsx("dd", {
+                                                                                    className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
+                                                                                    children: parsedPrinterConfiguration.data.stealthchop ? "Enabled" : "Disabled"
+                                                                                })
+                                                                            ]
+                                                                        }),
+                                                                        /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                                                                            className: "sm:col-span-1",
+                                                                            children: [
+                                                                                /*#__PURE__*/ jsx_runtime_.jsx("dt", {
+                                                                                    className: "text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100",
+                                                                                    children: "Standstill Stealth"
+                                                                                }),
+                                                                                /*#__PURE__*/ jsx_runtime_.jsx("dd", {
+                                                                                    className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
+                                                                                    children: parsedPrinterConfiguration.data.standstillStealth ? "Enabled" : "Disabled"
+                                                                                })
+                                                                            ]
+                                                                        })
                                                                     ]
                                                                 }),
-                                                                /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                                                                    className: "font-medium",
-                                                                    children: [
-                                                                        rail.stepper.title,
-                                                                        " @ ",
-                                                                        rail.current,
-                                                                        "A RMS"
-                                                                    ]
-                                                                }),
-                                                                /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                                                                    className: "font-medium",
-                                                                    children: [
-                                                                        rail.microstepping,
-                                                                        " microsteps"
-                                                                    ]
+                                                                /*#__PURE__*/ jsx_runtime_.jsx("dl", {
+                                                                    className: "grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700",
+                                                                    children: parsedPrinterConfiguration.data.rails?.map((rail, i)=>/*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                                                                            className: "sm:col-span-1",
+                                                                            children: [
+                                                                                /*#__PURE__*/ (0,jsx_runtime_.jsxs)("dt", {
+                                                                                    className: "text-sm font-medium capitalize leading-6 text-zinc-900 dark:text-zinc-100",
+                                                                                    children: [
+                                                                                        rail.axis === motion/* PrinterAxis.extruder */.po.extruder ? rail.axis : rail.axis.toLocaleUpperCase(),
+                                                                                        " Motion Configuration"
+                                                                                    ]
+                                                                                }),
+                                                                                /*#__PURE__*/ (0,jsx_runtime_.jsxs)("dd", {
+                                                                                    className: "mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400",
+                                                                                    children: [
+                                                                                        /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                                                                                            className: "font-medium",
+                                                                                            children: [
+                                                                                                rail.driver.title,
+                                                                                                " @ ",
+                                                                                                rail.voltage,
+                                                                                                "V"
+                                                                                            ]
+                                                                                        }),
+                                                                                        /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                                                                                            className: "font-medium",
+                                                                                            children: [
+                                                                                                rail.stepper.title,
+                                                                                                " @ ",
+                                                                                                rail.current,
+                                                                                                "A RMS"
+                                                                                            ]
+                                                                                        }),
+                                                                                        /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                                                                                            className: "font-medium",
+                                                                                            children: [
+                                                                                                rail.microstepping,
+                                                                                                " microsteps"
+                                                                                            ]
+                                                                                        })
+                                                                                    ]
+                                                                                })
+                                                                            ]
+                                                                        }, i))
                                                                 })
                                                             ]
                                                         })
                                                     ]
-                                                }, i))
+                                                })
+                                        }),
+                                        /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                                            className: "border-b border-zinc-100 py-4 dark:border-zinc-700",
+                                            children: /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                                                className: "flex cursor-pointer items-center justify-between",
+                                                children: /*#__PURE__*/ jsx_runtime_.jsx("h3", {
+                                                    className: "flex items-center space-x-2 text-base font-bold leading-7 text-zinc-900 dark:text-zinc-100",
+                                                    children: "Config files"
+                                                })
+                                            })
+                                        }),
+                                        /*#__PURE__*/ jsx_runtime_.jsx("dl", {
+                                            className: "gap-y-4py-4 grid grid-cols-1 gap-x-4 sm:grid-cols-2",
+                                            children: /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                                                className: " space-y-4 sm:col-span-2 dark:border-zinc-700",
+                                                children: /*#__PURE__*/ jsx_runtime_.jsx(FileChanges, {
+                                                    serializedConfig: parsedPrinterConfiguration.success ? serializedPrinterConfiguration : null,
+                                                    onFilesToIgnoreChange: setFilesToIgnore,
+                                                    onFilesToOverwriteChange: setFilesToOverwrite
+                                                })
+                                            })
                                         }),
                                         /*#__PURE__*/ jsx_runtime_.jsx("dl", {
                                             className: "grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700",
-                                            children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
+                                            children: /*#__PURE__*/ jsx_runtime_.jsx("div", {
                                                 className: " space-y-4 sm:col-span-2 dark:border-zinc-700",
-                                                children: [
-                                                    filesToWrite.data?.map((file)=>{
-                                                        return file.exists && !file.overwrite && !filesToIgnore.includes(file.fileName) && !filesToOverwrite.includes(file.fileName) && /*#__PURE__*/ jsx_runtime_.jsx("div", {
-                                                            className: "mt-2",
-                                                            children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)(InfoMessage, {
-                                                                title: `The file ${file.fileName} already exists, overwrite?`,
-                                                                children: [
-                                                                    "A backup will be created, so you can recover later.",
-                                                                    /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                                                                        className: "mt-2 flex justify-end",
-                                                                        children: [
-                                                                            /*#__PURE__*/ jsx_runtime_.jsx(Button, {
-                                                                                color: "info",
-                                                                                onClick: ()=>addFileToOverwrite(file.fileName),
-                                                                                children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)("span", {
-                                                                                    className: "normal-case",
-                                                                                    children: [
-                                                                                        "Overwrite ",
-                                                                                        file.fileName
-                                                                                    ]
-                                                                                })
-                                                                            }),
-                                                                            /*#__PURE__*/ jsx_runtime_.jsx(Button, {
-                                                                                color: "plain",
-                                                                                onClick: ()=>addFileToIgnore(file.fileName),
-                                                                                children: "Ignore"
-                                                                            })
-                                                                        ]
-                                                                    })
-                                                                ]
-                                                            })
-                                                        }, file.fileName);
-                                                    }),
-                                                    /*#__PURE__*/ jsx_runtime_.jsx(InfoMessage, {
-                                                        children: 'If the above information is correct, go ahead and save the configuration. If not, go back and change the configuration by clicking the steps in the "Setup Progress" panel.'
-                                                    })
-                                                ]
+                                                children: /*#__PURE__*/ jsx_runtime_.jsx(InfoMessage, {
+                                                    children: 'If the above information is correct, go ahead and save the configuration. If not, go back and change the configuration by clicking the steps in the "Setup Progress" panel.'
+                                                })
                                             })
                                         })
                                     ]
@@ -5687,7 +6313,7 @@ module.exports = require("util");
 var __webpack_require__ = require("../webpack-runtime.js");
 __webpack_require__.C(exports);
 var __webpack_exec__ = (moduleId) => (__webpack_require__(__webpack_require__.s = moduleId))
-var __webpack_exports__ = __webpack_require__.X(0, [323,387,805,622,876,680,945,377], () => (__webpack_exec__(642)));
+var __webpack_exports__ = __webpack_require__.X(0, [323,387,805,49,876,680,945,377], () => (__webpack_exec__(4596)));
 module.exports = __webpack_exports__;
 
 })();

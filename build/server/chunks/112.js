@@ -1451,14 +1451,12 @@ __webpack_require__.d(__webpack_exports__, {
   "Cu": () => (/* binding */ printerRouter)
 });
 
-// UNUSED EXPORTS: deserializePartialPrinterConfiguration, deserializePartialToolheadConfiguration, deserializePrinterConfiguration, getFilesToWrite, parseDirectory, regenerateKlipperConfiguration
+// UNUSED EXPORTS: compareSettings, deserializePartialPrinterConfiguration, deserializePartialToolheadConfiguration, deserializePrinterConfiguration, getFilesToWrite, parseDirectory, regenerateKlipperConfiguration
 
 // EXTERNAL MODULE: external "zod"
 var external_zod_ = __webpack_require__(8316);
 // EXTERNAL MODULE: ./server/helpers/logger.ts
 var logger = __webpack_require__(4279);
-// EXTERNAL MODULE: external "util"
-var external_util_ = __webpack_require__(3837);
 // EXTERNAL MODULE: ./server/helpers/metadata.ts
 var metadata = __webpack_require__(9993);
 // EXTERNAL MODULE: ./zods/hardware.tsx
@@ -3661,7 +3659,16 @@ const klipperRestart = async (force = false)=>{
     return false;
 };
 
+// EXTERNAL MODULE: external "fs/promises"
+var promises_ = __webpack_require__(3292);
+// EXTERNAL MODULE: external "child_process"
+var external_child_process_ = __webpack_require__(2081);
+// EXTERNAL MODULE: external "object-hash"
+var external_object_hash_ = __webpack_require__(1569);
+var external_object_hash_default = /*#__PURE__*/__webpack_require__.n(external_object_hash_);
 ;// CONCATENATED MODULE: ./server/routers/printer.ts
+
+
 
 
 
@@ -3747,7 +3754,7 @@ const getPrinters = async (resolveToolheads = false)=>{
 const isPrinterCfgInitialized = async ()=>{
     const environment = schema/* serverSchema.parse */.Rz.parse(process.env);
     try {
-        await (0,external_util_.promisify)(external_fs_.access)(external_path_default().join(environment.KLIPPER_CONFIG_PATH, "printer.cfg"), external_fs_.constants.F_OK);
+        await (0,promises_.access)(external_path_default().join(environment.KLIPPER_CONFIG_PATH, "printer.cfg"), external_fs_.constants.F_OK);
     } catch (e) {
         if (isNodeError(e) && e.code === "ENOENT") {
             // File does not exist, resume as normal.
@@ -3756,7 +3763,7 @@ const isPrinterCfgInitialized = async ()=>{
             throw e;
         }
     }
-    const currentcfg = await (0,external_util_.promisify)(external_fs_.readFile)(external_path_default().join(environment.KLIPPER_CONFIG_PATH, "printer.cfg"));
+    const currentcfg = await (0,promises_.readFile)(external_path_default().join(environment.KLIPPER_CONFIG_PATH, "printer.cfg"));
     return currentcfg.indexOf("[include RatOS/printers/initial-setup.cfg]") === -1;
 };
 const deserializeToolheadConfiguration = async (config, printerConfig, boards)=>{
@@ -3897,7 +3904,7 @@ const getFilesToWrite = async (config, overwriteFiles)=>{
     const renderedTemplate = template(config, helper).trim();
     const renderedPrinterCfg = initialPrinterCfg(config, helper).trim();
     const extras = extrasGenerator.getFilesToWrite();
-    return extras.concat([
+    return [
         {
             fileName: "RatOS.cfg",
             content: renderedTemplate,
@@ -3908,7 +3915,7 @@ const getFilesToWrite = async (config, overwriteFiles)=>{
             content: renderedPrinterCfg,
             overwrite: !await isPrinterCfgInitialized()
         }
-    ]).map((f)=>{
+    ].concat(extras).map((f)=>{
         const fileWithExists = f;
         if (overwriteFiles?.includes(fileWithExists.fileName) || overwriteFiles?.includes("*")) {
             fileWithExists.overwrite = true;
@@ -3917,19 +3924,19 @@ const getFilesToWrite = async (config, overwriteFiles)=>{
         return fileWithExists;
     });
 };
-const generateKlipperConfiguration = async (config, overwriteFiles)=>{
+const generateKlipperConfiguration = async (config, overwriteFiles, skipFiles)=>{
     const environment = schema/* serverSchema.parse */.Rz.parse(process.env);
     const filesToWrite = await getFilesToWrite(config, overwriteFiles);
     const results = await Promise.all(filesToWrite.map(async (file)=>{
         let action = "created";
         try {
-            await (0,external_util_.promisify)(external_fs_.access)(external_path_default().join(environment.KLIPPER_CONFIG_PATH, file.fileName), external_fs_.constants.F_OK);
+            await (0,promises_.access)(external_path_default().join(environment.KLIPPER_CONFIG_PATH, file.fileName), external_fs_.constants.F_OK);
             // At this point we know the file exists.
             if (file.overwrite) {
                 // Make a back up.
                 const backupFilename = `${file.fileName.split(".").slice(0, -1).join(".")}-${getTimeStamp()}.cfg`;
                 try {
-                    await (0,external_util_.promisify)(external_fs_.copyFile)(external_path_default().join(environment.KLIPPER_CONFIG_PATH, file.fileName), external_path_default().join(environment.KLIPPER_CONFIG_PATH, backupFilename));
+                    await (0,promises_.copyFile)(external_path_default().join(environment.KLIPPER_CONFIG_PATH, file.fileName), external_path_default().join(environment.KLIPPER_CONFIG_PATH, backupFilename));
                 } catch (e) {
                     return {
                         fileName: file.fileName,
@@ -3958,7 +3965,13 @@ const generateKlipperConfiguration = async (config, overwriteFiles)=>{
             }
         }
         try {
-            await (0,external_util_.promisify)(external_fs_.writeFile)(external_path_default().join(environment.KLIPPER_CONFIG_PATH, file.fileName), file.content);
+            if (skipFiles?.includes(file.fileName)) {
+                return {
+                    fileName: file.fileName,
+                    action: "skipped"
+                };
+            }
+            await (0,promises_.writeFile)(external_path_default().join(environment.KLIPPER_CONFIG_PATH, file.fileName), file.content);
             return {
                 fileName: file.fileName,
                 action: action
@@ -3977,11 +3990,101 @@ const generateKlipperConfiguration = async (config, overwriteFiles)=>{
         throw new Error("Something went wrong when saving the configuration. The following files couldn't be written: " + errors.map((e)=>e.fileName).join(", "));
     }
     try {
-        await (0,external_util_.promisify)(external_fs_.writeFile)(external_path_default().join(environment.RATOS_DATA_DIR, "last-printer-settings.json"), JSON.stringify(serializePrinterConfiguration(config)));
+        await (0,promises_.writeFile)(external_path_default().join(environment.RATOS_DATA_DIR, "last-printer-settings.json"), JSON.stringify(serializePrinterConfiguration(config)));
     } catch (e) {
         throw new Error("Couldn't backup your current printer settings to disk, but your klipper configuration has been generated.");
     }
     return results;
+};
+const compareSettings = async (newSettings)=>{
+    const environment = schema/* serverSchema.parse */.Rz.parse(process.env);
+    const lastSettingsFile = external_path_default().join(environment.RATOS_DATA_DIR, "last-printer-settings.json");
+    const oldFiles = (0,external_fs_.existsSync)(lastSettingsFile) ? await getFilesToWrite(await loadSerializedConfig(lastSettingsFile)) : [];
+    const newFiles = await getFilesToWrite(await deserializePrinterConfiguration(newSettings));
+    const addedFiles = await Promise.all(newFiles.filter((f)=>!oldFiles.some((of)=>of.fileName === f.fileName)).map(async (f)=>{
+        const timehash = new Date().getTime() + external_object_hash_default()(f);
+        await (0,promises_.writeFile)(`/tmp/ratos-added-new-${timehash}.cfg`, f.content);
+        const diff = await new Promise((resolve, reject)=>{
+            (0,external_child_process_.exec)(`git diff --minimal --no-index /dev/null /tmp/ratos-added-new-${timehash}.cfg`, (err, stdout, stderr)=>{
+                if (stdout.trim() == "") {
+                    reject(stderr);
+                }
+                resolve(stdout);
+            });
+        });
+        return {
+            fileName: f.fileName,
+            diff: diff,
+            exists: f.exists,
+            overwrite: f.overwrite,
+            state: "created"
+        };
+    }));
+    const removedFiles = await Promise.all(oldFiles.filter((f)=>!newFiles.some((nf)=>nf.fileName === f.fileName)).map(async (f)=>{
+        const timehash = new Date().getTime() + external_object_hash_default()(f);
+        await (0,promises_.writeFile)(`/tmp/ratos-removed-old-${timehash}.cfg`, f.content);
+        const diff = await new Promise((resolve, reject)=>{
+            (0,external_child_process_.exec)(`git diff --minimal --no-index /tmp/ratos-removed-old-${timehash}.cfg /dev/null`, (err, stdout, stderr)=>{
+                if (stdout.trim() == "") {
+                    reject(stderr);
+                }
+                resolve(stdout);
+            });
+        });
+        return {
+            fileName: f.fileName,
+            diff: diff,
+            exists: f.exists,
+            overwrite: f.overwrite,
+            state: "removed"
+        };
+    }));
+    const changedFiles = await Promise.all(newFiles.filter((f)=>oldFiles.some((of)=>of.fileName === f.fileName && of.content !== f.content)).map(async (f)=>{
+        const oldFile = oldFiles.find((of)=>of.fileName === f.fileName);
+        if (oldFile == null) {
+            throw new Error("This should never happen.");
+        }
+        const timehash = new Date().getTime() + external_object_hash_default()(f);
+        let oldPath = external_path_default().resolve(external_path_default().join(environment.KLIPPER_CONFIG_PATH, oldFile.fileName));
+        if (!oldFile.exists) {
+            oldPath = `/tmp/ratos-changed-old-${timehash}.cfg`;
+            await (0,promises_.writeFile)(oldPath, oldFile.content);
+        }
+        await (0,promises_.writeFile)(`/tmp/ratos-changed-new-${timehash}.cfg`, f.content);
+        const diff = await new Promise((resolve, reject)=>{
+            (0,external_child_process_.exec)(`git diff --minimal --no-index ${oldPath} /tmp/ratos-changed-new-${timehash}.cfg`, (err, stdout, stderr)=>{
+                if (stdout.trim() == "") {
+                    reject(stderr);
+                }
+                resolve(stdout);
+            });
+        });
+        return {
+            fileName: f.fileName,
+            diff: diff,
+            exists: f.exists,
+            overwrite: f.overwrite,
+            state: "changed"
+        };
+    }));
+    const unchangedFiles = newFiles.filter((f)=>oldFiles.some((of)=>of.fileName === f.fileName && of.content === f.content)).map((f)=>{
+        return {
+            fileName: f.fileName,
+            diff: null,
+            exists: f.exists,
+            overwrite: f.overwrite,
+            state: "unchanged"
+        };
+    });
+    return addedFiles.concat(removedFiles).concat(changedFiles).concat(unchangedFiles).sort((a, b)=>{
+        if (newFiles.findIndex((nf)=>nf.fileName === a.fileName) < newFiles.findIndex((nf)=>nf.fileName === b.fileName)) {
+            return -1;
+        }
+        if (newFiles.findIndex((nf)=>nf.fileName === a.fileName) > newFiles.findIndex((nf)=>nf.fileName === b.fileName)) {
+            return 1;
+        }
+        return 0;
+    });
 };
 const loadSerializedConfig = async (filePath)=>{
     const configJson = (0,external_fs_.readFileSync)(filePath);
@@ -3989,14 +4092,14 @@ const loadSerializedConfig = async (filePath)=>{
     const config = await deserializePrinterConfiguration(serializedConfig);
     return config;
 };
-const regenerateKlipperConfiguration = async (fromFile, overwriteFiles)=>{
+const regenerateKlipperConfiguration = async (fromFile, overwriteFiles, skipFiles)=>{
     const environment = schema/* serverSchema.parse */.Rz.parse(process.env);
     const filePath = fromFile ?? external_path_default().join(environment.RATOS_DATA_DIR, "last-printer-settings.json");
     if (!(0,external_fs_.existsSync)(filePath)) {
         throw new Error("Couldn't find printer settings file: " + filePath);
     }
     const config = await loadSerializedConfig(filePath);
-    return await generateKlipperConfiguration(config, overwriteFiles);
+    return await generateKlipperConfiguration(config, overwriteFiles, skipFiles);
 };
 const getToolhead = async (config, toolOrAxis, serialize)=>{
     const th = (0,serialization/* extractToolheadFromPrinterConfiguration */.Pw)(toolOrAxis, await deserializePartialPrinterConfiguration(config ?? {})) ?? null;
@@ -4072,9 +4175,10 @@ const printerRouter = (0,trpc/* router */.Nd)({
         };
     }),
     regenerateConfiguration: trpc/* publicProcedure.input */.$y.input(external_zod_.z.object({
-        overwriteFiles: external_zod_.z.array(external_zod_.z.string()).optional()
+        overwriteFiles: external_zod_.z.array(external_zod_.z.string()).optional(),
+        skipFiles: external_zod_.z.array(external_zod_.z.string()).optional()
     })).mutation(async ({ input  })=>{
-        const res = await regenerateKlipperConfiguration(undefined, input.overwriteFiles);
+        const res = await regenerateKlipperConfiguration(undefined, input.overwriteFiles, input.skipFiles);
         if (res.some((r)=>r.action === "created" || r.action === "overwritten")) {
             klipperRestart();
         }
@@ -4085,22 +4189,16 @@ const printerRouter = (0,trpc/* router */.Nd)({
         config: SerializedPrinterConfiguration
     })).mutation(async (ctx)=>{
         const { config: serializedConfig  } = ctx.input;
-        const config = await deserializePrinterConfiguration(serializedConfig);
-        return (await getFilesToWrite(config)).map((f)=>{
-            return {
-                fileName: f.fileName,
-                exists: f.exists,
-                overwrite: f.overwrite
-            };
-        });
+        return await compareSettings(serializedConfig);
     }),
     saveConfiguration: trpc/* publicProcedure.input */.$y.input(external_zod_.z.object({
         config: SerializedPrinterConfiguration,
-        overwriteFiles: external_zod_.z.array(external_zod_.z.string()).optional()
+        overwriteFiles: external_zod_.z.array(external_zod_.z.string()).optional(),
+        skipFiles: external_zod_.z.array(external_zod_.z.string()).optional()
     })).mutation(async (ctx)=>{
-        const { config: serializedConfig , overwriteFiles  } = ctx.input;
+        const { config: serializedConfig , overwriteFiles , skipFiles  } = ctx.input;
         const config = await deserializePrinterConfiguration(serializedConfig);
-        const configResult = await generateKlipperConfiguration(config, overwriteFiles);
+        const configResult = await generateKlipperConfiguration(config, overwriteFiles, skipFiles);
         klipperRestart();
         return configResult;
     })

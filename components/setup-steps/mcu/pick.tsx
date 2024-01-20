@@ -84,7 +84,7 @@ export const MCUPicker: React.FC<MCUStepScreenProps> = (props) => {
 					</div>
 					{toolhead && selectedToolboard != null && (
 						<div>
-							<Button onClick={() => setSelectedBoard(null)} color="danger">
+							<Button onClick={() => setSelectedBoard(null)} intent="danger">
 								Clear selection
 							</Button>
 						</div>
