@@ -8,3 +8,54 @@
 		margin: 0;
 	}
 }
+
+@layer components {
+	.dark .git-diff {
+		--diff-background-color: theme('colors.zinc.900');
+		--diff-text-color: theme(colors.zinc.300);
+		--diff-font-family: Consolas, Courier, monospace;
+		--diff-selection-background-color: theme(colors.sky.400 / 20%);
+		--diff-selection-text-color: var(--diff-text-color);
+		--diff-gutter-insert-background-color: theme(colors.brand.400 / 20%);
+		--diff-gutter-insert-text-color: theme(colors.brand.200);
+		--diff-gutter-delete-background-color: theme(colors.rose.400 / 20%);
+		--diff-gutter-delete-text-color: theme(colors.rose.200);
+		--diff-gutter-selected-background-color: theme(colors.yellow.400 / 10%);
+		--diff-gutter-selected-text-color: var(--diff-text-color);
+		--diff-code-insert-background-color: theme(colors.brand.400 / 10%);
+		--diff-code-insert-text-color: theme(colors.brand.300);
+		--diff-code-delete-background-color: theme(colors.rose.400 / 10%);
+		--diff-code-delete-text-color: theme(colors.rose.300);
+		--diff-code-insert-edit-background-color: #c0dc91;
+		--diff-code-insert-edit-text-color: var(--diff-text-color);
+		--diff-code-delete-edit-background-color: theme(colors.rose.400 / 10%);
+		--diff-code-delete-edit-text-color: var(--diff-text-color);
+		--diff-code-selected-background-color: #fffce0;
+		--diff-code-selected-text-color: var(--diff-text-color);
+		--diff-omit-gutter-line-color: theme(colors.rose.400 / 20%);
+	}
+	.git-diff {
+		--diff-background-color: theme('colors.zinc.50');
+		--diff-text-color: theme(colors.zinc.800);
+		--diff-font-family: Consolas, Courier, monospace;
+		--diff-selection-background-color: theme(colors.sky.400 / 20%);
+		--diff-selection-text-color: var(--diff-text-color);
+		--diff-gutter-insert-background-color: theme(colors.brand.400 / 20%);
+		--diff-gutter-insert-text-color: theme(colors.brand.900);
+		--diff-gutter-delete-background-color: theme(colors.rose.400 / 20%);
+		--diff-gutter-delete-text-color: theme(colors.rose.900);
+		--diff-gutter-selected-background-color: theme(colors.yellow.400 / 10%);
+		--diff-gutter-selected-text-color: var(--diff-text-color);
+		--diff-code-insert-background-color: theme(colors.brand.400 / 10%);
+		--diff-code-insert-text-color: theme(colors.brand.800);
+		--diff-code-delete-background-color: theme(colors.rose.400 / 10%);
+		--diff-code-delete-text-color: theme(colors.rose.700);
+		--diff-code-insert-edit-background-color: #c0dc91;
+		--diff-code-insert-edit-text-color: var(--diff-text-color);
+		--diff-code-delete-edit-background-color: theme(colors.rose.400 / 10%);
+		--diff-code-delete-edit-text-color: var(--diff-text-color);
+		--diff-code-selected-background-color: #fffce0;
+		--diff-code-selected-text-color: var(--diff-text-color);
+		--diff-omit-gutter-line-color: theme(colors.rose.400 / 20%);
+	}
+}

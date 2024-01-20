@@ -80,7 +80,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 					check your board and try flashing it again.
 				</p>
 				<p>
-					<Button color="gray" onClick={reflash}>
+					<Button intent="indeterminate" onClick={reflash}>
 						<span>Flash again</span> <ArrowPathIcon className="inline h-5 w-5" />
 					</Button>
 				</p>
@@ -118,7 +118,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 				{versionMismatch}
 				<p>
 					Proceed to the next step or{' '}
-					<Button color="gray" onClick={reflash}>
+					<Button intent="indeterminate" onClick={reflash}>
 						<span>Flash again</span> <ArrowPathIcon className="inline h-5 w-5" />
 					</Button>
 				</p>
@@ -131,7 +131,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 		const unidentifiedPathStrategyEnabled = unidentifiedBoards.data?.length;
 		const dfu = (
 			<Button
-				color="gray"
+				intent="indeterminate"
 				onClick={() => setFlashStrategy('dfu')}
 				disabled={!dfuStrategyEnabled}
 				className="justify-center"
@@ -142,7 +142,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 		);
 		const sdCard = (
 			<Button
-				color="gray"
+				intent="indeterminate"
 				onClick={() => setFlashStrategy('sdcard')}
 				disabled={!sdCardStrategyEnabled}
 				className="justify-center"
@@ -153,7 +153,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 		);
 		const path = (
 			<Button
-				color="gray"
+				intent="indeterminate"
 				onClick={onFlashViaPath}
 				disabled={!pathStrategyEnabled}
 				className="justify-center"
@@ -164,7 +164,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 		);
 		const unidentifiedPath = (
 			<Button
-				color="gray"
+				intent="indeterminate"
 				className="justify-center"
 				disabled={!unidentifiedPathStrategyEnabled}
 				title={unidentifiedPathStrategyEnabled ? undefined : 'No unidentified boards detected.'}

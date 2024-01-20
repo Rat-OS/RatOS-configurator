@@ -1,11 +1,27 @@
 const defaultTheme = require('tailwindcss/defaultTheme');
 module.exports = {
 	darkMode: 'class',
-	content: ['./pages/**/*.{js,ts,jsx,tsx}', './components/**/*.{js,ts,jsx,tsx}', './helpers/**/*.{js,ts,jsx,tsx}', './app/**/*.{js,ts,jsx,tsx}'],
+	content: [
+		'./pages/**/*.{js,ts,jsx,tsx}',
+		'./components/**/*.{js,ts,jsx,tsx}',
+		'./helpers/**/*.{js,ts,jsx,tsx}',
+		'./app/**/*.{js,ts,jsx,tsx}',
+	],
 	theme: {
 		extend: {
 			fontFamily: {
 				sans: ['var(--inter-font)', ...defaultTheme.fontFamily.sans],
+			},
+			keyframes: {
+				ping: {
+					'0%': {
+						opacity: 100,
+					},
+					'75%, 100%': {
+						transform: 'scale(2)',
+						opacity: 0,
+					},
+				},
 			},
 			colors: {
 				brand: {

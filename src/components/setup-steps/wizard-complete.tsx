@@ -1,5 +1,5 @@
 'use client';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { Fragment, useCallback, useMemo, useState } from 'react';
 import {
 	PrinterConfigurationState,
 	serializePartialPrinterConfiguration,
@@ -22,6 +22,11 @@ import { ToolOrAxis } from '../../zods/toolhead';
 import { useToolheadConfiguration } from '../../hooks/useToolheadConfiguration';
 import { Spinner } from '../common/spinner';
 import { useQuery } from 'react-query';
+import { FileChanges } from './file-changes';
+import { Disclosure } from '@headlessui/react';
+import { useAutoAnimate } from '@formkit/auto-animate/react';
+import { ChevronRightIcon } from '@heroicons/react/20/solid';
+import { twJoin } from 'tailwind-merge';
 
 const CompletionSteps: StepScreen[] = [
 	{
@@ -73,6 +78,7 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 			},
 		[],
 	);
+	const [animateRef] = useAutoAnimate();
 	if (toolhead == null) {
 		return (
 			<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
@@ -84,137 +90,160 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 			</dl>
 		);
 	}
+	const hasWarnings =
+		(toolhead.getToolboard() != null && !toolboardDetected.data) ||
+		(toolhead.getToolboard()?.alternativePT1000Resistor && toolhead.getThermistor() === 'PT1000');
 	return (
-		<div className="col-span-1 mt-8 py-4 sm:grid-cols-2 ">
-			<div className="">
-				<h3 className="text-base font-bold leading-7 text-zinc-900 dark:text-zinc-100">
-					Toolhead {toolhead.getToolCommand()}
-				</h3>
-				<p className="mt-2 max-w-4xl text-sm">{toolhead.getDescription()}</p>
-			</div>
-			<dl className="mt-4 grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
-				<div className="sm:col-span-1">
-					<dt className="space-x-2 text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">
-						<span>Toolboard</span>{' '}
-						{toolhead.getConfig().toolboard && (
-							<Badge color={toolboardDetected.data === true ? 'green' : 'red'}>
-								{toolboardDetected.data === true ? 'Detected' : 'Not detected'}
-							</Badge>
-						)}
-					</dt>
-					<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
-						{toolhead.getConfig().toolboard == null
-							? 'None selected'
-							: `${toolhead.getConfig().toolboard?.manufacturer} ${toolhead.getConfig().toolboard?.name}`}
-					</dd>
-				</div>
-				{toolhead.getToolboard() != null && !toolboardDetected.data && (
-					<div className="sm:col-span-2">
-						<WarningMessage>
-							<div className="space-y-2">
-								<div>
-									The toolboard you have selected does not seem to be connected, you can still save the config and
-									proceed to mainsail, but you will get an 'mcu' connection error.
-								</div>
-							</div>
-						</WarningMessage>
-					</div>
-				)}
-				<div className="sm:col-span-1">
-					<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Extruder</dt>
-					<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
-						{toolhead.getConfig().extruder?.title ?? 'None selected'}
-					</dd>
-				</div>
-				<div className="sm:col-span-1">
-					<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Hotend</dt>
-					<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
-						{toolhead.getConfig().hotend?.title ?? 'None selected'}
-					</dd>
-				</div>
-				<div className="sm:col-span-1">
-					<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Thermistor</dt>
-					<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
-						{toolhead.getConfig().thermistor ?? 'None selected'}
-					</dd>
-				</div>
-				{toolhead.getToolboard()?.alternativePT1000Resistor && toolhead.getThermistor() === 'PT1000' && (
-					<div className="col-span-2">
-						<WarningMessage title="RatOS uses your toolboards alternate pullup resistor setting">
-							Your toolboard has an option to use a separate pullup resistor for PT1000 sensors. This is usually done by
-							inserting a jumper. Make sure you read the documentation for your board on how to enable the alternative
-							resistor or you'll get ADC temperature errors in klipper.
-						</WarningMessage>
-					</div>
-				)}
-			</dl>
-			<dl className="grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
-				<div className="sm:col-span-1">
-					<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">X Endstop</dt>
-					<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
-						{toolhead.getConfig().xEndstop?.title ?? 'None selected'}
-					</dd>
-				</div>
-				<div className="sm:col-span-1">
-					<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Y Endstop</dt>
-					<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
-						{toolhead.getConfig().yEndstop?.title ?? 'None selected'}
-					</dd>
-				</div>
-				<div className="sm:col-span-1">
-					<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Probe</dt>
-					<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
-						{toolhead.getConfig().probe?.title ?? 'None selected'}
-					</dd>
-				</div>
-				{toolhead.getConfig().toolboard != null &&
-					toolhead.getConfig().xEndstop?.id === 'endstop' &&
-					!ignoreEndstopWarning && (
-						<div className="sm:col-span-2">
-							<WarningMessage>
-								The current configuration assumes the X endstop is connected to your controlboard, do you want to use an
-								endstop connected to the toolboard instead?
-								<div className="mt-4 flex justify-end space-x-2">
-									<Button onClick={setToolboardEndstop} color="warning">
-										Yes, use the toolboard connection
-									</Button>
-									<Button onClick={() => setIgnoreEndstopWarning(true)} color="plain">
-										No, use the controlboard connection
-									</Button>
-								</div>
-							</WarningMessage>
+		<Disclosure as="div" className="">
+			{({ open }) => (
+				<>
+					<Disclosure.Button as="div" className="cursor-pointer border-b border-zinc-100 py-4 dark:border-zinc-700">
+						<div className="flex items-center justify-between">
+							<h3 className="flex items-center space-x-2 text-base font-bold leading-7 text-zinc-900 dark:text-zinc-100">
+								<span>Toolhead {toolhead.getToolCommand()}</span>
+								{hasWarnings && (
+									<Badge color="orange" size="md">
+										Has Warnings
+									</Badge>
+								)}
+							</h3>
+							<button>
+								<ChevronRightIcon
+									className={twJoin('h-6 w-6 transition-all duration-200 ease-in-out', open ? 'rotate-90' : 'rotate-0')}
+								/>
+							</button>
 						</div>
-					)}
-			</dl>
-			<dl className="grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
-				<div className="sm:col-span-1">
-					<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Part cooling fan</dt>
-					<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
-						{toolhead.getConfig().partFan?.title ?? 'None selected'}
-					</dd>
-				</div>
-				<div className="sm:col-span-1">
-					<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Hotend cooling fan</dt>
-					<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
-						{toolhead.getConfig().hotendFan?.title ?? 'None selected'}
-					</dd>
-				</div>
-			</dl>
-			<dl className="grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
-				<div className="sm:col-span-1">
-					<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">X Accelerometer</dt>
-					<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
-						{toolhead.getConfig().xAccelerometer?.title ?? 'None'}
-					</dd>
-				</div>
-				<div className="sm:col-span-1">
-					<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Y Accelerometer</dt>
-					<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
-						{toolhead.getConfig().yAccelerometer?.title ?? 'None'}
-					</dd>
-				</div>
-			</dl>
-		</div>
+						<p className="mt-2 max-w-4xl text-sm">{toolhead.getDescription()}</p>
+					</Disclosure.Button>
+					<div ref={animateRef}>
+						<Disclosure.Panel className="pt-4">
+							<dl className="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
+								<div className="sm:col-span-1">
+									<dt className="space-x-2 text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">
+										<span>Toolboard</span>{' '}
+										{toolhead.getConfig().toolboard && (
+											<Badge color={toolboardDetected.data === true ? 'green' : 'red'}>
+												{toolboardDetected.data === true ? 'Detected' : 'Not detected'}
+											</Badge>
+										)}
+									</dt>
+									<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
+										{toolhead.getConfig().toolboard == null
+											? 'None selected'
+											: `${toolhead.getConfig().toolboard?.manufacturer} ${toolhead.getConfig().toolboard?.name}`}
+									</dd>
+								</div>
+								{toolhead.getToolboard() != null && !toolboardDetected.data && (
+									<div className="sm:col-span-2">
+										<WarningMessage>
+											<div className="space-y-2">
+												<div>
+													The toolboard you have selected does not seem to be connected, you can still save the config
+													and proceed to mainsail, but you will get an 'mcu' connection error.
+												</div>
+											</div>
+										</WarningMessage>
+									</div>
+								)}
+								<div className="sm:col-span-1">
+									<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Extruder</dt>
+									<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
+										{toolhead.getConfig().extruder?.title ?? 'None selected'}
+									</dd>
+								</div>
+								<div className="sm:col-span-1">
+									<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Hotend</dt>
+									<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
+										{toolhead.getConfig().hotend?.title ?? 'None selected'}
+									</dd>
+								</div>
+								<div className="sm:col-span-1">
+									<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Thermistor</dt>
+									<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
+										{toolhead.getConfig().thermistor ?? 'None selected'}
+									</dd>
+								</div>
+								{toolhead.getToolboard()?.alternativePT1000Resistor && toolhead.getThermistor() === 'PT1000' && (
+									<div className="col-span-2">
+										<WarningMessage title="RatOS uses your toolboards alternate pullup resistor setting">
+											Your toolboard has an option to use a separate pullup resistor for PT1000 sensors. This is usually
+											done by inserting a jumper. Make sure you read the documentation for your board on how to enable
+											the alternative resistor or you'll get ADC temperature errors in klipper.
+										</WarningMessage>
+									</div>
+								)}
+							</dl>
+							<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
+								<div className="sm:col-span-1">
+									<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">X Endstop</dt>
+									<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
+										{toolhead.getConfig().xEndstop?.title ?? 'None selected'}
+									</dd>
+								</div>
+								<div className="sm:col-span-1">
+									<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Y Endstop</dt>
+									<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
+										{toolhead.getConfig().yEndstop?.title ?? 'None selected'}
+									</dd>
+								</div>
+								<div className="sm:col-span-1">
+									<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Probe</dt>
+									<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
+										{toolhead.getConfig().probe?.title ?? 'None selected'}
+									</dd>
+								</div>
+								{toolhead.getConfig().toolboard != null &&
+									toolhead.getConfig().xEndstop?.id === 'endstop' &&
+									!ignoreEndstopWarning && (
+										<div className="sm:col-span-2">
+											<WarningMessage>
+												The current configuration assumes the X endstop is connected to your controlboard, do you want
+												to use an endstop connected to the toolboard instead?
+												<div className="mt-4 flex justify-end space-x-2">
+													<Button onClick={setToolboardEndstop} intent="warning">
+														Yes, use the toolboard connection
+													</Button>
+													<Button onClick={() => setIgnoreEndstopWarning(true)} intent="plain">
+														No, use the controlboard connection
+													</Button>
+												</div>
+											</WarningMessage>
+										</div>
+									)}
+							</dl>
+							<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
+								<div className="sm:col-span-1">
+									<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Part cooling fan</dt>
+									<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
+										{toolhead.getConfig().partFan?.title ?? 'None selected'}
+									</dd>
+								</div>
+								<div className="sm:col-span-1">
+									<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Hotend cooling fan</dt>
+									<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
+										{toolhead.getConfig().hotendFan?.title ?? 'None selected'}
+									</dd>
+								</div>
+							</dl>
+							<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
+								<div className="sm:col-span-1">
+									<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">X Accelerometer</dt>
+									<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
+										{toolhead.getConfig().xAccelerometer?.title ?? 'None'}
+									</dd>
+								</div>
+								<div className="sm:col-span-1">
+									<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Y Accelerometer</dt>
+									<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
+										{toolhead.getConfig().yAccelerometer?.title ?? 'None'}
+									</dd>
+								</div>
+							</dl>
+						</Disclosure.Panel>
+					</div>
+				</>
+			)}
+		</Disclosure>
 	);
 };
 
@@ -232,14 +261,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 
 	const [filesToOverwrite, setFilesToOverwrite] = useState<string[]>([]);
 
-	const addFileToOverwrite = useCallback((fileName: string) => {
-		setFilesToOverwrite((files) => (files.includes(fileName) ? files : [...files, fileName]));
-	}, []);
 	const [filesToIgnore, setFilesToIgnore] = useState<string[]>([]);
-
-	const addFileToIgnore = useCallback((fileName: string) => {
-		setFilesToIgnore((files) => (files.includes(fileName) ? files : [...files, fileName]));
-	}, []);
 
 	const controlboardDetected = trpc.mcu.detect.useQuery(
 		{ boardPath: partialPrinterConfiguration != null ? partialPrinterConfiguration.controlboard?.path ?? '' : '' },
@@ -293,6 +315,8 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 		}
 	}
 
+	const [animateRef] = useAutoAnimate();
+
 	return (
 		<>
 			<div className="p-8">
@@ -315,128 +339,167 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 									</ErrorMessage>
 								</div>
 							)}
-							<div className="">
-								<h3 className="text-base font-bold leading-7 text-zinc-900 dark:text-zinc-100">General</h3>
-							</div>
-							<div className="mt-4">
-								<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
-									<div className="sm:col-span-2">
-										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Printer</dt>
-										<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
-											{parsedPrinterConfiguration.data.printer != null
-												? `${parsedPrinterConfiguration.data.printer.manufacturer} ${parsedPrinterConfiguration.data.printer.name} ${parsedPrinterConfiguration.data.size}`
-												: 'None selected'}
-										</dd>
-									</div>
-									<div className="sm:col-span-1">
-										<dt className="space-x-2 text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">
-											<span>Controlboard</span>
-											{parsedPrinterConfiguration.data.controlboard && (
-												<Badge color={controlboardDetected.data === true ? 'green' : 'red'}>
-													{controlboardDetected.data === true ? 'Detected' : 'Not detected'}
-												</Badge>
-											)}
-										</dt>
-										<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
-											{parsedPrinterConfiguration.data.controlboard != null
-												? `${parsedPrinterConfiguration.data.controlboard.manufacturer} ${parsedPrinterConfiguration.data.controlboard.name}`
-												: 'None selected'}
-										</dd>
-									</div>
-									<div className="sm:col-span-1">
-										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">
-											Controller cooling fan
-										</dt>
-										<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
-											{parsedPrinterConfiguration.data.controllerFan?.title ?? 'None selected'}
-										</dd>
-									</div>
-									{parsedPrinterConfiguration.data.controlboard != null && !controlboardDetected.data && (
-										<div className="sm:col-span-2">
-											<WarningMessage>
-												<div className="space-y-2">
-													<div>
-														The controlboard you have selected does not seem to be connected, you can still save the
-														config and proceed to mainsail, but you will get an 'mcu' connection error.
-													</div>
+							<div className="mt-4" ref={animateRef}>
+								<Disclosure as={Fragment}>
+									{({ open }) => (
+										<>
+											<Disclosure.Button as="div" className="border-b border-zinc-100 py-4 dark:border-zinc-700">
+												<div className="flex cursor-pointer items-center justify-between">
+													<h3 className="flex items-center space-x-2 text-base font-bold leading-7 text-zinc-900 dark:text-zinc-100">
+														<span>General</span>
+														{parsedPrinterConfiguration.data.controlboard != null && !controlboardDetected.data && (
+															<Badge color="orange">Has Warnings</Badge>
+														)}
+													</h3>
+													<button>
+														<ChevronRightIcon
+															className={twJoin(
+																'h-6 w-6 transition-all duration-200 ease-in-out',
+																open ? 'rotate-90' : 'rotate-0',
+															)}
+														/>
+													</button>
 												</div>
-											</WarningMessage>
-										</div>
+											</Disclosure.Button>
+											<Disclosure.Panel as="dl" className="grid grid-cols-1 gap-x-4 gap-y-4 py-4 sm:grid-cols-2">
+												<div className="sm:col-span-2">
+													<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Printer</dt>
+													<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
+														{parsedPrinterConfiguration.data.printer != null
+															? `${parsedPrinterConfiguration.data.printer.manufacturer} ${parsedPrinterConfiguration.data.printer.name} ${parsedPrinterConfiguration.data.size}`
+															: 'None selected'}
+													</dd>
+												</div>
+												<div className="sm:col-span-1">
+													<dt className="space-x-2 text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">
+														<span>Controlboard</span>
+														{parsedPrinterConfiguration.data.controlboard && (
+															<Badge color={controlboardDetected.data === true ? 'green' : 'red'}>
+																{controlboardDetected.data === true ? 'Detected' : 'Not detected'}
+															</Badge>
+														)}
+													</dt>
+													<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
+														{parsedPrinterConfiguration.data.controlboard != null
+															? `${parsedPrinterConfiguration.data.controlboard.manufacturer} ${parsedPrinterConfiguration.data.controlboard.name}`
+															: 'None selected'}
+													</dd>
+												</div>
+												<div className="sm:col-span-1">
+													<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">
+														Controller cooling fan
+													</dt>
+													<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
+														{parsedPrinterConfiguration.data.controllerFan?.title ?? 'None selected'}
+													</dd>
+												</div>
+												{parsedPrinterConfiguration.data.controlboard != null && !controlboardDetected.data && (
+													<div className="sm:col-span-2">
+														<WarningMessage>
+															<div className="space-y-2">
+																<div>
+																	The controlboard you have selected does not seem to be connected, you can still save
+																	the config and proceed to mainsail, but you will get an 'mcu' connection error.
+																</div>
+															</div>
+														</WarningMessage>
+													</div>
+												)}
+											</Disclosure.Panel>
+										</>
 									)}
-								</dl>
-								<div className="space-y-4">
+								</Disclosure>
+								<div className="">
 									{parsedPrinterConfiguration.data.toolheads.map((tool) => (
 										<ConfirmToolhead key={tool.axis} toolOrAxis={tool.axis} />
 									))}
 								</div>
-								<div className="">
-									<h3 className="mt-4 text-base font-bold leading-7 text-zinc-900 dark:text-zinc-100">Motion</h3>
+								<Disclosure as={Fragment} defaultOpen={false}>
+									{({ open }) => (
+										<>
+											<Disclosure.Button as="div" className="border-b border-zinc-100 py-4 dark:border-zinc-700">
+												<div className="flex cursor-pointer items-center justify-between">
+													<h3 className="flex items-center space-x-2 text-base font-bold leading-7 text-zinc-900 dark:text-zinc-100">
+														Motion
+													</h3>
+													<button>
+														<ChevronRightIcon
+															className={twJoin(
+																'h-6 w-6 transition-all duration-200 ease-in-out',
+																open ? 'rotate-90' : 'rotate-0',
+															)}
+														/>
+													</button>
+												</div>
+											</Disclosure.Button>
+											<Disclosure.Panel>
+												<dl className="grid grid-cols-1 gap-x-4 gap-y-4 py-4 sm:grid-cols-2">
+													<div className="sm:col-span-1">
+														<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">
+															Performance mode
+														</dt>
+														<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
+															{parsedPrinterConfiguration.data.performanceMode ? 'Enabled' : 'Disabled'}
+														</dd>
+													</div>
+													<div className="sm:col-span-1">
+														<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">
+															Stealtchop
+														</dt>
+														<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
+															{parsedPrinterConfiguration.data.stealthchop ? 'Enabled' : 'Disabled'}
+														</dd>
+													</div>
+													<div className="sm:col-span-1">
+														<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">
+															Standstill Stealth
+														</dt>
+														<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
+															{parsedPrinterConfiguration.data.standstillStealth ? 'Enabled' : 'Disabled'}
+														</dd>
+													</div>
+												</dl>
+												<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
+													{parsedPrinterConfiguration.data.rails?.map((rail, i) => (
+														<div className="sm:col-span-1" key={i}>
+															<dt className="text-sm font-medium capitalize leading-6 text-zinc-900 dark:text-zinc-100">
+																{rail.axis === PrinterAxis.extruder ? rail.axis : rail.axis.toLocaleUpperCase()} Motion
+																Configuration
+															</dt>
+															<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
+																<div className="font-medium">
+																	{rail.driver.title} @ {rail.voltage}V
+																</div>
+																<div className="font-medium">
+																	{rail.stepper.title} @ {rail.current}A RMS
+																</div>
+																<div className="font-medium">{rail.microstepping} microsteps</div>
+															</dd>
+														</div>
+													))}
+												</dl>
+											</Disclosure.Panel>
+										</>
+									)}
+								</Disclosure>
+								<div className="border-b border-zinc-100 py-4 dark:border-zinc-700">
+									<div className="flex cursor-pointer items-center justify-between">
+										<h3 className="flex items-center space-x-2 text-base font-bold leading-7 text-zinc-900 dark:text-zinc-100">
+											Config files
+										</h3>
+									</div>
 								</div>
-								<dl className="mt-4 grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
-									<div className="sm:col-span-1">
-										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Performance mode</dt>
-										<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
-											{parsedPrinterConfiguration.data.performanceMode ? 'Enabled' : 'Disabled'}
-										</dd>
+								<dl className="gap-y-4py-4 grid grid-cols-1 gap-x-4 sm:grid-cols-2">
+									<div className=" space-y-4 sm:col-span-2 dark:border-zinc-700">
+										<FileChanges
+											serializedConfig={parsedPrinterConfiguration.success ? serializedPrinterConfiguration : null}
+											onFilesToIgnoreChange={setFilesToIgnore}
+											onFilesToOverwriteChange={setFilesToOverwrite}
+										/>
 									</div>
-									<div className="sm:col-span-1">
-										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Stealtchop</dt>
-										<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
-											{parsedPrinterConfiguration.data.stealthchop ? 'Enabled' : 'Disabled'}
-										</dd>
-									</div>
-									<div className="sm:col-span-1">
-										<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">
-											Standstill Stealth
-										</dt>
-										<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
-											{parsedPrinterConfiguration.data.standstillStealth ? 'Enabled' : 'Disabled'}
-										</dd>
-									</div>
-								</dl>
-								<dl className="grid grid-cols-1 gap-x-4 gap-y-4  border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
-									{parsedPrinterConfiguration.data.rails?.map((rail, i) => (
-										<div className="sm:col-span-1" key={i}>
-											<dt className="text-sm font-medium capitalize leading-6 text-zinc-900 dark:text-zinc-100">
-												{rail.axis === PrinterAxis.extruder ? rail.axis : rail.axis.toLocaleUpperCase()} Motion
-												Configuration
-											</dt>
-											<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
-												<div className="font-medium">
-													{rail.driver.title} @ {rail.voltage}V
-												</div>
-												<div className="font-medium">
-													{rail.stepper.title} @ {rail.current}A RMS
-												</div>
-												<div className="font-medium">{rail.microstepping} microsteps</div>
-											</dd>
-										</div>
-									))}
 								</dl>
 								<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
 									<div className=" space-y-4 sm:col-span-2 dark:border-zinc-700">
-										{filesToWrite.data?.map((file) => {
-											return (
-												file.exists &&
-												!file.overwrite &&
-												!filesToIgnore.includes(file.fileName) &&
-												!filesToOverwrite.includes(file.fileName) && (
-													<div className="mt-2" key={file.fileName}>
-														<InfoMessage title={`The file ${file.fileName} already exists, overwrite?`}>
-															A backup will be created, so you can recover later.
-															<div className="mt-2 flex justify-end">
-																<Button color="info" onClick={() => addFileToOverwrite(file.fileName)}>
-																	<span className="normal-case">Overwrite {file.fileName}</span>
-																</Button>
-																<Button color="plain" onClick={() => addFileToIgnore(file.fileName)}>
-																	Ignore
-																</Button>
-															</div>
-														</InfoMessage>
-													</div>
-												)
-											);
-										})}
 										<InfoMessage>
 											If the above information is correct, go ahead and save the configuration. If not, go back and
 											change the configuration by clicking the steps in the "Setup Progress" panel.
