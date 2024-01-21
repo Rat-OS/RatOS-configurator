@@ -217,8 +217,9 @@ export const constructKlipperConfigExtrasGenerator = (config: PrinterConfigurati
 		},
 		generateSaveVariables() {
 			const environment = serverSchema.parse(process.env);
-			return [{
-					fileName:  'ratos-variables.cfg',
+			return [
+				{
+					fileName: 'ratos-variables.cfg',
 					content: [
 						`[Variables]`,
 						`idex_applied_offset = 1`,
@@ -231,12 +232,10 @@ export const constructKlipperConfigExtrasGenerator = (config: PrinterConfigurati
 						`idex_zoffsetcontrolpoint = 25.0`,
 					].join('\n'),
 					overwrite: false,
-			}].map((f) => {
+				},
+			].map((f) => {
 				this.addFileToRender(f);
-				return [
-					`[save_variables]`,
-					`filename: ${path.join(environment.KLIPPER_CONFIG_PATH, f.fileName)}`
-				].join('\n');
+				return [`[save_variables]`, `filename: ${path.join(environment.KLIPPER_CONFIG_PATH, f.fileName)}`].join('\n');
 			});
 		},
 		generateSensorlessHomingIncludes() {
@@ -413,7 +412,7 @@ export const constructKlipperConfigHelpers = async (
 				section.push(`rotation_distance: ${rail.rotationDistance}`);
 			}
 			if (rail.axis === PrinterAxis.z) {
-				// Lower position_min to allow for probe calibration (and componensation functions). 
+				// Lower position_min to allow for probe calibration (and componensation functions).
 				// Very much dislike that this is necessary.
 				section.push(`position_min: -5`);
 			}
@@ -762,17 +761,24 @@ export const constructKlipperConfigHelpers = async (
 				result.push(`variable_adxl_chip: ["${firstADXL}", "${secondADXL}"]           # toolheads adxl chip names`);
 			}
 			// Driver type variables (X1 is Y on hybrid)
-			result.push(utils.getAxisDriverVariables(PrinterAxis.x, config.printer.kinematics === 'hybrid-corexy' ? false : true));
-			result.push(utils.getAxisDriverVariables(PrinterAxis.y, true, config.printer.kinematics === 'hybrid-corexy' ? [PrinterAxis.x1] : []));
+			result.push(
+				utils.getAxisDriverVariables(PrinterAxis.x, config.printer.kinematics === 'hybrid-corexy' ? false : true),
+			);
+			result.push(
+				utils.getAxisDriverVariables(
+					PrinterAxis.y,
+					true,
+					config.printer.kinematics === 'hybrid-corexy' ? [PrinterAxis.x1] : [],
+				),
+			);
 			result.push(utils.getAxisDriverVariables(PrinterAxis.z, true));
-			
+
 			return this.formatInlineComments(result).join('\n');
 		},
 		renderSaveVariables() {
 			return extrasGenerator.generateSaveVariables().join('\n');
 		},
 		renderUserMacroVariableOverrides(size?: number) {
-
 			const result: string[] = [
 				`variable_macro_travel_speed: ${this.getMacroTravelSpeed()}`,
 				`variable_macro_travel_accel: ${this.getMacroTravelAccel()}`,
@@ -780,10 +786,12 @@ export const constructKlipperConfigHelpers = async (
 			const toolheads = this.getToolheads();
 			const isIdex = toolheads.some((th) => th.getMotionAxis() === PrinterAxis.dual_carriage);
 			if (isIdex) {
-				const endstopSafetyMargin = 5
+				const endstopSafetyMargin = 5;
 				const dcParkX = (size ?? config.size ?? 300) + config.printer.bedMargin.x[1] - endstopSafetyMargin;
 				result.push(
-					`variable_parking_position: [-${config.printer.bedMargin.x[0] + endstopSafetyMargin}, ${dcParkX}]                      # toolhead x parking position`,
+					`variable_parking_position: [-${
+						config.printer.bedMargin.x[0] + endstopSafetyMargin
+					}, ${dcParkX}]                      # toolhead x parking position`,
 				);
 				result.push(`variable_toolchange_travel_speed: ${this.getMacroTravelSpeed()}     # parking travel speed`);
 				result.push(`variable_toolchange_travel_accel: ${this.getMacroTravelAccel()}     # parking travel accel`);
@@ -859,6 +867,11 @@ export const constructKlipperConfigHelpers = async (
 		},
 		renderReminders() {
 			return extrasGenerator.getReminders().join('\n');
+		},
+		renderMacros() {
+			return this.getToolheads()
+				.map((th) => th.renderToolheadMacro())
+				.join('\n');
 		},
 		uncommentIf(condition: boolean | undefined | null) {
 			return condition === true ? '' : '#';
