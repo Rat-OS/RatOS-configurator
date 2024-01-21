@@ -4457,6 +4457,24 @@ const SingleColumn = (props)=>{
         })
     });
 };
+const proccessTokens = (hunks)=>{
+    if (!hunks) {
+        return undefined;
+    }
+    const options = {
+        highlight: false,
+        enhancers: [
+            (0,external_react_diff_view_namespaceObject.markEdits)(hunks, {
+                type: "block"
+            })
+        ]
+    };
+    try {
+        return (0,external_react_diff_view_namespaceObject.tokenize)(hunks, options);
+    } catch (ex) {
+        return undefined;
+    }
+};
 const DiffModal = (props)=>{
     const { isOpen , setIsOpen  } = props;
     const [viewType, setViewType] = (0,react_.useState)("unified");
@@ -4555,7 +4573,8 @@ const DiffModal = (props)=>{
                                     children: files.map(({ hunks  }, i)=>/*#__PURE__*/ jsx_runtime_.jsx(external_react_diff_view_namespaceObject.Diff, {
                                             hunks: hunks,
                                             viewType: viewType,
-                                            diffType: diffType
+                                            diffType: diffType,
+                                            tokens: proccessTokens(hunks)
                                         }, i))
                                 }),
                                 /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
@@ -5063,7 +5082,7 @@ const ConfirmToolhead = (props)=>{
                                                 ]
                                             }),
                                             hasWarnings && /*#__PURE__*/ jsx_runtime_.jsx(Badge, {
-                                                color: "orange",
+                                                color: "yellow",
                                                 size: "md",
                                                 children: "Has Warnings"
                                             })
@@ -5432,7 +5451,7 @@ const ConfirmConfig = (props)=>{
                                                                                 children: "General"
                                                                             }),
                                                                             parsedPrinterConfiguration.data.controlboard != null && !controlboardDetected.data && /*#__PURE__*/ jsx_runtime_.jsx(Badge, {
-                                                                                color: "orange",
+                                                                                color: "yellow",
                                                                                 children: "Has Warnings"
                                                                             })
                                                                         ]

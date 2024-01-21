@@ -1971,6 +1971,20 @@ class ToolheadGenerator extends helpers_toolhead/* ToolheadHelper */.D {
         }
         return result.join("\n");
     }
+    renderToolheadMacro() {
+        const result = [
+            `[gcode_macro ${this.getToolCommand()}]`,
+            `variable_active: ${this.getTool() === 0 ? "True" : "False"}`,
+            `variable_color: "${this.getTool() === 0 ? "7bff33" : "0ea5e9"}"              # Used in frontends`,
+            `gcode:`,
+            `{% set x = params.X|default(-1.0)|float %}`,
+            `{% set y = params.Y|default(-1.0)|float %}`,
+            `{% set z = params.Z|default(0.0)|float %}`,
+            `{% set s = params.S|default(1)|int %}`,
+            `_SELECT_TOOL T=${this.getTool()} X={x} Y={y} Z={z} SWIPE={s}`
+        ];
+        return result.join("\n");
+    }
 }
 
 ;// CONCATENATED MODULE: ./server/helpers/klipper-config.ts
@@ -2326,7 +2340,7 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
                 section.push(`rotation_distance: ${rail.rotationDistance}`);
             }
             if (rail.axis === motion/* PrinterAxis.z */.po.z) {
-                // Lower position_min to allow for probe calibration (and componensation functions). 
+                // Lower position_min to allow for probe calibration (and componensation functions).
                 // Very much dislike that this is necessary.
                 section.push(`position_min: -5`);
             }
@@ -2712,6 +2726,9 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
         },
         renderReminders () {
             return extrasGenerator.getReminders().join("\n");
+        },
+        renderMacros () {
+            return this.getToolheads().map((th)=>th.renderToolheadMacro()).join("\n");
         },
         uncommentIf (condition) {
             return condition === true ? "" : "#";
