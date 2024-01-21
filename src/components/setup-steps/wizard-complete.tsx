@@ -102,7 +102,7 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 							<h3 className="flex items-center space-x-2 text-base font-bold leading-7 text-zinc-900 dark:text-zinc-100">
 								<span>Toolhead {toolhead.getToolCommand()}</span>
 								{hasWarnings && (
-									<Badge color="orange" size="md">
+									<Badge color="yellow" size="md">
 										Has Warnings
 									</Badge>
 								)}
@@ -348,7 +348,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 													<h3 className="flex items-center space-x-2 text-base font-bold leading-7 text-zinc-900 dark:text-zinc-100">
 														<span>General</span>
 														{parsedPrinterConfiguration.data.controlboard != null && !controlboardDetected.data && (
-															<Badge color="orange">Has Warnings</Badge>
+															<Badge color="yellow">Has Warnings</Badge>
 														)}
 													</h3>
 													<button>

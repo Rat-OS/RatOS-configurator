@@ -2,7 +2,7 @@
 /* This example requires Tailwind CSS v2.0+ */
 import React, { Fragment, useCallback, useMemo, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { parseDiff, Diff, DiffType, ViewType } from 'react-diff-view';
+import { parseDiff, Diff, DiffType, ViewType, HunkData, TokenizeOptions, tokenize, markEdits } from 'react-diff-view';
 import type { FileState } from '../../server/routers/printer';
 import 'react-diff-view/style/index.css';
 import { XMarkIcon } from '@heroicons/react/20/solid';
@@ -55,6 +55,23 @@ const SingleColumn = (props: { className?: string }) => {
 			/>
 		</svg>
 	);
+};
+
+const proccessTokens = (hunks: HunkData[]) => {
+	if (!hunks) {
+		return undefined;
+	}
+
+	const options: TokenizeOptions = {
+		highlight: false,
+		enhancers: [markEdits(hunks, { type: 'block' })],
+	};
+
+	try {
+		return tokenize(hunks, options);
+	} catch (ex) {
+		return undefined;
+	}
 };
 
 export const DiffModal: React.FC<ModalProps> = (props) => {
@@ -140,7 +157,7 @@ export const DiffModal: React.FC<ModalProps> = (props) => {
 							</Dialog.Title>
 							<div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-400 scrollbar-thumb-rounded-md dark:scrollbar-thumb-zinc-600">
 								{files.map(({ hunks }, i) => (
-									<Diff key={i} hunks={hunks} viewType={viewType} diffType={diffType} />
+									<Diff key={i} hunks={hunks} viewType={viewType} diffType={diffType} tokens={proccessTokens(hunks)} />
 								))}
 							</div>
 							<div className="flex-end flex flex-row items-center justify-end space-x-2 border-t border-zinc-200 px-4 pt-4 sm:px-6 sm:pt-6 dark:border-zinc-700">
