@@ -1981,7 +1981,7 @@ class ToolheadGenerator extends helpers_toolhead/* ToolheadHelper */.D {
             `	{% set y = params.Y|default(-1.0)|float %}`,
             `	{% set z = params.Z|default(0.0)|float %}`,
             `	{% set s = params.S|default(1)|int %}`,
-            `	_SELECT_TOOL T=${this.getTool()} X={x} Y={y} Z={z} SWIPE={s}`
+            `	_SELECT_TOOL T=${this.getTool()} X={x} Y={y} Z={z} TOOLSHIFT={s}`
         ];
         return result.join("\n");
     }
