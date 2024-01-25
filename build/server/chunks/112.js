@@ -1276,7 +1276,7 @@ const mcuRouter = (0,_trpc__WEBPACK_IMPORTED_MODULE_7__/* .router */ .Nd)({
         const toolheadHelpers = config.toolheads.map((t)=>{
             return new _helpers_toolhead__WEBPACK_IMPORTED_MODULE_14__/* .ToolheadHelper */ .D(t);
         });
-        const connectedBoards = ctx.boards.map((b)=>{
+        const connectedBoards = ctx.boards.flatMap((b)=>{
             if (b.flashScript && b.compileScript && b.disableAutoFlash !== true) {
                 if (detect(b)) {
                     return {
@@ -1284,15 +1284,16 @@ const mcuRouter = (0,_trpc__WEBPACK_IMPORTED_MODULE_7__/* .router */ .Nd)({
                         toolhead: null
                     };
                 }
-                const toolboard = toolheadHelpers.map((th)=>{
+                const toolboards = toolheadHelpers.map((th)=>{
                     if (detect(b, th)) {
                         return {
                             board: b,
                             toolhead: th
                         };
                     }
-                }).find((b)=>b != null) ?? null;
-                return toolboard;
+                    return null;
+                }).filter(Boolean);
+                return toolboards;
             }
             return null;
         }).filter(Boolean);
@@ -1316,14 +1317,14 @@ const mcuRouter = (0,_trpc__WEBPACK_IMPORTED_MODULE_7__/* .router */ .Nd)({
                 flashResults.push({
                     board: b.board,
                     result: "success",
-                    message: `${b.board.manufacturer} ${b.board.name} was successfully flashed.`
+                    message: `${b.board.manufacturer} ${b.board.name} on ${b.toolhead ? ` ${b.toolhead.getToolCommand}` : ""} was successfully flashed.`
                 });
             } catch (e) {
                 const message = e instanceof Error ? e.message : e;
                 flashResults.push({
                     board: b.board,
                     result: "error",
-                    message: typeof message === "string" ? message : `Unknown error occured while flashing ${b.board.manufacturer} ${b.board.name}`
+                    message: typeof message === "string" ? message : `Unknown error occured while flashing ${b.board.manufacturer} ${b.board.name} on ${b.toolhead ? ` ${b.toolhead.getToolCommand}` : ""}`
                 });
             }
         }

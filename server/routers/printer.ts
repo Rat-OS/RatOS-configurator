@@ -304,7 +304,10 @@ export type FilesToWriteWithState = (Omit<Unpacked<FilesToWrite>, 'content'> & {
 	diff: string | null;
 })[];
 
-export const getFilesToWrite = async (config: PrinterConfiguration, overwriteFiles?: string[]): Promise<FilesToWrite> => {
+export const getFilesToWrite = async (
+	config: PrinterConfiguration,
+	overwriteFiles?: string[],
+): Promise<FilesToWrite> => {
 	const utils = await constructKlipperConfigUtils(config);
 	const extrasGenerator = constructKlipperConfigExtrasGenerator(config, utils);
 	const helper = await constructKlipperConfigHelpers(config, extrasGenerator, utils);
@@ -315,13 +318,13 @@ export const getFilesToWrite = async (config: PrinterConfiguration, overwriteFil
 	const renderedPrinterCfg = initialPrinterCfg(config, helper).trim();
 	const extras: { fileName: string; content: string; overwrite: boolean }[] = extrasGenerator.getFilesToWrite();
 	return [
-			{ fileName: 'RatOS.cfg', content: renderedTemplate, overwrite: true },
-			{
-				fileName: 'printer.cfg',
-				content: renderedPrinterCfg,
-				overwrite: !(await isPrinterCfgInitialized()),
-			},
-		]
+		{ fileName: 'RatOS.cfg', content: renderedTemplate, overwrite: true },
+		{
+			fileName: 'printer.cfg',
+			content: renderedPrinterCfg,
+			overwrite: !(await isPrinterCfgInitialized()),
+		},
+	]
 		.concat(extras)
 		.map((f) => {
 			const fileWithExists = f as { fileName: string; content: string; overwrite: boolean; exists: boolean };
@@ -407,105 +410,125 @@ const generateKlipperConfiguration = async <T extends boolean>(
 export const compareSettings = async (newSettings: SerializedPrinterConfiguration): Promise<FilesToWriteWithState> => {
 	const environment = serverSchema.parse(process.env);
 	const lastSettingsFile = path.join(environment.RATOS_DATA_DIR, 'last-printer-settings.json');
-	const oldFiles = existsSync(lastSettingsFile) ? await getFilesToWrite(await loadSerializedConfig(lastSettingsFile)) : [];
+	const oldFiles = existsSync(lastSettingsFile)
+		? await getFilesToWrite(await loadSerializedConfig(lastSettingsFile))
+		: [];
 	const newFiles = await getFilesToWrite(await deserializePrinterConfiguration(newSettings));
-	const addedFiles = await Promise.all(newFiles.filter((f) => !oldFiles.some((of) => of.fileName === f.fileName)).map(async (f) => {
-		const timehash = new Date().getTime() + objectHash(f);
-		await writeFile(`/tmp/ratos-added-new-${timehash}.cfg`, f.content);
-		const diff = await new Promise<string | null>((resolve, reject) => {
-			exec(
-				`git diff --minimal --no-index /dev/null /tmp/ratos-added-new-${timehash}.cfg`,
-				(err, stdout, stderr) => {
-					if (stdout.trim() == '') {
-						reject(stderr);
-					}
-					resolve(stdout);
-				},
-			);
+	const addedFiles = await Promise.all(
+		newFiles
+			.filter((f) => !oldFiles.some((of) => of.fileName === f.fileName))
+			.map(async (f) => {
+				const timehash = new Date().getTime() + objectHash(f);
+				await writeFile(`/tmp/ratos-added-new-${timehash}.cfg`, f.content);
+				const diff = await new Promise<string | null>((resolve, reject) => {
+					exec(
+						`git diff --minimal --no-index /dev/null /tmp/ratos-added-new-${timehash}.cfg`,
+						(err, stdout, stderr) => {
+							if (stdout.trim() == '') {
+								reject(stderr);
+							}
+							resolve(stdout);
+						},
+					);
+				});
+				return {
+					fileName: f.fileName,
+					diff: diff,
+					exists: f.exists,
+					overwrite: f.overwrite,
+					state: 'created' as const,
+				} as Unpacked<FilesToWriteWithState>;
+			}),
+	);
+	const removedFiles = await Promise.all(
+		oldFiles
+			.filter((f) => !newFiles.some((nf) => nf.fileName === f.fileName))
+			.map(async (f) => {
+				const timehash = new Date().getTime() + objectHash(f);
+				await writeFile(`/tmp/ratos-removed-old-${timehash}.cfg`, f.content);
+				const diff = await new Promise<string | null>((resolve, reject) => {
+					exec(
+						`git diff --minimal --no-index /tmp/ratos-removed-old-${timehash}.cfg /dev/null`,
+						(err, stdout, stderr) => {
+							if (stdout.trim() == '') {
+								reject(stderr);
+							}
+							resolve(stdout);
+						},
+					);
+				});
+				return {
+					fileName: f.fileName,
+					diff: diff,
+					exists: f.exists,
+					overwrite: f.overwrite,
+					state: 'removed' as const,
+				} as Unpacked<FilesToWriteWithState>;
+			}),
+	);
+	const changedFiles = await Promise.all(
+		newFiles
+			.filter((f) => oldFiles.some((of) => of.fileName === f.fileName && of.content !== f.content))
+			.map(async (f) => {
+				const oldFile = oldFiles.find((of) => of.fileName === f.fileName);
+				if (oldFile == null) {
+					throw new Error('This should never happen.');
+				}
+				const timehash = new Date().getTime() + objectHash(f);
+				let oldPath = path.resolve(path.join(environment.KLIPPER_CONFIG_PATH, oldFile.fileName));
+				if (!oldFile.exists) {
+					oldPath = `/tmp/ratos-changed-old-${timehash}.cfg`;
+					await writeFile(oldPath, oldFile.content);
+				}
+				await writeFile(`/tmp/ratos-changed-new-${timehash}.cfg`, f.content);
+				const diff = await new Promise<string | null>((resolve, reject) => {
+					exec(
+						`git diff --minimal --no-index ${oldPath} /tmp/ratos-changed-new-${timehash}.cfg`,
+						(err, stdout, stderr) => {
+							if (stdout.trim() == '') {
+								reject(stderr);
+							}
+							resolve(stdout);
+						},
+					);
+				});
+				return {
+					fileName: f.fileName,
+					diff: diff,
+					exists: f.exists,
+					overwrite: f.overwrite,
+					state: 'changed' as const,
+				} as Unpacked<FilesToWriteWithState>;
+			}),
+	);
+	const unchangedFiles = newFiles
+		.filter((f) => oldFiles.some((of) => of.fileName === f.fileName && of.content === f.content))
+		.map((f) => {
+			return {
+				fileName: f.fileName,
+				diff: null,
+				exists: f.exists,
+				overwrite: f.overwrite,
+				state: 'unchanged' as const,
+			} as Unpacked<FilesToWriteWithState>;
 		});
-		return {
-			fileName: f.fileName,
-			diff: diff,
-			exists: f.exists,
-			overwrite: f.overwrite,
-			state: 'created' as const,
-		} as Unpacked<FilesToWriteWithState>
-	}));
-	const removedFiles = await Promise.all(oldFiles.filter((f) => !newFiles.some((nf) => nf.fileName === f.fileName)).map(async (f) => {
-		const timehash = new Date().getTime() + objectHash(f);
-		await writeFile(`/tmp/ratos-removed-old-${timehash}.cfg`, f.content);
-		const diff = await new Promise<string | null>((resolve, reject) => {
-			exec(
-				`git diff --minimal --no-index /tmp/ratos-removed-old-${timehash}.cfg /dev/null`,
-				(err, stdout, stderr) => {
-					if (stdout.trim() == '') {
-						reject(stderr);
-					}
-					resolve(stdout);
-				},
-			);
+	return addedFiles
+		.concat(removedFiles)
+		.concat(changedFiles)
+		.concat(unchangedFiles)
+		.sort((a, b) => {
+			if (
+				newFiles.findIndex((nf) => nf.fileName === a.fileName) < newFiles.findIndex((nf) => nf.fileName === b.fileName)
+			) {
+				return -1;
+			}
+			if (
+				newFiles.findIndex((nf) => nf.fileName === a.fileName) > newFiles.findIndex((nf) => nf.fileName === b.fileName)
+			) {
+				return 1;
+			}
+			return 0;
 		});
-		return {
-			fileName: f.fileName,
-			diff: diff,
-			exists: f.exists,
-			overwrite: f.overwrite,
-			state: 'removed' as const,
-		} as Unpacked<FilesToWriteWithState>
-	}));
-	const changedFiles = await Promise.all(newFiles.filter(
-		(f) => oldFiles.some((of) => of.fileName === f.fileName && of.content !== f.content),
-	).map(async (f) => {
-		const oldFile = oldFiles.find((of) => of.fileName === f.fileName);
-		if (oldFile == null) {
-			throw new Error('This should never happen.');
-		}
-		const timehash = new Date().getTime() + objectHash(f);
-		let oldPath = path.resolve(path.join(environment.KLIPPER_CONFIG_PATH, oldFile.fileName));
-		if (!oldFile.exists) {
-			oldPath = `/tmp/ratos-changed-old-${timehash}.cfg`;
-			await writeFile(oldPath, oldFile.content);
-		}
-		await writeFile(`/tmp/ratos-changed-new-${timehash}.cfg`, f.content);
-		const diff = await new Promise<string | null>((resolve, reject) => {
-			exec(
-				`git diff --minimal --no-index ${oldPath} /tmp/ratos-changed-new-${timehash}.cfg`,
-				(err, stdout, stderr) => {
-					if (stdout.trim() == '') {
-						reject(stderr);
-					}
-					resolve(stdout);
-				},
-			);
-		});
-		return {
-			fileName: f.fileName,
-			diff: diff,
-			exists: f.exists,
-			overwrite: f.overwrite,
-			state: 'changed' as const,
-		} as Unpacked<FilesToWriteWithState>
-	}));
-	const unchangedFiles = newFiles.filter(
-		(f) => oldFiles.some((of) => of.fileName === f.fileName && of.content === f.content),
-	).map((f) => {
-		return {
-			fileName: f.fileName,
-			diff: null,
-			exists: f.exists,
-			overwrite: f.overwrite,
-			state: 'unchanged' as const,
-		} as Unpacked<FilesToWriteWithState>
-	});
-	return addedFiles.concat(removedFiles).concat(changedFiles).concat(unchangedFiles).sort((a, b) => {
-		if (newFiles.findIndex((nf) => nf.fileName === a.fileName) < newFiles.findIndex((nf) => nf.fileName === b.fileName)) {
-			return -1;
-		}
-		if (newFiles.findIndex((nf) => nf.fileName === a.fileName) > newFiles.findIndex((nf) => nf.fileName === b.fileName)) {
-			return 1;
-		}
-		return 0;
-	});
 };
 
 export const loadSerializedConfig = async (filePath: string) => {
@@ -721,7 +744,7 @@ export const printerRouter = router({
 		)
 		.mutation(async (ctx) => {
 			const { config: serializedConfig } = ctx.input;
-			return (await compareSettings(serializedConfig));
+			return await compareSettings(serializedConfig);
 		}),
 	saveConfiguration: publicProcedure
 		.input(

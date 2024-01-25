@@ -54,13 +54,19 @@ describe('configuration', async () => {
 		expect(scripts.length).toBeGreaterThan(0);
 	});
 	test.concurrent('is free of dumb typos', async () => {
-		const files = (await glob(environment.RATOS_CONFIGURATION_PATH + '/**/*.cfg'));
+		const files = await glob(environment.RATOS_CONFIGURATION_PATH + '/**/*.cfg');
 		const fileContents = files.map((f) => readFile(f));
 		let noAmpersands = '';
 		let noElseIfs = '';
 		let f = 0;
 		for await (const file of fileContents) {
-			const generatedLines = file.toString().split('\n').map((l: string, i: number) => `${files[f].split('/').pop()}:${i+1}`.padEnd(15, ' ') + `| ${l.replace(/\t/g, '')}`);
+			const generatedLines = file
+				.toString()
+				.split('\n')
+				.map(
+					(l: string, i: number) =>
+						`${files[f].split('/').pop()}:${i + 1}`.padEnd(15, ' ') + `| ${l.replace(/\t/g, '')}`,
+				);
 			noAmpersands += generatedLines.filter((l: string) => l.includes('&&')).join('\n');
 			noElseIfs += generatedLines.filter((l: string) => l.includes('else if')).join('\n');
 			f++;
@@ -110,7 +116,7 @@ describe('configuration', async () => {
 			});
 			test.concurrent('has alphanumeric firmwareBinaryName', async () => {
 				expect(board.firmwareBinaryName).toMatch(/^[a-zA-Z0-9\.\-_]+$/);
-			})
+			});
 			test.concurrent('has config file', async () => {
 				expect(
 					fs.existsSync(path.join(board.path, board.isToolboard ? 'toolboard-config.cfg' : 'config.cfg')),

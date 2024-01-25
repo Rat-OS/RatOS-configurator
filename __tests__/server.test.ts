@@ -96,20 +96,36 @@ describe('server', async () => {
 				}),
 			);
 		});
-		test.concurrent('can generate idex config', async () => {
+		describe('can generate idex config', async () => {
 			const config = await loadSerializedConfig(path.join(__dirname, 'fixtures', 'idex-config.json'));
 			const res: string = (await getFilesToWrite(config)).find((f) => f.fileName === 'RatOS.cfg')?.content ?? '';
-			const splitRes = res.split('\n').map((l: string, i: number) => `Line ${i+1}`.padEnd(10, ' ') + `|${l}`);
-			expect(splitRes.length).toBeGreaterThan(0);
-			const noUndefined = splitRes.filter((l: string) => l.includes('undefined')).join('\n');
-			const noPromises = splitRes.filter((l: string) => l.includes('[object Promise]')).join('\n');
-			const noObjects = splitRes.filter((l: string) => l.includes('[object Object]')).join('\n');
-			if (noUndefined || noPromises || noObjects) {
-				console.log(splitRes.join('\n'));
-			}
-			expect(noUndefined, 'Expected no undefined values in config').to.eq('');
-			expect(noPromises, 'Expected no promises in config').to.eq('');
-			expect(noObjects, 'Expected no objects in config').to.eq('');
+			const splitRes = res.split('\n');
+			const annotatedLines = splitRes.map((l: string, i: number) => `Line-${i + 1}`.padEnd(10, '-') + `|${l}`);
+			const gcodeBlocks: number[] = [];
+			splitRes.forEach((l, i) => l.includes('gcode:') && gcodeBlocks.push(i));
+			test('produces valid config', async () => {
+				expect(splitRes.length).toBeGreaterThan(0);
+				const noUndefined = splitRes.filter((l: string) => l.includes('undefined')).join('\n');
+				const noPromises = splitRes.filter((l: string) => l.includes('[object Promise]')).join('\n');
+				const noObjects = splitRes.filter((l: string) => l.includes('[object Object]')).join('\n');
+				if (noUndefined || noPromises || noObjects) {
+					console.log(annotatedLines.join('\n'));
+				}
+				expect(noUndefined, 'Expected no undefined values in config').to.eq('');
+				expect(noPromises, 'Expected no promises in config').to.eq('');
+				expect(noObjects, 'Expected no objects in config').to.eq('');
+			});
+			test.runIf(gcodeBlocks.length > 0)('correctly indents gcode blocks', async () => {
+				for (const block of gcodeBlocks) {
+					try {
+						expect(splitRes[block + 1].startsWith('\t') || splitRes[block + 1].startsWith('  ')).toBeTruthy();
+					} catch (e) {
+						throw new Error(
+							`Failed to indent gcode block at line ${block + 1}:\n${annotatedLines.slice(block - 4, block + 5).join('\n')}`,
+						);
+					}
+				}
+			});
 		});
 		describe('can generate hybrid config with toolboard', async () => {
 			let debugLines: string[] = [];
@@ -119,7 +135,7 @@ describe('server', async () => {
 				expect(config.printer.kinematics).toEqual('hybrid-corexy');
 				const res: string = (await getFilesToWrite(config)).find((f) => f.fileName === 'RatOS.cfg')?.content ?? '';
 				generatedLines = res.split('\n');
-				debugLines = generatedLines.map((l: string, i: number) => `Line ${i+1}`.padEnd(10, ' ') + `|${l}`);
+				debugLines = generatedLines.map((l: string, i: number) => `Line ${i + 1}`.padEnd(10, ' ') + `|${l}`);
 				expect(debugLines.length).toBeGreaterThan(0);
 				const noUndefined = debugLines.filter((l: string) => l.includes('undefined')).join('\n');
 				const noPromises = debugLines.filter((l: string) => l.includes('[object Promise]')).join('\n');
