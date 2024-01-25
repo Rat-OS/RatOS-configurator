@@ -95,10 +95,10 @@ export const compileFirmware = async <T extends boolean>(
 		const extension = path.extname(binaryName);
 		const klipperOut = path.join(environment.KLIPPER_DIR, 'out', `klipper${extension}`);
 		const firmwareDest = path.join(environment.RATOS_DATA_DIR, binaryName);
-		existsSync(firmwareDest) && await unlink(firmwareDest);
+		existsSync(firmwareDest) && (await unlink(firmwareDest));
 		compileResult = await runSudoScript('klipper-compile.sh');
 		if (existsSync(klipperOut)) {
-			await copyFile(klipperOut, firmwareDest)
+			await copyFile(klipperOut, firmwareDest);
 		} else if (!board.isHost) {
 			throw new Error(`Could not find compiled firmware at ${klipperOut}`);
 		}
@@ -306,13 +306,15 @@ export const mcuRouter = router({
 						: PrinterAxis.extruder1 === input.axis
 							? 'e1'
 							: input.axis;
-			return reversePinLookup(
-				{
-					step_pin: pins[`${axisAlias}_step_pin` as keyof typeof pins],
-					dir_pin: pins[`${axisAlias}_dir_pin` as keyof typeof pins],
-				},
-				ctx.board,
-			) ?? null;
+			return (
+				reversePinLookup(
+					{
+						step_pin: pins[`${axisAlias}_step_pin` as keyof typeof pins],
+						dir_pin: pins[`${axisAlias}_dir_pin` as keyof typeof pins],
+					},
+					ctx.board,
+				) ?? null
+			);
 		}),
 	flashAllConnected: mcuProcedure
 		.meta({
@@ -330,20 +332,20 @@ export const mcuRouter = router({
 				return new ToolheadHelper(t);
 			});
 			const connectedBoards: { board: Board; toolhead: ToolheadHelper<any> | null }[] = ctx.boards
-				.map((b) => {
+				.flatMap((b) => {
 					if (b.flashScript && b.compileScript && b.disableAutoFlash !== true) {
 						if (detect(b)) {
-							return { board: b, toolhead: null };
+							return { board: b, toolhead: null } as { board: Board; toolhead: ToolheadHelper<any> | null };
 						}
-						const toolboard =
-							toolheadHelpers
-								.map((th) => {
-									if (detect(b, th)) {
-										return { board: b, toolhead: th };
-									}
-								})
-								.find((b) => b != null) ?? null;
-						return toolboard;
+						const toolboards = toolheadHelpers
+							.map((th) => {
+								if (detect(b, th)) {
+									return { board: b, toolhead: th } as { board: Board; toolhead: ToolheadHelper<any> | null };
+								}
+								return null;
+							})
+							.filter(Boolean);
+						return toolboards;
 					}
 					return null;
 				})
@@ -377,7 +379,7 @@ export const mcuRouter = router({
 					flashResults.push({
 						board: b.board,
 						result: 'success',
-						message: `${b.board.manufacturer} ${b.board.name} was successfully flashed.`,
+						message: `${b.board.manufacturer} ${b.board.name} on ${b.toolhead ? ` ${b.toolhead.getToolCommand}` : ''} was successfully flashed.`,
 					});
 				} catch (e) {
 					const message = e instanceof Error ? e.message : e;
@@ -387,7 +389,7 @@ export const mcuRouter = router({
 						message:
 							typeof message === 'string'
 								? message
-								: `Unknown error occured while flashing ${b.board.manufacturer} ${b.board.name}`,
+								: `Unknown error occured while flashing ${b.board.manufacturer} ${b.board.name} on ${b.toolhead ? ` ${b.toolhead.getToolCommand}` : ''}`,
 					});
 				}
 			}
