@@ -182,6 +182,74 @@ describe('server', async () => {
 				const y = sensorlessYTemplate(config, utils);
 			});
 		});
+		describe('can generate v-minion config', async () => {
+			const config = await loadSerializedConfig(path.join(__dirname, 'fixtures', 'minion-config.json'));
+			const filesToWrite = await getFilesToWrite(config);
+			let res: string = filesToWrite.find((f) => f.fileName === 'RatOS.cfg')?.content ?? '';
+			const printerCfg: string = filesToWrite.find((f) => f.fileName === 'printer.cfg')?.content ?? '';
+			const splitRes = res.split('\n');
+			const splitPrinterCfg = printerCfg.split('\n');
+			const annotatedLines = splitRes.map((l: string, i: number) => `Line-${i + 1}`.padEnd(10, '-') + `|${l}`);
+			const annotatedPrinterCfgLines = splitPrinterCfg.map(
+				(l: string, i: number) => `Line-${i + 1}`.padEnd(10, '-') + `|${l}`,
+			);
+			const gcodeBlocks: number[] = [];
+			splitRes.forEach((l, i) => l.includes('gcode:') && gcodeBlocks.push(i));
+			test('produces valid config', async () => {
+				expect(splitRes.length).toBeGreaterThan(0);
+				const noUndefined = splitRes.filter((l: string) => l.includes('undefined')).join('\n');
+				const noPromises = splitRes.filter((l: string) => l.includes('[object Promise]')).join('\n');
+				const noObjects = splitRes.filter((l: string) => l.includes('[object Object]')).join('\n');
+				if (noUndefined || noPromises || noObjects) {
+					console.log(annotatedLines.join('\n'));
+				}
+				expect(noUndefined, 'Expected no undefined values in config').to.eq('');
+				expect(noPromises, 'Expected no promises in config').to.eq('');
+				expect(noObjects, 'Expected no objects in config').to.eq('');
+			});
+			test.runIf(gcodeBlocks.length > 0)('correctly indents gcode blocks', async () => {
+				for (const block of gcodeBlocks) {
+					try {
+						expect(splitRes[block + 1].startsWith('\t') || splitRes[block + 1].startsWith('  ')).toBeTruthy();
+					} catch (e) {
+						throw new Error(
+							`Failed to indent gcode block at line ${block + 1}:\n${annotatedLines.slice(block - 4, block + 5).join('\n')}`,
+						);
+					}
+				}
+			});
+			test.concurrent('contains position_min/max/endstop for x/y', () => {
+				const combined = [...splitRes, ...splitPrinterCfg];
+				const xSections: number[] = [];
+				const ySections: number[] = [];
+				combined.forEach((l, i) => {
+					l.startsWith('[stepper_x]') && xSections.push(i);
+					l.startsWith('[stepper_y]') && ySections.push(i);
+				});
+				[xSections, ySections].forEach((sections, i) => {
+					const sectionName = ['x', 'y', 'z'][i];
+					let hasMin = false;
+					let hasMax = false;
+					let hasEndstop = false;
+					sections.forEach((i) => {
+						const nextSection = combined.slice(i + 1).findIndex((l) => l.trim().startsWith('['));
+						hasMin = combined.slice(i, i + nextSection).find((l) => l.includes('position_min:')) != null || hasMin;
+						hasMax = combined.slice(i, i + nextSection).find((l) => l.includes('position_max:')) != null || hasMax;
+						hasEndstop =
+							combined.slice(i, i + nextSection).find((l) => l.includes('position_endstop:')) != null || hasEndstop;
+					});
+					try {
+						expect(hasMin, `[stepper_${sectionName}] is missing position_min`).toBeTruthy();
+						expect(hasMax, `[stepper_${sectionName}] is missing position_max`).toBeTruthy();
+						expect(hasEndstop, `[stepper_${sectionName}] is missing position_endstop`).toBeTruthy();
+					} catch (e) {
+						console.log(annotatedLines.join('\n'));
+						console.log(annotatedPrinterCfgLines.join('\n'));
+						throw e;
+					}
+				});
+			});
+		});
 	});
 	describe('mcu', async () => {
 		test.concurrent('can compile firmware for controlboard and toolheads', async () => {
