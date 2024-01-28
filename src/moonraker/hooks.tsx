@@ -1,54 +1,46 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { UseMutationOptions, UseQueryOptions, useMutation, useQuery } from 'react-query';
 import useWebSocket from 'react-use-websocket';
-
-export type MoonrakerStatus = 'connected' | 'connecting' | 'not-running';
-
-interface MoonrakerResponse {
-	method: string;
-	params: any[];
-	result?: any;
-	id: number;
-}
+import { migrateToLatest } from './migrations';
+import {
+	InFlightRequestCallbacks,
+	InFlightRequestTimeouts,
+	MoonrakerResponse,
+	MoonrakerStatus,
+	MoonrakerSaveItemFn,
+	MoonrakerNamespaces,
+	MoonrakerDBItemResponse,
+	MoonrakerGetItemFn,
+	MoonrakerNamespaceKeys,
+	MoonrakerDBValue,
+} from './types';
 
 let REQ_ID = 0;
 
-interface InFlightRequestCallbacks {
-	[id: number]: (err: Error | null, result: any) => any;
-}
-interface InFlightRequestTimeouts {
-	[id: number]: number;
-}
-
-export type MoonrakerDBItemResponse<Data = unknown> = {
-	key: string;
-	namespace: string;
-	value: Data;
-};
-
-const getWsURL = (hostname?: string) => {
+const getWsURL = () => {
 	const host =
-		hostname != null && hostname.trim() != ''
-			? hostname
-			: process.env.NEXT_PUBLIC_KLIPPER_HOSTNAME != null && process.env.NEXT_PUBLIC_KLIPPER_HOSTNAME.trim() != ''
-				? process.env.NEXT_PUBLIC_KLIPPER_HOSTNAME
-				: typeof window !== 'undefined'
-					? window.location.hostname
-					: '';
+		process.env.NEXT_PUBLIC_KLIPPER_HOSTNAME != null && process.env.NEXT_PUBLIC_KLIPPER_HOSTNAME.trim() != ''
+			? process.env.NEXT_PUBLIC_KLIPPER_HOSTNAME
+			: typeof window !== 'undefined'
+				? window.location.hostname
+				: '';
 	if (host == null || host.trim() == '') {
 		return null;
 	}
 	return `ws://${host}/websocket`;
 };
 
-export const useMoonraker = (hostname?: string) => {
+export type MoonrakerQueryFn = <Response = any>(method: string, params?: any) => Promise<Response>;
+
+export const useMoonraker = () => {
 	const inFlightRequests = useRef<InFlightRequestCallbacks>({});
 	const inFlightRequestTimeouts = useRef<InFlightRequestTimeouts>({});
-	const onReadyCallbacks = useRef<(() => void)[]>([]);
-	const [wsUrl, setWsUrl] = useState(getWsURL(hostname));
+	const onReadyCallbacks = useRef<{ resolve: () => void; reject: () => void }[]>([]);
+	const [wsUrl, setWsUrl] = useState(getWsURL());
 	useEffect(() => {
-		setWsUrl(getWsURL(hostname));
-	}, [hostname]);
+		setWsUrl(getWsURL());
+	}, []);
 	const { lastJsonMessage, sendJsonMessage, readyState } = useWebSocket<MoonrakerResponse>(wsUrl, {
 		shouldReconnect: (closeEvent) => {
 			return true;
@@ -64,25 +56,23 @@ export const useMoonraker = (hostname?: string) => {
 	);
 	const [moonrakerMessage, setMoonrakerMessage] = useState<null | MoonrakerResponse>(lastJsonMessage);
 
-	const whenReady = useCallback((callback: () => void) => {
+	const whenReady = useCallback((resolve: () => void, reject: () => void) => {
 		if (readyStateRef.current === 1) {
-			callback();
+			resolve();
 		} else {
-			onReadyCallbacks.current.push(callback);
+			onReadyCallbacks.current.push({ resolve, reject });
 		}
 	}, []);
 
 	const isReady = useCallback(
 		() =>
 			new Promise<void>((resolve, reject) => {
-				whenReady(() => {
-					resolve();
-				});
+				whenReady(resolve, reject);
 			}),
 		[whenReady],
 	);
 
-	const moonrakerQuery = useCallback(
+	const moonrakerQuery: MoonrakerQueryFn = useCallback(
 		async <Response = any,>(method: string, params: any = {}) => {
 			await isReady();
 			return new Promise<Response>((resolve, reject) => {
@@ -111,31 +101,32 @@ export const useMoonraker = (hostname?: string) => {
 		[isReady, sendJsonMessage],
 	);
 
-	const saveItem = useCallback(
-		async <Data = unknown,>(key: string, value: Data) => {
+	const saveItem = useCallback<MoonrakerSaveItemFn>(
+		async (namespace: MoonrakerNamespaces, key: any, value: any) => {
 			await isReady();
-			return await moonrakerQuery<MoonrakerDBItemResponse<Data>>('server.database.post_item', {
-				namespace: 'RatOS',
+			return await moonrakerQuery<MoonrakerDBItemResponse<any>>('server.database.post_item', {
+				namespace: namespace,
 				key,
-				value: JSON.stringify(value),
+				value: value,
 			});
 		},
 		[moonrakerQuery, isReady],
 	);
 
-	const getItem = useCallback(
-		async <Data = unknown,>(key: string): Promise<Data | null> => {
+	const getItem = useCallback<MoonrakerGetItemFn>(
+		async <Data,>(namespace: MoonrakerNamespaces, key: unknown): Promise<Data | null> => {
 			await isReady();
 			try {
 				const result = await moonrakerQuery<MoonrakerDBItemResponse<Data>>('server.database.get_item', {
-					namespace: 'RatOS',
+					namespace: namespace,
 					key,
 				});
 				if (result.value === '{}') {
 					return null;
 				}
-				return typeof result.value == 'string' ? (JSON.parse(result.value) as Data) : result.value;
+				return result.value as Data;
 			} catch (e) {
+				console.log(e);
 				return null;
 			}
 		},
@@ -143,10 +134,14 @@ export const useMoonraker = (hostname?: string) => {
 	);
 
 	useEffect(() => {
+		console.log('ready state changed', readyState, onReadyCallbacks);
 		if (readyState === 1) {
-			onReadyCallbacks.current.forEach((cb) => cb());
-			onReadyCallbacks.current = [];
-			setMoonrakerStatus('connected');
+			(async () => {
+				await migrateToLatest();
+				onReadyCallbacks.current.forEach((cb) => cb.resolve());
+				onReadyCallbacks.current = [];
+				setMoonrakerStatus('connected');
+			})();
 		} else {
 			setMoonrakerStatus('connecting');
 		}
@@ -171,6 +166,7 @@ export const useMoonraker = (hostname?: string) => {
 				// eslint-disable-next-line react-hooks/exhaustive-deps
 				delete inFlightRequests.current[reqId];
 			}
+			onReadyCallbacks.current.forEach((cb) => cb.reject());
 			onReadyCallbacks.current = [];
 		};
 	}, []);
@@ -183,4 +179,44 @@ export const useMoonraker = (hostname?: string) => {
 		lastMessage: moonrakerMessage,
 		isReady: readyState === 1,
 	};
+};
+
+export const useNamespacedQuery = <
+	N extends MoonrakerNamespaces,
+	K extends MoonrakerNamespaceKeys<N>,
+	V extends MoonrakerDBValue<N, K>,
+>(
+	namespace: N,
+	key: K,
+	options?: Omit<UseQueryOptions<V, unknown, V>, 'queryKey' | 'queryFn'>,
+) => {
+	const { getItem } = useMoonraker();
+	return useQuery(
+		[namespace, key],
+		async () => {
+			return getItem(namespace, key) as Promise<V>;
+		},
+		options,
+	);
+};
+
+export const useNamespacedMutation = <
+	N extends MoonrakerNamespaces,
+	K extends MoonrakerNamespaceKeys<N>,
+	V extends MoonrakerDBValue<N, K>,
+>(
+	namespace: N,
+	key: K,
+	value: V,
+	options?: Omit<
+		UseMutationOptions<MoonrakerDBItemResponse<V>, unknown, MoonrakerDBItemResponse<V>>,
+		'mutationKey' | 'mutationFn'
+	>,
+) => {
+	const { saveItem } = useMoonraker();
+	return useMutation(
+		[namespace, key],
+		() => saveItem(namespace, key, value) as Promise<MoonrakerDBItemResponse<V>>,
+		options,
+	);
 };

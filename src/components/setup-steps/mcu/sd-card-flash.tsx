@@ -13,7 +13,7 @@ import { trpc } from '../../../helpers/trpc';
 import { Button } from '../../common/button';
 import { Modal } from '../../common/modal';
 import { Spinner } from '../../common/spinner';
-import { useMoonraker } from '../../../hooks/useMoonraker';
+import { useMoonraker } from '../../../moonraker/hooks';
 import { Board } from '../../../zods/boards';
 import { ToolheadHelper } from '../../../helpers/toolhead';
 import { ErrorMessage } from '../../common/error-message';

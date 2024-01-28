@@ -19,7 +19,7 @@ import { z } from 'zod';
 import path from 'path';
 import { serverSchema } from '../../env/schema.mjs';
 
-type WritableFiles = { fileName: string; content: string; overwrite: boolean }[];
+type WritableFiles = { fileName: string; content: string; overwrite: boolean; order?: number }[];
 type ExcludeStepperParameters<T extends string> = (T extends
 	| `position_${string}`
 	| `homing_speed${string}`

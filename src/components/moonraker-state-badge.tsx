@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { twJoin } from 'tailwind-merge';
-import { MoonrakerStatus, useMoonraker } from '../hooks/useMoonraker';
+import { MoonrakerStatus, useMoonraker } from '../moonraker/hooks';
 import { Badge, BadgeProps, badgeTextColorStyle } from './common/badge';
 
 interface Props {

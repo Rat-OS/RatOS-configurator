@@ -183,7 +183,7 @@ const ChangedFile: React.FC<ChangedFileProps> = (props) => {
 			<div className="min-w-0">
 				<div className="flex items-center gap-x-3">
 					<StateCircle state={fileState} ping={shouldPing} />
-					<p className="text-sm font-semibold leading-6 text-zinc-900 dark:text-zinc-100">{file.fileName}</p>
+					<p className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">{file.fileName}</p>
 					<Badge
 						size="sm"
 						color={
@@ -311,7 +311,7 @@ export const FileChanges: React.FC<FileChangesProps> = (props) => {
 		enabled: serializedConfig != null,
 	});
 	return (
-		<ul role="list" className="divide-y divide-zinc-100 dark:divide-zinc-700">
+		<ul role="list" className="divide-y divide-zinc-100 dark:divide-zinc-800">
 			{filesToWrite.data?.map((fileToWrite) => {
 				return (
 					<ChangedFile

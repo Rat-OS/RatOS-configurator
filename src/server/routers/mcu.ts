@@ -22,10 +22,11 @@ import { copyFile, unlink } from 'fs/promises';
 import { serverSchema } from '../../env/schema.mjs';
 import { replaceInFileByLine } from '../helpers/file-operations';
 import { ToolheadHelper } from '../../helpers/toolhead';
-import { deserializeToolheadConfiguration, loadSerializedConfig } from './printer';
+import { deserializeToolheadConfiguration } from './printer';
 import { ServerCache } from '../helpers/cache';
 import { PrinterAxis } from '../../zods/motion';
 import { parseBoardPinConfig } from '../helpers/metadata';
+import { getLastPrinterSettings } from '../helpers/printer-settings';
 
 const inputSchema = z.object({
 	boardPath: z.string().optional(),
@@ -298,12 +299,12 @@ export const mcuRouter = router({
 		.meta({
 			boardRequired: true,
 		})
-		.input(z.object({ axis: z.nativeEnum(PrinterAxis), hasToolboard: z.boolean(), boardPath: z.string() }))
+		.input(z.object({ axis: z.nativeEnum(PrinterAxis), canUseExtruderlessConfigs: z.boolean(), boardPath: z.string() }))
 		.query(async ({ ctx, input }) => {
 			if (ctx.board == null) {
 				return undefined;
 			}
-			const isExtruderlessBoard = ctx.board.extruderlessConfig != null && input.hasToolboard;
+			const isExtruderlessBoard = ctx.board.extruderlessConfig != null && input.canUseExtruderlessConfigs;
 			const pins = await parseBoardPinConfig(ctx.board, isExtruderlessBoard);
 
 			const axisAlias =
@@ -330,12 +331,7 @@ export const mcuRouter = router({
 			includeHost: true,
 		})
 		.mutation(async ({ ctx }) => {
-			const environment = serverSchema.parse(process.env);
-			const filePath = path.join(environment.RATOS_DATA_DIR, 'last-printer-settings.json');
-			if (!existsSync(filePath)) {
-				throw new Error("Couldn't find printer settings file: " + filePath);
-			}
-			const config = await loadSerializedConfig(filePath);
+			const config = await getLastPrinterSettings();
 			const toolheadHelpers = config.toolheads.map((t) => {
 				return new ToolheadHelper(t);
 			});
