@@ -3,7 +3,6 @@ import fs, { existsSync, readFileSync } from 'fs';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { TRPCError } from '@trpc/server';
-import { getScriptRoot } from '../../helpers/util';
 import { runSudoScript } from '../helpers/run-script';
 import {
 	AutoFlashableBoard,
@@ -20,7 +19,7 @@ import { SerializedToolheadConfiguration } from '../../zods/toolhead';
 import { getBoardSerialPath, getBoardChipId } from '../../helpers/board';
 import { copyFile, unlink } from 'fs/promises';
 import { serverSchema } from '../../env/schema.mjs';
-import { replaceInFileByLine } from '../helpers/file-operations';
+import { replaceInFileByLine, getScriptRoot } from '../helpers/file-operations';
 import { ToolheadHelper } from '../../helpers/toolhead';
 import { deserializeToolheadConfiguration } from './printer';
 import { ServerCache } from '../helpers/cache';

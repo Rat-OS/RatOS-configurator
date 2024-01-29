@@ -10,8 +10,8 @@ export interface InFlightRequestTimeouts {
 
 export interface MoonrakerResponse {
 	method: string;
-	params: any[];
-	result?: any;
+	params: unknown[];
+	result?: unknown;
 	id: number;
 }
 export type MoonrakerDBItemResponse<Data = unknown> = {
@@ -29,20 +29,59 @@ export type MoonrakerDB = {
 	};
 };
 
+export type MoonrakerMethod<Response, Params> = {
+	__leaf: true;
+	result: Response;
+	params: Params;
+};
+
 export type MoonrakerMethods = {
 	server: {
 		database: {
-			get_item: MoonrakerDBItemResponse;
-			post_item: MoonrakerDBItemResponse;
+			get_item: MoonrakerMethod<
+				MoonrakerDBItemResponse,
+				{
+					key: unknown;
+					namespace: MoonrakerNamespaces;
+				}
+			>;
+			post_item: MoonrakerMethod<
+				MoonrakerDBItemResponse,
+				{
+					key: unknown;
+					namespace: MoonrakerNamespaces;
+					value: unknown;
+				}
+			>;
 		};
 		history: {
-			list: MoonrakerHistoryListResponse;
+			list: MoonrakerMethod<
+				MoonrakerHistoryListResponse,
+				{
+					limit?: number;
+					offset?: number;
+					since?: number;
+					before?: number;
+					order: 'asc' | 'desc';
+				}
+			>;
 		};
+	};
+	machine: {
+		shutdown: MoonrakerMethod<void, void>;
 	};
 };
 
-export type MoonrakerNamespaces = keyof MoonrakerDB;
+export type MoonrakerMethodKeys = DotNestedKeyLeafs<MoonrakerMethods>;
+export type MoonrakerMethodParams<K extends MoonrakerMethodKeys> = NestedObjectType<MoonrakerMethods>[K]['params'];
+export type MoonrakerMethodResult<K extends MoonrakerMethodKeys> = NestedObjectType<MoonrakerMethods>[K]['result'];
 
+export type MoonrakerQueryFn = <R, K extends MoonrakerMethodKeys = MoonrakerMethodKeys>(
+	method: K,
+	...a: MoonrakerMethodParams<K> extends void ? [undefined?] : [MoonrakerMethodParams<K>]
+) => Promise<MoonrakerMethodResult<K>>;
+
+export type MoonrakerNamespaces = keyof MoonrakerDB;
 export type MoonrakerNamespaceKeys<N extends MoonrakerNamespaces> = DotNestedKeys<MoonrakerDB[N]>;
 
 export type MoonrakerDBValue<N extends MoonrakerNamespaces, K extends MoonrakerNamespaceKeys<N>> =
@@ -101,7 +140,7 @@ type MoonrakerHistoryJobMetadata = {
 	filament_weight_total: string;
 };
 
-type MoonrakerHistoryJob = {
+export type MoonrakerHistoryJob = {
 	job_id: string;
 	exists: boolean;
 	end_time: number;
@@ -114,7 +153,7 @@ type MoonrakerHistoryJob = {
 	total_duration: number;
 };
 
-type MoonrakerHistoryListResponse = {
+export type MoonrakerHistoryListResponse = {
 	count: number;
 	jobs: MoonrakerHistoryJob[];
 };

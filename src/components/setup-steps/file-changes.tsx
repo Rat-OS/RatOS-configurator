@@ -1,7 +1,7 @@
 import React, { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { SerializedPrinterConfiguration } from '../../zods/printer-configuration';
 import { trpc } from '../../utils/trpc';
-import { useQuery } from 'react-query';
+import { useQuery } from '@tanstack/react-query';
 import type { FilesToWriteWithState, FileState } from '../../server/routers/printer';
 import { DiffModal } from './diff-modal';
 import { twJoin } from 'tailwind-merge';
@@ -302,6 +302,7 @@ export const FileChanges: React.FC<FileChangesProps> = (props) => {
 
 	const client = trpc.useUtils().client;
 	const filesToWrite = useQuery({
+		queryKey: ['printer.filesToWrite', serializedConfig],
 		queryFn: async () => {
 			const res = await client.printer.getFilesToWrite.mutate({
 				config: serializedConfig ?? ({} as any),

@@ -21,7 +21,7 @@ import { PrinterAxis } from '../../zods/motion';
 import { ToolOrAxis } from '../../zods/toolhead';
 import { useToolheadConfiguration } from '../../hooks/useToolheadConfiguration';
 import { Spinner } from '../common/spinner';
-import { useQuery } from 'react-query';
+import { useQuery } from '@tanstack/react-query';
 import { FileChanges } from './file-changes';
 import { Disclosure } from '@headlessui/react';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
@@ -284,6 +284,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 
 	const client = trpc.useContext().client;
 	const filesToWrite = useQuery({
+		queryKey: ['filesToWrite', serializedPrinterConfiguration],
 		queryFn: async () => {
 			const res = await client.printer.getFilesToWrite.mutate({
 				config: serializedPrinterConfiguration ?? ({} as any),

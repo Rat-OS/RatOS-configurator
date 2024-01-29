@@ -5,6 +5,7 @@ import { twMerge } from 'tailwind-merge';
 import { Badge } from '../components/common/badge';
 import { useMainsailQuery } from '../hooks/useMainsail';
 import { trpc } from '../utils/trpc';
+import { HistoryTable } from './historyTable';
 
 const secondaryNavigation = [
 	{ name: 'History', href: '#', current: true },
@@ -35,6 +36,7 @@ const stats = [
 	{ name: 'Total Filament Used', value: 93.9, unit: 'meters' },
 ];
 const statuses = { Completed: 'text-green-400 bg-green-400/10', Error: 'text-rose-400 bg-rose-400/10' };
+
 const activityItems = [
 	{
 		file: {
@@ -150,7 +152,7 @@ export default function Page() {
 					<h2 className="@screen-sm:px-6 @screen-lg:px-8 px-4 text-base font-semibold leading-7 text-white">
 						Latest jobs
 					</h2>
-					<table className="mt-6 w-full whitespace-nowrap text-left">
+					{/* <table className="mt-6 w-full whitespace-nowrap text-left">
 						<colgroup>
 							<col className="@screen-sm:w-4/12 w-full" />
 							<col className="@screen-lg:w-2/12" />
@@ -219,7 +221,8 @@ export default function Page() {
 								</tr>
 							))}
 						</tbody>
-					</table>
+					</table> */}
+					<HistoryTable />
 				</div>
 			</div>
 		</main>

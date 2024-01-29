@@ -1,6 +1,6 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { UseMutationOptions, UseQueryOptions, useMutation, useQuery } from 'react-query';
+import { UseMutationOptions, UseQueryOptions, useMutation, useQuery } from '@tanstack/react-query';
 import useWebSocket from 'react-use-websocket';
 import { migrateToLatest } from './migrations';
 import {
@@ -14,24 +14,19 @@ import {
 	MoonrakerGetItemFn,
 	MoonrakerNamespaceKeys,
 	MoonrakerDBValue,
+	MoonrakerQueryFn,
 } from './types';
+import { getHost } from '../helpers/util';
 
 let REQ_ID = 0;
 
 const getWsURL = () => {
-	const host =
-		process.env.NEXT_PUBLIC_KLIPPER_HOSTNAME != null && process.env.NEXT_PUBLIC_KLIPPER_HOSTNAME.trim() != ''
-			? process.env.NEXT_PUBLIC_KLIPPER_HOSTNAME
-			: typeof window !== 'undefined'
-				? window.location.hostname
-				: '';
+	const host = getHost();
 	if (host == null || host.trim() == '') {
 		return null;
 	}
 	return `ws://${host}/websocket`;
 };
-
-export type MoonrakerQueryFn = <Response = any>(method: string, params?: any) => Promise<Response>;
 
 export const useMoonraker = () => {
 	const inFlightRequests = useRef<InFlightRequestCallbacks>({});
@@ -102,13 +97,13 @@ export const useMoonraker = () => {
 	);
 
 	const saveItem = useCallback<MoonrakerSaveItemFn>(
-		async (namespace: MoonrakerNamespaces, key: any, value: any) => {
+		async <Data,>(namespace: MoonrakerNamespaces, key: unknown, value: unknown) => {
 			await isReady();
-			return await moonrakerQuery<MoonrakerDBItemResponse<any>>('server.database.post_item', {
+			return (await moonrakerQuery('server.database.post_item', {
 				namespace: namespace,
 				key,
 				value: value,
-			});
+			})) as Data;
 		},
 		[moonrakerQuery, isReady],
 	);
@@ -117,13 +112,10 @@ export const useMoonraker = () => {
 		async <Data,>(namespace: MoonrakerNamespaces, key: unknown): Promise<Data | null> => {
 			await isReady();
 			try {
-				const result = await moonrakerQuery<MoonrakerDBItemResponse<Data>>('server.database.get_item', {
+				const result = await moonrakerQuery('server.database.get_item', {
 					namespace: namespace,
 					key,
 				});
-				if (result.value === '{}') {
-					return null;
-				}
 				return result.value as Data;
 			} catch (e) {
 				console.log(e);
@@ -134,7 +126,6 @@ export const useMoonraker = () => {
 	);
 
 	useEffect(() => {
-		console.log('ready state changed', readyState, onReadyCallbacks);
 		if (readyState === 1) {
 			(async () => {
 				await migrateToLatest();
@@ -188,16 +179,16 @@ export const useNamespacedQuery = <
 >(
 	namespace: N,
 	key: K,
-	options?: Omit<UseQueryOptions<V, unknown, V>, 'queryKey' | 'queryFn'>,
+	options?: Omit<UseQueryOptions<V, unknown, V, N[]>, 'queryKey' | 'queryFn'>,
 ) => {
 	const { getItem } = useMoonraker();
-	return useQuery(
-		[namespace, key],
-		async () => {
+	return useQuery({
+		...options,
+		queryKey: [namespace, key],
+		queryFn: async () => {
 			return getItem(namespace, key) as Promise<V>;
 		},
-		options,
-	);
+	});
 };
 
 export const useNamespacedMutation = <
@@ -214,9 +205,9 @@ export const useNamespacedMutation = <
 	>,
 ) => {
 	const { saveItem } = useMoonraker();
-	return useMutation(
-		[namespace, key],
-		() => saveItem(namespace, key, value) as Promise<MoonrakerDBItemResponse<V>>,
-		options,
-	);
+	return useMutation({
+		...options,
+		mutationKey: [namespace, key],
+		mutationFn: () => saveItem(namespace, key, value) as Promise<MoonrakerDBItemResponse<V>>,
+	});
 };

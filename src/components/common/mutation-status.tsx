@@ -1,6 +1,6 @@
 'use client';
 import { TRPCClientErrorLike } from '@trpc/client';
-import { UseMutationResult } from 'react-query';
+import { UseMutationResult } from '@tanstack/react-query';
 import { AppRouter } from '../../server/routers';
 import { ErrorMessage } from './error-message';
 import { Spinner } from './spinner';

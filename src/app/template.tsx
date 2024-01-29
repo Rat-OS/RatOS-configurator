@@ -18,7 +18,7 @@ import Link from 'next/link';
 import { trpc } from '../utils/trpc';
 import { RecoilRoot } from 'recoil';
 import { SyncWithMoonraker } from '../components/sync-with-moonraker';
-import { QueryClientProvider, QueryClient } from 'react-query';
+import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 
 const mainsail = '/';
 const externalNav = [
