@@ -57,7 +57,7 @@ jobs:
       
       - name: Build cli
         working-directory: ./src
-        run: pnpm build-cli
+        run: pnpm build:cli
 
       - name: Push
         uses: s0/git-publish-subdir-action@develop
