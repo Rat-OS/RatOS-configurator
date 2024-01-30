@@ -12,7 +12,8 @@
 		"test:ci": "vitest  --reporter=verbose --reporter=junit",
 		"test:ci:config": "vitest configuration  --reporter=verbose --reporter=junit",
 		"typecheck": "tsc --noEmit",
-		"cli": "tsx --tsconfig ./tsconfig.json ./cli/ratos.tsx"
+		"cli": "node ./bin/ratos.mjs",
+		"build:cli": "cd ./cli && tsx ./build.ts"
 	},
 	"prettier": {
 		"useTabs": true,
@@ -41,6 +42,7 @@
 		"class-variance-authority": "^0.7.0",
 		"clsx": "^1.2.1",
 		"commander": "^11.1.0",
+		"esbuild": "^0.20.0",
 		"eslint-plugin-prettier": "^5.1.3",
 		"file-type": "^17.1.6",
 		"glob": "^10.3.10",
@@ -55,6 +57,7 @@
 		"pino": "^8.17.2",
 		"pino-pretty": "^10.3.1",
 		"react": "18.2.0",
+		"react-devtools-core": "4.19.1",
 		"react-diff-view": "^3.2.0",
 		"react-dom": "18.2.0",
 		"react-query": "^3.39.3",
