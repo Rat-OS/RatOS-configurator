@@ -61,10 +61,10 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 	);
 
 	useEffect(() => {
-		if (guessMotorSlot.data && motorSlot == null) {
+		if (guessMotorSlot.data && motorSlot == null && board?.motorSlots?.[guessMotorSlot.data] != null) {
 			setMotorSlot(guessMotorSlot.data);
 		}
-	}, [guessMotorSlot.data, motorSlot]);
+	}, [board, guessMotorSlot.data, motorSlot, props.printerRailDefault.axis]);
 
 	const supportedVoltages = getSupportedVoltages(board, driver).map((v) => {
 		return {
@@ -209,6 +209,41 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 			: props.printerRail.axis === PrinterAxis.extruder1
 				? 'Extruder T1'
 				: 'Stepper ' + props.printerRail.axis.toLocaleUpperCase();
+	const motorSlotOptions =
+		board?.motorSlots != null && motorSlot != null && Object.keys(board.motorSlots).length > 0
+			? Object.keys(board.motorSlots)
+					.map((ms) => {
+						if (board.motorSlots?.[ms].title == null) {
+							return null;
+						}
+						const hasDiagPin = board.motorSlots?.[ms].diag_pin != null;
+						const hasEndstopPin = board.motorSlots?.[ms].endstop_pin != null;
+						const disabled =
+							(props.printerRailDefault.axis.startsWith('x') || props.printerRailDefault.axis.startsWith('y')) &&
+							!hasDiagPin;
+						return {
+							id: ms,
+							title: board.motorSlots?.[ms].title,
+							disabled: disabled,
+							badge: [
+								!hasDiagPin
+									? ({ children: 'No diag pin', color: disabled ? 'red' : 'gray' } satisfies BadgeProps)
+									: undefined,
+								!hasEndstopPin ? ({ children: 'No endstop pin', color: 'gray' } satisfies BadgeProps) : undefined,
+							].filter(Boolean),
+						};
+					})
+					.filter(Boolean)
+			: null;
+	const motorSlotBadge = useMemo(() => {
+		if (motorSlot == null || board?.motorSlots?.[motorSlot].title == null) {
+			return undefined;
+		}
+		const hasDiagPin = board.motorSlots?.[motorSlot].diag_pin != null;
+		const disabled =
+			(props.printerRailDefault.axis.startsWith('x') || props.printerRailDefault.axis.startsWith('y')) && !hasDiagPin;
+		return !hasDiagPin && disabled ? ({ children: 'No diag pin', color: 'red' } satisfies BadgeProps) : undefined;
+	}, [board, motorSlot, props.printerRailDefault.axis]);
 	return props.isVisible ? (
 		<div className="break-inside-avoid-column rounded-md border border-zinc-300 p-4 shadow-lg dark:border-zinc-700">
 			<div className="">
@@ -216,25 +251,16 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 				<p className="text-sm text-zinc-500 dark:text-zinc-400">{props.printerRail.axisDescription}</p>
 			</div>
 			<div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-				{board?.motorSlots != null && motorSlot != null && Object.keys(board.motorSlots).length > 0 && (
+				{motorSlotOptions && (
 					<div className="col-span-2">
 						<Dropdown
 							label="Motor Slot"
-							options={Object.keys(board.motorSlots)
-								.map((ms) => {
-									if (board.motorSlots?.[ms].title == null) {
-										return null;
-									}
-									return {
-										id: ms,
-										title: board.motorSlots?.[ms].title,
-									};
-								})
-								.filter(Boolean)}
+							options={motorSlotOptions}
 							onSelect={(ms) => {
 								setMotorSlot(ms.id);
 							}}
-							value={motorSlot ? { id: motorSlot, title: board.motorSlots?.[motorSlot].title } : undefined}
+							value={motorSlot ? motorSlotOptions.find((ms) => ms.id === motorSlot) : undefined}
+							badge={motorSlotBadge}
 						/>
 					</div>
 				)}

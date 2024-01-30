@@ -63,7 +63,7 @@ export const StepNavButtons: React.FC<StepNavButtonsProps> = (props) => {
 				disabled={props.right.disabled}
 				onClick={!props.right.isLoading ? props.right.onClick : undefined}
 				title={props.right.title}
-				className={props.right.isLoading ? 'cursor-wait' : 'cursor-pointer'}
+				className={props.right.isLoading ? 'cursor-wait' : undefined}
 			>
 				{props.right.label ?? 'Next'}
 				{rightIcon}
