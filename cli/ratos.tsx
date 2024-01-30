@@ -1,7 +1,7 @@
 import * as commander from 'commander';
 import type { AppRouter } from '../server/routers/index.js';
 import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
-import trpc from '../utils/trpc.js';
+import { getBaseUrl } from '../utils/trpc.js';
 import { realpath, stat, readFile } from 'fs/promises';
 import path from 'path';
 import React from 'react';
@@ -40,7 +40,7 @@ function errorColor(str: string) {
 const client = createTRPCProxyClient<AppRouter>({
 	links: [
 		httpBatchLink({
-			url: `${trpc.getBaseUrl()}/api/trpc`,
+			url: `${getBaseUrl()}/api/trpc`,
 		}),
 	],
 });
