@@ -24,6 +24,3 @@ build/cache/*
 
 # vscode (should use parent dir folder)
 .vscode
-
-# Bin build
-bin/ratos.mjs
