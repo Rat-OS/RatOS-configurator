@@ -3,6 +3,9 @@
 /src/out/
 /src/build/
 
+# Bin build
+/src/bin/ratos.mjs
+
 # misc
 .DS_Store
 *.pem
