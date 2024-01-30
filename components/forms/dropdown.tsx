@@ -10,7 +10,8 @@ import { useSerializedPrinterConfiguration } from '../../hooks/usePrinterConfigu
 type Option = {
 	id: number | string;
 	title: string;
-	badge?: BadgeProps;
+	disabled?: boolean;
+	badge?: BadgeProps | BadgeProps[];
 };
 
 interface DropdownProps<DropdownOption extends Option = Option> {
@@ -97,12 +98,12 @@ export const Dropdown = <DropdownOption extends Option = Option>(props: Dropdown
 						{props.onShown && <OnDropdownOpened open={open} onShown={props.onShown} />}
 						<div className="relative mt-1">
 							<Listbox.Button
-								className="relative flex w-full cursor-default items-center justify-between rounded-md bg-white py-1.5 pl-3 pr-3 text-left text-zinc-900 shadow-sm ring-1 ring-inset ring-zinc-300 focus:outline-none focus:ring-2 focus:ring-brand-600 sm:text-sm sm:leading-6 dark:bg-zinc-900 dark:text-zinc-300 dark:ring-zinc-700 dark:focus:ring-brand-400"
+								className="relative flex w-full cursor-default items-center justify-between rounded-md bg-white py-1.5 pl-3 pr-3 text-left text-zinc-900 shadow-sm ring-1 ring-inset ring-zinc-300 focus:outline-none focus:ring-2 focus:ring-brand-600 dark:bg-zinc-900 dark:text-zinc-300 dark:ring-zinc-700 dark:focus:ring-brand-400 sm:text-sm sm:leading-6"
 								disabled={props.disabled}
 								title={value?.title}
 							>
 								<span className="flex-1 truncate">{value?.title ?? 'Pick from the list...'}</span>
-								<span className="-mr-1.5 flex items-center space-x-1">
+								<span className={twJoin('flex items-center space-x-1', props.disabled && '-mr-1.5')}>
 									{props.badge &&
 										(!Array.isArray(props.badge) ? [props.badge] : props.badge).map((badge, i) => (
 											<Badge
@@ -130,7 +131,7 @@ export const Dropdown = <DropdownOption extends Option = Option>(props: Dropdown
 								leaveFrom="transform translate-y-0 opacity-100"
 								leaveTo="transform translate-y-1 opacity-0"
 							>
-								<Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-zinc-400 scrollbar-thumb-rounded-md focus:outline-none sm:text-sm dark:bg-zinc-900 dark:scrollbar-thumb-zinc-600">
+								<Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-zinc-400 scrollbar-thumb-rounded-md focus:outline-none dark:bg-zinc-900 dark:scrollbar-thumb-zinc-600 sm:text-sm">
 									{props.isFetching && (
 										<div className="px-3 py-2 text-sm text-zinc-400 dark:text-zinc-500">
 											<Spinner />
@@ -142,12 +143,14 @@ export const Dropdown = <DropdownOption extends Option = Option>(props: Dropdown
 									{options.map((option) => (
 										<Listbox.Option
 											key={option.id}
-											className={({ active }) =>
+											className={({ active, disabled }) =>
 												twJoin(
 													active ? 'dark bg-brand-600 text-white' : 'text-zinc-900 dark:text-zinc-300',
+													disabled && 'text-zinc-400 dark:text-zinc-500',
 													'relative cursor-default select-none py-2 pl-3 pr-9',
 												)
 											}
+											disabled={option.disabled}
 											value={option.id}
 										>
 											{({ selected, active }) => (
@@ -159,9 +162,14 @@ export const Dropdown = <DropdownOption extends Option = Option>(props: Dropdown
 														)}
 													>
 														<span>{option.title}</span>{' '}
-														{option.badge && (
-															<Badge {...option.badge} color={active ? 'plain' : option.badge.color} size="sm" />
-														)}
+														{option.badge &&
+															(Array.isArray(option.badge) ? (
+																option.badge.map((b, i) => (
+																	<Badge {...b} color={active ? 'plain' : b.color} size="sm" key={i} />
+																))
+															) : (
+																<Badge {...option.badge} color={active ? 'plain' : option.badge.color} size="sm" />
+															))}
 													</span>
 
 													{selected ? (

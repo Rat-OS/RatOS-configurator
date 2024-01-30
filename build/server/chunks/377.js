@@ -1856,8 +1856,8 @@ const MotorSlot = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
     step_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
     dir_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
     enable_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
-    diag_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
-    endstop_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    diag_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional(),
+    endstop_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional(),
     // UART
     uart_pin: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional(),
     uart_address: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional(),

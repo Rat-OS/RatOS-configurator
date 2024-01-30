@@ -227,8 +227,8 @@ export const MotorSlot = z
 		step_pin: z.string(),
 		dir_pin: z.string(),
 		enable_pin: z.string(),
-		diag_pin: z.string(),
-		endstop_pin: z.string(),
+		diag_pin: z.string().optional(),
+		endstop_pin: z.string().optional(),
 		// UART
 		uart_pin: z.string().optional(),
 		uart_address: z.string().optional(),

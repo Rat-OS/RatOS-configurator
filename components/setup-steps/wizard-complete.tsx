@@ -81,7 +81,7 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 	const [animateRef] = useAutoAnimate();
 	if (toolhead == null) {
 		return (
-			<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
+			<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
 				<div className="sm:col-span-2">
 					<div className="space-x-2 text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">
 						<Spinner />
@@ -127,7 +127,7 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 											</Badge>
 										)}
 									</dt>
-									<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
+									<dd className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:mt-2">
 										{toolhead.getConfig().toolboard == null
 											? 'None selected'
 											: `${toolhead.getConfig().toolboard?.manufacturer} ${toolhead.getConfig().toolboard?.name}`}
@@ -147,19 +147,19 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 								)}
 								<div className="sm:col-span-1">
 									<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Extruder</dt>
-									<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
+									<dd className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:mt-2">
 										{toolhead.getConfig().extruder?.title ?? 'None selected'}
 									</dd>
 								</div>
 								<div className="sm:col-span-1">
 									<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Hotend</dt>
-									<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
+									<dd className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:mt-2">
 										{toolhead.getConfig().hotend?.title ?? 'None selected'}
 									</dd>
 								</div>
 								<div className="sm:col-span-1">
 									<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Thermistor</dt>
-									<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
+									<dd className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:mt-2">
 										{toolhead.getConfig().thermistor ?? 'None selected'}
 									</dd>
 								</div>
@@ -173,22 +173,22 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 									</div>
 								)}
 							</dl>
-							<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
+							<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
 								<div className="sm:col-span-1">
 									<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">X Endstop</dt>
-									<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
+									<dd className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:mt-2">
 										{toolhead.getConfig().xEndstop?.title ?? 'None selected'}
 									</dd>
 								</div>
 								<div className="sm:col-span-1">
 									<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Y Endstop</dt>
-									<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
+									<dd className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:mt-2">
 										{toolhead.getConfig().yEndstop?.title ?? 'None selected'}
 									</dd>
 								</div>
 								<div className="sm:col-span-1">
 									<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Probe</dt>
-									<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
+									<dd className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:mt-2">
 										{toolhead.getConfig().probe?.title ?? 'None selected'}
 									</dd>
 								</div>
@@ -211,30 +211,30 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 										</div>
 									)}
 							</dl>
-							<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
+							<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
 								<div className="sm:col-span-1">
 									<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Part cooling fan</dt>
-									<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
+									<dd className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:mt-2">
 										{toolhead.getConfig().partFan?.title ?? 'None selected'}
 									</dd>
 								</div>
 								<div className="sm:col-span-1">
 									<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Hotend cooling fan</dt>
-									<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
+									<dd className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:mt-2">
 										{toolhead.getConfig().hotendFan?.title ?? 'None selected'}
 									</dd>
 								</div>
 							</dl>
-							<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
+							<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
 								<div className="sm:col-span-1">
 									<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">X Accelerometer</dt>
-									<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
+									<dd className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:mt-2">
 										{toolhead.getConfig().xAccelerometer?.title ?? 'None'}
 									</dd>
 								</div>
 								<div className="sm:col-span-1">
 									<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Y Accelerometer</dt>
-									<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
+									<dd className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:mt-2">
 										{toolhead.getConfig().yAccelerometer?.title ?? 'None'}
 									</dd>
 								</div>
@@ -316,6 +316,38 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 	}
 
 	const [animateRef] = useAutoAnimate();
+	const motionErrors = useMemo(() => {
+		if (parsedPrinterConfiguration.success) {
+			return parsedPrinterConfiguration.data.rails
+				.filter((r) => r.axis.startsWith('x') || r.axis.startsWith('y'))
+				?.map((rail) => {
+					const board = parsedPrinterConfiguration.data.controlboard;
+					const motorSlot = rail.motorSlot;
+					if (motorSlot == null || board?.motorSlots?.[motorSlot].title == null) {
+						return null;
+					}
+					const hasDiagPin = board.motorSlots?.[motorSlot].diag_pin != null;
+					const isSensorless =
+						(rail.axis.startsWith('x') &&
+							parsedPrinterConfiguration.data.toolheads.some((t) => t.xEndstop?.id === 'sensorless')) ||
+						(rail.axis.startsWith('y') &&
+							parsedPrinterConfiguration.data.toolheads.some((t) => t.yEndstop?.id === 'sensorless'));
+					return !hasDiagPin && isSensorless ? (
+						<ErrorMessage key={rail.axis} className="col-span-2" title="Driver Slot Allocation Invalid">
+							<div className="space-y-2">
+								<div>
+									<span className="capitalize">{rail.axis}</span> is configured to use sensorless homing, but the{' '}
+									<span className="capitalize">{board.motorSlots?.[motorSlot].title}</span> motor slot does not have a
+									diag pin connected.
+								</div>
+							</div>
+						</ErrorMessage>
+					) : null;
+				})
+				.filter(Boolean);
+		}
+		return null;
+	}, [parsedPrinterConfiguration]);
 
 	return (
 		<>
@@ -364,7 +396,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 											<Disclosure.Panel as="dl" className="grid grid-cols-1 gap-x-4 gap-y-4 py-4 sm:grid-cols-2">
 												<div className="sm:col-span-2">
 													<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Printer</dt>
-													<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
+													<dd className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:mt-2">
 														{parsedPrinterConfiguration.data.printer != null
 															? `${parsedPrinterConfiguration.data.printer.manufacturer} ${parsedPrinterConfiguration.data.printer.name} ${parsedPrinterConfiguration.data.size}`
 															: 'None selected'}
@@ -379,7 +411,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 															</Badge>
 														)}
 													</dt>
-													<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
+													<dd className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:mt-2">
 														{parsedPrinterConfiguration.data.controlboard != null
 															? `${parsedPrinterConfiguration.data.controlboard.manufacturer} ${parsedPrinterConfiguration.data.controlboard.name}`
 															: 'None selected'}
@@ -389,7 +421,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 													<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">
 														Controller cooling fan
 													</dt>
-													<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
+													<dd className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:mt-2">
 														{parsedPrinterConfiguration.data.controllerFan?.title ?? 'None selected'}
 													</dd>
 												</div>
@@ -420,7 +452,8 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 											<Disclosure.Button as="div" className="border-b border-zinc-100 py-4 dark:border-zinc-700">
 												<div className="flex cursor-pointer items-center justify-between">
 													<h3 className="flex items-center space-x-2 text-base font-bold leading-7 text-zinc-900 dark:text-zinc-100">
-														Motion
+														<span>Motion</span>
+														{(motionErrors?.length ?? 0) > 0 && <Badge color="red">Has Errors</Badge>}
 													</h3>
 													<button>
 														<ChevronRightIcon
@@ -438,7 +471,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 														<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">
 															Performance mode
 														</dt>
-														<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
+														<dd className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:mt-2">
 															{parsedPrinterConfiguration.data.performanceMode ? 'Enabled' : 'Disabled'}
 														</dd>
 													</div>
@@ -446,7 +479,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 														<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">
 															Stealtchop
 														</dt>
-														<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
+														<dd className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:mt-2">
 															{parsedPrinterConfiguration.data.stealthchop ? 'Enabled' : 'Disabled'}
 														</dd>
 													</div>
@@ -454,19 +487,20 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 														<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">
 															Standstill Stealth
 														</dt>
-														<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
+														<dd className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:mt-2">
 															{parsedPrinterConfiguration.data.standstillStealth ? 'Enabled' : 'Disabled'}
 														</dd>
 													</div>
 												</dl>
-												<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
+												<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
+													{motionErrors}
 													{parsedPrinterConfiguration.data.rails?.map((rail, i) => (
 														<div className="sm:col-span-1" key={i}>
 															<dt className="text-sm font-medium capitalize leading-6 text-zinc-900 dark:text-zinc-100">
 																{rail.axis === PrinterAxis.extruder ? rail.axis : rail.axis.toLocaleUpperCase()} Motion
 																Configuration
 															</dt>
-															<dd className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 dark:text-zinc-400">
+															<dd className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:mt-2">
 																<div className="font-medium">
 																	{rail.driver.title} @ {rail.voltage}V
 																</div>
@@ -490,7 +524,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 									</div>
 								</div>
 								<dl className="gap-y-4py-4 grid grid-cols-1 gap-x-4 sm:grid-cols-2">
-									<div className=" space-y-4 sm:col-span-2 dark:border-zinc-700">
+									<div className=" space-y-4 dark:border-zinc-700 sm:col-span-2">
 										<FileChanges
 											serializedConfig={parsedPrinterConfiguration.success ? serializedPrinterConfiguration : null}
 											onFilesToIgnoreChange={setFilesToIgnore}
@@ -498,13 +532,22 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 										/>
 									</div>
 								</dl>
-								<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 sm:grid-cols-2 dark:border-zinc-700">
-									<div className=" space-y-4 sm:col-span-2 dark:border-zinc-700">
-										<InfoMessage>
-											If the above information is correct, go ahead and save the configuration. If not, go back and
-											change the configuration by clicking the steps in the "Setup Progress" panel.
-										</InfoMessage>
-									</div>
+								<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
+									{(motionErrors?.length ?? 0) > 0 ? (
+										<div className=" space-y-4 dark:border-zinc-700 sm:col-span-2">
+											<ErrorMessage title="Invalid configuration">
+												Your configuration contains errors, you will not be able to save the configuration until you fix
+												them.
+											</ErrorMessage>
+										</div>
+									) : (
+										<div className=" space-y-4 dark:border-zinc-700 sm:col-span-2">
+											<InfoMessage title="Double check configuration">
+												If the above information is correct, go ahead and save the configuration. If not, go back and
+												change the configuration by clicking the steps in the "Setup Progress" panel.
+											</InfoMessage>
+										</div>
+									)}
 								</dl>
 							</div>
 						</div>
@@ -515,7 +558,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 				left={{ onClick: props.previousScreen }}
 				right={{
 					onClick: saveConfiguration,
-					disabled: !parsedPrinterConfiguration.success,
+					disabled: !parsedPrinterConfiguration.success || (motionErrors?.length ?? 0) > 0,
 					isLoading: saveConfigurationMutation.isLoading,
 					label: 'Confirm and save',
 				}}
