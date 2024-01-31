@@ -108,7 +108,7 @@ export const PrinterConfigurationState = selector<z.infer<typeof PartialPrinterC
 								...printer.defaults,
 								toolheads: printer?.defaults.toolheads.map((th) => serializeToolheadConfiguration(th)),
 							},
-					  },
+						},
 			size: printerSize,
 			performanceMode,
 			stealthchop,

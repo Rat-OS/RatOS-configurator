@@ -77,7 +77,7 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 							Configure miscellaneous electronics settings
 						</p>
 					</div>
-					<div className="mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 sm:grid-cols-2 dark:border-zinc-700">
+					<div className="mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 dark:border-zinc-700 sm:grid-cols-2">
 						<div>
 							<DropdownWithPrinterQuery
 								label="Controller fan"
@@ -99,7 +99,7 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 							Configure your stepper motor and driver settings
 						</p>
 					</div>
-					<div className="mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 sm:grid-cols-2 dark:border-zinc-700">
+					<div className="mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 dark:border-zinc-700 sm:grid-cols-2">
 						{selectedPrinter?.speedLimits.performance && (
 							<div className="col-span-2">
 								<Toggle

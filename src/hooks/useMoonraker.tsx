@@ -31,10 +31,10 @@ const getWsURL = (hostname?: string) => {
 		hostname != null && hostname.trim() != ''
 			? hostname
 			: process.env.NEXT_PUBLIC_KLIPPER_HOSTNAME != null && process.env.NEXT_PUBLIC_KLIPPER_HOSTNAME.trim() != ''
-			? process.env.NEXT_PUBLIC_KLIPPER_HOSTNAME
-			: typeof window !== 'undefined'
-			? window.location.hostname
-			: '';
+				? process.env.NEXT_PUBLIC_KLIPPER_HOSTNAME
+				: typeof window !== 'undefined'
+					? window.location.hostname
+					: '';
 	if (host == null || host.trim() == '') {
 		return null;
 	}

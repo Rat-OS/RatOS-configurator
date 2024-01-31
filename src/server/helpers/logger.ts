@@ -20,7 +20,7 @@ export const getLogger = () => {
 			: {
 					target: 'pino/file',
 					options: { destination: environment.LOG_FILE, append: true },
-			  };
+				};
 	logger = pino({ timestamp: true, transport: transportOption });
 	return logger;
 };

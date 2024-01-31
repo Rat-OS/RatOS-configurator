@@ -76,13 +76,13 @@ export const useSteps = <P extends NoExtraProps | Object>(props: UseStepProps<P>
 		nextScreen: hasNextScreen
 			? incrementStep
 			: props.parentScreenProps?.hasNextScreen
-			? props.parentScreenProps.nextScreen
-			: undefined,
+				? props.parentScreenProps.nextScreen
+				: undefined,
 		previousScreen: hasPreviousScreen
 			? decrementStep
 			: props.parentScreenProps?.hasPreviousScreen
-			? props.parentScreenProps.previousScreen
-			: undefined,
+				? props.parentScreenProps.previousScreen
+				: undefined,
 		skipSteps:
 			props.parentScreenProps && props.parentScreenProps.hasNextScreen ? props.parentScreenProps.nextScreen : undefined,
 	};

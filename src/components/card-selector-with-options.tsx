@@ -109,7 +109,7 @@ export const CardSelectorWithOptions = <
 											<p className="sm:inline">{card.details}</p>
 										</RadioGroup.Description>
 									</div>
-									<RadioGroup.Description as="div" className="mb-2 flex text-sm ml-4 sm:block sm:text-right">
+									<RadioGroup.Description as="div" className="mb-2 ml-4 flex text-sm sm:block sm:text-right">
 										{card.right}
 									</RadioGroup.Description>
 								</div>
@@ -128,7 +128,7 @@ export const CardSelectorWithOptions = <
 													className={({ active, checked }) =>
 														twMerge(
 															active || checked ? 'ring-2' : 'ring-1',
-															'ring-inset flex items-center justify-center rounded-md px-3 py-3 text-sm font-semibold uppercase sm:flex-1',
+															'flex items-center justify-center rounded-md px-3 py-3 text-sm font-semibold uppercase ring-inset sm:flex-1',
 															badgeBackgroundColorStyle({ color: checked ? 'brand' : 'gray' }),
 															badgeBorderColorStyle({ color: active || checked ? 'brand' : 'gray' }),
 															badgeTextColorStyle({ color: active || checked ? 'brand' : 'gray' }),
