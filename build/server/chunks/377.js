@@ -410,6 +410,10 @@ const controllerFanOptions = (config, toolheadConfigs)=>{
             title: "4-pin fan (dedicated 4-pin header)"
         });
     }
+    fans.push({
+        id: "none",
+        title: "No fan"
+    });
     return fans;
 };
 const defaultControllerFan = {
@@ -2054,7 +2058,8 @@ const Fan = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
         "4pin-dedicated",
         "2pin-toolboard",
         "4pin-toolboard",
-        "4pin-dedicated-toolboard"
+        "4pin-dedicated-toolboard",
+        "none"
     ]),
     title: zod__WEBPACK_IMPORTED_MODULE_0__.z.string()
 });
@@ -2127,6 +2132,8 @@ const SerializedPartialPrinterConfiguration = SerializedPrinterConfiguration.ext
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var _motion__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(6680);
 /* harmony import */ var _toolhead__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(4130);
+/* harmony import */ var _hardware__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(7670);
+
 
 
 
@@ -2189,7 +2196,8 @@ const PrinterDefinition = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
     defaults: zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
         toolheads: zod__WEBPACK_IMPORTED_MODULE_0__.z.array(_toolhead__WEBPACK_IMPORTED_MODULE_4__/* .SerializedToolheadConfiguration */ .Qk).describe("Default toolheads for this printer"),
         board: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().describe("Default board for this printer. Should be the name of the board directory."),
-        rails: zod__WEBPACK_IMPORTED_MODULE_0__.z.array(_motion__WEBPACK_IMPORTED_MODULE_3__/* .SerializedPrinterRailDefinition */ .r).describe("Default rails for this printer")
+        rails: zod__WEBPACK_IMPORTED_MODULE_0__.z.array(_motion__WEBPACK_IMPORTED_MODULE_3__/* .SerializedPrinterRailDefinition */ .r).describe("Default rails for this printer"),
+        controllerFan: _hardware__WEBPACK_IMPORTED_MODULE_5__/* .Fan.shape.id.optional */ .XG.shape.id.optional().describe("Default controller fan for this printer")
     }).strict().describe("Default hardware for this printer")
 }).describe("A RatOS supported 3d printer");
 const PrinterDefinitionWithResolvedToolheads = PrinterDefinition.extend({

@@ -3,6 +3,7 @@ import { serverSchema } from '../env/schema.mjs';
 import path from 'path';
 import { SerializedPrinterRailDefinition } from './motion';
 import { SerializedToolheadConfiguration, ToolheadConfiguration } from './toolhead';
+import { Fan } from './hardware';
 
 let startsWithServerValidation = '';
 if (process.env.RATOS_CONFIGURATION_PATH) {
@@ -56,6 +57,7 @@ export const PrinterDefinition = z
 				toolheads: z.array(SerializedToolheadConfiguration).describe('Default toolheads for this printer'),
 				board: z.string().describe('Default board for this printer. Should be the name of the board directory.'),
 				rails: z.array(SerializedPrinterRailDefinition).describe('Default rails for this printer'),
+				controllerFan: Fan.shape.id.optional().describe('Default controller fan for this printer'),
 			})
 			.strict()
 			.describe('Default hardware for this printer'),

@@ -858,6 +858,10 @@ export const constructKlipperConfigHelpers = async (
 		},
 		renderControllerFan() {
 			let result: string[] = [];
+			if (config.controllerFan.id === 'none') {
+				result.push('# No controller fan configured');
+				return result.join('\n');
+			}
 			result.push(`[controller_fan controller_fan]`);
 			switch (config.controllerFan.id) {
 				case '2pin':

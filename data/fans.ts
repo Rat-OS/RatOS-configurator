@@ -75,6 +75,7 @@ export const controllerFanOptions = (
 	) {
 		fans.push({ id: '4pin-dedicated' as const, title: '4-pin fan (dedicated 4-pin header)' });
 	}
+	fans.push({ id: 'none', title: 'No fan' });
 	return fans;
 };
 

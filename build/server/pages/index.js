@@ -4087,6 +4087,14 @@ const PrinterSelection = (props)=>{
             reset(usePrinterConfiguration/* StandstillStealthState */.Yq);
             reset(usePrinterConfiguration/* ControllerFanState */.i$);
             reset(recoil_printer/* PrinterRailsState */.q7);
+            if (printer.defaults.controllerFan) {
+                set(usePrinterConfiguration/* ControllerFanState */.i$, {
+                    id: printer.defaults.controllerFan,
+                    title: printer.defaults.controllerFan
+                });
+            } else {
+                reset(usePrinterConfiguration/* ControllerFanState */.i$);
+            }
         }, [
         printerQuery.data
     ]);

@@ -1479,6 +1479,7 @@ var toolhead = __webpack_require__(2493);
 
 
 
+
 let startsWithServerValidation = "";
 if (process.env.RATOS_CONFIGURATION_PATH) {
     const environment = schema/* serverSchema.parse */.Rz.parse(process.env);
@@ -1536,7 +1537,8 @@ const PrinterDefinition = external_zod_.z.object({
     defaults: external_zod_.z.object({
         toolheads: external_zod_.z.array(toolhead/* SerializedToolheadConfiguration */.Qk).describe("Default toolheads for this printer"),
         board: external_zod_.z.string().describe("Default board for this printer. Should be the name of the board directory."),
-        rails: external_zod_.z.array(motion/* SerializedPrinterRailDefinition */.r).describe("Default rails for this printer")
+        rails: external_zod_.z.array(motion/* SerializedPrinterRailDefinition */.r).describe("Default rails for this printer"),
+        controllerFan: hardware/* Fan.shape.id.optional */.XG.shape.id.optional().describe("Default controller fan for this printer")
     }).strict().describe("Default hardware for this printer")
 }).describe("A RatOS supported 3d printer");
 const PrinterDefinitionWithResolvedToolheads = PrinterDefinition.extend({
@@ -2690,6 +2692,10 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
         },
         renderControllerFan () {
             let result = [];
+            if (config.controllerFan.id === "none") {
+                result.push("# No controller fan configured");
+                return result.join("\n");
+            }
             result.push(`[controller_fan controller_fan]`);
             switch(config.controllerFan.id){
                 case "2pin":
@@ -2850,6 +2856,10 @@ const controllerFanOptions = (config, toolheadConfigs)=>{
             title: "4-pin fan (dedicated 4-pin header)"
         });
     }
+    fans.push({
+        id: "none",
+        title: "No fan"
+    });
     return fans;
 };
 const defaultControllerFan = {
@@ -5009,7 +5019,8 @@ const Fan = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
         "4pin-dedicated",
         "2pin-toolboard",
         "4pin-toolboard",
-        "4pin-dedicated-toolboard"
+        "4pin-dedicated-toolboard",
+        "none"
     ]),
     title: zod__WEBPACK_IMPORTED_MODULE_0__.z.string()
 });

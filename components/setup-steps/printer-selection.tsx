@@ -98,6 +98,11 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 				reset(StandstillStealthState);
 				reset(ControllerFanState);
 				reset(PrinterRailsState);
+				if (printer.defaults.controllerFan) {
+					set(ControllerFanState, { id: printer.defaults.controllerFan, title: printer.defaults.controllerFan });
+				} else {
+					reset(ControllerFanState);
+				}
 			},
 		[printerQuery.data],
 	);
