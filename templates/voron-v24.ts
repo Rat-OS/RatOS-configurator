@@ -110,13 +110,27 @@ ${helper.renderUserStepperSections({
 	x: {
 		directionInverted: true,
 		rotationComment: '40 for 20 tooth 2GT pulleys, 32 for 16 tooth 2GT pulleys',
+		limits: (margin) => ({
+			min: 0 - margin.min,
+			max: (config.size ?? 300) + margin.max,
+			endstop: (config.size ?? 300) + margin.max,
+		}),
 	},
 	y: {
 		directionInverted: false,
 		rotationComment: '40 for 20 tooth 2GT pulleys, 32 for 16 tooth 2GT pulleys',
+		limits: (margin) => ({
+			min: 0 - margin.min,
+			max: (config.size ?? 300) + margin.max,
+			endstop: (config.size ?? 300) + margin.max,
+		}),
 	},
 	z: {
 		directionInverted: true,
+		limits: {
+			min: 0,
+			max: (config.size ?? 300) - 40,
+		},
 	},
 	z1: {
 		directionInverted: true,

@@ -25,7 +25,7 @@ const CenterKinematics: StepComponent = (props) => {
 			<div className="flex justify-center pt-3">
 				<button
 					type="button"
-					className="inline-flex items-center rounded-md border border-zinc-300 bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-600 focus:ring-offset-2 hover:bg-zinc-200"
+					className="inline-flex items-center rounded-md border border-zinc-300 bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-200 focus:outline-none focus:ring-2 focus:ring-brand-600 focus:ring-offset-2"
 					onClick={props.onComplete}
 				>
 					I confirm the X, Y and Z axes are centered
@@ -48,28 +48,28 @@ const MoveY: StepComponent = (props) => {
 				<button
 					type="button"
 					onClick={props.onComplete}
-					className="inline-flex items-center rounded-md border border-zinc-300 bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-600 focus:ring-offset-2 hover:bg-zinc-200"
+					className="inline-flex items-center rounded-md border border-zinc-300 bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-200 focus:outline-none focus:ring-2 focus:ring-brand-600 focus:ring-offset-2"
 				>
 					Yes, it moved to the right!
 				</button>
 				<button
 					type="button"
 					// onClick={maybeInvertBoth}
-					className="inline-flex items-center rounded-md border border-zinc-300 bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-600 focus:ring-offset-2 hover:bg-zinc-200"
+					className="inline-flex items-center rounded-md border border-zinc-300 bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-200 focus:outline-none focus:ring-2 focus:ring-brand-600 focus:ring-offset-2"
 				>
 					No, it moved to the left.
 				</button>
 				<button
 					type="button"
 					// onClick={maybeInvertA}
-					className="inline-flex items-center rounded-md border border-zinc-300 bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-600 focus:ring-offset-2 hover:bg-zinc-200"
+					className="inline-flex items-center rounded-md border border-zinc-300 bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-200 focus:outline-none focus:ring-2 focus:ring-brand-600 focus:ring-offset-2"
 				>
 					No, it moved towards the back.
 				</button>
 				<button
 					type="button"
 					// onClick={maybeinvertB}
-					className="inline-flex items-center rounded-md border border-zinc-300 bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-600 focus:ring-offset-2 hover:bg-zinc-200"
+					className="inline-flex items-center rounded-md border border-zinc-300 bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-200 focus:outline-none focus:ring-2 focus:ring-brand-600 focus:ring-offset-2"
 				>
 					No, it moved towards the front.
 				</button>
@@ -100,28 +100,28 @@ const MoveX: StepComponent = (props) => {
 				<button
 					type="button"
 					onClick={props.onComplete}
-					className="inline-flex items-center rounded-md border border-zinc-300 bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-600 focus:ring-offset-2 hover:bg-zinc-200"
+					className="inline-flex items-center rounded-md border border-zinc-300 bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-200 focus:outline-none focus:ring-2 focus:ring-brand-600 focus:ring-offset-2"
 				>
 					Yes, it moved to the right!
 				</button>
 				<button
 					type="button"
 					onClick={maybeInvertBoth}
-					className="inline-flex items-center rounded-md border border-zinc-300 bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-600 focus:ring-offset-2 hover:bg-zinc-200"
+					className="inline-flex items-center rounded-md border border-zinc-300 bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-200 focus:outline-none focus:ring-2 focus:ring-brand-600 focus:ring-offset-2"
 				>
 					No, it moved to the left.
 				</button>
 				<button
 					type="button"
 					onClick={maybeInvertA}
-					className="inline-flex items-center rounded-md border border-zinc-300 bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-600 focus:ring-offset-2 hover:bg-zinc-200"
+					className="inline-flex items-center rounded-md border border-zinc-300 bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-200 focus:outline-none focus:ring-2 focus:ring-brand-600 focus:ring-offset-2"
 				>
 					No, it moved towards the back.
 				</button>
 				<button
 					type="button"
 					onClick={maybeinvertB}
-					className="inline-flex items-center rounded-md border border-zinc-300 bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-600 focus:ring-offset-2 hover:bg-zinc-200"
+					className="inline-flex items-center rounded-md border border-zinc-300 bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm hover:bg-zinc-200 focus:outline-none focus:ring-2 focus:ring-brand-600 focus:ring-offset-2"
 				>
 					No, it moved towards the front.
 				</button>

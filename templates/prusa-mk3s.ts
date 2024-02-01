@@ -131,17 +131,30 @@ ${helper.renderUserMacroVariableOverrides()}
 ${helper.renderUserStepperSections({
 	x: {
 		directionInverted: true,
-		additionalLines: [
-			'position_endstop: 0 # Adjust this to your setup',
-			'position_min: 0 # Adjust this to your setup',
-			'position_max: 180 # Adjust this to your setup',
-		],
+		limits: (margin) => {
+			return {
+				min: -margin.min,
+				max: 255 + margin.max,
+				endstop: 255 + margin.max,
+			};
+		},
 	},
 	y: {
 		directionInverted: false,
+		limits: (margin) => {
+			return {
+				endstop: -4 - margin.min,
+				min: -4 - margin.min,
+				max: 212.5 + margin.max,
+			};
+		},
 	},
 	z: {
 		directionInverted: true,
+		limits: {
+			min: 0,
+			max: 214,
+		},
 	},
 	extruder: {
 		directionInverted: false,

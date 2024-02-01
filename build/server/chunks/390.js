@@ -708,6 +708,14 @@ const constructKlipperConfigUtils = async (config)=>{
             variables.push(`variable_${axis}_axes: [${rails.map((r)=>`"${r.axis}"`).join(", ")}]`);
             return variables.join("\n");
         },
+        isSensorless (axis) {
+            return toolheads.find((th)=>th.getMotionAxis() === axis)?.getXEndstop().id === "sensorless" || axis === motion/* PrinterAxis.y */.po.y && toolheads.some((th)=>th.getYEndstop().id === "sensorless");
+        },
+        getAxisHomingSpeed (axis) {
+            const rail = this.getRail(axis);
+            const speed = this.isSensorless(axis) ? 50 : rail.homingSpeed;
+            return speed;
+        },
         getAxisDriverSectionName (axis) {
             return `${this.getAxisDriverType(axis)} ${this.getAxisStepperName(axis)}`;
         },
@@ -809,14 +817,14 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
         },
         generateSensorlessHomingIncludes () {
             const filesToWrite = [];
-            if (utils.getToolhead(motion/* PrinterAxis.x */.po.x).getXEndstop().id === "sensorless") {
+            if (utils.isSensorless(motion/* PrinterAxis.x */.po.x)) {
                 filesToWrite.push({
                     fileName: "sensorless-homing-x.cfg",
                     content: (0,sensorless_homing.sensorlessXTemplate)(config, utils),
                     overwrite: false
                 });
             }
-            if (utils.getToolheads().some((th)=>th.getYEndstop().id === "sensorless")) {
+            if (utils.isSensorless(motion/* PrinterAxis.y */.po.y)) {
                 filesToWrite.push({
                     fileName: "sensorless-homing-y.cfg",
                     content: (0,sensorless_homing.sensorlessYTemplate)(config, utils),
@@ -957,7 +965,7 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
                 motion/* PrinterAxis.y */.po.y,
                 motion/* PrinterAxis.z */.po.z
             ].includes(rail.axis)) {
-                section.push(`homing_speed: ${rail.homingSpeed}`);
+                section.push(`homing_speed: ${this.getAxisHomingSpeed(rail.axis)}`);
             }
             if (rail.gearRatio != null) {
                 section.push(`gear_ratio: ${rail.gearRatio}`);
@@ -972,11 +980,14 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
         },
         renderUserStepperSections (customization) {
             return this.formatInlineComments(config.rails.map((r)=>{
-                const { directionInverted , rotationComment , additionalLines  } = customization[r.axis] ?? {};
-                return this.renderUserStepperSection(r.axis, directionInverted, rotationComment, additionalLines);
+                const custom = customization[r.axis];
+                const { directionInverted , rotationComment , additionalLines  } = custom ?? {};
+                const limits = custom != null && "limits" in custom ? custom.limits : null;
+                const safeDistance = custom != null && "safeDistance" in custom ? custom.safeDistance : undefined;
+                return this.renderUserStepperSection(r.axis, directionInverted, limits, safeDistance, rotationComment, additionalLines);
             }).join("\n").split("\n")).join("\n");
         },
-        renderUserStepperSection (axis, directionInverted = false, rotationComment, additionalLines) {
+        renderUserStepperSection (axis, directionInverted = false, limits, safeDistance, rotationComment, additionalLines) {
             const rail = typeof axis === "object" ? axis : config.rails.find((r)=>r.axis === axis);
             if (rail == null) {
                 throw new Error(`No rail found for axis ${axis}`);
@@ -1000,7 +1011,20 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
                 motion/* PrinterAxis.y */.po.y,
                 motion/* PrinterAxis.z */.po.z
             ].includes(rail.axis)) {
-                section.push(`homing_speed: ${rail.homingSpeed}`);
+                section.push(`homing_speed: ${this.getAxisHomingSpeed(rail.axis)}`);
+            }
+            if (limits) {
+                const marginMin = rail.axis !== motion/* PrinterAxis.y */.po.y ? config.printer.bedMargin.x[0] : config.printer.bedMargin.y[0];
+                const marginMax = rail.axis !== motion/* PrinterAxis.y */.po.y ? config.printer.bedMargin.x[1] : config.printer.bedMargin.y[1];
+                Object.entries(typeof limits == "function" ? limits({
+                    min: marginMin,
+                    max: marginMax
+                }) : limits).forEach(([key, value])=>{
+                    section.push(`position_${key}: ${rail.axis === motion/* PrinterAxis.z */.po.z && key === "min" ? Math.min(value, -5) : value}`);
+                });
+            }
+            if (safeDistance) {
+                section.push(`safe_distance: ${safeDistance}`);
             }
             if (additionalLines != null) {
                 section.push(...additionalLines);

@@ -1638,8 +1638,6 @@ ${utils.getAxisDriverStallGuardThreshold(motion/* PrinterAxis.x */.po.x, 0.5)}
 
 [${utils.getAxisStepperName(motion/* PrinterAxis.x */.po.x)}]
 endstop_pin: ${utils.getAxisVirtualEndstop(motion/* PrinterAxis.x */.po.x)}
-position_min: 0
-position_endstop: 0
 homing_retract_dist: 0
 
 [gcode_macro RatOS]
@@ -1665,8 +1663,6 @@ ${utils.getAxisDriverStallGuardThreshold(motion/* PrinterAxis.y */.po.y, 0.5)}
 
 [stepper_y]
 endstop_pin: ${utils.getAxisVirtualEndstop(motion/* PrinterAxis.y */.po.y)}
-position_min: 0
-position_endstop: 0
 homing_retract_dist: 0
 
 [gcode_macro RatOS]
@@ -2101,6 +2097,14 @@ const constructKlipperConfigUtils = async (config)=>{
             variables.push(`variable_${axis}_axes: [${rails.map((r)=>`"${r.axis}"`).join(", ")}]`);
             return variables.join("\n");
         },
+        isSensorless (axis) {
+            return toolheads.find((th)=>th.getMotionAxis() === axis)?.getXEndstop().id === "sensorless" || axis === motion/* PrinterAxis.y */.po.y && toolheads.some((th)=>th.getYEndstop().id === "sensorless");
+        },
+        getAxisHomingSpeed (axis) {
+            const rail = this.getRail(axis);
+            const speed = this.isSensorless(axis) ? 50 : rail.homingSpeed;
+            return speed;
+        },
         getAxisDriverSectionName (axis) {
             return `${this.getAxisDriverType(axis)} ${this.getAxisStepperName(axis)}`;
         },
@@ -2202,14 +2206,14 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
         },
         generateSensorlessHomingIncludes () {
             const filesToWrite = [];
-            if (utils.getToolhead(motion/* PrinterAxis.x */.po.x).getXEndstop().id === "sensorless") {
+            if (utils.isSensorless(motion/* PrinterAxis.x */.po.x)) {
                 filesToWrite.push({
                     fileName: "sensorless-homing-x.cfg",
                     content: sensorlessXTemplate(config, utils),
                     overwrite: false
                 });
             }
-            if (utils.getToolheads().some((th)=>th.getYEndstop().id === "sensorless")) {
+            if (utils.isSensorless(motion/* PrinterAxis.y */.po.y)) {
                 filesToWrite.push({
                     fileName: "sensorless-homing-y.cfg",
                     content: sensorlessYTemplate(config, utils),
@@ -2350,7 +2354,7 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
                 motion/* PrinterAxis.y */.po.y,
                 motion/* PrinterAxis.z */.po.z
             ].includes(rail.axis)) {
-                section.push(`homing_speed: ${rail.homingSpeed}`);
+                section.push(`homing_speed: ${this.getAxisHomingSpeed(rail.axis)}`);
             }
             if (rail.gearRatio != null) {
                 section.push(`gear_ratio: ${rail.gearRatio}`);
@@ -2365,11 +2369,14 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
         },
         renderUserStepperSections (customization) {
             return this.formatInlineComments(config.rails.map((r)=>{
-                const { directionInverted , rotationComment , additionalLines  } = customization[r.axis] ?? {};
-                return this.renderUserStepperSection(r.axis, directionInverted, rotationComment, additionalLines);
+                const custom = customization[r.axis];
+                const { directionInverted , rotationComment , additionalLines  } = custom ?? {};
+                const limits = custom != null && "limits" in custom ? custom.limits : null;
+                const safeDistance = custom != null && "safeDistance" in custom ? custom.safeDistance : undefined;
+                return this.renderUserStepperSection(r.axis, directionInverted, limits, safeDistance, rotationComment, additionalLines);
             }).join("\n").split("\n")).join("\n");
         },
-        renderUserStepperSection (axis, directionInverted = false, rotationComment, additionalLines) {
+        renderUserStepperSection (axis, directionInverted = false, limits, safeDistance, rotationComment, additionalLines) {
             const rail = typeof axis === "object" ? axis : config.rails.find((r)=>r.axis === axis);
             if (rail == null) {
                 throw new Error(`No rail found for axis ${axis}`);
@@ -2393,7 +2400,20 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
                 motion/* PrinterAxis.y */.po.y,
                 motion/* PrinterAxis.z */.po.z
             ].includes(rail.axis)) {
-                section.push(`homing_speed: ${rail.homingSpeed}`);
+                section.push(`homing_speed: ${this.getAxisHomingSpeed(rail.axis)}`);
+            }
+            if (limits) {
+                const marginMin = rail.axis !== motion/* PrinterAxis.y */.po.y ? config.printer.bedMargin.x[0] : config.printer.bedMargin.y[0];
+                const marginMax = rail.axis !== motion/* PrinterAxis.y */.po.y ? config.printer.bedMargin.x[1] : config.printer.bedMargin.y[1];
+                Object.entries(typeof limits == "function" ? limits({
+                    min: marginMin,
+                    max: marginMax
+                }) : limits).forEach(([key, value])=>{
+                    section.push(`position_${key}: ${rail.axis === motion/* PrinterAxis.z */.po.z && key === "min" ? Math.min(value, -5) : value}`);
+                });
+            }
+            if (safeDistance) {
+                section.push(`safe_distance: ${safeDistance}`);
             }
             if (additionalLines != null) {
                 section.push(...additionalLines);
@@ -5011,7 +5031,7 @@ const Fan = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
 /* harmony export */   "v6": () => (/* binding */ Voltage),
 /* harmony export */   "vF": () => (/* binding */ Stepper)
 /* harmony export */ });
-/* unused harmony exports StepperVoltage, Voltages, getSupportedVoltages */
+/* unused harmony exports StepperVoltage, Voltages, getSupportedVoltages, Limits */
 /* harmony import */ var zod__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8316);
 /* harmony import */ var zod__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(zod__WEBPACK_IMPORTED_MODULE_0__);
 
@@ -5181,6 +5201,11 @@ const PrinterRail = BasePrinterRail// Don't enforce this, warn about temperature
 const SerializedPrinterRail = BasePrinterRail.extend({
     driver: Driver.shape.id,
     stepper: Stepper.shape.id
+});
+const Limits = zod__WEBPACK_IMPORTED_MODULE_0__.object({
+    min: zod__WEBPACK_IMPORTED_MODULE_0__.number(),
+    max: zod__WEBPACK_IMPORTED_MODULE_0__.number(),
+    endstop: zod__WEBPACK_IMPORTED_MODULE_0__.number()
 });
 
 

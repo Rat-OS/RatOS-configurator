@@ -2420,7 +2420,7 @@ const ToolheadSettings = (props)=>{
                     ]
                 }),
                 /*#__PURE__*/ jsx_runtime_.jsx("div", {
-                    className: "mt-4 border-t border-zinc-100 pt-4 sm:grid-cols-2 dark:border-zinc-700",
+                    className: "mt-4 border-t border-zinc-100 pt-4 dark:border-zinc-700 sm:grid-cols-2",
                     children: /*#__PURE__*/ jsx_runtime_.jsx("div", {
                         className: "mb-4 flex h-96 items-center justify-center",
                         children: /*#__PURE__*/ jsx_runtime_.jsx(Spinner, {})
@@ -2507,7 +2507,7 @@ const ToolheadSettings = (props)=>{
                 ]
             }),
             /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                className: "mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 sm:grid-cols-2 dark:border-zinc-700",
+                className: "mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 dark:border-zinc-700 sm:grid-cols-2",
                 children: [
                     /*#__PURE__*/ jsx_runtime_.jsx("div", {
                         children: /*#__PURE__*/ jsx_runtime_.jsx(DropdownWithPrinterQuery, {
@@ -2538,7 +2538,7 @@ const ToolheadSettings = (props)=>{
                 ]
             }),
             /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                className: "mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 sm:grid-cols-2 dark:border-zinc-700",
+                className: "mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 dark:border-zinc-700 sm:grid-cols-2",
                 children: [
                     /*#__PURE__*/ jsx_runtime_.jsx("div", {
                         children: /*#__PURE__*/ jsx_runtime_.jsx(DropdownWithPrinterQuery, {
@@ -2582,7 +2582,7 @@ const ToolheadSettings = (props)=>{
                 ]
             }),
             /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                className: "mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 sm:grid-cols-2 dark:border-zinc-700",
+                className: "mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 dark:border-zinc-700 sm:grid-cols-2",
                 children: [
                     /*#__PURE__*/ jsx_runtime_.jsx("div", {
                         children: /*#__PURE__*/ jsx_runtime_.jsx(DropdownWithPrinterQuery, {
@@ -2699,7 +2699,7 @@ const HardwareSelection = (props)=>{
                                 ]
                             }),
                             /*#__PURE__*/ jsx_runtime_.jsx("div", {
-                                className: "mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 sm:grid-cols-2 dark:border-zinc-700",
+                                className: "mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 dark:border-zinc-700 sm:grid-cols-2",
                                 children: /*#__PURE__*/ jsx_runtime_.jsx("div", {
                                     children: /*#__PURE__*/ jsx_runtime_.jsx(DropdownWithPrinterQuery, {
                                         label: "Controller fan",
@@ -2739,7 +2739,7 @@ const HardwareSelection = (props)=>{
                                 ]
                             }),
                             /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                                className: "mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 sm:grid-cols-2 dark:border-zinc-700",
+                                className: "mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 dark:border-zinc-700 sm:grid-cols-2",
                                 children: [
                                     selectedPrinter?.speedLimits.performance && /*#__PURE__*/ jsx_runtime_.jsx("div", {
                                         className: "col-span-2",
@@ -3593,7 +3593,7 @@ const CardSelector = (props)=>{
                 ref: parent,
                 children: props.cards.map((card, i)=>/*#__PURE__*/ jsx_runtime_.jsx(external_headlessui_react_.RadioGroup.Option, {
                         value: card,
-                        className: ({ checked , active  })=>(0,external_tailwind_merge_namespaceObject.twJoin)(checked ? "border-transparent" : "border-zinc-300 dark:border-zinc-700", active ? "ring-2 ring-brand-600" : "", "relative flex cursor-pointer justify-between items-center rounded-lg border bg-white px-4 py-4 shadow-sm focus:outline-none dark:bg-zinc-900"),
+                        className: ({ checked , active  })=>(0,external_tailwind_merge_namespaceObject.twJoin)(checked ? "border-transparent" : "border-zinc-300 dark:border-zinc-700", active ? "ring-2 ring-brand-600" : "", "relative flex cursor-pointer items-center justify-between rounded-lg border bg-white px-4 py-4 shadow-sm focus:outline-none dark:bg-zinc-900"),
                         children: ({ active , checked  })=>/*#__PURE__*/ (0,jsx_runtime_.jsxs)(jsx_runtime_.Fragment, {
                                 children: [
                                     /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
@@ -3601,7 +3601,7 @@ const CardSelector = (props)=>{
                                         children: [
                                             /*#__PURE__*/ jsx_runtime_.jsx(external_headlessui_react_.RadioGroup.Label, {
                                                 as: "p",
-                                                className: "text-sm font-bold text-zinc-900 dark:text-zinc-100 flex items-center space-x-2 mb-1",
+                                                className: "mb-1 flex items-center space-x-2 text-sm font-bold text-zinc-900 dark:text-zinc-100",
                                                 children: props.title ? props.title(card) : card.name
                                             }),
                                             /*#__PURE__*/ jsx_runtime_.jsx(external_headlessui_react_.RadioGroup.Description, {
@@ -3616,7 +3616,7 @@ const CardSelector = (props)=>{
                                     }),
                                     /*#__PURE__*/ jsx_runtime_.jsx(external_headlessui_react_.RadioGroup.Description, {
                                         as: "div",
-                                        className: "mt-2 flex text-sm ml-4 sm:mt-0 sm:block sm:text-right",
+                                        className: "ml-4 mt-2 flex text-sm sm:mt-0 sm:block sm:text-right",
                                         children: card.right
                                     }),
                                     /*#__PURE__*/ jsx_runtime_.jsx("div", {
@@ -3948,7 +3948,7 @@ const CardSelectorWithOptions = (props)=>{
                                             }),
                                             /*#__PURE__*/ jsx_runtime_.jsx(external_headlessui_react_.RadioGroup.Description, {
                                                 as: "div",
-                                                className: "mb-2 flex text-sm ml-4 sm:block sm:text-right",
+                                                className: "mb-2 ml-4 flex text-sm sm:block sm:text-right",
                                                 children: card.right
                                             })
                                         ]
@@ -3966,7 +3966,7 @@ const CardSelectorWithOptions = (props)=>{
                                                 className: "grid grid-cols-3 gap-3 sm:grid-cols-6",
                                                 children: card.options.map((option)=>/*#__PURE__*/ jsx_runtime_.jsx(external_headlessui_react_.RadioGroup.Option, {
                                                         value: option,
-                                                        className: ({ active , checked  })=>(0,external_tailwind_merge_namespaceObject.twMerge)(active || checked ? "ring-2" : "ring-1", "ring-inset flex items-center justify-center rounded-md px-3 py-3 text-sm font-semibold uppercase sm:flex-1", badgeBackgroundColorStyle({
+                                                        className: ({ active , checked  })=>(0,external_tailwind_merge_namespaceObject.twMerge)(active || checked ? "ring-2" : "ring-1", "flex items-center justify-center rounded-md px-3 py-3 text-sm font-semibold uppercase ring-inset sm:flex-1", badgeBackgroundColorStyle({
                                                                 color: checked ? "brand" : "gray"
                                                             }), badgeBorderColorStyle({
                                                                 color: active || checked ? "brand" : "gray"
@@ -4562,11 +4562,11 @@ const DiffModal = (props)=>{
                         leaveFrom: "opacity-100 translate-y-0 sm:scale-100",
                         leaveTo: "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95",
                         children: /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                            className: "relative inline-flex max-h-[80vh] max-w-screen-2xl transform flex-col overflow-hidden rounded-lg bg-white py-4 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:py-6 sm:align-middle dark:bg-zinc-800",
+                            className: "relative inline-flex max-h-[80vh] max-w-screen-2xl transform flex-col overflow-hidden rounded-lg bg-white py-4 text-left align-bottom shadow-xl transition-all dark:bg-zinc-800 sm:my-8 sm:w-full sm:py-6 sm:align-middle",
                             children: [
                                 /*#__PURE__*/ (0,jsx_runtime_.jsxs)(external_headlessui_react_.Dialog.Title, {
                                     as: "h3",
-                                    className: "flex items-center justify-between border-b border-zinc-200 px-4 pb-4 text-lg font-semibold leading-6 text-zinc-900 sm:px-6 dark:border-zinc-700 dark:text-zinc-100",
+                                    className: "flex items-center justify-between border-b border-zinc-200 px-4 pb-4 text-lg font-semibold leading-6 text-zinc-900 dark:border-zinc-700 dark:text-zinc-100 sm:px-6",
                                     children: [
                                         /*#__PURE__*/ jsx_runtime_.jsx("div", {
                                             children: props.title
@@ -4614,7 +4614,7 @@ const DiffModal = (props)=>{
                                         }, i))
                                 }),
                                 /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-                                    className: "flex-end flex flex-row items-center justify-end space-x-2 border-t border-zinc-200 px-4 pt-4 sm:px-6 sm:pt-6 dark:border-zinc-700",
+                                    className: "flex-end flex flex-row items-center justify-end space-x-2 border-t border-zinc-200 px-4 pt-4 dark:border-zinc-700 sm:px-6 sm:pt-6",
                                     children: [
                                         props.buttons ?? null,
                                         /*#__PURE__*/ jsx_runtime_.jsx(Button, {

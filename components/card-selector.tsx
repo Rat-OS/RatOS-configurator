@@ -53,7 +53,7 @@ export const CardSelector = <Selectable extends SelectableCard = SelectableCard>
 							twJoin(
 								checked ? 'border-transparent' : 'border-zinc-300 dark:border-zinc-700',
 								active ? 'ring-2 ring-brand-600' : '',
-								'relative flex cursor-pointer justify-between items-center rounded-lg border bg-white px-4 py-4 shadow-sm focus:outline-none dark:bg-zinc-900',
+								'relative flex cursor-pointer items-center justify-between rounded-lg border bg-white px-4 py-4 shadow-sm focus:outline-none dark:bg-zinc-900',
 							)
 						}
 					>
@@ -62,7 +62,7 @@ export const CardSelector = <Selectable extends SelectableCard = SelectableCard>
 								<div className="flex-1">
 									<RadioGroup.Label
 										as="p"
-										className="text-sm font-bold text-zinc-900 dark:text-zinc-100 flex items-center space-x-2 mb-1"
+										className="mb-1 flex items-center space-x-2 text-sm font-bold text-zinc-900 dark:text-zinc-100"
 									>
 										{props.title ? props.title(card) : card.name}
 									</RadioGroup.Label>
@@ -70,7 +70,7 @@ export const CardSelector = <Selectable extends SelectableCard = SelectableCard>
 										<p className="sm:inline">{card.details}</p>
 									</RadioGroup.Description>
 								</div>
-								<RadioGroup.Description as="div" className="mt-2 flex text-sm ml-4 sm:mt-0 sm:block sm:text-right">
+								<RadioGroup.Description as="div" className="ml-4 mt-2 flex text-sm sm:mt-0 sm:block sm:text-right">
 									{card.right}
 								</RadioGroup.Description>
 								<div

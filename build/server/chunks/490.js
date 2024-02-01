@@ -121,23 +121,29 @@ ${helper.renderUserMacroVariableOverrides()}
 ${helper.renderUserStepperSections({
         x: {
             directionInverted: false,
-            rotationComment: "40 for 20 tooth 2GT pulleys, 32 for 16 tooth 2GT pulleys"
-        },
-        dual_carriage: {
-            directionInverted: false,
-            rotationComment: "40 for 20 tooth 2GT pulleys, 32 for 16 tooth 2GT pulleys"
+            rotationComment: "40 for 20 tooth 2GT pulleys, 32 for 16 tooth 2GT pulleys",
+            limits: (margin)=>({
+                    min: 0 - margin.min,
+                    max: config.size ?? 300 + margin.max,
+                    endstop: 0 - margin.min
+                })
         },
         y: {
             directionInverted: false,
-            rotationComment: "40 for 20 tooth 2GT pulleys, 32 for 16 tooth 2GT pulleys"
-        },
-        y1: {
-            directionInverted: false,
-            rotationComment: "40 for 20 tooth 2GT pulleys, 32 for 16 tooth 2GT pulleys"
+            rotationComment: "40 for 20 tooth 2GT pulleys, 32 for 16 tooth 2GT pulleys",
+            limits: (margin)=>({
+                    min: 0 - margin.min,
+                    max: config.size ?? 300 + margin.max,
+                    endstop: config.size ?? 300 + margin.max
+                })
         },
         z: {
             directionInverted: true,
-            rotationComment: "4 for TR8*4 lead screws"
+            rotationComment: "4 for TR8*4 lead screws",
+            limits: {
+                min: 0,
+                max: config.size ?? 300
+            }
         },
         z1: {
             directionInverted: true,
@@ -148,17 +154,6 @@ ${helper.renderUserStepperSections({
             rotationComment: "4 for TR8*4 lead screws"
         },
         extruder: {
-            directionInverted: true,
-            additionalLines: [
-                "#pressure_advance: 0.05 # Check https://www.klipper3d.org/Pressure_Advance.html for pressure advance tuning.",
-                "nozzle_diameter: 0.4 # Remember to change this if you change nozzle diameter.",
-                "control: pid",
-                "pid_kp: 28.413",
-                "pid_ki: 1.334",
-                "pid_kd: 151.300"
-            ]
-        },
-        extruder1: {
             directionInverted: true,
             additionalLines: [
                 "#pressure_advance: 0.05 # Check https://www.klipper3d.org/Pressure_Advance.html for pressure advance tuning.",

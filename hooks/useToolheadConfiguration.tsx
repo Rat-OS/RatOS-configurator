@@ -67,7 +67,7 @@ export const useToolheadConfiguration = <T extends boolean = true>(
 											...rail,
 											stepper: stepper.id,
 											current: th.extruder.current ?? stepper.maxPeakCurrent * 0.71,
-									  };
+										};
 							});
 						}
 					}

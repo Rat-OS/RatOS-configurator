@@ -110,7 +110,7 @@ export const serializePartialToolheadConfiguration = (
 				hotendFan: th.hotendFan?.id,
 				xAccelerometer: th.xAccelerometer?.id,
 				yAccelerometer: th.yAccelerometer?.id,
-		  };
+			};
 };
 
 export const extractToolheadsFromPrinterConfiguration = (config: PartialPrinterConfiguration) => {

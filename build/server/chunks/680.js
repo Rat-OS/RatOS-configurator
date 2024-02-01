@@ -19,7 +19,7 @@ exports.modules = {
 /* harmony export */   "v6": () => (/* binding */ Voltage),
 /* harmony export */   "vF": () => (/* binding */ Stepper)
 /* harmony export */ });
-/* unused harmony exports StepperVoltage, Voltages */
+/* unused harmony exports StepperVoltage, Voltages, Limits */
 /* harmony import */ var zod__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8316);
 /* harmony import */ var zod__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(zod__WEBPACK_IMPORTED_MODULE_0__);
 
@@ -189,6 +189,11 @@ const PrinterRail = BasePrinterRail// Don't enforce this, warn about temperature
 const SerializedPrinterRail = BasePrinterRail.extend({
     driver: Driver.shape.id,
     stepper: Stepper.shape.id
+});
+const Limits = zod__WEBPACK_IMPORTED_MODULE_0__.object({
+    min: zod__WEBPACK_IMPORTED_MODULE_0__.number(),
+    max: zod__WEBPACK_IMPORTED_MODULE_0__.number(),
+    endstop: zod__WEBPACK_IMPORTED_MODULE_0__.number()
 });
 
 

@@ -32,8 +32,6 @@ ${utils.getAxisDriverStallGuardThreshold(_zods_motion__WEBPACK_IMPORTED_MODULE_0
 
 [${utils.getAxisStepperName(_zods_motion__WEBPACK_IMPORTED_MODULE_0__/* .PrinterAxis.x */ .po.x)}]
 endstop_pin: ${utils.getAxisVirtualEndstop(_zods_motion__WEBPACK_IMPORTED_MODULE_0__/* .PrinterAxis.x */ .po.x)}
-position_min: 0
-position_endstop: 0
 homing_retract_dist: 0
 
 [gcode_macro RatOS]
@@ -59,8 +57,6 @@ ${utils.getAxisDriverStallGuardThreshold(_zods_motion__WEBPACK_IMPORTED_MODULE_0
 
 [stepper_y]
 endstop_pin: ${utils.getAxisVirtualEndstop(_zods_motion__WEBPACK_IMPORTED_MODULE_0__/* .PrinterAxis.y */ .po.y)}
-position_min: 0
-position_endstop: 0
 homing_retract_dist: 0
 
 [gcode_macro RatOS]

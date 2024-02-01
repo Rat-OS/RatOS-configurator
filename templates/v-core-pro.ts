@@ -111,14 +111,28 @@ ${helper.renderUserStepperSections({
 	x: {
 		directionInverted: false,
 		rotationComment: '40 for 20 tooth 2GT pulleys, 32 for 16 tooth 2GT pulleys',
+		limits: (margin) => ({
+			min: 0 - margin.min,
+			max: config.size ?? 300 + margin.max,
+			endstop: 0 - margin.min,
+		}),
 	},
 	y: {
 		directionInverted: false,
 		rotationComment: '40 for 20 tooth 2GT pulleys, 32 for 16 tooth 2GT pulleys',
+		limits: (margin) => ({
+			min: 0 - margin.min,
+			max: config.size ?? 300 + margin.max,
+			endstop: 0 - margin.min,
+		}),
 	},
 	z: {
 		directionInverted: true,
 		rotationComment: '4 for TR8*4 lead screws',
+		limits: {
+			min: 0,
+			max: config.size ?? 300,
+		},
 	},
 	z1: {
 		directionInverted: true,

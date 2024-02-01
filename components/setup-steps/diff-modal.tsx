@@ -120,10 +120,10 @@ export const DiffModal: React.FC<ModalProps> = (props) => {
 						leaveFrom="opacity-100 translate-y-0 sm:scale-100"
 						leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
 					>
-						<div className="relative inline-flex max-h-[80vh] max-w-screen-2xl transform flex-col overflow-hidden rounded-lg bg-white py-4 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:py-6 sm:align-middle dark:bg-zinc-800">
+						<div className="relative inline-flex max-h-[80vh] max-w-screen-2xl transform flex-col overflow-hidden rounded-lg bg-white py-4 text-left align-bottom shadow-xl transition-all dark:bg-zinc-800 sm:my-8 sm:w-full sm:py-6 sm:align-middle">
 							<Dialog.Title
 								as="h3"
-								className="flex items-center justify-between border-b border-zinc-200 px-4 pb-4 text-lg font-semibold leading-6 text-zinc-900 sm:px-6 dark:border-zinc-700 dark:text-zinc-100"
+								className="flex items-center justify-between border-b border-zinc-200 px-4 pb-4 text-lg font-semibold leading-6 text-zinc-900 dark:border-zinc-700 dark:text-zinc-100 sm:px-6"
 							>
 								<div>{props.title}</div>
 								<div className="relative flex flex-nowrap items-center space-x-2 text-zinc-500 dark:text-zinc-400">
@@ -160,7 +160,7 @@ export const DiffModal: React.FC<ModalProps> = (props) => {
 									<Diff key={i} hunks={hunks} viewType={viewType} diffType={diffType} tokens={proccessTokens(hunks)} />
 								))}
 							</div>
-							<div className="flex-end flex flex-row items-center justify-end space-x-2 border-t border-zinc-200 px-4 pt-4 sm:px-6 sm:pt-6 dark:border-zinc-700">
+							<div className="flex-end flex flex-row items-center justify-end space-x-2 border-t border-zinc-200 px-4 pt-4 dark:border-zinc-700 sm:px-6 sm:pt-6">
 								{props.buttons ?? null}
 								<Button intent="plain" onClick={close}>
 									Close
