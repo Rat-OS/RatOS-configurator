@@ -3,6 +3,7 @@ import {
 	getPrinters,
 	loadSerializedConfig,
 	getFilesToWrite,
+	compareSettings,
 } from '../server/routers/printer';
 import { describe, expect, test } from 'vitest';
 import { extractToolheadFromPrinterConfiguration, serializePartialToolheadConfiguration } from '../utils/serialization';
@@ -13,6 +14,8 @@ import { ToolheadHelper } from '../helpers/toolhead';
 import { getBoardChipId } from '../helpers/board';
 import { constructKlipperConfigUtils } from '../server/helpers/klipper-config';
 import { sensorlessXTemplate, sensorlessYTemplate } from '../templates/extras/sensorless-homing';
+import { readFile } from 'fs/promises';
+import { SerializedPrinterConfiguration } from '../zods/printer-configuration';
 describe('server', async () => {
 	const parsedPrinters = await getPrinters();
 	describe('metadata', async () => {
@@ -95,6 +98,43 @@ describe('server', async () => {
 					}
 				}),
 			);
+		});
+		describe('can generate a default v-core config', async () => {
+			const vCoreConfigPath = path.join(__dirname, 'fixtures', 'v-core-200.json');
+			const config = await loadSerializedConfig(vCoreConfigPath);
+			const res: string = (await getFilesToWrite(config)).find((f) => f.fileName === 'RatOS.cfg')?.content ?? '';
+			const splitRes = res.split('\n');
+			const annotatedLines = splitRes.map((l: string, i: number) => `Line-${i + 1}`.padEnd(10, '-') + `|${l}`);
+			const gcodeBlocks: number[] = [];
+			splitRes.forEach((l, i) => l.includes('gcode:') && gcodeBlocks.push(i));
+			test('produces valid config', async () => {
+				expect(splitRes.length).toBeGreaterThan(0);
+				const noUndefined = splitRes.filter((l: string) => l.includes('undefined')).join('\n');
+				const noPromises = splitRes.filter((l: string) => l.includes('[object Promise]')).join('\n');
+				const noObjects = splitRes.filter((l: string) => l.includes('[object Object]')).join('\n');
+				if (noUndefined || noPromises || noObjects) {
+					console.log(annotatedLines.join('\n'));
+				}
+				expect(noUndefined, 'Expected no undefined values in config').to.eq('');
+				expect(noPromises, 'Expected no promises in config').to.eq('');
+				expect(noObjects, 'Expected no objects in config').to.eq('');
+			});
+			test('can diff files', async () => {
+				const configJson = await readFile(vCoreConfigPath);
+				const serializedConfig = SerializedPrinterConfiguration.parse(JSON.parse(configJson.toString()));
+				compareSettings(serializedConfig);
+			});
+			test.runIf(gcodeBlocks.length > 0)('correctly indents gcode blocks', async () => {
+				for (const block of gcodeBlocks) {
+					try {
+						expect(splitRes[block + 1].startsWith('\t') || splitRes[block + 1].startsWith('  ')).toBeTruthy();
+					} catch (e) {
+						throw new Error(
+							`Failed to indent gcode block at line ${block + 1}:\n${annotatedLines.slice(block - 4, block + 5).join('\n')}`,
+						);
+					}
+				}
+			});
 		});
 		describe('can generate idex config', async () => {
 			const config = await loadSerializedConfig(path.join(__dirname, 'fixtures', 'idex-config.json'));
