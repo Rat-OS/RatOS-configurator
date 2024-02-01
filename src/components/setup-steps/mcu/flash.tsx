@@ -17,9 +17,9 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 	const [flashPath, setFlashPath] = useState<string | null>(null);
 	const { selectedControlboard, selectedToolboard, toolhead } = props;
 	const selectedBoardToFlash = toolhead ? selectedToolboard : selectedControlboard;
-	const selectedBoard = selectedBoardToFlash?.board;
+	const selectedBoard = selectedBoardToFlash;
 	const boardDetected = trpc.mcu.detect.useQuery(
-		{ boardPath: selectedBoardToFlash?.board.path ?? '', toolhead: toolhead?.serialize() },
+		{ boardPath: selectedBoardToFlash?.path ?? '', toolhead: toolhead?.serialize() },
 		{
 			refetchInterval: (data) => {
 				if (data === true) {
@@ -32,7 +32,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 	);
 	const unidentifiedBoards = trpc.mcu.unidentifiedDevices.useQuery();
 	const boardVersion = trpc.mcu.boardVersion.useQuery(
-		{ boardPath: selectedBoardToFlash?.board.path ?? '', toolhead: toolhead?.serialize() },
+		{ boardPath: selectedBoardToFlash?.path ?? '', toolhead: toolhead?.serialize() },
 		{
 			enabled: selectedBoardToFlash !== null && !!boardDetected.data && forceReflash === false,
 			refetchOnWindowFocus: false,
