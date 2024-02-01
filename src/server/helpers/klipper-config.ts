@@ -1,6 +1,6 @@
 import { PrinterConfiguration } from '../../zods/printer-configuration';
 import { sensorlessXTemplate, sensorlessYTemplate } from '../../templates/extras/sensorless-homing';
-import { PrinterAxis, PrinterRail, matchesDefaultRail } from '../../zods/motion';
+import { Limits, PrinterAxis, PrinterRail, matchesDefaultRail } from '../../zods/motion';
 import { findPreset } from '../../data/steppers';
 import { deserializePrinterRailDefinition } from '../../utils/serialization';
 import {
@@ -20,6 +20,16 @@ import path from 'path';
 import { serverSchema } from '../../env/schema.mjs';
 
 type WritableFiles = { fileName: string; content: string; overwrite: boolean }[];
+type ExcludeStepperParameters<T extends string> = (T extends
+	| `position_${string}`
+	| `homing_speed${string}`
+	| `safe_distance${string}`
+	| `dir_pin${string}`
+	| `step_pin${string}`
+	| `enable_pin${string}`
+	| `rotation_distance${string}`
+	? 'controlled parameters are not allowed'
+	: T)[];
 
 export const constructKlipperConfigUtils = async (config: PrinterConfiguration) => {
 	const toolboardDriverCount = config.toolheads.reduce(
@@ -141,6 +151,17 @@ export const constructKlipperConfigUtils = async (config: PrinterConfiguration) 
 			variables.push(`variable_${axis}_axes: [${rails.map((r) => `"${r.axis}"`).join(', ')}]`);
 			return variables.join('\n');
 		},
+		isSensorless(axis: PrinterAxis) {
+			return (
+				toolheads.find((th) => th.getMotionAxis() === axis)?.getXEndstop().id === 'sensorless' ||
+				(axis === PrinterAxis.y && toolheads.some((th) => th.getYEndstop().id === 'sensorless'))
+			);
+		},
+		getAxisHomingSpeed(axis: PrinterAxis) {
+			const rail = this.getRail(axis);
+			const speed = this.isSensorless(axis) ? 50 : rail.homingSpeed;
+			return speed;
+		},
 		getAxisDriverSectionName(axis: PrinterAxis) {
 			return `${this.getAxisDriverType(axis)} ${this.getAxisStepperName(axis)}`;
 		},
@@ -240,14 +261,14 @@ export const constructKlipperConfigExtrasGenerator = (config: PrinterConfigurati
 		},
 		generateSensorlessHomingIncludes() {
 			const filesToWrite: WritableFiles = [];
-			if (utils.getToolhead(PrinterAxis.x).getXEndstop().id === 'sensorless') {
+			if (utils.isSensorless(PrinterAxis.x)) {
 				filesToWrite.push({
 					fileName: 'sensorless-homing-x.cfg',
 					content: sensorlessXTemplate(config, utils),
 					overwrite: false,
 				});
 			}
-			if (utils.getToolheads().some((th) => th.getYEndstop().id === 'sensorless')) {
+			if (utils.isSensorless(PrinterAxis.y)) {
 				filesToWrite.push({
 					fileName: 'sensorless-homing-y.cfg',
 					content: sensorlessYTemplate(config, utils),
@@ -417,7 +438,7 @@ export const constructKlipperConfigHelpers = async (
 				section.push(`position_min: -5`);
 			}
 			if ([PrinterAxis.x, PrinterAxis.y, PrinterAxis.z].includes(rail.axis)) {
-				section.push(`homing_speed: ${rail.homingSpeed}`);
+				section.push(`homing_speed: ${this.getAxisHomingSpeed(rail.axis)}`);
 			}
 			if (rail.gearRatio != null) {
 				section.push(`gear_ratio: ${rail.gearRatio}`);
@@ -430,24 +451,48 @@ export const constructKlipperConfigHelpers = async (
 			}
 			return section.join('\n') + '\n';
 		},
-		renderUserStepperSections(customization: {
-			[key in PrinterAxis]?: { directionInverted: boolean; rotationComment?: string; additionalLines?: string[] };
+		renderUserStepperSections<UserLine extends string>(customization: {
+			[key in PrinterAxis]?: {
+				directionInverted: boolean;
+				rotationComment?: string;
+				additionalLines?: ExcludeStepperParameters<UserLine>;
+			} & (key extends PrinterAxis.x | PrinterAxis.y | PrinterAxis.dual_carriage
+				? { limits: (bedMargin: { min: number; max: number }) => Limits }
+				: {}) &
+				(key extends PrinterAxis.z ? { limits: ExplicitObject<Omit<Limits, 'endstop'>> } : {}) &
+				(key extends PrinterAxis.dual_carriage ? { safeDistance: number } : {});
 		}) {
 			return this.formatInlineComments(
 				config.rails
 					.map((r) => {
-						const { directionInverted, rotationComment, additionalLines } = customization[r.axis] ?? {};
-						return this.renderUserStepperSection(r.axis, directionInverted, rotationComment, additionalLines);
+						const custom = customization[r.axis];
+						const { directionInverted, rotationComment, additionalLines } = custom ?? {};
+						const limits = custom != null && 'limits' in custom ? custom.limits : null;
+						const safeDistance = custom != null && 'safeDistance' in custom ? custom.safeDistance : undefined;
+						return this.renderUserStepperSection(
+							r.axis,
+							directionInverted,
+							limits,
+							safeDistance,
+							rotationComment,
+							additionalLines,
+						);
 					})
 					.join('\n')
 					.split('\n'),
 			).join('\n');
 		},
-		renderUserStepperSection(
-			axis: PrinterAxis | Zod.infer<typeof PrinterRail>,
+		renderUserStepperSection<T extends PrinterAxis | Zod.infer<typeof PrinterRail>, UserLine extends string>(
+			axis: T,
 			directionInverted: boolean = false,
+			limits: T extends PrinterAxis.x | PrinterAxis.y | PrinterAxis.dual_carriage
+				? (bedMargin: { min: number; max: number }) => Limits
+				: T extends PrinterAxis.z
+					? ExplicitObject<Omit<Limits, 'endstop'>>
+					: null,
+			safeDistance?: number,
 			rotationComment?: string,
-			additionalLines?: string[],
+			additionalLines?: ExcludeStepperParameters<UserLine>,
 		) {
 			const rail = typeof axis === 'object' ? axis : config.rails.find((r) => r.axis === axis);
 			if (rail == null) {
@@ -474,7 +519,21 @@ export const constructKlipperConfigHelpers = async (
 				section.push(`rotation_distance: ${rail.rotationDistance} ${rotationComment ? `# ${rotationComment}` : ''}`);
 			}
 			if ([PrinterAxis.x, PrinterAxis.y, PrinterAxis.z].includes(rail.axis)) {
-				section.push(`homing_speed: ${rail.homingSpeed}`);
+				section.push(`homing_speed: ${this.getAxisHomingSpeed(rail.axis)}`);
+			}
+			if (limits) {
+				const marginMin = rail.axis !== PrinterAxis.y ? config.printer.bedMargin.x[0] : config.printer.bedMargin.y[0];
+				const marginMax = rail.axis !== PrinterAxis.y ? config.printer.bedMargin.x[1] : config.printer.bedMargin.y[1];
+				Object.entries(typeof limits == 'function' ? limits({ min: marginMin, max: marginMax }) : limits).forEach(
+					([key, value]) => {
+						section.push(
+							`position_${key}: ${rail.axis === PrinterAxis.z && key === 'min' ? Math.min(value, -5) : value}`,
+						);
+					},
+				);
+			}
+			if (safeDistance) {
+				section.push(`safe_distance: ${safeDistance}`);
 			}
 			if (additionalLines != null) {
 				section.push(...additionalLines);

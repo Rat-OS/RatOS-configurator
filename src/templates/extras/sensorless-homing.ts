@@ -20,8 +20,6 @@ ${utils.getAxisDriverStallGuardThreshold(PrinterAxis.x, 0.5)}
 
 [${utils.getAxisStepperName(PrinterAxis.x)}]
 endstop_pin: ${utils.getAxisVirtualEndstop(PrinterAxis.x)}
-position_min: 0
-position_endstop: 0
 homing_retract_dist: 0
 
 [gcode_macro RatOS]
@@ -48,8 +46,6 @@ ${utils.getAxisDriverStallGuardThreshold(PrinterAxis.y, 0.5)}
 
 [stepper_y]
 endstop_pin: ${utils.getAxisVirtualEndstop(PrinterAxis.y)}
-position_min: 0
-position_endstop: 0
 homing_retract_dist: 0
 
 [gcode_macro RatOS]

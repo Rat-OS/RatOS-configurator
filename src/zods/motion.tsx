@@ -185,3 +185,10 @@ export const SerializedPrinterRail = BasePrinterRail.extend({
 	driver: Driver.shape.id,
 	stepper: Stepper.shape.id,
 });
+
+export const Limits = z.object({
+	min: z.number(),
+	max: z.number(),
+	endstop: z.number(),
+});
+export type Limits = z.infer<typeof Limits>;
