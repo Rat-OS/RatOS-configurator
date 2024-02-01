@@ -18,8 +18,8 @@ export interface SelectableBoard extends SelectableCard {
 }
 
 interface ExtraStepProps {
-	selectedControlboard: SelectableBoard | null;
-	selectedToolboard: SelectableBoard | null;
+	selectedControlboard: BoardWithDetectionStatus | null;
+	selectedToolboard: BoardWithDetectionStatus | null;
 	cards: SelectableBoard[];
 	setSelectedBoard: (board: SelectableBoard | null) => void;
 	selectedPrinter: PrinterDefinitionWithResolvedToolheads | null;
@@ -69,7 +69,6 @@ export const MCUPreparation: React.FC<StepScreenProps & ExtraProps> = (props) =>
 
 	const boardsQuery = trpc.mcu.boards.useQuery({
 		boardFilters: {
-			toolboard: toolhead != null,
 			driverCountRequired:
 				toolhead != null
 					? undefined
@@ -80,22 +79,25 @@ export const MCUPreparation: React.FC<StepScreenProps & ExtraProps> = (props) =>
 
 	const cards: SelectableBoard[] = useMemo(() => {
 		if (boardsQuery.isError || boardsQuery.data == null) return [];
-		return boardsQuery.data.map((b) => ({
-			id: b.id,
-			board: b,
-			name: `${b.manufacturer} ${b.name}`,
-			details: (
-				<span>
-					<span className="font-semibold">Automatic flashing:</span>{' '}
-					{b.flashScript && !b.disableAutoFlash ? 'Yes' : 'No'}
-				</span>
-			),
-			right: <CpuChipIcon className="h-8 w-8 text-zinc-500" />,
-		}));
-	}, [boardsQuery.isError, boardsQuery.data]);
+		return boardsQuery.data
+			.filter((b) => b.isToolboard == (toolhead != null ? true : null))
+			.map((b) => ({
+				id: b.id,
+				board: b,
+				name: `${b.manufacturer} ${b.name}`,
+				details: (
+					<span>
+						<span className="font-semibold">Automatic flashing:</span>{' '}
+						{b.flashScript && !b.disableAutoFlash ? 'Yes' : 'No'}
+					</span>
+				),
+				right: <CpuChipIcon className="h-8 w-8 text-zinc-500" />,
+			}));
+	}, [boardsQuery.isError, boardsQuery.data, toolhead]);
+	console.log(cards);
 
-	const selectedControlboard = cards.find((c) => c.board.id == _controlBoard?.id) ?? null;
-	const selectedToolboard = cards.find((c) => c.board.id == toolhead?.getToolboard()?.id) ?? null;
+	const selectedControlboard = boardsQuery.data?.find((c) => c.id == _controlBoard?.id) ?? null;
+	const selectedToolboard = boardsQuery.data?.find((c) => c.id == toolhead?.getToolboard()?.id) ?? null;
 
 	const setSelectedBoard = useCallback(
 		(newBoard: SelectableBoard | null) => {

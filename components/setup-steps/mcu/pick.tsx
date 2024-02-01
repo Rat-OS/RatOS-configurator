@@ -4,6 +4,7 @@ import { StepNavButton, StepNavButtons } from '../../step-nav-buttons';
 import { MCUStepScreenProps, SelectableBoard } from '../mcu-preparation';
 import { Button } from '../../common/button';
 import { Badge } from '../../common/badge';
+import { BoardWithDetectionStatus } from '../../../zods/boards';
 
 export const MCUPicker: React.FC<MCUStepScreenProps> = (props) => {
 	const { toolhead, skipSteps, setSelectedBoard, selectedControlboard, selectedToolboard, selectedPrinter, cards } =
@@ -11,18 +12,18 @@ export const MCUPicker: React.FC<MCUStepScreenProps> = (props) => {
 
 	// TODO: This should be determined on the basis of defined board drivers / heaters (check pins), whether it has an extruderless config and how many drivers and which axes the printer requires.
 	const isToolboardRequired = useCallback(
-		(controlboard: SelectableBoard | null = selectedControlboard) => {
-			return selectedPrinter != null && (controlboard?.board.driverCount ?? 0) < selectedPrinter.driverCountRequired;
+		(controlboard: BoardWithDetectionStatus | null = selectedControlboard) => {
+			return selectedPrinter != null && (controlboard?.driverCount ?? 0) < selectedPrinter.driverCountRequired;
 		},
 		[selectedControlboard, selectedPrinter],
 	);
 
-	const isBoardDetected = toolhead ? selectedToolboard?.board.detected : selectedControlboard?.board.detected;
+	const isBoardDetected = toolhead ? selectedToolboard?.detected : selectedControlboard?.detected;
 
 	let content = (
 		<CardSelector<SelectableBoard>
 			cards={cards}
-			value={toolhead ? selectedToolboard : selectedControlboard}
+			value={cards.find((c) => c.id === (toolhead ? selectedToolboard : selectedControlboard)?.id)}
 			onSelect={setSelectedBoard}
 			title={(card) => (
 				<>
@@ -32,7 +33,7 @@ export const MCUPicker: React.FC<MCUStepScreenProps> = (props) => {
 							Detected
 						</Badge>
 					)}
-					{!toolhead && isToolboardRequired(card) && (
+					{!toolhead && isToolboardRequired(card.board) && (
 						<Badge color="yellow" size="sm">
 							Toolboard required
 						</Badge>
@@ -66,7 +67,10 @@ export const MCUPicker: React.FC<MCUStepScreenProps> = (props) => {
 				}
 			: undefined;
 
-	if ((toolhead && selectedToolboard != null) || (!toolhead && selectedControlboard != null)) {
+	if (
+		(toolhead && (!isToolboardRequired() || selectedToolboard != null)) ||
+		(!toolhead && selectedControlboard != null)
+	) {
 		rightButton = {
 			onClick: props.nextScreen,
 			label: 'Next',

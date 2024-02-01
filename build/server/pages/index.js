@@ -3239,9 +3239,9 @@ const MCUFlashing = (props)=>{
     const [flashPath, setFlashPath] = (0,react_.useState)(null);
     const { selectedControlboard , selectedToolboard , toolhead  } = props;
     const selectedBoardToFlash = toolhead ? selectedToolboard : selectedControlboard;
-    const selectedBoard = selectedBoardToFlash?.board;
+    const selectedBoard = selectedBoardToFlash;
     const boardDetected = trpc/* trpc.mcu.detect.useQuery */.S.mcu.detect.useQuery({
-        boardPath: selectedBoardToFlash?.board.path ?? "",
+        boardPath: selectedBoardToFlash?.path ?? "",
         toolhead: toolhead?.serialize()
     }, {
         refetchInterval: (data)=>{
@@ -3254,7 +3254,7 @@ const MCUFlashing = (props)=>{
     });
     const unidentifiedBoards = trpc/* trpc.mcu.unidentifiedDevices.useQuery */.S.mcu.unidentifiedDevices.useQuery();
     const boardVersion = trpc/* trpc.mcu.boardVersion.useQuery */.S.mcu.boardVersion.useQuery({
-        boardPath: selectedBoardToFlash?.board.path ?? "",
+        boardPath: selectedBoardToFlash?.path ?? "",
         toolhead: toolhead?.serialize()
     }, {
         enabled: selectedBoardToFlash !== null && !!boardDetected.data && forceReflash === false,
@@ -3642,15 +3642,15 @@ const MCUPicker = (props)=>{
     const { toolhead , skipSteps , setSelectedBoard , selectedControlboard , selectedToolboard , selectedPrinter , cards  } = props;
     // TODO: This should be determined on the basis of defined board drivers / heaters (check pins), whether it has an extruderless config and how many drivers and which axes the printer requires.
     const isToolboardRequired = (0,react_.useCallback)((controlboard = selectedControlboard)=>{
-        return selectedPrinter != null && (controlboard?.board.driverCount ?? 0) < selectedPrinter.driverCountRequired;
+        return selectedPrinter != null && (controlboard?.driverCount ?? 0) < selectedPrinter.driverCountRequired;
     }, [
         selectedControlboard,
         selectedPrinter
     ]);
-    const isBoardDetected = toolhead ? selectedToolboard?.board.detected : selectedControlboard?.board.detected;
+    const isBoardDetected = toolhead ? selectedToolboard?.detected : selectedControlboard?.detected;
     let content = /*#__PURE__*/ jsx_runtime_.jsx(CardSelector, {
         cards: cards,
-        value: toolhead ? selectedToolboard : selectedControlboard,
+        value: cards.find((c)=>c.id === (toolhead ? selectedToolboard : selectedControlboard)?.id),
         onSelect: setSelectedBoard,
         title: (card)=>/*#__PURE__*/ (0,jsx_runtime_.jsxs)(jsx_runtime_.Fragment, {
                 children: [
@@ -3662,7 +3662,7 @@ const MCUPicker = (props)=>{
                         size: "sm",
                         children: "Detected"
                     }),
-                    !toolhead && isToolboardRequired(card) && /*#__PURE__*/ jsx_runtime_.jsx(Badge, {
+                    !toolhead && isToolboardRequired(card.board) && /*#__PURE__*/ jsx_runtime_.jsx(Badge, {
                         color: "yellow",
                         size: "sm",
                         children: "Toolboard required"
@@ -3692,7 +3692,7 @@ const MCUPicker = (props)=>{
         onClick: skip,
         label: "Skip"
     } : undefined;
-    if (toolhead && selectedToolboard != null || !toolhead && selectedControlboard != null) {
+    if (toolhead && (!isToolboardRequired() || selectedToolboard != null) || !toolhead && selectedControlboard != null) {
         rightButton = {
             onClick: props.nextScreen,
             label: "Next"
@@ -3782,14 +3782,13 @@ const MCUPreparation = (props)=>{
     const { toolhead , setToolhead  } = useToolheadConfiguration(props.toolOrAxis, false);
     const boardsQuery = trpc/* trpc.mcu.boards.useQuery */.S.mcu.boards.useQuery({
         boardFilters: {
-            toolboard: toolhead != null,
             driverCountRequired: toolhead != null ? undefined : (selectedPrinter?.driverCountRequired ?? 0) - (selectedPrinter?.defaults.toolheads.length ?? 1)
         },
         toolhead: toolhead?.serialize()
     });
     const cards = (0,react_.useMemo)(()=>{
         if (boardsQuery.isError || boardsQuery.data == null) return [];
-        return boardsQuery.data.map((b)=>({
+        return boardsQuery.data.filter((b)=>b.isToolboard == (toolhead != null ? true : null)).map((b)=>({
                 id: b.id,
                 board: b,
                 name: `${b.manufacturer} ${b.name}`,
@@ -3809,10 +3808,12 @@ const MCUPreparation = (props)=>{
             }));
     }, [
         boardsQuery.isError,
-        boardsQuery.data
+        boardsQuery.data,
+        toolhead
     ]);
-    const selectedControlboard = cards.find((c)=>c.board.id == _controlBoard?.id) ?? null;
-    const selectedToolboard = cards.find((c)=>c.board.id == toolhead?.getToolboard()?.id) ?? null;
+    console.log(cards);
+    const selectedControlboard = boardsQuery.data?.find((c)=>c.id == _controlBoard?.id) ?? null;
+    const selectedToolboard = boardsQuery.data?.find((c)=>c.id == toolhead?.getToolboard()?.id) ?? null;
     const setSelectedBoard = (0,react_.useCallback)((newBoard)=>{
         if (toolhead) {
             setToolhead({
