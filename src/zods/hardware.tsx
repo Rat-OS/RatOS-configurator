@@ -55,6 +55,14 @@ export const Accelerometer = z.object({
 });
 
 export const Fan = z.object({
-	id: z.enum(['2pin', '4pin', '4pin-dedicated', '2pin-toolboard', '4pin-toolboard', '4pin-dedicated-toolboard']),
+	id: z.enum([
+		'2pin',
+		'4pin',
+		'4pin-dedicated',
+		'2pin-toolboard',
+		'4pin-toolboard',
+		'4pin-dedicated-toolboard',
+		'none',
+	]),
 	title: z.string(),
 });

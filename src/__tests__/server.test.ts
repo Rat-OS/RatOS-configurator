@@ -4,6 +4,7 @@ import {
 	loadSerializedConfig,
 	getFilesToWrite,
 	compareSettings,
+	deserializePrinterConfiguration,
 } from '../server/routers/printer';
 import { describe, expect, test } from 'vitest';
 import { extractToolheadFromPrinterConfiguration, serializePartialToolheadConfiguration } from '../utils/serialization';
@@ -16,6 +17,21 @@ import { constructKlipperConfigUtils } from '../server/helpers/klipper-config';
 import { sensorlessXTemplate, sensorlessYTemplate } from '../templates/extras/sensorless-homing';
 import { readFile } from 'fs/promises';
 import { SerializedPrinterConfiguration } from '../zods/printer-configuration';
+import { PrinterDefinition } from '../zods/printer';
+
+const serializedConfigFromDefaults = (printer: PrinterDefinition): SerializedPrinterConfiguration => {
+	return SerializedPrinterConfiguration.strip().parse({
+		...printer,
+		...printer.defaults,
+		controlboard: printer.defaults.board,
+		printer: printer.id,
+		performanceMode: false,
+		standstillStealth: false,
+		stealthchop: false,
+		controllerFan: printer.defaults.controllerFan ?? '2pin',
+	} satisfies SerializedPrinterConfiguration);
+};
+
 describe('server', async () => {
 	const parsedPrinters = await getPrinters();
 	describe('metadata', async () => {
@@ -99,6 +115,8 @@ describe('server', async () => {
 				}),
 			);
 		});
+	});
+	describe('regression tests', async () => {
 		describe('can generate a default v-core config', async () => {
 			const vCoreConfigPath = path.join(__dirname, 'fixtures', 'v-core-200.json');
 			const config = await loadSerializedConfig(vCoreConfigPath);
@@ -288,6 +306,101 @@ describe('server', async () => {
 						throw e;
 					}
 				});
+			});
+		});
+	});
+	describe('printer defaults', async () => {
+		const printers = await getPrinters();
+		describe.each(printers)('can generate a default config for $manufacturer $name', async (printer) => {
+			const serialized = serializedConfigFromDefaults(printer);
+			const config = await deserializePrinterConfiguration(serialized);
+			test('defaults resolve to valid config', async () => {
+				expect(config).not.toBeNull();
+				expect(config?.printer?.id).toEqual(printer.id);
+				expect(config?.toolheads).toBeDefined();
+				expect(config?.toolheads?.length).toEqual(printer.defaults.toolheads.length);
+				expect(config?.rails?.length).toEqual(printer.defaults.rails.length);
+				for (const toolhead of config!.toolheads!) {
+					expect(toolhead).toBeDefined();
+					if (toolhead == null) {
+						return;
+					}
+					const th = extractToolheadFromPrinterConfiguration(toolhead.axis!, config)?.serialize();
+					expect(th).toBeDefined();
+					const reserialized = serializePartialToolheadConfiguration(toolhead)!;
+					expect(th).toEqual(reserialized);
+					Object.keys(toolhead).forEach((key) => {
+						if (key === 'axis') {
+							return;
+						}
+						expect(th?.[key as keyof typeof toolhead]).toEqual(reserialized[key as keyof typeof reserialized]);
+					});
+				}
+			});
+			describe.each(await getFilesToWrite(config))('defaults generate valid content for $fileName', async (res) => {
+				const splitRes = res.content.split('\n');
+				const annotatedLines = splitRes.map((l: string, i: number) => `Line-${i + 1}`.padEnd(10, '-') + `|${l}`);
+				test('not empty', () => {
+					expect(splitRes.length).toBeGreaterThan(0);
+				});
+				test('no invalid stringification', () => {
+					const noUndefined = splitRes.findIndex((l: string) => l.includes('undefined'));
+					const noPromises = splitRes.findIndex((l: string) => l.includes('[object Promise]'));
+					const noObjects = splitRes.findIndex((l: string) => l.includes('[object Object]'));
+					try {
+						expect(noUndefined, 'Expected no undefined values in config').to.eq(-1);
+					} catch (e) {
+						throw new Error(
+							`Found stringified undefined ${noUndefined + 1}:\n${annotatedLines.slice(Math.max(noUndefined - 4, 0), Math.min(annotatedLines.length, noUndefined + 5)).join('\n')}`,
+						);
+					}
+					try {
+						expect(noPromises, 'Expected no promises in config').to.eq(-1);
+					} catch (e) {
+						throw new Error(
+							`Found stringified promise ${noUndefined + 1}:\n${annotatedLines.slice(Math.max(noUndefined - 4, 0), Math.min(annotatedLines.length, noUndefined + 5)).join('\n')}`,
+						);
+					}
+					try {
+						expect(noObjects, 'Expected no objects in config').to.eq(-1);
+					} catch (e) {
+						throw new Error(
+							`Found stringified object ${noUndefined + 1}:\n${annotatedLines.slice(Math.max(noUndefined - 4, 0), Math.min(annotatedLines.length, noUndefined + 5)).join('\n')}`,
+						);
+					}
+				});
+				test.runIf(res.fileName === 'printer.cfg').concurrent('contains position_min/max/endstop for x/y', async () => {
+					const xSections: number[] = [];
+					const ySections: number[] = [];
+					splitRes.forEach((l, i) => {
+						l.startsWith('[stepper_x]') && xSections.push(i);
+						l.startsWith('[stepper_y]') && ySections.push(i);
+					});
+					[xSections, ySections].forEach((sections, i) => {
+						const sectionName = ['x', 'y', 'z'][i];
+						let hasMin = false;
+						let hasMax = false;
+						let hasEndstop = false;
+						sections.forEach((i) => {
+							const nextSection = splitRes.slice(i + 1).findIndex((l) => l.trim().startsWith('['));
+							hasMin = splitRes.slice(i, i + nextSection).find((l) => l.includes('position_min:')) != null || hasMin;
+							hasMax = splitRes.slice(i, i + nextSection).find((l) => l.includes('position_max:')) != null || hasMax;
+							hasEndstop =
+								splitRes.slice(i, i + nextSection).find((l) => l.includes('position_endstop:')) != null || hasEndstop;
+						});
+						try {
+							expect(hasMin, `[stepper_${sectionName}] is missing position_min`).toBeTruthy();
+							expect(hasMax, `[stepper_${sectionName}] is missing position_max`).toBeTruthy();
+							expect(hasEndstop, `[stepper_${sectionName}] is missing position_endstop`).toBeTruthy();
+						} catch (e) {
+							console.log(annotatedLines.join('\n'));
+							throw e;
+						}
+					});
+				});
+			});
+			test('can be compared', () => {
+				compareSettings(serialized);
 			});
 		});
 	});
