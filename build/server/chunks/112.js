@@ -2160,6 +2160,9 @@ const constructKlipperConfigUtils = async (config)=>{
                 const comment = l.substring(commentIndex);
                 const line = l.substring(0, commentIndex).trim();
                 const padding = longestLine - line.length;
+                if (padding < 1) {
+                    return line + " " + comment;
+                }
                 return line + " ".repeat(padding) + " " + comment;
             });
         }
