@@ -424,6 +424,22 @@ const defaultControllerFan = {
 
 /***/ }),
 
+/***/ 8426:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "S": () => (/* binding */ getDefaultNozzle)
+/* harmony export */ });
+const getDefaultNozzle = ()=>{
+    return {
+        diameter: 0.4,
+        type: "Regular"
+    };
+};
+
+
+/***/ }),
+
 /***/ 817:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
@@ -633,6 +649,8 @@ const Steppers = zod__WEBPACK_IMPORTED_MODULE_0__.z.array(_zods_motion__WEBPACK_
 /* harmony import */ var _utils_serialization__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(206);
 /* harmony import */ var _zods_motion__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(6680);
 /* harmony import */ var _zods_toolhead__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(4130);
+/* harmony import */ var _data_nozzles__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(8426);
+
 
 
 
@@ -693,6 +711,9 @@ class ToolheadHelper {
     }
     getHotend() {
         return this.config.hotend;
+    }
+    getNozzle() {
+        return this.config.nozzle ?? (0,_data_nozzles__WEBPACK_IMPORTED_MODULE_3__/* .getDefaultNozzle */ .S)();
     }
     getThermistor() {
         return this.config.thermistor;
@@ -1989,6 +2010,7 @@ const ToolboardWithDetectionStatus = Toolboard.extend({
 /* harmony export */   "XG": () => (/* binding */ Fan),
 /* harmony export */   "b6": () => (/* binding */ thermistors),
 /* harmony export */   "lV": () => (/* binding */ Probe),
+/* harmony export */   "ow": () => (/* binding */ Nozzle),
 /* harmony export */   "ws": () => (/* binding */ Endstop)
 /* harmony export */ });
 /* harmony import */ var zod__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8316);
@@ -2022,7 +2044,19 @@ const Thermistor = zod__WEBPACK_IMPORTED_MODULE_0__.z["enum"](thermistors);
 const Hotend = hardwareType.extend({
     type: zod__WEBPACK_IMPORTED_MODULE_0__.z.literal("hotend"),
     title: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
-    thermistor: zod__WEBPACK_IMPORTED_MODULE_0__.z["enum"](thermistors)
+    thermistor: zod__WEBPACK_IMPORTED_MODULE_0__.z["enum"](thermistors),
+    flowType: zod__WEBPACK_IMPORTED_MODULE_0__.z.union([
+        zod__WEBPACK_IMPORTED_MODULE_0__.z.literal("sf"),
+        zod__WEBPACK_IMPORTED_MODULE_0__.z.literal("hf"),
+        zod__WEBPACK_IMPORTED_MODULE_0__.z.literal("uhf")
+    ])
+});
+const Nozzle = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
+    type: zod__WEBPACK_IMPORTED_MODULE_0__.z["enum"]([
+        "Regular",
+        "CHT"
+    ]),
+    diameter: zod__WEBPACK_IMPORTED_MODULE_0__.z.number().min(0.2).max(1.8)
 });
 const Extruder = hardwareType.extend({
     type: zod__WEBPACK_IMPORTED_MODULE_0__.z.literal("extruder"),
@@ -2227,6 +2261,8 @@ const PrinterDefinitionWithResolvedToolheads = PrinterDefinition.extend({
 /* harmony import */ var _boards__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(95);
 /* harmony import */ var _hardware__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(7670);
 /* harmony import */ var _motion__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(6680);
+/* harmony import */ var _data_nozzles__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(8426);
+
 
 
 
@@ -2239,6 +2275,7 @@ const BaseToolheadConfiguration = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
     yEndstop: _hardware__WEBPACK_IMPORTED_MODULE_2__/* .Endstop */ .ws,
     hotendFan: _hardware__WEBPACK_IMPORTED_MODULE_2__/* .Fan */ .XG,
     partFan: _hardware__WEBPACK_IMPORTED_MODULE_2__/* .Fan */ .XG,
+    nozzle: _hardware__WEBPACK_IMPORTED_MODULE_2__/* .Nozzle["default"] */ .ow["default"]((0,_data_nozzles__WEBPACK_IMPORTED_MODULE_4__/* .getDefaultNozzle */ .S)()),
     xAccelerometer: _hardware__WEBPACK_IMPORTED_MODULE_2__/* .Accelerometer.optional */ .M3.optional().nullable(),
     yAccelerometer: _hardware__WEBPACK_IMPORTED_MODULE_2__/* .Accelerometer.optional */ .M3.optional().nullable(),
     toolboard: _boards__WEBPACK_IMPORTED_MODULE_1__/* .Toolboard.nullable */ .MG.nullable(),

@@ -48,6 +48,7 @@ import { klipperRestart } from '../helpers/klipper';
 import { access, copyFile, readFile, writeFile } from 'fs/promises';
 import { exec } from 'child_process';
 import objectHash from 'object-hash';
+import { getDefaultNozzle } from '../../data/nozzles';
 
 function isNodeError(error: any): error is NodeJS.ErrnoException {
 	return error instanceof Error;
@@ -118,6 +119,9 @@ export const getPrinters = async <T extends boolean = false>(
 			const hotend = (await hotends).find((h) => h.id === th.hotend);
 			if (th.thermistor == null && hotend != null) {
 				th.thermistor = hotend.thermistor;
+			}
+			if (th.nozzle == null) {
+				th.nozzle = getDefaultNozzle();
 			}
 			if (resolveToolheads) {
 				const dth = deserializeToolheadConfiguration(
@@ -287,7 +291,7 @@ const getTimeStamp = () => {
 	let hh = String(today.getHours()).padStart(2, '0');
 	let min = String(today.getMinutes()).padStart(2, '0');
 	let sec = String(today.getSeconds()).padStart(2, '0');
-	return `${yyyy}${mm}${dd}-${hh}${min}${sec}`;
+	return `${yyyy}${mm}${dd}_${hh}${min}${sec}`;
 };
 
 export type FileState = 'changed' | 'created' | 'removed' | 'unchanged';
@@ -359,6 +363,18 @@ const generateKlipperConfiguration = async <T extends boolean>(
 							path.join(environment.KLIPPER_CONFIG_PATH, file.fileName),
 							path.join(environment.KLIPPER_CONFIG_PATH, backupFilename),
 						);
+						// prune backups
+						const backups = await glob(
+							path.join(environment.KLIPPER_CONFIG_PATH, `${file.fileName.split('.').slice(0, -1).join('.')}*.cfg`),
+						);
+						if (backups.length > 0) {
+							const sortedBackups = backups.sort((a, b) => {
+								const aDate = new Date(a.split('-').slice(-1)[0].split('.cfg')[0]);
+								const bDate = new Date(b.split('-').slice(-1)[0].split('.cfg')[0]);
+								return aDate.getTime() - bDate.getTime();
+							});
+							await Promise.all(sortedBackups.slice(0, -5).map((b) => console.log('pruning', b)));
+						}
 					} catch (e) {
 						return { fileName: file.fileName, action: 'error', err: e };
 					}

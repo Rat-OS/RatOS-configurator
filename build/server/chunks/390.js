@@ -457,6 +457,11 @@ class ToolheadGenerator extends helpers_toolhead/* ToolheadHelper */.D {
         } else {
             hotend = replaceLinesStartingWith(hotend, "sensor_type", `sensor_type: ${this.getThermistor()}`);
         }
+        if (hotend.split("\n").some((line)=>line.trim().startsWith("nozzle_diameter"))) {
+            hotend = replaceLinesStartingWith(hotend, "nozzle_diameter", `nozzle_diameter: ${this.getNozzle().diameter}`);
+        } else {
+            hotend = replaceLinesStartingWith(hotend, `[${this.getExtruderAxis()}]`, `[${this.getExtruderAxis()}]\nnozzle_diameter: ${this.getNozzle().diameter}`);
+        }
         result.push(`# ${this.getToolCommand()} ${this.getHotend().title} definition (from RatOS/hotends/${this.getHotend().id}.cfg)`);
         result.push(hotend.trim());
         return result.join("\n");
@@ -1928,7 +1933,10 @@ var klipper = __webpack_require__(7140);
 // EXTERNAL MODULE: external "object-hash"
 var external_object_hash_ = __webpack_require__(1569);
 var external_object_hash_default = /*#__PURE__*/__webpack_require__.n(external_object_hash_);
+// EXTERNAL MODULE: ./data/nozzles.ts
+var nozzles = __webpack_require__(8426);
 ;// CONCATENATED MODULE: ./server/routers/printer.ts
+
 
 
 
@@ -1995,6 +2003,9 @@ const getPrinters = async (resolveToolheads = false)=>{
             const hotend = (await hotends).find((h)=>h.id === th.hotend);
             if (th.thermistor == null && hotend != null) {
                 th.thermistor = hotend.thermistor;
+            }
+            if (th.nozzle == null) {
+                th.nozzle = (0,nozzles/* getDefaultNozzle */.S)();
             }
             if (resolveToolheads) {
                 const dth = deserializeToolheadConfiguration(th, serializedPartialConfigFromPrinterDefinition(p), await boards);
@@ -2156,7 +2167,7 @@ const getTimeStamp = ()=>{
     let hh = String(today.getHours()).padStart(2, "0");
     let min = String(today.getMinutes()).padStart(2, "0");
     let sec = String(today.getSeconds()).padStart(2, "0");
-    return `${yyyy}${mm}${dd}-${hh}${min}${sec}`;
+    return `${yyyy}${mm}${dd}_${hh}${min}${sec}`;
 };
 const getFilesToWrite = async (config, overwriteFiles)=>{
     const utils = await constructKlipperConfigUtils(config);
@@ -2199,6 +2210,16 @@ const generateKlipperConfiguration = async (config, overwriteFiles, skipFiles)=>
                 const backupFilename = `${file.fileName.split(".").slice(0, -1).join(".")}-${getTimeStamp()}.cfg`;
                 try {
                     await (0,promises_.copyFile)(external_path_default().join(environment.KLIPPER_CONFIG_PATH, file.fileName), external_path_default().join(environment.KLIPPER_CONFIG_PATH, backupFilename));
+                    // prune backups
+                    const backups = await (0,external_glob_.glob)(external_path_default().join(environment.KLIPPER_CONFIG_PATH, `${file.fileName.split(".").slice(0, -1).join(".")}*.cfg`));
+                    if (backups.length > 0) {
+                        const sortedBackups = backups.sort((a, b)=>{
+                            const aDate = new Date(a.split("-").slice(-1)[0].split(".cfg")[0]);
+                            const bDate = new Date(b.split("-").slice(-1)[0].split(".cfg")[0]);
+                            return aDate.getTime() - bDate.getTime();
+                        });
+                        await Promise.all(sortedBackups.slice(0, -5).map((b)=>console.log("pruning", b)));
+                    }
                 } catch (e) {
                     return {
                         fileName: file.fileName,

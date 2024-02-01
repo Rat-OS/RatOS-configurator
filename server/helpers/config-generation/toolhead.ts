@@ -228,6 +228,15 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 		} else {
 			hotend = replaceLinesStartingWith(hotend, 'sensor_type', `sensor_type: ${this.getThermistor()}`);
 		}
+		if (hotend.split('\n').some((line) => line.trim().startsWith('nozzle_diameter'))) {
+			hotend = replaceLinesStartingWith(hotend, 'nozzle_diameter', `nozzle_diameter: ${this.getNozzle().diameter}`);
+		} else {
+			hotend = replaceLinesStartingWith(
+				hotend,
+				`[${this.getExtruderAxis()}]`,
+				`[${this.getExtruderAxis()}]\nnozzle_diameter: ${this.getNozzle().diameter}`,
+			);
+		}
 		result.push(
 			`# ${this.getToolCommand()} ${this.getHotend().title} definition (from RatOS/hotends/${this.getHotend().id}.cfg)`,
 		);

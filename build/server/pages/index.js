@@ -2348,7 +2348,11 @@ const WarningMessage = (props)=>{
     });
 };
 
+// EXTERNAL MODULE: ./zods/hardware.tsx
+var hardware = __webpack_require__(7670);
 ;// CONCATENATED MODULE: ./components/setup-steps/toolhead-settings.tsx
+
+
 
 
 
@@ -2361,6 +2365,7 @@ const WarningMessage = (props)=>{
 const ToolheadSettings = (props)=>{
     const { toolhead , setToolhead  } = useToolheadConfiguration(props.toolOrAxis);
     const [selectedHotend, setSelectedHotend] = (0,react_.useState)(toolhead.getHotend() ?? null);
+    const [selectedNozzle, setSelectedNozzle] = (0,react_.useState)(toolhead.getNozzle() ?? null);
     const [selectedExtruder, setSelectedExtruder] = (0,react_.useState)(toolhead.getExtruder() ?? null);
     const [selectedThermistor, setSelectedThermistor] = (0,react_.useState)(toolhead.getThermistor() ?? null);
     const [selectedProbe, setSelectedProbe] = (0,react_.useState)(toolhead.getProbe() ?? null);
@@ -2370,6 +2375,18 @@ const ToolheadSettings = (props)=>{
     const [selectedHotendFan, setSelectedHotendFan] = (0,react_.useState)(toolhead.getHotendFan() ?? null);
     const [selectedXAccelerometer, setSelectedXAccelerometer] = (0,react_.useState)(toolhead.getXAccelerometer() ?? null);
     const [selectedYAccelerometer, setSelectedYAccelerometer] = (0,react_.useState)(toolhead.getYAccelerometer() ?? null);
+    const setNozzleType = (val)=>{
+        setSelectedNozzle({
+            ...selectedNozzle,
+            type: val.id
+        });
+    };
+    const setNozzleDiameter = (diameter)=>{
+        setSelectedNozzle({
+            ...selectedNozzle,
+            diameter
+        });
+    };
     (0,react_.useEffect)(()=>{
         const updated = toolhead.getChangeSet({
             hotend: selectedHotend,
@@ -2379,6 +2396,7 @@ const ToolheadSettings = (props)=>{
             xEndstop: selectedXEndstop,
             yEndstop: selectedYEndstop,
             partFan: selectedPartFan,
+            nozzle: selectedNozzle,
             hotendFan: selectedHotendFan,
             xAccelerometer: selectedXAccelerometer,
             yAccelerometer: selectedYAccelerometer
@@ -2393,6 +2411,7 @@ const ToolheadSettings = (props)=>{
         selectedExtruder,
         selectedHotend,
         selectedHotendFan,
+        selectedNozzle,
         selectedPartFan,
         selectedProbe,
         selectedThermistor,
@@ -2479,6 +2498,26 @@ const ToolheadSettings = (props)=>{
                                 setSelectedThermistor(thermistor.id);
                             },
                             value: (0,serialization/* stringToTitleObject */.DX)(selectedThermistor)
+                        })
+                    }),
+                    /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                        children: /*#__PURE__*/ jsx_runtime_.jsx(Dropdown, {
+                            label: "Nozzle Type",
+                            onSelect: setNozzleType,
+                            options: Object.values(hardware/* Nozzle.shape.type.Values */.ow.shape.type.Values).map(serialization/* stringToTitleObject */.DX),
+                            value: (0,serialization/* stringToTitleObject */.DX)(selectedNozzle.type)
+                        })
+                    }),
+                    /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                        children: /*#__PURE__*/ jsx_runtime_.jsx(TextInput, {
+                            type: "number",
+                            label: "Nozzle Diameter",
+                            value: selectedNozzle.diameter,
+                            onChange: setNozzleDiameter,
+                            inputMode: "decimal",
+                            step: 0.1,
+                            min: 0.2,
+                            max: 1.8
                         })
                     }),
                     toolhead.getToolboard()?.alternativePT1000Resistor && toolhead.getThermistor() === "PT1000" && /*#__PURE__*/ jsx_runtime_.jsx("div", {
