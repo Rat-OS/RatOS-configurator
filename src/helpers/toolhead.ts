@@ -6,6 +6,7 @@ import {
 	ToolheadConfiguration,
 	ToolNumber,
 } from '../zods/toolhead';
+import { getDefaultNozzle } from '../data/nozzles';
 
 type ToolheadSuffix = `t${ToolNumber}`;
 type ToolheadCommand = `T${ToolNumber}`;
@@ -70,6 +71,9 @@ export class ToolheadHelper<IsToolboard extends boolean> {
 	}
 	public getHotend() {
 		return this.config.hotend;
+	}
+	public getNozzle() {
+		return this.config.nozzle ?? getDefaultNozzle();
 	}
 	public getThermistor() {
 		return this.config.thermistor;

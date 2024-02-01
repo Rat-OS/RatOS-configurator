@@ -2,11 +2,14 @@ import { useEffect, useState } from 'react';
 import { useToolheadConfiguration } from '../../hooks/useToolheadConfiguration';
 import { stringToTitleObject } from '../../utils/serialization';
 import { ToolOrAxis } from '../../zods/toolhead';
-import { DropdownWithPrinterQuery } from '../forms/dropdown';
+import { Dropdown, DropdownWithPrinterQuery } from '../forms/dropdown';
 import { Spinner } from '../common/spinner';
 import { twMerge } from 'tailwind-merge';
 import { badgeBackgroundColorStyle, badgeBorderColorStyle, badgeTextColorStyle } from '../common/badge';
 import { WarningMessage } from '../warning-message';
+import { Nozzle } from '../../zods/hardware';
+import { TextInput } from '../forms/text-input';
+import { z } from 'zod';
 
 interface ToolheadSettingsProps {
 	toolOrAxis: ToolOrAxis;
@@ -15,6 +18,7 @@ interface ToolheadSettingsProps {
 export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 	const { toolhead, setToolhead } = useToolheadConfiguration(props.toolOrAxis);
 	const [selectedHotend, setSelectedHotend] = useState(toolhead.getHotend() ?? null);
+	const [selectedNozzle, setSelectedNozzle] = useState(toolhead.getNozzle() ?? null);
 	const [selectedExtruder, setSelectedExtruder] = useState(toolhead.getExtruder() ?? null);
 	const [selectedThermistor, setSelectedThermistor] = useState(toolhead.getThermistor() ?? null);
 	const [selectedProbe, setSelectedProbe] = useState(toolhead.getProbe() ?? null);
@@ -25,6 +29,14 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 	const [selectedXAccelerometer, setSelectedXAccelerometer] = useState(toolhead.getXAccelerometer() ?? null);
 	const [selectedYAccelerometer, setSelectedYAccelerometer] = useState(toolhead.getYAccelerometer() ?? null);
 
+	const setNozzleType = (val: ReturnType<typeof stringToTitleObject<z.infer<typeof Nozzle>['type']>>) => {
+		setSelectedNozzle({ ...selectedNozzle, type: val.id });
+	};
+
+	const setNozzleDiameter = (diameter: number) => {
+		setSelectedNozzle({ ...selectedNozzle, diameter });
+	};
+
 	useEffect(() => {
 		const updated = toolhead.getChangeSet({
 			hotend: selectedHotend,
@@ -34,6 +46,7 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 			xEndstop: selectedXEndstop,
 			yEndstop: selectedYEndstop,
 			partFan: selectedPartFan,
+			nozzle: selectedNozzle,
 			hotendFan: selectedHotendFan,
 			xAccelerometer: selectedXAccelerometer,
 			yAccelerometer: selectedYAccelerometer,
@@ -45,6 +58,7 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 		selectedExtruder,
 		selectedHotend,
 		selectedHotendFan,
+		selectedNozzle,
 		selectedPartFan,
 		selectedProbe,
 		selectedThermistor,
@@ -108,6 +122,26 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 							setSelectedThermistor(thermistor.id);
 						}}
 						value={stringToTitleObject(selectedThermistor)}
+					/>
+				</div>
+				<div>
+					<Dropdown
+						label="Nozzle Type"
+						onSelect={setNozzleType}
+						options={Object.values(Nozzle.shape.type.Values).map(stringToTitleObject)}
+						value={stringToTitleObject(selectedNozzle.type)}
+					/>
+				</div>
+				<div>
+					<TextInput
+						type="number"
+						label="Nozzle Diameter"
+						value={selectedNozzle.diameter}
+						onChange={setNozzleDiameter}
+						inputMode="decimal"
+						step={0.1}
+						min={0.2}
+						max={1.8}
 					/>
 				</div>
 				{toolhead.getToolboard()?.alternativePT1000Resistor && toolhead.getThermistor() === 'PT1000' && (

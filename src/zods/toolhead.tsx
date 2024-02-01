@@ -1,7 +1,8 @@
 import { z } from 'zod';
 import { Toolboard } from './boards';
-import { Hotend, Thermistor, Extruder, Probe, Endstop, Fan, Accelerometer } from './hardware';
+import { Hotend, Thermistor, Extruder, Probe, Endstop, Fan, Accelerometer, Nozzle } from './hardware';
 import { PrinterAxis } from './motion';
+import { getDefaultNozzle } from '../data/nozzles';
 
 export const BaseToolheadConfiguration = z
 	.object({
@@ -12,6 +13,7 @@ export const BaseToolheadConfiguration = z
 		yEndstop: Endstop,
 		hotendFan: Fan,
 		partFan: Fan,
+		nozzle: Nozzle.default(getDefaultNozzle()),
 		xAccelerometer: Accelerometer.optional().nullable(),
 		yAccelerometer: Accelerometer.optional().nullable(),
 		toolboard: Toolboard.nullable(),

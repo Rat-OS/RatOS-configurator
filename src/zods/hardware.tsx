@@ -30,6 +30,12 @@ export const Hotend = hardwareType.extend({
 	type: z.literal('hotend'),
 	title: z.string(),
 	thermistor: z.enum(thermistors),
+	flowType: z.union([z.literal('sf'), z.literal('hf'), z.literal('uhf')]),
+});
+
+export const Nozzle = z.object({
+	type: z.enum(['Regular', 'CHT']),
+	diameter: z.number().min(0.2).max(1.8),
 });
 
 export const Extruder = hardwareType.extend({
