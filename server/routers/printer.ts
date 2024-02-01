@@ -3,7 +3,7 @@ import { getLogger } from '../helpers/logger';
 
 import { parseMetadata } from '../helpers/metadata';
 import { Hotend, Extruder, Probe, thermistors, Endstop, Fan, Accelerometer } from '../../zods/hardware';
-import { readFileSync, constants, existsSync } from 'fs';
+import { constants, existsSync, readFileSync } from 'fs';
 import { PrinterDefinition, PrinterDefinitionWithResolvedToolheads } from '../../zods/printer';
 import {
 	PartialPrinterConfiguration,
@@ -532,7 +532,7 @@ export const compareSettings = async (newSettings: SerializedPrinterConfiguratio
 };
 
 export const loadSerializedConfig = async (filePath: string) => {
-	const configJson = readFileSync(filePath);
+	const configJson = await readFile(filePath);
 	const serializedConfig = SerializedPrinterConfiguration.parse(JSON.parse(configJson.toString()));
 	const config = await deserializePrinterConfiguration(serializedConfig);
 	return config;

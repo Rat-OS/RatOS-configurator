@@ -757,7 +757,9 @@ const constructKlipperConfigUtils = async (config)=>{
             return th.getPinPrefix();
         },
         formatInlineComments (lines, commentChar = "#") {
-            const longestLine = lines.reduce((prev, current)=>Math.max(prev, current.substring(0, current.indexOf(commentChar)).trim().length), 0);
+            const longestLine = lines.reduce((prev, current)=>{
+                return Math.max(prev, current.substring(0, current.indexOf(commentChar)).trim().length);
+            }, 0);
             return lines.map((l)=>{
                 let commentIndex = l.indexOf(commentChar);
                 const lastCommentIndex = l.lastIndexOf(commentChar);
@@ -770,10 +772,7 @@ const constructKlipperConfigUtils = async (config)=>{
                 }
                 const comment = l.substring(commentIndex);
                 const line = l.substring(0, commentIndex).trim();
-                const padding = longestLine - line.length;
-                if (padding < 1) {
-                    return line + " " + comment;
-                }
+                const padding = longestLine - line.length + 2;
                 return line + " ".repeat(padding) + " " + comment;
             });
         }
@@ -2346,7 +2345,7 @@ const compareSettings = async (newSettings)=>{
     });
 };
 const loadSerializedConfig = async (filePath)=>{
-    const configJson = (0,external_fs_.readFileSync)(filePath);
+    const configJson = await (0,promises_.readFile)(filePath);
     const serializedConfig = printer_configuration/* SerializedPrinterConfiguration.parse */.q_.parse(JSON.parse(configJson.toString()));
     const config = await deserializePrinterConfiguration(serializedConfig);
     return config;
