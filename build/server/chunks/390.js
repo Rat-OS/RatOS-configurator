@@ -590,7 +590,7 @@ class ToolheadGenerator extends helpers_toolhead/* ToolheadHelper */.D {
             `variable_active: ${this.getTool() === 0 ? "True" : "False"}`,
             `variable_color: "${this.getTool() === 0 ? "7bff33" : "0ea5e9"}"              # Used in frontends`,
             `variable_hotend_type: "${this.getHotend().flowType.toUpperCase()}"`,
-            `variable_has_cht_nozzle: "${this.getNozzle().type === "CHT" ? "True" : "False"}"`,
+            `variable_has_cht_nozzle: ${this.getNozzle().type === "CHT" ? "True" : "False"}`,
             `gcode:`,
             `	{% set x = params.X|default(-1.0)|float %}`,
             `	{% set y = params.Y|default(-1.0)|float %}`,
