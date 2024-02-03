@@ -398,6 +398,28 @@ describe('server', async () => {
 						}
 					});
 				});
+				test.runIf(res.fileName === 'printer.cfg').concurrent('contains no RatOS configurable parameters', async () => {
+					const offendingLines: number[] = [];
+					const offendingStrings = ['nozzle_diameter', 'variable_hotend_type', 'variable_has_cht_nozzle'];
+					splitRes.forEach((l, i) => {
+						if (l.startsWith('nozzle_diameter')) {
+							offendingLines.push(i);
+						}
+					});
+				});
+				test.concurrent('properly indents gcode blocks', async () => {
+					const gcodeBlocks: number[] = [];
+					splitRes.forEach((l, i) => l.includes('gcode:') && gcodeBlocks.push(i));
+					for (const block of gcodeBlocks) {
+						try {
+							expect(splitRes[block + 1].startsWith('\t') || splitRes[block + 1].startsWith('  ')).toBeTruthy();
+						} catch (e) {
+							throw new Error(
+								`Failed to indent gcode block at line ${block + 1}:\n${annotatedLines.slice(Math.max(block - 4, 0), Math.min(block + 5, annotatedLines.length)).join('\n')}`,
+							);
+						}
+					}
+				});
 			});
 			test('can be compared', () => {
 				compareSettings(serialized);
