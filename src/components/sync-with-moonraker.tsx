@@ -38,7 +38,7 @@ export const SyncWithMoonraker: React.FC<React.PropsWithChildren> = ({ children 
 	const read: ReadItem = useCallback(
 		async (itemKey) => {
 			const value = await moonraker.getItem('RatOS', itemKey);
-			return value != null ? value : new DefaultValue();
+			return value != null && value != 'null' ? value : new DefaultValue();
 		},
 		[moonraker],
 	);

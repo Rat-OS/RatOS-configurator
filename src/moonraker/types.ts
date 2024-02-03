@@ -35,6 +35,14 @@ export type MoonrakerMethod<Response, Params> = {
 	params: Params;
 };
 
+type MajorVersion = Nominal<number, 'major'>;
+type MinorVersion = Nominal<number, 'minor'>;
+type PatchVersion = Nominal<number, 'patch'>;
+type VersionTag = Nominal<`${MajorVersion}.${MinorVersion}.${PatchVersion}`, 'tag'>;
+type CommitCount = Nominal<string, 'commits'>;
+type CommitHash = Nominal<string, 'HEAD'>;
+type UnixTimestamp = Nominal<number, 'timestamp'>;
+
 export type MoonrakerMethods = {
 	server: {
 		database: {
@@ -60,12 +68,23 @@ export type MoonrakerMethods = {
 				{
 					limit?: number;
 					offset?: number;
-					since?: number;
-					before?: number;
+					since?: UnixTimestamp;
+					before?: UnixTimestamp;
 					order: 'asc' | 'desc';
 				}
 			>;
 		};
+		info: MoonrakerMethod<
+			{
+				klippy_state: 'ready' | 'startup' | 'shutdown' | 'error';
+				websocket_count: number;
+				moonraker_version: `v${VersionTag}-${CommitCount}-${CommitHash}`;
+				api_version: [MajorVersion, MinorVersion, PatchVersion];
+				api_version_string: VersionTag;
+				registed_directories: string[];
+			},
+			void
+		>;
 	};
 	machine: {
 		shutdown: MoonrakerMethod<void, void>;

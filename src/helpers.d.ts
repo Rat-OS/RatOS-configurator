@@ -1,11 +1,21 @@
 type Unpacked<T> = T extends Array<infer U> ? U : T extends ReadonlyArray<infer U> ? U : T;
+
 declare const __nominal__type: unique symbol;
 type Nominal<Type, Identifier> = Type & {
 	readonly [__nominal__type]: Identifier;
 };
+
 type ExplicitObject<T> = {
 	readonly [P in keyof T]: P extends keyof T ? T[P] : never;
 };
+
+type _NumbersBefore<N extends number, A extends number[] = []> = A['length'] extends N
+	? A[number]
+	: _NumbersBefore<N, [...A, A['length']]>;
+
+type NumbersBefore<N extends number> = _NumbersBefore<N>;
+
+type NumbersInRange<A extends number, B extends number> = Exclude<NumbersBefore<B>, NumbersBefore<A>>;
 
 type DotPrefix<T extends string> = T extends '' ? '' : `.${T}`;
 type DotNestedKeys<T> = T extends Date | Function | Array<any>

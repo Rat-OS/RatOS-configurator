@@ -36,7 +36,7 @@ type MaybeToolhead<T extends boolean> = T extends true ? ToolheadHelper<any> : T
 export const useToolheadConfiguration = <T extends boolean = true>(
 	toolOrAxis: ToolOrAxis | PrinterAxis | undefined,
 	errorIfNotExist: T = true as T,
-): { toolhead: MaybeToolhead<T>; setToolhead: (th: ToolheadConfiguration<any>) => void } => {
+) => {
 	const toolheadConfigs = useRecoilValue(LoadablePrinterToolheadsState);
 	const toolheadConfigsRef = useRef(toolheadConfigs);
 	if (toolheadConfigsRef.current !== toolheadConfigs && toolheadConfigs.length > 0) {
@@ -92,9 +92,11 @@ export const useToolheadConfiguration = <T extends boolean = true>(
 				}
 				const val = BaseToolheadConfiguration.extend({ toolNumber: ToolNumber })
 					.nullable()
-					.parse({ ...th, toolNumber: current.getTool() });
-				set(PrinterToolheadState(current.getTool()), val);
-				return;
+					.safeParse({ ...th, toolNumber: current.getTool() });
+				if (val.success) {
+					set(PrinterToolheadState(current.getTool()), val.data);
+				}
+				return val;
 			},
 		[hasManuallySelectedThermistor],
 	);

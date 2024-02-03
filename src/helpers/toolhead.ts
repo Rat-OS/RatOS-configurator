@@ -141,7 +141,8 @@ export class ToolheadHelper<IsToolboard extends boolean> {
 				}
 			}
 		});
-		return PartialToolheadConfiguration.parse(changeSet);
+		const parsed = PartialToolheadConfiguration.safeParse(changeSet);
+		return parsed;
 	}
 	public getProbe() {
 		return this.config.probe;

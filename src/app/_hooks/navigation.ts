@@ -10,8 +10,13 @@ import {
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useCallback } from 'react';
 
+export const useLocalPathname = () => {
+	const pathname = (usePathname() ?? '/').replace('/configure', '');
+	return pathname;
+};
+
 export const useIsRouteActive = () => {
-	const pathname = (usePathname() ?? '/').replace('/configure', '/');
+	const pathname = useLocalPathname();
 	return useCallback(
 		(href: string) => {
 			return pathname === href;
@@ -34,7 +39,7 @@ export const useNavigation = () => {
 	});
 };
 
-interface RedirecterProps {
+interface RedirecterProps extends React.PropsWithChildren {
 	hasLastPrinterSettings: boolean;
 }
 
@@ -43,6 +48,7 @@ export const Redirecter: React.FC<RedirecterProps> = (props) => {
 	const isRouteActive = useIsRouteActive();
 	if (!props.hasLastPrinterSettings && !isRouteActive('/wizard')) {
 		router.replace('/wizard');
+	} else {
+		return props.children;
 	}
-	return null;
 };

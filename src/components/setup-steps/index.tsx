@@ -12,6 +12,7 @@ import { PrinterSelection } from './printer-selection';
 import { WifiSetup } from './wifi-setup';
 import { WizardComplete } from './wizard-complete';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { useLocalPathname } from '../../app/_hooks/navigation';
 
 interface WizardProps {
 	isConnectedToWifi?: boolean;
@@ -111,6 +112,7 @@ const LoadScreen: React.FC = () => {
 export const SetupSteps: React.FC<WizardProps> = (props) => {
 	const searchParams = useSearchParams();
 	const router = useRouter();
+	const pathname = useLocalPathname();
 	const ths = useRecoilValue(LoadablePrinterToolheadsState);
 	const steps = useMemo(() => makeSteps(ths), [ths]);
 	const uriStep = searchParams?.get('step') ? parseInt(searchParams?.get('step') ?? '', 10) : null;
@@ -119,7 +121,7 @@ export const SetupSteps: React.FC<WizardProps> = (props) => {
 	const { currentStepIndex, setCurrentStepIndex, screenProps, currentStep } = useSteps({
 		step: uriStep != null && uriStep < steps.length ? uriStep : defaultStep,
 		onStepChange: (step) => {
-			router.push('/?step=' + step, undefined);
+			router.push(pathname + '?step=' + step, undefined);
 			window.scrollTo(0, 0);
 		},
 		steps,

@@ -35,7 +35,7 @@ export const Toggle: React.FC<ToggleProps> = (props) => {
 				checked={props.value}
 				onChange={props.onChange}
 				className={twJoin(
-					props.value && props.onLabel == null ? 'bg-brand-600' : 'bg-zinc-200 dark:bg-zinc-900',
+					props.value && props.onLabel == null ? 'bg-brand-600' : 'bg-zinc-200 dark:bg-zinc-950/50',
 					'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none',
 				)}
 			>

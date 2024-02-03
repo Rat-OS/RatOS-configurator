@@ -44,7 +44,7 @@ import { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
 import { ToolheadHelper } from '../../helpers/toolhead';
 import { getLastPrinterSettings, hasLastPrinterSettings, savePrinterSettings } from '../helpers/printer-settings';
 import { PrinterAxis } from '../../zods/motion';
-import { ServerCache } from '../helpers/cache';
+import { ServerCache, cacheAsyncDirectoryFn } from '../helpers/cache';
 import { klipperRestart } from '../helpers/klipper';
 import { access, copyFile, readFile, unlink, writeFile } from 'fs/promises';
 import { exec } from 'child_process';
@@ -58,11 +58,12 @@ function isNodeError(error: any): error is NodeJS.ErrnoException {
 type FileAction = 'created' | 'overwritten' | 'skipped' | 'error';
 export type CFGDirectories = 'hotends' | 'extruders' | 'z-probe';
 
-export const parseDirectory = async <T extends z.ZodType>(directory: CFGDirectories, zod: T) => {
+export const parseDirectory = cacheAsyncDirectoryFn(async <T extends z.ZodType>(directory: CFGDirectories, zod: T) => {
 	const cached = ServerCache.get(directory);
 	if (cached != null) {
 		return z.array(zod).parse(cached);
 	}
+	console.log('parsing directory', directory);
 	const defs = await glob(`${process.env.RATOS_CONFIGURATION_PATH}/${directory}/*.cfg`);
 	const res = (
 		await Promise.all(
@@ -81,7 +82,7 @@ export const parseDirectory = async <T extends z.ZodType>(directory: CFGDirector
 	).filter((f): f is z.TypeOf<T> => f != null);
 	ServerCache.set(directory, res);
 	return res;
-};
+}, ServerCache);
 
 const serializedPartialConfigFromPrinterDefinition = (def: PrinterDefinition) => {
 	return SerializedPartialPrinterConfiguration.parse({
@@ -100,8 +101,8 @@ export const getPrinters = async <T extends boolean = false>(
 	resolveToolheads: T = false as T,
 ): Promise<MaybePrinterWithResolvedToolhead<T>[]> => {
 	const defs = glob(`${process.env.RATOS_CONFIGURATION_PATH}/printers/*/printer-definition.json`);
-	const hotends = parseDirectory('hotends', Hotend);
-	const boards = getBoards();
+	const hotends = await parseDirectory('hotends', Hotend);
+	const boards = await getBoards();
 	const toolheadPromises: { [id: string]: Promise<MaybeResolvedToolhead<T>>[] } = {};
 	const printers = (
 		await Promise.all(
@@ -118,6 +119,7 @@ export const getPrinters = async <T extends boolean = false>(
 	).filter(Boolean);
 
 	printers.forEach((p) => {
+		const partialPrinter = serializedPartialConfigFromPrinterDefinition(p);
 		toolheadPromises[p.id] = p.defaults.toolheads.map(async (th) => {
 			const hotend = (await hotends).find((h) => h.id === th.hotend);
 			if (th.thermistor == null && hotend != null) {
@@ -127,12 +129,8 @@ export const getPrinters = async <T extends boolean = false>(
 				th.nozzle = getDefaultNozzle();
 			}
 			if (resolveToolheads) {
-				const dth = deserializeToolheadConfiguration(
-					th,
-					serializedPartialConfigFromPrinterDefinition(p),
-					await boards,
-				) as Promise<MaybeResolvedToolhead<T>>;
-				(th as MaybeResolvedToolhead<T>) = await dth;
+				const dth = (await deserializeToolheadConfiguration(th, partialPrinter, boards)) as MaybeResolvedToolhead<T>;
+				(th as MaybeResolvedToolhead<T>) = dth;
 			}
 			return th as MaybeResolvedToolhead<T>;
 		});

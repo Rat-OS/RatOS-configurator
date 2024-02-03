@@ -31,6 +31,7 @@ export const migrations: Migration[] = [
 				}
 				for await (const [key, value] of Object.entries(data.result.value)) {
 					const parsed = JSON.parse(value as any);
+					console.log('Migrating', key, 'from', value, 'to', parsed);
 					await window.fetch(`http://${host}/server/database/item`, {
 						method: 'POST',
 						headers: {
@@ -134,7 +135,11 @@ export const migrate = async (from: number, to: number) => {
 	}
 };
 
+let isMigrated = false;
 export const migrateToLatest = async () => {
+	if (isMigrated) {
+		return console.log('Already migrated, ignoring..');
+	}
 	const currentVersion = await getCurrentVersion();
 	const latestVersion = Math.max(...migrations.map((m) => m.version));
 	if (currentVersion === latestVersion) {
@@ -145,5 +150,6 @@ export const migrateToLatest = async () => {
 	}
 	console.log('Migrating to latest version...', currentVersion, latestVersion);
 	await migrate(currentVersion, latestVersion);
+	isMigrated = true;
 	console.log('Migration complete.');
 };
