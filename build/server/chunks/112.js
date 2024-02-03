@@ -369,7 +369,10 @@ const getBoardChipId = (board, toolhead)=>{
 /* harmony import */ var _utils_serialization__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(3977);
 /* harmony import */ var _zods_motion__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(6734);
 /* harmony import */ var _zods_toolhead__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(2493);
-/* harmony import */ var _data_nozzles__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(7638);
+/* harmony import */ var _data_nozzles__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(7638);
+/* harmony import */ var deep_equal__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(6988);
+/* harmony import */ var deep_equal__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(deep_equal__WEBPACK_IMPORTED_MODULE_3__);
+
 
 
 
@@ -433,7 +436,7 @@ class ToolheadHelper {
         return this.config.hotend;
     }
     getNozzle() {
-        return this.config.nozzle ?? (0,_data_nozzles__WEBPACK_IMPORTED_MODULE_3__/* .getDefaultNozzle */ .S)();
+        return this.config.nozzle ?? (0,_data_nozzles__WEBPACK_IMPORTED_MODULE_4__/* .getDefaultNozzle */ .S)();
     }
     getThermistor() {
         return this.config.thermistor;
@@ -495,7 +498,7 @@ class ToolheadHelper {
                     if (current.id !== change.id) {
                         changeSet[key] = change;
                     }
-                } else if (current !== change) {
+                } else if (!deep_equal__WEBPACK_IMPORTED_MODULE_3___default()(current, change)) {
                     changeSet[key] = change;
                 }
             }

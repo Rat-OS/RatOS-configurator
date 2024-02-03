@@ -7,6 +7,7 @@ import {
 	ToolNumber,
 } from '../zods/toolhead';
 import { getDefaultNozzle } from '../data/nozzles';
+import deepEqual from 'deep-equal';
 
 type ToolheadSuffix = `t${ToolNumber}`;
 type ToolheadCommand = `T${ToolNumber}`;
@@ -135,7 +136,7 @@ export class ToolheadHelper<IsToolboard extends boolean> {
 					if (current.id !== change.id) {
 						changeSet[key] = change;
 					}
-				} else if (current !== change) {
+				} else if (!deepEqual(current, change)) {
 					changeSet[key] = change;
 				}
 			}
