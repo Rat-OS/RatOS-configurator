@@ -398,14 +398,25 @@ describe('server', async () => {
 						}
 					});
 				});
-				test.runIf(res.fileName === 'printer.cfg').concurrent('contains no RatOS configurable parameters', async () => {
-					const offendingLines: number[] = [];
+				test.runIf(res.fileName === 'printer.cfg').concurrent('contains no RatOS managed parameters', async () => {
+					const offendingLines: { line: number; param: string }[] = [];
 					const offendingStrings = ['nozzle_diameter', 'variable_hotend_type', 'variable_has_cht_nozzle'];
 					splitRes.forEach((l, i) => {
-						if (l.startsWith('nozzle_diameter')) {
-							offendingLines.push(i);
-						}
+						offendingStrings.forEach((s) => {
+							if (l.startsWith(s)) {
+								offendingLines.push({ line: i, param: s });
+							}
+						});
 					});
+					for (const { line, param } of offendingLines) {
+						try {
+							expect(splitRes[line + 1].startsWith('\t') || splitRes[line + 1].startsWith('  ')).toBeTruthy();
+						} catch (e) {
+							throw new Error(
+								`Illegal parameter "${param}" at line ${line + 1}:\n${annotatedLines.slice(Math.max(line - 4, 0), Math.min(line + 5, annotatedLines.length)).join('\n')}`,
+							);
+						}
+					}
 				});
 				test.concurrent('properly indents gcode blocks', async () => {
 					const gcodeBlocks: number[] = [];
