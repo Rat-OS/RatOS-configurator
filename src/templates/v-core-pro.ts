@@ -146,7 +146,6 @@ ${helper.renderUserStepperSections({
 		directionInverted: true,
 		additionalLines: [
 			'#pressure_advance: 0.05 # Check https://www.klipper3d.org/Pressure_Advance.html for pressure advance tuning.',
-			'nozzle_diameter: 0.4 # Remember to change this if you change nozzle diameter.',
 			'control: pid',
 			'pid_kp: 28.413',
 			'pid_ki: 1.334',
@@ -154,14 +153,6 @@ ${helper.renderUserStepperSections({
 		],
 	},
 })}
-
-[extruder]
-#pressure_advance: 0.05 # Check https://www.klipper3d.org/Pressure_Advance.html for pressure advance tuning.
-nozzle_diameter: 0.4 # Remember to change this if you change nozzle diameter.
-control: pid
-pid_kp: 28.413
-pid_ki: 1.334
-pid_kd: 151.300
 
 [heater_bed]
 control: pid
