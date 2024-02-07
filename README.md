@@ -49,7 +49,7 @@ Copy environment constants and define paths in .env.local
 cp .env .env.local
 cd ..
 # Start vscode
-code src
+code .
 ```
 
 Edit .env.local and modify the paths to match your setup ie:

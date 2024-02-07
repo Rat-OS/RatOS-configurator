@@ -22,5 +22,10 @@
 	"[typescript]": {
 		"editor.defaultFormatter": "dbaeumer.vscode-eslint",
 	},
-	"eslint.format.enable": true
+	"eslint.format.enable": true,
+	"[typescriptreact]": {
+		"editor.defaultFormatter": "dbaeumer.vscode-eslint"
+	},
+	"emmet.showExpandedAbbreviation": "never",
+	"emmet.showAbbreviationSuggestions": false
 }

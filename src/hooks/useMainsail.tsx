@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useMoonraker, useNamespacedMutation, useNamespacedQuery } from '../moonraker/hooks';
+import { useMoonraker, useNamespacedItemMutation, useNamespacedItemQuery } from '../moonraker/hooks';
 import { UseMutationOptions, UseQueryOptions } from '@tanstack/react-query';
 import { MoonrakerDBItemResponse, MoonrakerDBValue, MoonrakerNamespaceKeys } from '../moonraker/types';
 
@@ -9,7 +9,7 @@ export const useMainsailQuery = <
 >(
 	key: K,
 	options?: Omit<UseQueryOptions<V, unknown, V, 'mainsail'[]>, 'queryKey' | 'queryFn'>,
-) => useNamespacedQuery('mainsail', key, options);
+) => useNamespacedItemQuery('mainsail', key, options);
 
 export const useMainsailMutation = <
 	K extends MoonrakerNamespaceKeys<'mainsail'>,
@@ -21,7 +21,7 @@ export const useMainsailMutation = <
 		UseMutationOptions<MoonrakerDBItemResponse<V>, unknown, MoonrakerDBItemResponse<V>>,
 		'mutationKey' | 'mutationFn'
 	>,
-) => useNamespacedMutation('mainsail', key, value, options);
+) => useNamespacedItemMutation('mainsail', key, value, options);
 
 export function useMainsail() {
 	const moonraker = useMoonraker();

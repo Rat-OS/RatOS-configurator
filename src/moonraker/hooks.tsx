@@ -15,6 +15,9 @@ import {
 	MoonrakerNamespaceKeys,
 	MoonrakerDBValue,
 	MoonrakerQueryFn,
+	MoonrakerMethodKeys,
+	MoonrakerMethodParams,
+	MoonrakerMethodResult,
 } from './types';
 import { getHost } from '../helpers/util';
 
@@ -37,6 +40,21 @@ export const useMoonraker = () => {
 		setWsUrl(getWsURL());
 	}, []);
 	const { lastJsonMessage, sendJsonMessage, readyState } = useWebSocket<MoonrakerResponse>(wsUrl, {
+		filter: (message) => {
+			if (moonrakerStatus !== 'connected') {
+				return true;
+			}
+			try {
+				const parsed = JSON.parse(message.data) as MoonrakerResponse;
+				if (inFlightRequests.current[parsed.id] != null) {
+					return true;
+				}
+				return false;
+			} catch (e) {
+				console.warn('Failed to parse message', e, message.data);
+			}
+			return true;
+		},
 		shouldReconnect: (closeEvent) => {
 			return true;
 		},
@@ -49,7 +67,6 @@ export const useMoonraker = () => {
 	const [moonrakerStatus, setMoonrakerStatus] = useState<null | MoonrakerStatus>(
 		readyState === 1 ? 'connected' : 'connecting',
 	);
-	const [moonrakerMessage, setMoonrakerMessage] = useState<null | MoonrakerResponse>(lastJsonMessage);
 
 	const whenReady = useCallback((resolve: () => void, reject: () => void) => {
 		if (readyStateRef.current === 1) {
@@ -71,13 +88,8 @@ export const useMoonraker = () => {
 		async <Response = any,>(method: string, params: any = {}) => {
 			await isReady();
 			return new Promise<Response>((resolve, reject) => {
-				sendJsonMessage({
-					jsonrpc: '2.0',
-					method,
-					params,
-					id: ++REQ_ID,
-				});
-				inFlightRequests.current[REQ_ID] = (err, result) => {
+				const id = ++REQ_ID;
+				inFlightRequests.current[id] = (err, result) => {
 					if (err) {
 						return reject(err);
 					}
@@ -86,11 +98,17 @@ export const useMoonraker = () => {
 					}
 					resolve(result);
 				};
-				inFlightRequestTimeouts.current[REQ_ID] = window.setTimeout(() => {
-					inFlightRequests.current[REQ_ID]?.(new Error('Request timed out'), null);
-					delete inFlightRequests.current[REQ_ID];
-					delete inFlightRequestTimeouts.current[REQ_ID];
+				inFlightRequestTimeouts.current[id] = window.setTimeout(() => {
+					inFlightRequests.current[id]?.(new Error('Request timed out'), null);
+					delete inFlightRequests.current[id];
+					delete inFlightRequestTimeouts.current[id];
 				}, 10 * 1000); // 10 second timeout.
+				sendJsonMessage({
+					jsonrpc: '2.0',
+					method,
+					params,
+					id: id,
+				});
 			});
 		},
 		[isReady, sendJsonMessage],
@@ -144,8 +162,6 @@ export const useMoonraker = () => {
 			inFlightRequests.current[lastJsonMessage.id](null, lastJsonMessage.result);
 			delete inFlightRequestTimeouts.current[lastJsonMessage.id];
 			delete inFlightRequests.current[lastJsonMessage.id];
-		} else {
-			setMoonrakerMessage(lastJsonMessage);
 		}
 	}, [lastJsonMessage]);
 
@@ -167,12 +183,12 @@ export const useMoonraker = () => {
 		saveItem,
 		getItem,
 		status: moonrakerStatus,
-		lastMessage: moonrakerMessage,
+		lastMessage: lastJsonMessage,
 		isReady: readyState === 1,
 	};
 };
 
-export const useNamespacedQuery = <
+export const useNamespacedItemQuery = <
 	N extends MoonrakerNamespaces,
 	K extends MoonrakerNamespaceKeys<N>,
 	V extends MoonrakerDBValue<N, K>,
@@ -191,7 +207,31 @@ export const useNamespacedQuery = <
 	});
 };
 
-export const useNamespacedMutation = <
+export const useMoonrakerQuery = <
+	K extends MoonrakerMethodKeys = MoonrakerMethodKeys,
+	P extends MoonrakerMethodParams<K> = MoonrakerMethodParams<K>,
+	O extends Omit<
+		UseQueryOptions<MoonrakerMethodResult<K>, unknown, MoonrakerMethodResult<K>, K[]>,
+		'queryKey' | 'queryFn'
+	> = Omit<UseQueryOptions<MoonrakerMethodResult<K>, unknown, MoonrakerMethodResult<K>, K[]>, 'queryKey' | 'queryFn'>,
+>(
+	...args: P extends void ? [K, O?] : [K, P, O?]
+) => {
+	const { query } = useMoonraker();
+	const options = args.length === 3 ? args[2] : args[1];
+	const params = args.length === 3 ? args[1] : undefined;
+	const key = args[0];
+	const passed = (args.length === 3 ? [key, params] : [key]) as P extends void ? [K] : [K, P];
+	return useQuery({
+		...options,
+		queryKey: [args[0]],
+		queryFn: async () => {
+			return query(...passed) as Promise<MoonrakerMethodResult<K>>;
+		},
+	});
+};
+
+export const useNamespacedItemMutation = <
 	N extends MoonrakerNamespaces,
 	K extends MoonrakerNamespaceKeys<N>,
 	V extends MoonrakerDBValue<N, K>,

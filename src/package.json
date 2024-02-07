@@ -15,17 +15,6 @@
 		"cli": "node ./bin/ratos.mjs",
 		"build:cli": "cd ./cli && tsx ./build.ts"
 	},
-	"prettier": {
-		"useTabs": true,
-		"singleQuote": true,
-		"jsxSingleQuote": false,
-		"trailingComma": "all",
-		"printWidth": 120,
-		"plugins": [
-			"prettier-plugin-tailwindcss/dist/index.mjs"
-		],
-		"tailwindConfig": "./tailwind.config.js"
-	},
 	"dependencies": {
 		"@formkit/auto-animate": "^0.8.0",
 		"@headlessui/react": "^1.7.8",

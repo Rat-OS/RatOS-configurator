@@ -6,69 +6,90 @@ import { Badge } from '../components/common/badge';
 import { useMainsailQuery } from '../hooks/useMainsail';
 import { trpc } from '../utils/trpc';
 import { HistoryTable } from './historyTable';
+import { useMoonrakerQuery } from '../moonraker/hooks';
+import { useMemo } from 'react';
+import { Duration, DurationLikeObject } from 'luxon';
 
 const secondaryNavigation = [
 	{ name: 'History', href: '#', current: true },
 	{ name: 'Console', href: '#', current: false },
 ];
-const stats = [
-	{
-		name: 'Total Print Time',
-		value: [
-			{ val: 12, unit: 'hrs' },
-			{ val: 17, unit: 'mins' },
-		],
-	},
-	{
-		name: 'Longest Print',
-		value: [
-			{ val: 2, unit: 'hrs' },
-			{ val: 33, unit: 'mins' },
-		],
-	},
-	{
-		name: 'Avg. Print',
-		value: [
-			{ val: 1, unit: 'hrs' },
-			{ val: 5, unit: 'mins' },
-		],
-	},
-	{ name: 'Total Filament Used', value: 93.9, unit: 'meters' },
-];
-const statuses = { Completed: 'text-green-400 bg-green-400/10', Error: 'text-rose-400 bg-rose-400/10' };
-
-const activityItems = [
-	{
-		file: {
-			name: 'Shape-Cylinder_0.3mm_ASA_19m.gcode',
-			imageUrl:
-				'//ratos-minion.local/server/files/gcodes/.thumbs/Shape-Cylinder_0.3mm_ASA_19m-64x64.png?timestamp=1704989358.0760849',
-		},
-		startedAt: '15. jan. 2024 08.41',
-		slicer: 'PrusaSlicer',
-		status: 'Completed' as const,
-		duration: '19m 24s',
-		filamentUsed: '2.20 meters',
-		dateTime: '2023-01-23T11:00',
-	},
-	{
-		file: {
-			name: 'ICAS-heatset_0.2mm_ASA_1h52m.gcode',
-			imageUrl:
-				'//ratos-minion.local/server/files/gcodes/.thumbs/ICAS-heatset_0.2mm_ASA_1h52m-32x32.png?timestamp=1703390603.8532264',
-		},
-		startedAt: '24. dec. 2023 05.12',
-		slicer: 'PrusaSlicer',
-		status: 'Completed' as const,
-		duration: '1h 49m 50s',
-		filamentUsed: '12.34 meters',
-		dateTime: '2023-01-23T11:00',
-	},
-];
 
 export default function Page() {
 	const printerName = useMainsailQuery('general.printername', { initialData: 'Loading...' });
 	const savedPrinterName = trpc.printer.getSavedPrinterName.useQuery(undefined, { initialData: 'Loading...' });
+	const jobTotals = useMoonrakerQuery('server.history.totals');
+	const klippyState = useMoonrakerQuery('server.info');
+	const stats = useMemo(() => {
+		if (jobTotals.data == null) {
+			return [
+				{
+					name: 'Total Print Time',
+					value: 'N/A',
+				},
+				{
+					name: 'Longest Print',
+					value: 'N/A',
+				},
+				{
+					name: 'Avg. Print',
+					value: 'N/A',
+				},
+				{
+					name: 'Total Filament Used',
+					value: 'N/A',
+					unit: 'meters',
+				},
+			];
+		}
+		const totalPrintTime = Duration.fromObject(
+			{ hours: jobTotals.data.job_totals.total_print_time / 60 / 60 },
+			{ locale: 'en-GB' },
+		)
+			.shiftTo(...(['seconds', 'minutes', 'hours'].filter(Boolean) as (keyof DurationLikeObject)[]))
+			.normalize()
+			.toObject();
+		const longestPrint = Duration.fromObject(
+			{ hours: jobTotals.data.job_totals.longest_print / 60 / 60 },
+			{ locale: 'en-GB' },
+		)
+			.shiftTo(...(['seconds', 'minutes', 'hours'].filter(Boolean) as (keyof DurationLikeObject)[]))
+			.normalize()
+			.toObject();
+		const avg = jobTotals.data.job_totals.total_print_time / jobTotals.data.job_totals.total_jobs;
+		const avgPrint = Duration.fromObject({ hours: avg / 60 / 60 }, { locale: 'en-GB' })
+			.shiftTo(...(['seconds', 'minutes', 'hours'].filter(Boolean) as (keyof DurationLikeObject)[]))
+			.normalize()
+			.toObject();
+		return [
+			{
+				name: 'Total Print Time',
+				value: [
+					totalPrintTime.hours && { val: `${totalPrintTime.hours}`, unit: 'hrs' },
+					{ val: `${totalPrintTime.minutes}`, unit: 'mins' },
+				].filter(Boolean),
+			},
+			{
+				name: 'Longest Print',
+				value: [
+					longestPrint.hours && { val: `${longestPrint.hours}`, unit: 'hrs' },
+					{ val: `${longestPrint.minutes}`, unit: 'mins' },
+				].filter(Boolean),
+			},
+			{
+				name: 'Avg. Print',
+				value: [
+					avgPrint.hours && { val: `${avgPrint.hours}`, unit: 'hrs' },
+					{ val: `${avgPrint.minutes}`, unit: 'mins' },
+				].filter(Boolean),
+			},
+			{
+				name: 'Total Filament Used',
+				value: (jobTotals.data.job_totals.total_filament_used / 1000).toFixed(2),
+				unit: 'meters',
+			},
+		];
+	}, [jobTotals.data]);
 	return (
 		<main className="@container">
 			<header>
@@ -77,7 +98,7 @@ export default function Page() {
 					<nav className="mx-auto flex max-w-7xl overflow-x-auto py-4">
 						<ul
 							role="list"
-							className="@screen-sm:px-6 @screen-lg:px-8 flex min-w-full flex-none gap-x-6 px-4 text-sm font-semibold leading-6 text-zinc-400"
+							className="flex min-w-full flex-none gap-x-6 px-4 text-sm font-semibold leading-6 text-zinc-400 @screen-sm:px-6 @screen-lg:px-8"
 						>
 							{secondaryNavigation.map((item) => (
 								<li key={item.name}>
@@ -92,10 +113,18 @@ export default function Page() {
 
 				{/* Heading */}
 				<div className="bg-zinc-700/10">
-					<div className="@screen-sm:flex-row @screen-sm:items-center @screen-sm:px-6 @screen-lg:px-8 mx-auto flex max-w-7xl flex-col items-start justify-between gap-x-8 gap-y-4 px-4 py-4">
+					<div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-x-8 gap-y-4 px-4 py-4 @screen-sm:flex-row @screen-sm:items-center @screen-sm:px-6 @screen-lg:px-8">
 						<div>
 							<div className="flex items-center gap-x-3">
-								<div className="flex-none rounded-full bg-green-400/10 p-1 text-green-400">
+								<div
+									className={twMerge(
+										'flex-none rounded-full bg-green-400/10 p-1 text-zinc-400',
+										klippyState.data?.klippy_state === 'error' && 'text-red-400',
+										klippyState.data?.klippy_state === 'startup' && 'text-amber-400',
+										klippyState.data?.klippy_state === 'ready' && 'text-green-400',
+										klippyState.data?.klippy_state === 'shutdown' && 'text-red-400',
+									)}
+								>
 									<div className="h-2 w-2 rounded-full bg-current" />
 								</div>
 								<h1 className="flex gap-x-3 text-base leading-7">
@@ -105,7 +134,7 @@ export default function Page() {
 								</h1>
 							</div>
 						</div>
-						<Badge className="@screen-sm:order-none order-first" color="yellow">
+						<Badge className="order-first @screen-sm:order-none" color="yellow">
 							Printing
 						</Badge>
 					</div>
@@ -113,13 +142,13 @@ export default function Page() {
 
 				{/* Stats */}
 				<div className="border-t border-white/5 bg-zinc-700/10">
-					<div className="@screen-sm:grid-cols-2 @screen-lg:grid-cols-4 mx-auto grid max-w-7xl grid-cols-1">
+					<div className="mx-auto grid max-w-7xl grid-cols-1 @screen-sm:grid-cols-2 @screen-lg:grid-cols-4">
 						{stats.map((stat, statIdx) => (
 							<div
 								key={stat.name}
 								className={twMerge(
 									statIdx % 2 === 1 ? '@screen-sm:border-l' : statIdx === 2 ? 'lg:border-l' : '',
-									'@screen-sm:px-6 @screen-lg:px-8 border-white/5 px-4 py-6',
+									'border-white/5 px-4 py-6 @screen-sm:px-6 @screen-lg:px-8',
 								)}
 							>
 								<p className="text-sm font-medium leading-6 text-zinc-400">{stat.name}</p>
@@ -149,7 +178,7 @@ export default function Page() {
 			{/* Activity list */}
 			<div className="border-t border-white/10 pt-11">
 				<div className="mx-auto max-w-7xl">
-					<h2 className="@screen-sm:px-6 @screen-lg:px-8 px-4 text-base font-semibold leading-7 text-white">
+					<h2 className="px-4 text-base font-semibold leading-7 text-white @screen-sm:px-6 @screen-lg:px-8">
 						Latest jobs
 					</h2>
 					{/* <table className="mt-6 w-full whitespace-nowrap text-left">

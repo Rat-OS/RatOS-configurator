@@ -67,11 +67,24 @@ export type MoonrakerMethods = {
 				MoonrakerHistoryListResponse,
 				{
 					limit?: number;
-					offset?: number;
+					start?: number;
 					since?: UnixTimestamp;
 					before?: UnixTimestamp;
 					order: 'asc' | 'desc';
 				}
+			>;
+			totals: MoonrakerMethod<
+				{
+					job_totals: {
+						total_jobs: number;
+						total_time: number;
+						total_print_time: number;
+						total_filament_used: number;
+						longest_job: number;
+						longest_print: number;
+					};
+				},
+				void
 			>;
 		};
 		info: MoonrakerMethod<
@@ -95,9 +108,11 @@ export type MoonrakerMethodKeys = DotNestedKeyLeafs<MoonrakerMethods>;
 export type MoonrakerMethodParams<K extends MoonrakerMethodKeys> = NestedObjectType<MoonrakerMethods>[K]['params'];
 export type MoonrakerMethodResult<K extends MoonrakerMethodKeys> = NestedObjectType<MoonrakerMethods>[K]['result'];
 
-export type MoonrakerQueryFn = <R, K extends MoonrakerMethodKeys = MoonrakerMethodKeys>(
-	method: K,
-	...a: MoonrakerMethodParams<K> extends void ? [undefined?] : [MoonrakerMethodParams<K>]
+export type MoonrakerQueryFn = <
+	K extends MoonrakerMethodKeys = MoonrakerMethodKeys,
+	P extends MoonrakerMethodParams<K> = MoonrakerMethodParams<K>,
+>(
+	...args: P extends void ? [K] : [K, P]
 ) => Promise<MoonrakerMethodResult<K>>;
 
 export type MoonrakerNamespaces = keyof MoonrakerDB;

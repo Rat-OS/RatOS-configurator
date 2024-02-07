@@ -8,14 +8,17 @@ import {
 	SortingState,
 	useReactTable,
 } from '@tanstack/react-table';
-import { useVirtualizer } from '@tanstack/react-virtual';
+import { useWindowVirtualizer } from '@tanstack/react-virtual';
 import { MoonrakerHistoryJob, MoonrakerHistoryListResponse } from '../moonraker/types';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { DateTime, Duration, DurationLikeObject } from 'luxon';
 import { twMerge } from 'tailwind-merge';
 import { useMoonraker } from '../moonraker/hooks';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { getHost } from '../helpers/util';
+import { ChevronUpDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
+import { ChevronDownIcon } from '@heroicons/react/24/solid';
+import { Spinner } from '../components/common/spinner';
 
 const findThumbnail = (thumbnails: MoonrakerHistoryJob['metadata']['thumbnails'], size: number) => {
 	const thumbnail = thumbnails.find((t) => t.size >= size);
@@ -31,16 +34,16 @@ const thumbUrl = (thumbnail: MoonrakerHistoryJob['metadata']['thumbnails'][0]) =
 
 const columns: ColumnDef<MoonrakerHistoryJob>[] = [
 	{
-		header: 'Filename',
+		header: () => <span>Filename</span>,
 		accessorKey: 'filename',
-		sortDescFirst: true,
-		enableSorting: true,
-		size: 360,
+		enableSorting: false,
+		size: 280,
 		cell: (info) => {
 			const thumbnail = findThumbnail(info.row.original.metadata.thumbnails, 32);
 			return (
 				<div className="flex min-w-0 items-center gap-x-4">
 					{thumbnail == null ? null : (
+						// eslint-disable-next-line @next/next/no-img-element
 						<img src={thumbUrl(thumbnail)} alt="" className="h-8 w-8 rounded-full bg-zinc-800" />
 					)}
 					<div className="truncate text-sm font-medium leading-6 text-white">{info.getValue() as string}</div>
@@ -49,23 +52,33 @@ const columns: ColumnDef<MoonrakerHistoryJob>[] = [
 		},
 	},
 	{
-		header: 'Started at',
+		header: () => <span>Started at</span>,
+		sortDescFirst: true,
+		enableSorting: true,
 		accessorKey: 'start_time',
-		cell: (info) => (
-			<div className="flex min-w-0 gap-x-3">
-				<div className="text-sm leading-6 text-zinc-400">
-					{DateTime.fromSeconds(info.getValue<MoonrakerHistoryJob['start_time']>()).toRelativeCalendar()}
+		cell: (info) => {
+			const time = DateTime.fromSeconds(info.getValue<MoonrakerHistoryJob['start_time']>()).setLocale('en-GB');
+			return (
+				<div className="flex min-w-0 gap-x-3">
+					<div
+						className="text-sm leading-6 text-zinc-400"
+						title={time.toLocaleString({ dateStyle: 'full', timeStyle: 'medium' })}
+					>
+						{time.toRelative()}
+					</div>
 				</div>
-			</div>
-		),
+			);
+		},
 	},
 	{
-		header: 'Status',
+		header: () => <span>Status</span>,
+		size: 200,
+		enableSorting: false,
 		accessorKey: 'status',
 		cell: (info) => {
 			const status = info.getValue<MoonrakerHistoryJob['status']>();
 			return (
-				<div className="@screen-sm:justify-start flex items-center justify-end gap-x-2">
+				<div className="flex min-w-0 items-center justify-end gap-x-2  @screen-sm:justify-start">
 					<div
 						className={twMerge(
 							status === 'completed' ? 'bg-green-400/10 text-green-400' : 'bg-rose-400/10 text-rose-400',
@@ -74,88 +87,103 @@ const columns: ColumnDef<MoonrakerHistoryJob>[] = [
 					>
 						<div className="h-1.5 w-1.5 rounded-full bg-current" />
 					</div>
-					<div className="@screen-sm:block hidden text-white">{status}</div>
+					<div
+						className={twMerge(
+							'truncate capitalize text-white',
+							status === 'completed' ? 'text-green-100/80' : ' text-rose-100/80',
+						)}
+					>
+						{status.replace('_', ' ')}
+					</div>
 				</div>
 			);
 		},
 	},
 	{
-		header: 'Duration',
+		header: () => <span>Duration</span>,
 		accessorKey: 'print_duration',
+		enableSorting: false,
 		cell: (info) => (
-			<div className="flex gap-x-3">
-				<div className="text-sm leading-6 text-zinc-400">
-					{Duration.fromObject({ hours: info.getValue<number>() / 60 / 60 })
-						.normalize()
-						.shiftTo(
-							...(['minutes', info.getValue<number>() / 60 / 60 > 1 ? 'hours' : null].filter(
-								Boolean,
-							) as (keyof DurationLikeObject)[]),
-						)
-						.toHuman({ unitDisplay: 'short', listStyle: 'narrow', maximumFractionDigits: 0 })}
-				</div>
-				<span className="inline-flex items-center rounded-md bg-zinc-400/10 px-2 py-1 text-xs font-medium text-zinc-400 ring-1 ring-inset ring-zinc-400/20">
-					{info.row.original.metadata.slicer}
-				</span>
+			<div className="text-sm leading-6 text-zinc-400">
+				{Duration.fromObject({ hours: info.getValue<number>() / 60 / 60 }, { locale: 'en-GB' })
+					.normalize()
+					.shiftTo(
+						...(['minutes', info.getValue<number>() / 60 / 60 > 1 ? 'hours' : null].filter(
+							Boolean,
+						) as (keyof DurationLikeObject)[]),
+					)
+					.toHuman({ unitDisplay: 'short', listStyle: 'narrow', maximumFractionDigits: 0 })}
 			</div>
 		),
 	},
 	{
-		header: 'Filament used',
+		header: () => <span>Slicer</span>,
+		accessorKey: 'slicer',
+		enableSorting: false,
+		cell: (info) => {
+			return (
+				<span className="inline-flex items-center rounded-md bg-zinc-400/10 px-2 py-1 text-xs font-medium text-zinc-400 ring-1 ring-inset ring-zinc-400/20">
+					{info.row.original.metadata.slicer}
+				</span>
+			);
+		},
+	},
+	{
+		header: () => <span>Filament used</span>,
 		accessorKey: 'filament_used',
+		enableSorting: false,
 		cell: (info) => {
 			const filamentUsed = info.getValue<MoonrakerHistoryJob['filament_used']>() / 1000;
-			return `${filamentUsed.toFixed(2)} meters`;
+			return <div className="text-sm leading-6 text-zinc-400">{filamentUsed.toFixed(2)} meters</div>;
 		},
 	},
 ];
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 1;
+
+const getColumnSizeClass = (key: string) => {
+	const big = ['filament_used', 'slicer'].includes(key);
+	const medium = ['status', 'print_duration'].includes(key);
+	const small = [''].includes(key);
+	const shrink = ['filename'].includes(key);
+	return twMerge(
+		small && '@screen-sm:flex hidden',
+		medium && '@screen-md:flex hidden',
+		big && '@screen-xl:flex hidden',
+		!small && !medium && !big && 'flex',
+		shrink && 'flex-shrink flex-grow-[5]',
+	);
+};
 
 export const HistoryTable = () => {
 	const moon = useMoonraker();
-	const tableContainerRef = useRef<HTMLDivElement>(null);
 	const [sorting, setSorting] = useState<SortingState>([{ id: 'start_time', desc: true }]);
-	const { data, fetchNextPage, isFetching, isLoading } = useInfiniteQuery<MoonrakerHistoryListResponse>({
-		queryKey: [
-			'history',
-			sorting, //refetch when sorting changes
-		],
-		queryFn: async ({ pageParam = 0 }) => {
-			const start = (pageParam as number) * PAGE_SIZE;
-			const fetchedData = await moon.query('server.history.list', {
-				limit: PAGE_SIZE,
-				offset: start,
-				order: sorting[0].desc ? 'desc' : 'asc',
-			}); //pretend api call
-			return fetchedData;
-		},
-		getNextPageParam: (_lastGroup, groups) => groups.length,
-		refetchOnWindowFocus: false,
-	});
+	const tableRef = useRef<HTMLTableElement>(null);
+	const { data, fetchNextPage, isFetching, isFetchingNextPage, hasNextPage, isLoading } =
+		useInfiniteQuery<MoonrakerHistoryListResponse>({
+			queryKey: [
+				'history',
+				sorting, //refetch when sorting changes
+			],
+			queryFn: async ({ pageParam = 0 }) => {
+				const start = (pageParam as number) * PAGE_SIZE;
+				const fetchedData = await moon.query('server.history.list', {
+					limit: PAGE_SIZE,
+					start: start,
+					order: sorting[0].desc ? 'desc' : 'asc',
+				}); //pretend api call
+				return fetchedData;
+			},
+			getNextPageParam: (lastPage, allPages) => {
+				return lastPage.count <= allPages.length ? undefined : allPages.length;
+			},
+			keepPreviousData: true,
+			refetchOnWindowFocus: false,
+		});
 	//flatten the array of arrays from the useInfiniteQuery hook
 	const flatData = useMemo(() => data?.pages?.flatMap((page) => page.jobs) ?? [], [data]);
 	const totalDBRowCount = data?.pages?.[0]?.count ?? 0;
 	const totalFetched = flatData.length;
-
-	//called on scroll and possibly on mount to fetch more data as the user scrolls and reaches bottom of table
-	const fetchMoreOnBottomReached = useCallback(
-		(containerRefElement?: HTMLDivElement | null) => {
-			if (containerRefElement) {
-				const { scrollHeight, scrollTop, clientHeight } = containerRefElement;
-				//once the user has scrolled within 500px of the bottom of the table, fetch more data if we can
-				if (scrollHeight - scrollTop - clientHeight < 500 && !isFetching && totalFetched < totalDBRowCount) {
-					fetchNextPage();
-				}
-			}
-		},
-		[fetchNextPage, isFetching, totalFetched, totalDBRowCount],
-	);
-
-	//a check on mount and after a fetch to see if the table is already scrolled to the bottom and immediately needs to fetch more data
-	useEffect(() => {
-		fetchMoreOnBottomReached(tableContainerRef.current);
-	}, [fetchMoreOnBottomReached]);
 
 	const table = useReactTable({
 		data: flatData,
@@ -185,122 +213,128 @@ export const HistoryTable = () => {
 
 	const { rows } = table.getRowModel();
 
-	const rowVirtualizer = useVirtualizer({
+	const rowVirtualizer = useWindowVirtualizer({
 		count: rows.length,
-		estimateSize: () => 42, //estimate row height for accurate scrollbar dragging
-		getScrollElement: () => tableContainerRef.current,
+		estimateSize: () => 64, //estimate row height for accurate scrollbar dragging
 		//measure dynamic row height, except in firefox because it measures table border height incorrectly
 		measureElement:
 			typeof window !== 'undefined' && navigator.userAgent.indexOf('Firefox') === -1
 				? (element) => element?.getBoundingClientRect().height
 				: undefined,
 		overscan: 5,
+		scrollMargin: tableRef.current?.offsetTop ?? 0,
 	});
 
+	useEffect(() => {
+		const [lastItem] = [...rowVirtualizer.getVirtualItems()].reverse();
+
+		if (!lastItem) {
+			return;
+		}
+		if (lastItem.index >= totalFetched - 1 && hasNextPage && !isFetchingNextPage) {
+			fetchNextPage();
+		}
+	}, [hasNextPage, fetchNextPage, totalFetched, isFetchingNextPage, rowVirtualizer]);
+
 	if (isLoading) {
-		return <>Loading...</>;
+		return (
+			<div className="mt-6 flex h-48 w-full flex-col items-center justify-center space-y-2">
+				<Spinner />
+				<h3 className="animate-pulse font-normal text-zinc-100">Loading print history...</h3>
+			</div>
+		);
 	}
 	return (
-		<div
-			className="container"
-			onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}
-			ref={tableContainerRef}
-			style={{
-				overflow: 'auto', //our scrollable table container
-				position: 'relative', //needed for sticky header
-				height: '600px', //should be a fixed height
-			}}
+		<table
+			className="mt-6 w-full whitespace-nowrap text-left"
+			style={{ display: 'grid', height: `${rowVirtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}
+			ref={tableRef}
 		>
-			<table className="mt-6 w-full whitespace-nowrap text-left" style={{ display: 'grid' }}>
-				{/* <colgroup>
-				<col className="@screen-sm:w-4/12 w-full" />
-				<col className="@screen-lg:w-2/12" />
-				<col className="@screen-lg:w-2/12" />
-				<col className="@screen-lg:w-3/12" />
-				<col className="@screen-lg:w-1/12" />
-			</colgroup> */}
-				<thead
-					className="border-b border-white/10 text-sm leading-6 text-white"
-					style={{
-						display: 'grid',
-						position: 'sticky',
-						top: 0,
-						zIndex: 1,
-					}}
-				>
-					{table.getHeaderGroups().map((headerGroup) => (
-						<tr key={headerGroup.id} style={{ display: 'flex', width: '100%' }}>
-							{headerGroup.headers.map((header) => {
-								return (
-									<th
-										scope="col"
-										className="@screen-sm:px-6 @screen-lg:px-8 py-2 font-semibold"
-										key={header.id}
-										style={{
-											display: 'flex',
-											width: header.getSize(),
+			<thead
+				className="border-b border-white/10 bg-[rgb(18,18,20)] text-sm leading-6 text-white"
+				style={{
+					display: 'grid',
+					position: 'sticky',
+					top: 0,
+					zIndex: 1,
+				}}
+			>
+				{table.getHeaderGroups().map((headerGroup) => (
+					<tr key={headerGroup.id} style={{ display: 'flex', width: '100%' }}>
+						{headerGroup.headers.map((header) => {
+							return (
+								<th
+									scope="col"
+									className={twMerge(
+										'flex flex-grow truncate px-4 py-2 font-semibold @screen-sm:px-6 @screen-lg:px-8',
+										getColumnSizeClass(header.column.id),
+									)}
+									key={header.id}
+									style={{
+										width: header.getSize(),
+									}}
+								>
+									<div
+										{...{
+											className: twMerge(header.column.getCanSort() && 'cursor-pointer select-none', 'space-x-2 flex'),
+											onClick: header.column.getToggleSortingHandler(),
 										}}
 									>
-										<div
-											{...{
-												className: header.column.getCanSort() ? 'cursor-pointer select-none' : '',
-												onClick: header.column.getToggleSortingHandler(),
-											}}
-										>
-											{flexRender(header.column.columnDef.header, header.getContext())}
-											{{
-												asc: ' 🔼',
-												desc: ' 🔽',
-											}[header.column.getIsSorted() as string] ?? null}
-										</div>
-									</th>
+										{flexRender(header.column.columnDef.header, header.getContext())}
+										{{
+											asc: <ChevronUpIcon className="h-4 w-4" />,
+											desc: <ChevronDownIcon className="h-4 w-4" />,
+										}[header.column.getIsSorted() as string] ??
+											(header.column.getCanSort() ? <ChevronUpDownIcon className="h-4 w-4" /> : null)}
+									</div>
+								</th>
+							);
+						})}
+					</tr>
+				))}
+			</thead>
+			<tbody
+				className="divide-y divide-white/5"
+				style={{
+					display: 'grid',
+					height: `${rowVirtualizer.getTotalSize()}px`, //tells scrollbar how big the table is
+					position: 'relative', //needed for absolute positioning of rows
+				}}
+			>
+				{rowVirtualizer.getVirtualItems().map((virtualRow) => {
+					const row = rows[virtualRow.index] as Row<MoonrakerHistoryJob>;
+					return (
+						<tr
+							data-index={virtualRow.index} //needed for dynamic row height measurement
+							ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
+							key={row.id}
+							style={{
+								display: 'flex',
+								position: 'absolute',
+								transform: `translateY(${virtualRow.start - rowVirtualizer.options.scrollMargin}px)`, //this should always be a `style` as it changes on scroll
+								width: '100%',
+							}}
+						>
+							{row.getVisibleCells().map((cell) => {
+								return (
+									<td
+										className={twMerge(
+											'flex-grow p-4 @screen-sm:px-6 @screen-lg:px-8',
+											getColumnSizeClass(cell.column.id),
+										)}
+										key={cell.id}
+										style={{
+											width: cell.column.getSize(),
+										}}
+									>
+										{flexRender(cell.column.columnDef.cell, cell.getContext())}
+									</td>
 								);
 							})}
 						</tr>
-					))}
-				</thead>
-				<tbody
-					className="divide-y divide-white/5"
-					style={{
-						display: 'grid',
-						height: `${rowVirtualizer.getTotalSize()}px`, //tells scrollbar how big the table is
-						position: 'relative', //needed for absolute positioning of rows
-					}}
-				>
-					{rowVirtualizer.getVirtualItems().map((virtualRow) => {
-						const row = rows[virtualRow.index] as Row<MoonrakerHistoryJob>;
-						console.log(row);
-						return (
-							<tr
-								data-index={virtualRow.index} //needed for dynamic row height measurement
-								ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
-								key={row.id}
-								style={{
-									display: 'flex',
-									position: 'absolute',
-									transform: `translateY(${virtualRow.start}px)`, //this should always be a `style` as it changes on scroll
-									width: '100%',
-								}}
-							>
-								{row.getVisibleCells().map((cell) => {
-									return (
-										<td
-											className="@screen-sm:px-6 @screen-lg:px-8 py-4"
-											key={cell.id}
-											style={{
-												display: 'flex',
-												width: cell.column.getSize(),
-											}}
-										>
-											{flexRender(cell.column.columnDef.cell, cell.getContext())}
-										</td>
-									);
-								})}
-							</tr>
-						);
-					})}
-				</tbody>
-			</table>
-		</div>
+					);
+				})}
+			</tbody>
+		</table>
 	);
 };
