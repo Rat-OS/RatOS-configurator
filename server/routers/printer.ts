@@ -45,7 +45,7 @@ import { ToolheadHelper } from '../../helpers/toolhead';
 import { PrinterAxis } from '../../zods/motion';
 import { ServerCache } from '../helpers/cache';
 import { klipperRestart } from '../helpers/klipper';
-import { access, copyFile, readFile, writeFile } from 'fs/promises';
+import { access, copyFile, readFile, unlink, writeFile } from 'fs/promises';
 import { exec } from 'child_process';
 import objectHash from 'object-hash';
 import { getDefaultNozzle } from '../../data/nozzles';
@@ -342,6 +342,8 @@ export const getFilesToWrite = async (
 		});
 };
 
+const BACKUPS_TO_KEEP = 5;
+
 const generateKlipperConfiguration = async <T extends boolean>(
 	config: PrinterConfiguration,
 	overwriteFiles?: string[],
@@ -365,7 +367,10 @@ const generateKlipperConfiguration = async <T extends boolean>(
 						);
 						// prune backups
 						const backups = await glob(
-							path.join(environment.KLIPPER_CONFIG_PATH, `${file.fileName.split('.').slice(0, -1).join('.')}*.cfg`),
+							path.join(
+								environment.KLIPPER_CONFIG_PATH,
+								`${file.fileName.split('.').slice(0, -1).join('.')}-+([0-9])_+([0-9]).cfg`,
+							),
 						);
 						if (backups.length > 0) {
 							const sortedBackups = backups.sort((a, b) => {
@@ -373,7 +378,18 @@ const generateKlipperConfiguration = async <T extends boolean>(
 								const bDate = new Date(b.split('-').slice(-1)[0].split('.cfg')[0]);
 								return aDate.getTime() - bDate.getTime();
 							});
-							await Promise.all(sortedBackups.slice(0, -5).map((b) => console.log('pruning', b)));
+							if (sortedBackups.length > BACKUPS_TO_KEEP) {
+								// Keep last BACKUPS_TO_KEEP backups, remove the rest
+								await Promise.all(
+									sortedBackups
+										.reverse()
+										.slice(0, sortedBackups.length - BACKUPS_TO_KEEP)
+										.map((b) => {
+											getLogger().info(`Removing old backup: ${b}`);
+											return unlink(b);
+										}),
+								);
+							}
 						}
 					} catch (e) {
 						return { fileName: file.fileName, action: 'error', err: e };

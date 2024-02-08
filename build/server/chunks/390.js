@@ -2212,6 +2212,7 @@ const getFilesToWrite = async (config, overwriteFiles)=>{
         return fileWithExists;
     });
 };
+const BACKUPS_TO_KEEP = 5;
 const generateKlipperConfiguration = async (config, overwriteFiles, skipFiles)=>{
     const environment = schema.serverSchema.parse(process.env);
     const filesToWrite = await getFilesToWrite(config, overwriteFiles);
@@ -2226,14 +2227,20 @@ const generateKlipperConfiguration = async (config, overwriteFiles, skipFiles)=>
                 try {
                     await (0,promises_.copyFile)(external_path_default().join(environment.KLIPPER_CONFIG_PATH, file.fileName), external_path_default().join(environment.KLIPPER_CONFIG_PATH, backupFilename));
                     // prune backups
-                    const backups = await (0,external_glob_.glob)(external_path_default().join(environment.KLIPPER_CONFIG_PATH, `${file.fileName.split(".").slice(0, -1).join(".")}*.cfg`));
+                    const backups = await (0,external_glob_.glob)(external_path_default().join(environment.KLIPPER_CONFIG_PATH, `${file.fileName.split(".").slice(0, -1).join(".")}-+([0-9])_+([0-9]).cfg`));
                     if (backups.length > 0) {
                         const sortedBackups = backups.sort((a, b)=>{
                             const aDate = new Date(a.split("-").slice(-1)[0].split(".cfg")[0]);
                             const bDate = new Date(b.split("-").slice(-1)[0].split(".cfg")[0]);
                             return aDate.getTime() - bDate.getTime();
                         });
-                        await Promise.all(sortedBackups.slice(0, -5).map((b)=>console.log("pruning", b)));
+                        if (sortedBackups.length > BACKUPS_TO_KEEP) {
+                            // Keep last BACKUPS_TO_KEEP backups, remove the rest
+                            await Promise.all(sortedBackups.reverse().slice(0, sortedBackups.length - BACKUPS_TO_KEEP).map((b)=>{
+                                (0,logger.getLogger)().info(`Removing old backup: ${b}`);
+                                return (0,promises_.unlink)(b);
+                            }));
+                        }
                     }
                 } catch (e) {
                     return {
