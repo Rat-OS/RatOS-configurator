@@ -55,6 +55,7 @@ const columns: ColumnDef<MoonrakerHistoryJob>[] = [
 		header: () => <span>Started at</span>,
 		sortDescFirst: true,
 		enableSorting: true,
+		enableMultiSort: false,
 		accessorKey: 'start_time',
 		cell: (info) => {
 			const time = DateTime.fromSeconds(info.getValue<MoonrakerHistoryJob['start_time']>()).setLocale('en-GB');
@@ -139,7 +140,7 @@ const columns: ColumnDef<MoonrakerHistoryJob>[] = [
 	},
 ];
 
-const PAGE_SIZE = 1;
+const PAGE_SIZE = 25;
 
 const getColumnSizeClass = (key: string) => {
 	const big = ['filament_used', 'slicer'].includes(key);
@@ -182,7 +183,6 @@ export const HistoryTable = () => {
 		});
 	//flatten the array of arrays from the useInfiniteQuery hook
 	const flatData = useMemo(() => data?.pages?.flatMap((page) => page.jobs) ?? [], [data]);
-	const totalDBRowCount = data?.pages?.[0]?.count ?? 0;
 	const totalFetched = flatData.length;
 
 	const table = useReactTable({
@@ -276,7 +276,10 @@ export const HistoryTable = () => {
 								>
 									<div
 										{...{
-											className: twMerge(header.column.getCanSort() && 'cursor-pointer select-none', 'space-x-2 flex'),
+											className: twMerge(
+												header.column.getCanSort() && 'cursor-pointer select-none',
+												'space-x-2 flex items-center',
+											),
 											onClick: header.column.getToggleSortingHandler(),
 										}}
 									>

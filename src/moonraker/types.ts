@@ -43,7 +43,49 @@ type CommitCount = Nominal<string, 'commits'>;
 type CommitHash = Nominal<string, 'HEAD'>;
 type UnixTimestamp = Nominal<number, 'timestamp'>;
 
-export type MoonrakerMethods = {
+export type PrinterObjectQueries = {
+	print_stats: MoonrakerMethod<
+		{
+			state: 'paused' | 'printing' | 'complete' | 'error' | 'canceled' | 'standby';
+		},
+		void
+	>;
+	toolhead: MoonrakerMethod<
+		{
+			axis_maximum: {
+				x: number;
+				y: number;
+			};
+		},
+		void
+	>;
+};
+
+// Moonraker Printer Object Types
+export type PrinterObjectKeys = DotNestedKeyLeafs<PrinterObjectQueries>;
+export type PrinterObjectParams<K extends PrinterObjectKeys> = NestedObjectType<PrinterObjectQueries>[K]['params'];
+export type PrinterObjectResult<K extends PrinterObjectKeys> = NestedObjectType<PrinterObjectQueries>[K]['result'];
+export type PrinterObjectsMoonrakerQueryParams = { [K in PrinterObjectKeys]: keyof PrinterObjectResult<K> | null };
+
+export type MoonrakerMutations = {
+	machine: {
+		shutdown: MoonrakerMethod<void, void>;
+	};
+	server: {
+		database: {
+			post_item: MoonrakerMethod<
+				MoonrakerDBItemResponse,
+				{
+					key: unknown;
+					namespace: MoonrakerNamespaces;
+					value: unknown;
+				}
+			>;
+		};
+	};
+};
+
+export type MoonrakerQueries = {
 	server: {
 		database: {
 			get_item: MoonrakerMethod<
@@ -51,14 +93,6 @@ export type MoonrakerMethods = {
 				{
 					key: unknown;
 					namespace: MoonrakerNamespaces;
-				}
-			>;
-			post_item: MoonrakerMethod<
-				MoonrakerDBItemResponse,
-				{
-					key: unknown;
-					namespace: MoonrakerNamespaces;
-					value: unknown;
 				}
 			>;
 		};
@@ -99,22 +133,40 @@ export type MoonrakerMethods = {
 			void
 		>;
 	};
-	machine: {
-		shutdown: MoonrakerMethod<void, void>;
+	printer: {
+		objects: {
+			query: MoonrakerMethod<{ status: unknown; eventtime: number }, { objects: PrinterObjectsMoonrakerQueryParams }>;
+		};
 	};
 };
 
-export type MoonrakerMethodKeys = DotNestedKeyLeafs<MoonrakerMethods>;
-export type MoonrakerMethodParams<K extends MoonrakerMethodKeys> = NestedObjectType<MoonrakerMethods>[K]['params'];
-export type MoonrakerMethodResult<K extends MoonrakerMethodKeys> = NestedObjectType<MoonrakerMethods>[K]['result'];
+// Moonraker Query Types
+export type MoonrakerQueryKeys = DotNestedKeyLeafs<MoonrakerQueries>;
+export type MoonrakerQueryParams<K extends MoonrakerQueryKeys> = NestedObjectType<MoonrakerQueries>[K]['params'];
+export type MoonrakerQueryResult<K extends MoonrakerQueryKeys> = NestedObjectType<MoonrakerQueries>[K]['result'];
 
 export type MoonrakerQueryFn = <
-	K extends MoonrakerMethodKeys = MoonrakerMethodKeys,
-	P extends MoonrakerMethodParams<K> = MoonrakerMethodParams<K>,
+	K extends MoonrakerQueryKeys = MoonrakerQueryKeys,
+	P extends MoonrakerQueryParams<K> = MoonrakerQueryParams<K>,
 >(
 	...args: P extends void ? [K] : [K, P]
-) => Promise<MoonrakerMethodResult<K>>;
+) => Promise<MoonrakerQueryResult<K>>;
 
+// Moonraker Mutation Types
+export type MoonrakerMutationKeys = DotNestedKeyLeafs<MoonrakerMutations>;
+export type MoonrakerMutationParams<K extends MoonrakerMutationKeys> =
+	NestedObjectType<MoonrakerMutations>[K]['params'];
+export type MoonrakerMutationResult<K extends MoonrakerMutationKeys> =
+	NestedObjectType<MoonrakerMutations>[K]['result'];
+
+export type MoonrakerMutationFn = <
+	K extends MoonrakerMutationKeys = MoonrakerMutationKeys,
+	P extends MoonrakerMutationParams<K> = MoonrakerMutationParams<K>,
+>(
+	...args: P extends void ? [K] : [K, P]
+) => Promise<MoonrakerMutationResult<K>>;
+
+// Moonraker Database Types
 export type MoonrakerNamespaces = keyof MoonrakerDB;
 export type MoonrakerNamespaceKeys<N extends MoonrakerNamespaces> = DotNestedKeys<MoonrakerDB[N]>;
 

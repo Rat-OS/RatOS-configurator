@@ -6,7 +6,7 @@ import { Badge } from '../components/common/badge';
 import { useMainsailQuery } from '../hooks/useMainsail';
 import { trpc } from '../utils/trpc';
 import { HistoryTable } from './historyTable';
-import { useMoonrakerQuery } from '../moonraker/hooks';
+import { useMoonrakerQuery, usePrinterObjectQuery } from '../moonraker/hooks';
 import { useMemo } from 'react';
 import { Duration, DurationLikeObject } from 'luxon';
 
@@ -20,6 +20,8 @@ export default function Page() {
 	const savedPrinterName = trpc.printer.getSavedPrinterName.useQuery(undefined, { initialData: 'Loading...' });
 	const jobTotals = useMoonrakerQuery('server.history.totals');
 	const klippyState = useMoonrakerQuery('server.info');
+	const printerStateQuery = usePrinterObjectQuery('print_stats');
+	const printerState = printerStateQuery.data?.print_stats.state;
 	const stats = useMemo(() => {
 		if (jobTotals.data == null) {
 			return [
@@ -134,8 +136,25 @@ export default function Page() {
 								</h1>
 							</div>
 						</div>
-						<Badge className="order-first @screen-sm:order-none" color="yellow">
-							Printing
+						<Badge
+							className="order-first capitalize @screen-sm:order-none"
+							color={
+								printerState == 'canceled'
+									? 'pink'
+									: printerState == 'complete'
+										? 'green'
+										: printerState == 'error'
+											? 'red'
+											: printerState === 'paused'
+												? 'sky'
+												: printerState === 'printing'
+													? 'yellow'
+													: printerState === 'standby'
+														? 'brand'
+														: 'gray'
+							}
+						>
+							{printerState ?? 'Loading...'}
 						</Badge>
 					</div>
 				</div>

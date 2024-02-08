@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { UseMutationOptions, UseQueryOptions, useMutation, useQuery } from '@tanstack/react-query';
 import useWebSocket from 'react-use-websocket';
 import { migrateToLatest } from './migrations';
-import {
+import type {
 	InFlightRequestCallbacks,
 	InFlightRequestTimeouts,
 	MoonrakerResponse,
@@ -15,9 +15,16 @@ import {
 	MoonrakerNamespaceKeys,
 	MoonrakerDBValue,
 	MoonrakerQueryFn,
-	MoonrakerMethodKeys,
-	MoonrakerMethodParams,
-	MoonrakerMethodResult,
+	MoonrakerQueryKeys,
+	MoonrakerQueryParams,
+	MoonrakerQueryResult,
+	MoonrakerMutationKeys,
+	MoonrakerMutationParams,
+	MoonrakerMutationResult,
+	MoonrakerMutationFn,
+	PrinterObjectKeys,
+	PrinterObjectsMoonrakerQueryParams,
+	PrinterObjectResult,
 } from './types';
 import { getHost } from '../helpers/util';
 
@@ -84,7 +91,7 @@ export const useMoonraker = () => {
 		[whenReady],
 	);
 
-	const moonrakerQuery: MoonrakerQueryFn = useCallback(
+	const moonrakerQuery: MoonrakerQueryFn & MoonrakerMutationFn = useCallback(
 		async <Response = any,>(method: string, params: any = {}) => {
 			await isReady();
 			return new Promise<Response>((resolve, reject) => {
@@ -208,12 +215,39 @@ export const useNamespacedItemQuery = <
 };
 
 export const useMoonrakerQuery = <
-	K extends MoonrakerMethodKeys = MoonrakerMethodKeys,
-	P extends MoonrakerMethodParams<K> = MoonrakerMethodParams<K>,
+	K extends MoonrakerQueryKeys = MoonrakerQueryKeys,
+	P extends MoonrakerQueryParams<K> = MoonrakerQueryParams<K>,
 	O extends Omit<
-		UseQueryOptions<MoonrakerMethodResult<K>, unknown, MoonrakerMethodResult<K>, K[]>,
+		UseQueryOptions<MoonrakerQueryResult<K>, unknown, MoonrakerQueryResult<K>, K[]>,
 		'queryKey' | 'queryFn'
-	> = Omit<UseQueryOptions<MoonrakerMethodResult<K>, unknown, MoonrakerMethodResult<K>, K[]>, 'queryKey' | 'queryFn'>,
+	> = Omit<UseQueryOptions<MoonrakerQueryResult<K>, unknown, MoonrakerQueryResult<K>, K[]>, 'queryKey' | 'queryFn'>,
+>(
+	...args: P extends void ? [K, O?] : [K, P, O?]
+) => {
+	const { query } = useMoonraker();
+	const options = args.length === 3 ? (args[2] as O) : (args[1] as O);
+	const params = args.length === 3 ? args[1] : undefined;
+	const key = args[0];
+	const passed = (args.length === 3 ? [key, params] : [key]) as P extends void ? [K] : [K, P];
+	return useQuery({
+		...(options ?? {}),
+		queryKey: [args[0]],
+		queryFn: async () => {
+			return query(...passed) as Promise<MoonrakerQueryResult<K>>;
+		},
+	});
+};
+
+export const useMoonrakerMutation = <
+	K extends MoonrakerMutationKeys = MoonrakerMutationKeys,
+	P extends MoonrakerMutationParams<K> = MoonrakerMutationParams<K>,
+	O extends Omit<
+		UseMutationOptions<MoonrakerMutationResult<K>, unknown, MoonrakerMutationResult<K>, K[]>,
+		'queryKey' | 'queryFn'
+	> = Omit<
+		UseMutationOptions<MoonrakerMutationResult<K>, unknown, MoonrakerMutationResult<K>, K[]>,
+		'queryKey' | 'queryFn'
+	>,
 >(
 	...args: P extends void ? [K, O?] : [K, P, O?]
 ) => {
@@ -222,11 +256,24 @@ export const useMoonrakerQuery = <
 	const params = args.length === 3 ? args[1] : undefined;
 	const key = args[0];
 	const passed = (args.length === 3 ? [key, params] : [key]) as P extends void ? [K] : [K, P];
-	return useQuery({
+	return useMutation({
 		...options,
-		queryKey: [args[0]],
+		mutationKey: [args[0]],
+		mutationFn: async () => {
+			return query(...passed) as Promise<MoonrakerMutationResult<K>>;
+		},
+	});
+};
+
+export const usePrinterObjectQuery = <TArgs extends [PrinterObjectKeys, ...PrinterObjectKeys[]]>(...args: TArgs) => {
+	const { query } = useMoonraker();
+	return useQuery({
+		queryKey: args,
 		queryFn: async () => {
-			return query(...passed) as Promise<MoonrakerMethodResult<K>>;
+			const objects = Object.fromEntries(args.map((key) => [key, null])) as PrinterObjectsMoonrakerQueryParams;
+			return (await query('printer.objects.query', { objects })).status as Promise<{
+				[K in TArgs[number]]: PrinterObjectResult<K>;
+			}>;
 		},
 	});
 };
