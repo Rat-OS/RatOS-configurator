@@ -7,6 +7,7 @@ import { PrinterAxis } from '../zods/motion';
 import { LoadablePrinterToolheadsState, PrinterToolheadState, PrinterToolheadsState } from '../recoil/toolhead';
 import { BaseToolheadConfiguration, ToolheadConfiguration, ToolNumber, ToolOrAxis } from '../zods/toolhead';
 import { defaultXEndstop } from '../data/endstops';
+import { hotendFanOptions, partFanOptions } from '../data/fans';
 
 export const useToolhead = (toolOrAxis: ToolOrAxis | PrinterAxis | undefined) => {
 	const toolheadConfigs = useRecoilValue(PrinterToolheadsState);
@@ -81,8 +82,23 @@ export const useToolheadConfiguration = <T extends boolean = true>(
 					}
 				}
 				if (th.toolboard?.id != current.getToolboard()?.id) {
+					// Reset toolboard dependent options
 					if (th.toolboard == null && th.xEndstop.id === 'endstop-toolboard') {
 						th.xEndstop = defaultXEndstop;
+					}
+					if (th.partFan?.id.endsWith('-toolboard')) {
+						const newFan = partFanOptions(null, th).shift();
+						if (newFan == null) {
+							throw new Error(`No part fan options available for current T${th.toolNumber} configuration`);
+						}
+						th.partFan = newFan;
+					}
+					if (th.hotendFan?.id.endsWith('-toolboard')) {
+						const newFan = hotendFanOptions(null, th).shift();
+						if (newFan == null) {
+							throw new Error(`No hotend fan options available for current T${th.toolNumber} configuration`);
+						}
+						th.hotendFan = newFan;
 					}
 				}
 				if (th.thermistor != current.getThermistor()) {

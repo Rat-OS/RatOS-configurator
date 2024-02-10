@@ -30,19 +30,34 @@ export const migrations: Migration[] = [
 					return { result: 'Nothing to migrate' };
 				}
 				for await (const [key, value] of Object.entries(data.result.value)) {
-					const parsed = JSON.parse(value as any);
-					console.log('Migrating', key, 'from', value, 'to', parsed);
-					await window.fetch(`http://${host}/server/database/item`, {
-						method: 'POST',
-						headers: {
-							'Content-Type': 'application/json',
-						},
-						body: JSON.stringify({
-							namespace: 'RatOS',
-							key,
-							value: parsed,
-						}),
-					});
+					try {
+						const parsed = JSON.parse(value as any);
+						console.log('Migrating', key, 'from', value, 'to', parsed);
+						await window.fetch(`http://${host}/server/database/item`, {
+							method: 'POST',
+							headers: {
+								'Content-Type': 'application/json',
+							},
+							body: JSON.stringify({
+								namespace: 'RatOS',
+								key,
+								value: parsed,
+							}),
+						});
+					} catch (e) {
+						console.error('Error migrating', key, value, 'clearing key');
+						await window.fetch(`http://${host}/server/database/item?namespace=RatOS&key=${encodeURIComponent(key)}`, {
+							method: 'DELETE',
+							headers: {
+								'Content-Type': 'application/json',
+							},
+							body: JSON.stringify({
+								namespace: 'RatOS',
+								key,
+							}),
+						});
+						continue;
+					}
 				}
 				return { result: `Succesfully decoded ${result.length} keys.\n${result.join('\n')}` };
 			} else {

@@ -5,6 +5,7 @@ import { MCUStepScreenProps, SelectableBoard } from '../mcu-preparation';
 import { Button } from '../../common/button';
 import { Badge } from '../../common/badge';
 import { BoardWithDetectionStatus } from '../../../zods/boards';
+import { PrinterAxis } from '../../../zods/motion';
 
 export const MCUPicker: React.FC<MCUStepScreenProps> = (props) => {
 	const { toolhead, skipSteps, setSelectedBoard, selectedControlboard, selectedToolboard, selectedPrinter, cards } =
@@ -86,7 +87,7 @@ export const MCUPicker: React.FC<MCUStepScreenProps> = (props) => {
 						<h3 className="text-lg font-medium leading-6 text-zinc-900 dark:text-zinc-100">{props.name}</h3>
 						<p className="mt-2 max-w-4xl text-sm text-zinc-500 dark:text-zinc-400">{props.description}</p>
 					</div>
-					{toolhead && selectedToolboard != null && (
+					{toolhead && toolhead.getMotionAxis() === PrinterAxis.x && selectedToolboard != null && (
 						<div>
 							<Button onClick={() => setSelectedBoard(null)} intent="danger">
 								Clear selection

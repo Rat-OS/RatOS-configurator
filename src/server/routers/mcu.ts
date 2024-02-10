@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { ZodError, z } from 'zod';
 import fs, { existsSync, readFileSync } from 'fs';
 import { exec } from 'child_process';
 import { promisify } from 'util';
@@ -138,15 +138,37 @@ const mcuMiddleware = middleware(async ({ ctx, next, meta, rawInput }) => {
 	const parsedInput = inputSchema.safeParse(rawInput);
 	try {
 		boards = await getBoards();
-		toolhead =
-			parsedInput.success && parsedInput.data.toolhead
-				? new ToolheadHelper(await deserializeToolheadConfiguration(parsedInput.data.toolhead, {}, boards))
-				: undefined;
-		boards = await updateDetectionStatus(boards, toolhead);
+		try {
+			toolhead =
+				parsedInput.success && parsedInput.data.toolhead
+					? new ToolheadHelper(await deserializeToolheadConfiguration(parsedInput.data.toolhead, {}, boards))
+					: undefined;
+			boards = await updateDetectionStatus(boards, toolhead);
+		} catch (e) {
+			if (e instanceof ZodError) {
+				throw new TRPCError({
+					code: 'INTERNAL_SERVER_ERROR',
+					message: `Toolhead configuration cannot be deserialized, please check the configuration.\n${Object.entries(
+						e.flatten().fieldErrors,
+					)
+						.map(([k, v]) => `${k}: ${v}`)
+						.join('\n')}`,
+					cause: e,
+				});
+			}
+			throw new TRPCError({
+				code: 'INTERNAL_SERVER_ERROR',
+				message: `Toolhead configuration cannot be deserialized, please check the configuration.`,
+				cause: e,
+			});
+		}
 		if (meta?.includeHost !== true) {
 			boards = getBoardsWithoutHost(boards);
 		}
 	} catch (e) {
+		if (e instanceof TRPCError) {
+			throw e;
+		}
 		throw new TRPCError({
 			code: 'INTERNAL_SERVER_ERROR',
 			message: `Invalid board definition(s) in ${process.env.RATOS_CONFIGURATION_PATH}/boards.`,

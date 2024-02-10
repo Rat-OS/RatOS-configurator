@@ -63,7 +63,6 @@ export const parseDirectory = cacheAsyncDirectoryFn(async <T extends z.ZodType>(
 	if (cached != null) {
 		return z.array(zod).parse(cached);
 	}
-	console.log('parsing directory', directory);
 	const defs = await glob(`${process.env.RATOS_CONFIGURATION_PATH}/${directory}/*.cfg`);
 	const res = (
 		await Promise.all(
