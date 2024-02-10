@@ -60,7 +60,7 @@ const columns: ColumnDef<MoonrakerHistoryJob>[] = [
 		cell: (info) => {
 			const time = DateTime.fromSeconds(info.getValue<MoonrakerHistoryJob['start_time']>()).setLocale('en-GB');
 			return (
-				<div className="flex min-w-0 gap-x-3">
+				<div className="flex min-w-0 items-center gap-x-3">
 					<div
 						className="text-sm leading-6 text-zinc-400"
 						title={time.toLocaleString({ dateStyle: 'full', timeStyle: 'medium' })}
@@ -105,7 +105,7 @@ const columns: ColumnDef<MoonrakerHistoryJob>[] = [
 		accessorKey: 'print_duration',
 		enableSorting: false,
 		cell: (info) => (
-			<div className="text-sm leading-6 text-zinc-400">
+			<div className="flex min-w-0 items-center text-sm leading-6 text-zinc-400">
 				{Duration.fromObject({ hours: info.getValue<number>() / 60 / 60 }, { locale: 'en-GB' })
 					.normalize()
 					.shiftTo(
@@ -135,7 +135,11 @@ const columns: ColumnDef<MoonrakerHistoryJob>[] = [
 		enableSorting: false,
 		cell: (info) => {
 			const filamentUsed = info.getValue<MoonrakerHistoryJob['filament_used']>() / 1000;
-			return <div className="text-sm leading-6 text-zinc-400">{filamentUsed.toFixed(2)} meters</div>;
+			return (
+				<div className="flex min-w-0 items-center text-sm leading-6 text-zinc-400">
+					{filamentUsed.toFixed(2)} meters
+				</div>
+			);
 		},
 	},
 ];
@@ -266,7 +270,7 @@ export const HistoryTable = () => {
 								<th
 									scope="col"
 									className={twMerge(
-										'flex flex-grow truncate px-4 py-2 font-semibold @screen-sm:px-6 @screen-lg:px-8',
+										'flex flex-grow items-center truncate px-4 py-2 font-semibold @screen-sm:px-6 @screen-lg:px-8',
 										getColumnSizeClass(header.column.id),
 									)}
 									key={header.id}

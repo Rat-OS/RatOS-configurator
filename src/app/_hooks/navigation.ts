@@ -6,6 +6,7 @@ import {
 	CpuChipIcon,
 	ArrowsPointingOutIcon,
 	ArrowDownOnSquareIcon,
+	VideoCameraIcon,
 } from '@heroicons/react/24/outline';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useCallback } from 'react';
@@ -29,6 +30,7 @@ export const useNavigation = () => {
 	return [
 		{ name: 'Setup Wizard', href: '/wizard', current: false, icon: SparklesIcon },
 		{ name: 'Dashboard', href: '/', current: false, icon: TvIcon },
+		{ name: 'Visual Calibration', href: '/calibration', current: false, icon: VideoCameraIcon },
 		{ name: 'Analysis', href: '/analysis', current: false, icon: PresentationChartLineIcon },
 		{ name: 'Boards', href: '/boards', current: false, icon: CpuChipIcon },
 		{ name: 'Motion', href: '/motion', current: false, icon: ArrowsPointingOutIcon, iconClass: 'rotate-45' },
