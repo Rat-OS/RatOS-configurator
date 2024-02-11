@@ -27,5 +27,6 @@
 		"editor.defaultFormatter": "dbaeumer.vscode-eslint"
 	},
 	"emmet.showExpandedAbbreviation": "never",
-	"emmet.showAbbreviationSuggestions": false
+	"emmet.showAbbreviationSuggestions": false,
+	"editor.insertSpaces": false
 }
