@@ -285,16 +285,38 @@ export const useNamespacedItemMutation = <
 >(
 	namespace: N,
 	key: K,
-	value: V,
-	options?: Omit<
-		UseMutationOptions<MoonrakerDBItemResponse<V>, unknown, MoonrakerDBItemResponse<V>>,
-		'mutationKey' | 'mutationFn'
-	>,
+	options?: Omit<UseMutationOptions<MoonrakerDBItemResponse<V>, unknown, V>, 'mutationKey' | 'mutationFn'>,
 ) => {
 	const { saveItem } = useMoonraker();
-	return useMutation({
+	return useMutation<MoonrakerDBItemResponse<V>, unknown, V>({
 		...options,
 		mutationKey: [namespace, key],
-		mutationFn: () => saveItem(namespace, key, value) as Promise<MoonrakerDBItemResponse<V>>,
+		mutationFn: (value: V) => saveItem(namespace, key, value) as Promise<MoonrakerDBItemResponse<V>>,
 	});
+};
+
+export const useMoonrakerState = <
+	N extends MoonrakerNamespaces,
+	K extends MoonrakerNamespaceKeys<N>,
+	V extends MoonrakerDBValue<N, K>,
+>(
+	namespace: N,
+	key: K,
+	initialValue: V,
+) => {
+	const query = useNamespacedItemQuery(namespace, key, { initialData: initialValue });
+	const mutation = useNamespacedItemMutation<N, K, V>(namespace, key);
+	const mutate = useCallback(
+		async (value: V | ((prev: V) => void)) => {
+			const newValue = typeof value === 'function' ? (value as (prev: V) => V)(query.data ?? initialValue) : value;
+			mutation.mutate(newValue, {
+				onSuccess: () => {
+					// Todo, implement optimistic updates
+					query.refetch();
+				},
+			});
+		},
+		[initialValue, mutation, query],
+	);
+	return [query.data ?? initialValue, mutate, query, mutation] as const;
 };

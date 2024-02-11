@@ -107,7 +107,6 @@ export const getCurrentVersion = async (): Promise<number> => {
 		if ('error' in data) {
 			return 0;
 		}
-		console.log(data);
 		return data.result.value as number;
 	}
 	return 0;

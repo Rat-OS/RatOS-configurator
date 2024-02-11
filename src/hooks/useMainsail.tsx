@@ -16,12 +16,8 @@ export const useMainsailMutation = <
 	V extends MoonrakerDBValue<'mainsail', K>,
 >(
 	key: K,
-	value: V,
-	options?: Omit<
-		UseMutationOptions<MoonrakerDBItemResponse<V>, unknown, MoonrakerDBItemResponse<V>>,
-		'mutationKey' | 'mutationFn'
-	>,
-) => useNamespacedItemMutation('mainsail', key, value, options);
+	options?: Omit<UseMutationOptions<MoonrakerDBItemResponse<V>, unknown, V>, 'mutationKey' | 'mutationFn'>,
+) => useNamespacedItemMutation('mainsail', key, options);
 
 export function useMainsail() {
 	const moonraker = useMoonraker();
