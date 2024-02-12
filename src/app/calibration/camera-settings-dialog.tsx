@@ -4,6 +4,7 @@ import { Toggle } from '../../components/forms/toggle';
 import { useMoonrakerState } from '../../moonraker/hooks';
 import { useDebounce } from '../_hooks/debounce';
 import { twMerge } from 'tailwind-merge';
+import { XMarkIcon } from '@heroicons/react/24/outline';
 
 export const initialCameraSettings = {
 	pixelPrMm: 160,
@@ -12,16 +13,23 @@ export const initialCameraSettings = {
 	flipHorizontal: false,
 };
 
+export type CameraSettings = typeof initialCameraSettings;
+
 type CameraSettingsProps = {
 	className?: string;
 	isVisible?: boolean;
+	toggle: (visible: boolean) => void;
 };
 
 export const CameraSettingsDialog: React.FC<CameraSettingsProps> = (props) => {
 	const hasLoaded = useRef(false);
 	const [settings, setSettings, settingsQuery] = useMoonrakerState('RatOS', 'camera-settings', initialCameraSettings);
-	const [pixelPrMm, setPixelPrMm] = useState(settings.pixelPrMm.toFixed(2));
-	const [outerNozzleDiameter, setOuterNozzleDiameter] = useState(settings.outerNozzleDiameter.toFixed(2));
+	const [pixelPrMm, setPixelPrMm] = useState<string | null>(
+		settingsQuery.isFetched ? settings.pixelPrMm.toFixed(2) : null,
+	);
+	const [outerNozzleDiameter, setOuterNozzleDiameter] = useState<string | null>(
+		settingsQuery.isFetched ? settings.outerNozzleDiameter.toFixed(2) : null,
+	);
 	const debouncedSettings = useDebounce(setSettings, 200);
 
 	useEffect(() => {
@@ -56,26 +64,35 @@ export const CameraSettingsDialog: React.FC<CameraSettingsProps> = (props) => {
 	return (
 		<div
 			className={twMerge(
-				'absolute left-0 top-1/2 w-80 -translate-y-1/2 transform-gpu overflow-y-auto rounded-r-xl border-y border-r border-zinc-800 bg-zinc-100 p-5 shadow-lg transition-all dark:bg-zinc-900/70',
-				props.isVisible ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0',
+				'scroll absolute left-5 top-1/2 max-h-[50%] w-80 -translate-y-1/2 transform-gpu overflow-y-auto rounded-md border-y border-r border-zinc-800 bg-zinc-100 p-5 shadow-lg transition-all dark:bg-zinc-900/70',
+				props.isVisible ? 'translate-x-0 opacity-100' : 'pointer-events-none -translate-x-8 opacity-0',
 				props.className,
 			)}
+			onWheel={(e) => {
+				e.stopPropagation();
+			}}
 		>
-			<h3 className="flex-1 text-base font-medium leading-7 text-zinc-900 dark:text-zinc-100">Camera Settings</h3>
+			<h3 className="flex flex-1 items-center justify-between text-base font-medium leading-7 text-zinc-900 dark:text-zinc-100">
+				<span>Camera Settings</span>
+				<XMarkIcon className="h-5 w-5 cursor-pointer" onClick={() => props.toggle(!props.isVisible)} />
+			</h3>
 			<div className="mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 dark:border-zinc-800">
 				<TextInput
 					label="Pixel per mm"
 					type="number"
-					value={pixelPrMm}
+					value={pixelPrMm ?? ''}
+					placeholder={settingsQuery.isFetched ? undefined : 'Loading...'}
 					onChange={onChangePixelPrMm}
-					error={isNaN(parseFloat(pixelPrMm)) ? 'Not a valid number' : undefined}
+					error={isNaN(parseFloat(pixelPrMm ?? '')) ? 'Not a valid number' : undefined}
 				/>
 				<TextInput
 					label="Outer Nozzle Diameter"
 					type="number"
-					value={outerNozzleDiameter}
+					step={0.1}
+					value={outerNozzleDiameter ?? ''}
+					placeholder={settingsQuery.isFetched ? undefined : 'Loading...'}
 					onChange={onChangeOuterNozzleDiameter}
-					error={isNaN(parseFloat(outerNozzleDiameter)) ? 'Not a valid number' : undefined}
+					error={isNaN(parseFloat(outerNozzleDiameter ?? '')) ? 'Not a valid number' : undefined}
 				/>
 				<Toggle
 					label="Flip vertical"

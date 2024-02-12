@@ -1,3 +1,5 @@
+import { CameraSettings } from '../app/calibration/camera-settings-dialog';
+
 export type MoonrakerStatus = 'connected' | 'connecting' | 'not-running';
 
 export interface InFlightRequestCallbacks {
@@ -21,7 +23,7 @@ export type MoonrakerDBItemResponse<Data = unknown> = {
 };
 
 export type MoonrakerDB = {
-	RatOS: { [key: string]: unknown };
+	RatOS: { 'camera-settings': CameraSettings };
 	mainsail: {
 		general: {
 			printername: string;

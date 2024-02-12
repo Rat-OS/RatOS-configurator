@@ -31,6 +31,7 @@
 		"@trpc/react-query": "10.44.1",
 		"@trpc/server": "10.44.1",
 		"@types/deep-equal": "^1.0.4",
+		"@use-gesture/react": "^10.3.0",
 		"axios": "^0.26.1",
 		"class-variance-authority": "^0.7.0",
 		"clsx": "^1.2.1",

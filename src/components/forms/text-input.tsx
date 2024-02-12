@@ -1,5 +1,6 @@
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { ExclamationCircleIcon } from '@heroicons/react/24/solid';
+import objectHash from 'object-hash';
 import React, { ChangeEvent, useCallback, useRef, useState } from 'react';
 import { twJoin } from 'tailwind-merge';
 
@@ -12,10 +13,8 @@ interface TextInputProps<T extends string | number>
 	onChange?: (val: T) => void;
 }
 
-let uid = 0;
-
 export const TextInput = <T extends string | number>(props: TextInputProps<T>) => {
-	const fieldId = useRef(uid++);
+	const fieldId = useRef(objectHash(props));
 	const { onChange: _onChange } = props;
 	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 

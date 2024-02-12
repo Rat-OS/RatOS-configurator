@@ -299,16 +299,18 @@ export const useMoonrakerState = <
 	N extends MoonrakerNamespaces,
 	K extends MoonrakerNamespaceKeys<N>,
 	V extends MoonrakerDBValue<N, K>,
+	Val extends NonNullable<V> | null,
 >(
 	namespace: N,
 	key: K,
-	initialValue: V,
+	initialValue: Val = null as Val,
 ) => {
 	const query = useNamespacedItemQuery(namespace, key, { initialData: initialValue });
 	const mutation = useNamespacedItemMutation<N, K, V>(namespace, key);
 	const mutate = useCallback(
-		async (value: V | ((prev: V) => void)) => {
-			const newValue = typeof value === 'function' ? (value as (prev: V) => V)(query.data ?? initialValue) : value;
+		async (value: V | ((prev: V | null) => void)) => {
+			const newValue =
+				typeof value === 'function' ? (value as (prev: V | null) => V)(query.data ?? initialValue) : value;
 			mutation.mutate(newValue, {
 				onSuccess: () => {
 					// Todo, implement optimistic updates

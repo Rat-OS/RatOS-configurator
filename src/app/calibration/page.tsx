@@ -1,24 +1,28 @@
 'use client';
 import { HomeIcon } from '@heroicons/react/24/solid';
-import Toolbar, { ToolbarButton } from '../../components/common/toolbar';
+import Toolbar, { ToolbarButton, ToolbarButtonWithParent } from '../../components/common/toolbar';
 import { useWebRTC } from '../_hooks/webrtc';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useGesture } from '@use-gesture/react';
 import {
 	CameraIcon,
 	ArrowsPointingOutIcon,
 	LightBulbIcon,
-	SunIcon,
 	SwatchIcon,
 	MapPinIcon,
 	CogIcon,
+	MagnifyingGlassIcon,
+	ViewfinderCircleIcon,
 } from '@heroicons/react/24/outline';
 import { z } from 'zod';
 import { useDebounce } from '../_hooks/debounce';
-import { useDragPosition, useDrop } from '../_hooks/draganddrop';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
-import { twMerge } from 'tailwind-merge';
-import { CameraSettingsDialog, initialCameraSettings } from './camera-settings-dialog';
+import { twJoin, twMerge } from 'tailwind-merge';
+import { CameraSettingsDialog } from './camera-settings-dialog';
 import { useMoonrakerState } from '../../moonraker/hooks';
+import { useChangeEffect } from '../../hooks/useChangeEffect';
+import { ExposureIcon } from '../../components/common/icons/exposure';
+import { FocusControls } from './focus-controls';
 
 const useGcodeCommand = () => {
 	return useCallback((command: string) => {
@@ -155,35 +159,18 @@ const Slider: React.FC<SliderProps> = ({ onChange, min, max, initialValue }) => 
 
 export default function Page() {
 	const { videoRef } = useWebRTC(`${url}/webcam/webrtc`);
-	const [settings] = useMoonrakerState('RatOS', 'camera-settings', initialCameraSettings);
+	const [settings, , , settingsQuery] = useMoonrakerState('RatOS', 'camera-settings');
 	const containerRef = useRef<HTMLDivElement | null>(null);
-	const [startPos, setStartPos] = useState<{ x: number; y: number } | null>(null);
-	const pos = useDragPosition(containerRef);
-	useDrop(videoRef, (e) => {
-		setStartPos(null);
-		pos.reset();
-	});
-	const onDragStart = useCallback(
-		(e: React.DragEvent) => {
-			if (videoRef.current == null || e.dataTransfer == null) {
-				console.log('missing stuff');
-				return;
-			}
-			e.dataTransfer.setData('text/plain', 'image');
-			e.dataTransfer.setDragImage(new Image(), 0, 0);
-			e.dataTransfer.dropEffect = 'move';
-			e.dataTransfer.effectAllowed = 'move';
-			setStartPos({ x: e.pageX, y: e.pageY });
-			e.stopPropagation();
-		},
-		[videoRef],
-	);
+	const [dragOffset, setDragOffset] = useState<[number, number] | null>(null);
+	const [dragOutside, setDragOutside] = useState<{ x: false | number; y: false | number }>({ x: false, y: false });
 	const { exposure, digitalGain, options, setOption } = useCameraSettings(url);
 	const [isHomed, setIsHomed] = useState(false);
 	const [canMove, setCanMove] = useState(false);
 	const [isSettingsVisible, setIsSettingsVisible] = useState(false);
+	const [_isZoomExpanded, _setIsZoomExpanded] = useState(false);
 	const [isExposureVisible, setIsExposureVisible] = useState(false);
 	const [isGainVisible, setIsGainVisible] = useState(false);
+	const [isFocusVisible, setIsFocusVisible] = useState(false);
 	const [isAdvancedVisible, setIsAdvancedVisible] = useState(false);
 	const [light, setLight] = useState(false);
 	const [zoom, setZoom] = useState(1);
@@ -193,13 +180,66 @@ export default function Page() {
 
 	const toScreen = useCallback(
 		(val: number) => {
-			const vidWidth = videoRef.current?.videoWidth ?? 1;
-			const frameWidth = containerRef.current?.getBoundingClientRect().width ?? 1;
-			const videoScale = frameWidth / vidWidth;
-			console.log('getting val', settings.pixelPrMm, zoom, val, videoScale);
-			return val * settings.pixelPrMm * zoom * videoScale;
+			const vidWidth = videoRef.current?.videoWidth ?? 0;
+			const frameWidth = containerRef.current?.getBoundingClientRect().width ?? 0;
+			const videoScale = frameWidth > 0 && vidWidth > 0 ? frameWidth / vidWidth : 0;
+			return val * (settings?.pixelPrMm ?? 0) * zoom * videoScale;
 		},
-		[settings.pixelPrMm, videoRef, zoom],
+		[settings?.pixelPrMm, videoRef, zoom],
+	);
+
+	const [tempZoomExpand, clearTempZoomExpand] = useChangeEffect([zoom], 2000, true);
+	const isZoomExpanded = tempZoomExpand || _isZoomExpanded;
+	const toggleIsZoomExpanded = useCallback(() => {
+		_setIsZoomExpanded((z) => !z);
+		clearTempZoomExpand();
+	}, [clearTempZoomExpand]);
+
+	useGesture(
+		{
+			onDrag: (state) => {
+				if (state.dragging) {
+					setDragOffset([state.offset[0], state.offset[1]]);
+					setDragOutside({ x: state._movementBound[0], y: state._movementBound[1] });
+				} else {
+					setDragOffset(null);
+					setDragOutside({ x: false, y: false });
+				}
+			},
+			onPinch: (state) => {
+				setZoom((z) => Math.max(Math.min(z * state.offset[0], 10), 1));
+			},
+			onWheel: (state) => {
+				if (state.delta[1] == 0 || state.wheeling == false || state.intentional == false) {
+					return;
+				}
+				if (state.delta[1] < 0) {
+					setZoom((z) => Math.max(z * 0.85, 1));
+				} else {
+					setZoom((z) => Math.min(z * 1.15, 10));
+				}
+			},
+		},
+		{
+			target: videoRef,
+			drag: {
+				enabled: canMove,
+				from: () => [0, 0],
+				bounds: {
+					left: -toScreen(1),
+					right: toScreen(1),
+					top: -toScreen(1),
+					bottom: toScreen(1),
+				},
+				rubberband: true,
+			},
+			wheel: { axis: 'y', rubberband: false },
+			pinch: {
+				scaleBounds: { min: 1, max: 10 },
+				pinchOnWheel: false,
+				rubberband: true,
+			},
+		},
 	);
 
 	const topLeftControls: ToolbarButton[] = [
@@ -231,28 +271,15 @@ export default function Page() {
 	];
 	const topRightControls: ToolbarButton[] = [
 		{
-			name: '1X',
-			id: '1x',
+			icon: MagnifyingGlassIcon,
+			id: 'zoom',
+			subButtonPosition: 'before',
+			className: 'font-mono',
+			name: zoom === 10 ? 'MAX!' : `${Math.round(zoom * 100)}%`,
 			onClick: () => {
-				setZoom(1);
+				toggleIsZoomExpanded();
 			},
-			isActive: zoom === 1,
-		},
-		{
-			name: '2X',
-			id: '2x',
-			onClick: () => {
-				setZoom(2);
-			},
-			isActive: zoom === 2,
-		},
-		{
-			name: '4X',
-			id: '4x',
-			onClick: () => {
-				setZoom(4);
-			},
-			isActive: zoom === 4,
+			isActive: isZoomExpanded,
 		},
 		{
 			icon: LightBulbIcon,
@@ -262,6 +289,38 @@ export default function Page() {
 				setLight((l) => !l);
 			},
 			isActive: light,
+		},
+	];
+	const zoomControls: ToolbarButtonWithParent[] = [
+		{
+			name: '1X',
+			id: '1x',
+			parent: 'zoom',
+			className: 'font-mono',
+			onClick: () => {
+				setZoom(1);
+			},
+			isActive: false,
+		},
+		{
+			name: '2X',
+			id: '2x',
+			parent: 'zoom',
+			className: 'font-mono',
+			onClick: () => {
+				setZoom(2);
+			},
+			isActive: false,
+		},
+		{
+			name: '4X',
+			id: '4x',
+			parent: 'zoom',
+			className: 'font-mono',
+			onClick: () => {
+				setZoom(4);
+			},
+			isActive: false,
 		},
 	];
 	const bottomLeftControls = useMemo(
@@ -302,90 +361,144 @@ export default function Page() {
 			{
 				icon: CameraIcon,
 				id: 'settings',
+				subButtonPosition: 'before',
 				onClick: () => {
 					setIsCameraControlsVisible((vis) => !vis);
 				},
 				isActive: isCameraControlsVisible,
 			},
+		];
+		return controls;
+	}, [isCameraControlsVisible]);
+	const cameraControlsSubButtons = useMemo(() => {
+		const controls: ToolbarButtonWithParent[] = [
 			{
-				icon: SunIcon,
+				icon: ViewfinderCircleIcon,
+				id: 'focus',
+				parent: 'settings',
+				hidden: isGainVisible || isAdvancedVisible || isExposureVisible,
+				name: 'Focus',
+				children: <FocusControls isVisible={isFocusVisible} toggle={setIsFocusVisible} />,
+				onClick: () => {
+					console.log('exposure controls');
+					setIsFocusVisible((vis) => !vis);
+					setIsExposureVisible(false);
+					setIsGainVisible(false);
+					setIsAdvancedVisible(false);
+				},
+				isActive: isFocusVisible,
+			},
+			{
+				icon: ExposureIcon as any,
 				id: 'exposure',
+				parent: 'settings',
+				hidden: isGainVisible || isAdvancedVisible || isFocusVisible,
 				name: 'Exposure',
-				hidden: !isCameraControlsVisible,
 				onClick: () => {
 					console.log('exposure controls');
 					setIsExposureVisible((vis) => !vis);
+					setIsGainVisible(false);
+					setIsAdvancedVisible(false);
+					setIsFocusVisible(false);
 				},
 				isActive: isExposureVisible,
 			},
 			{
 				icon: LightBulbIcon,
 				id: 'gain',
+				parent: 'settings',
+				hidden: isExposureVisible || isAdvancedVisible || isFocusVisible,
 				name: 'Gain',
-				hidden: !isCameraControlsVisible,
 				onClick: () => {
 					setIsGainVisible((vis) => !vis);
+					setIsExposureVisible(false);
+					setIsAdvancedVisible(false);
+					setIsFocusVisible(false);
 				},
 				isActive: isGainVisible,
 			},
 			{
 				icon: SwatchIcon,
 				id: 'whitebalance',
+				parent: 'settings',
 				name: 'Advanced',
-				hidden: !isCameraControlsVisible,
+				hidden: isExposureVisible || isGainVisible || isFocusVisible,
 				onClick: () => {
 					setIsAdvancedVisible((vis) => !vis);
+					setIsExposureVisible(false);
+					setIsGainVisible(false);
+					setIsFocusVisible(false);
 				},
 				isActive: isAdvancedVisible,
 			},
 		];
 		return controls.reverse();
-	}, [isAdvancedVisible, isCameraControlsVisible, isExposureVisible, isGainVisible]);
-	const draggedX = startPos == null || pos?.pageXY == null ? 0 : (pos.pageXY.x - startPos.x) / zoom;
-	const draggedY = startPos == null || pos?.pageXY == null ? 0 : (pos.pageXY.y - startPos.y) / zoom;
+	}, [isAdvancedVisible, isExposureVisible, isFocusVisible, isGainVisible]);
+	const draggedX = dragOffset == null ? 0 : dragOffset[0] / zoom;
+	const draggedY = dragOffset == null ? 0 : dragOffset[1] / zoom;
 	return (
 		<div className="flex h-[calc(100vh_-_64px)] w-full items-center">
 			<div
-				className="relative mx-auto max-w-fit overflow-hidden rounded-2xl object-contain shadow-lg"
+				className="relative mx-auto max-h-full min-h-[50vh] min-w-[50vw] max-w-fit overflow-hidden rounded-2xl object-contain shadow-lg"
 				ref={containerRef}
 			>
 				<video
 					ref={videoRef}
-					onDragStart={onDragStart}
 					className={twMerge(
-						'h-full max-h-full w-full max-w-full transform-gpu',
+						'h-full max-h-full w-full min-w-full max-w-full transform-gpu touch-none',
 						canMove && 'cursor-move',
-						startPos == null && 'transition-transform ease-in-out',
+						dragOffset == null && 'transition-transform ease-in-out',
 					)}
 					style={{
-						transform: `scaleX(${zoom * (settings.flipHorizontal ? -1 : 1)}) scaleY(${zoom * (settings.flipVertical ? -1 : 1)}) translateX(${draggedX}px) translateY(${draggedY}px)`,
+						transform: `scale3d(${zoom * (settings?.flipHorizontal ? -1 : 1)}, ${zoom * (settings?.flipVertical ? -1 : 1)}, 1) translate3d(${draggedX}px, ${draggedY}px, 0)`,
 					}}
 					autoPlay
 					muted
 					playsInline
-					draggable={canMove}
 				/>
 				<Toolbar className="absolute left-5 top-5" buttons={topLeftControls} />
-				<Toolbar className="absolute bottom-5 right-5" buttons={cameraControls} />
-				<Toolbar className="absolute right-5 top-5" buttons={topRightControls} />
+				<Toolbar
+					className="absolute bottom-5 right-5 overflow-visible"
+					buttons={cameraControls}
+					subButtons={cameraControlsSubButtons}
+				/>
+				<Toolbar className="absolute right-5 top-5" buttons={topRightControls} subButtons={zoomControls} />
 				<Toolbar className="absolute bottom-5 left-5" buttons={bottomLeftControls} />
-				<CameraSettingsDialog isVisible={isSettingsVisible} />
-				<div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+				<CameraSettingsDialog isVisible={isSettingsVisible} toggle={setIsSettingsVisible} />
+				<div className={twJoin('pointer-events-none absolute inset-0 flex items-center justify-center')}>
+					<div
+						className={twJoin(
+							'absolute inset-0',
+							dragOutside.x && dragOutside.x > 0
+								? 'bg-gradient-to-r from-red-500 to-red-500/0'
+								: 'bg-gradient-to-l from-red-500 to-red-500/0',
+						)}
+						style={{ opacity: dragOutside.x ? Math.abs(dragOutside.x - (dragOffset?.[0] ?? 0)) / 200 : 0 }}
+					/>
+					<div
+						className={twJoin(
+							'absolute inset-0',
+							dragOutside.y && dragOutside.y > 0
+								? 'bg-gradient-to-b from-red-500 to-red-500/0'
+								: 'bg-gradient-to-t from-red-500 to-red-500/0',
+						)}
+						style={{ opacity: dragOutside.y ? Math.abs(dragOutside.y - (dragOffset?.[1] ?? 0)) / 200 : 0 }}
+					/>
 					<svg width="100%" height="100%">
 						<circle
 							cx="50%"
 							cy="50%"
 							r={toScreen(0.4 / 2)}
 							fill="none"
-							className="stroke-brand-500 transition-all"
+							className="stroke-brand-500 transition-all ease-in-out"
 							strokeWidth="2"
 						/>
 						<circle
 							cx="50%"
 							cy="50%"
-							r={toScreen(settings.outerNozzleDiameter / 2)}
+							r={toScreen(settings ? settings.outerNozzleDiameter / 2 : 0)}
 							fill="none"
-							className="stroke-brand-500 opacity-50 transition-all"
+							className="stroke-brand-500 opacity-50 transition-all ease-in-out"
 							strokeWidth="2"
 						/>
 					</svg>
