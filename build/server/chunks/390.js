@@ -2072,7 +2072,7 @@ const deserializeToolheadConfiguration = async (config, printerConfig, boards)=>
     }, {
         toolboard
     });
-    return toolhead/* ToolheadConfiguration.parse */.x8.parse({
+    const res = {
         ...config,
         toolboard: toolboard,
         hotend: hotends.find((h)=>h.id === config.hotend),
@@ -2081,8 +2081,8 @@ const deserializeToolheadConfiguration = async (config, printerConfig, boards)=>
         thermistor: hardware/* thermistors.find */.b6.find((t)=>t === config.thermistor),
         xEndstop: (0,endstops/* xEndstopOptions */.uo)(printerConfig, config).find((e)=>e.id === config.xEndstop),
         yEndstop: (0,endstops/* yEndstopOptions */.Xo)(printerConfig, config).find((e)=>e.id === config.yEndstop),
-        xAccelerometer: xAccels.find((a)=>a.id === config.xAccelerometer) ?? (toolboard && toolboard.ADXL345SPI != null) ? xAccels.find((a)=>a.id === "toolboard") : null,
-        yAccelerometer: yAccels.find((a)=>a.id === config.yAccelerometer) ?? (toolboard && toolboard.ADXL345SPI != null) ? xAccels.find((a)=>a.id === "toolboard") : null,
+        xAccelerometer: xAccels.find((a)=>a.id === config.xAccelerometer) ?? (toolboard && toolboard.ADXL345SPI != null ? xAccels.find((a)=>a.id === "toolboard") : null),
+        yAccelerometer: yAccels.find((a)=>a.id === config.yAccelerometer) ?? (toolboard && toolboard.ADXL345SPI != null ? yAccels.find((a)=>a.id === "toolboard") : null),
         partFan: (0,fans/* partFanOptions */.gL)({
             controlboard
         }, {
@@ -2095,7 +2095,8 @@ const deserializeToolheadConfiguration = async (config, printerConfig, boards)=>
             toolboard,
             axis: config.axis
         }).find((f)=>f.id === config.hotendFan)
-    });
+    };
+    return toolhead/* ToolheadConfiguration.parse */.x8.parse(res);
 };
 const deserializePartialToolheadConfiguration = async (config, printerConfig, boards)=>{
     boards = boards ?? await getBoards();

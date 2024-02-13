@@ -18,11 +18,29 @@ import { sensorlessXTemplate, sensorlessYTemplate } from '../templates/extras/se
 import { readFile } from 'fs/promises';
 import { SerializedPrinterConfiguration } from '../zods/printer-configuration';
 import { PrinterDefinition } from '../zods/printer';
+import { Accelerometer } from '../zods/hardware';
+import { z } from 'zod';
+import { serializePrinterConfiguration } from '../hooks/usePrinterConfiguration';
+import { glob } from 'glob';
 
 const serializedConfigFromDefaults = (printer: PrinterDefinition): SerializedPrinterConfiguration => {
 	return SerializedPrinterConfiguration.strip().parse({
 		...printer,
 		...printer.defaults,
+		toolheads: printer.defaults.toolheads.map((t) => {
+			if (t.xAccelerometer == null) {
+				if (t.toolboard != null) {
+					t.xAccelerometer = 'toolboard';
+				}
+			}
+			if (t.yAccelerometer == null) {
+				if (t.toolboard != null) {
+					t.yAccelerometer = 'toolboard';
+				}
+			}
+			return t;
+		}),
+		size: printer.sizes?.[0],
 		controlboard: printer.defaults.board,
 		printer: printer.id,
 		performanceMode: false,
@@ -113,6 +131,27 @@ describe('server', async () => {
 						});
 					}
 				}),
+			);
+		});
+		test.concurrent('results in the same serialized config after reserializing a deserialized config', async () => {
+			await Promise.all(
+				parsedPrinters
+					.map((p) => {
+						return serializedConfigFromDefaults(p);
+					})
+					.concat(
+						await Promise.all(
+							(await glob('**/*.json', { cwd: path.join(__dirname, 'fixtures') })).map(async (fixtureFile) => {
+								const file = await readFile(path.join(__dirname, 'fixtures', fixtureFile));
+								return SerializedPrinterConfiguration.parse(JSON.parse(file.toString()));
+							}),
+						),
+					)
+					.map(async (serialized) => {
+						const deserialized = await deserializePrinterConfiguration(serialized);
+						const reserialized = serializePrinterConfiguration(deserialized);
+						expect(reserialized).toEqual(serialized);
+					}),
 			);
 		});
 	});
@@ -274,6 +313,48 @@ describe('server', async () => {
 							`Failed to indent gcode block at line ${block + 1}:\n${annotatedLines.slice(block - 4, block + 5).join('\n')}`,
 						);
 					}
+				}
+			});
+			test.concurrent('properly sets x and y accelerometers', () => {
+				const xSections: number[] = [];
+				const ySections: number[] = [];
+				const getAccelChipName = (id: z.infer<typeof Accelerometer>['id']) => {
+					switch (id) {
+						case 'none':
+							return 'none';
+						case 'sbc':
+							return 'rpi';
+						case 'controlboard':
+							return 'controlboard';
+						case 'toolboard':
+							return 'toolboard_t0';
+					}
+				};
+				splitRes.forEach((l, i) => {
+					if (l.startsWith('accel_chip_x')) {
+						xSections.push(i);
+						if (l !== `accel_chip_x: adxl345 ${getAccelChipName(config.toolheads[0].xAccelerometer?.id ?? 'none')}`) {
+							throw new Error(
+								`Incorrect accel_chip_x at at line ${i + 1}:\n${annotatedLines.slice(Math.max(i - 4, 0), Math.min(i + 5, annotatedLines.length)).join('\n')}`,
+							);
+						}
+					}
+					if (l.startsWith('accel_chip_y')) {
+						ySections.push(i);
+						if (l !== `accel_chip_y: adxl345 ${getAccelChipName(config.toolheads[0].yAccelerometer?.id ?? 'none')}`) {
+							throw new Error(
+								`Incorrect accel_chip_y at at line ${i + 1}:\n${annotatedLines.slice(Math.max(i - 4, 0), Math.min(i + 5, annotatedLines.length)).join('\n')}`,
+							);
+						}
+					}
+				});
+				if (config.toolheads[0].xAccelerometer?.id !== 'none') {
+					expect(xSections.length).toBeGreaterThan(0);
+					console.log(xSections);
+				}
+				if (config.toolheads[0].yAccelerometer?.id !== 'none') {
+					expect(ySections.length).toBeGreaterThan(0);
+					console.log(ySections);
 				}
 			});
 			test.concurrent('contains position_min/max/endstop for x/y', () => {

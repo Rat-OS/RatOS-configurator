@@ -179,7 +179,7 @@ export const deserializeToolheadConfiguration = async (
 	const toolboard = toolboards.find((b) => b.id === config.toolboard) ?? null;
 	const xAccels = xAccelerometerOptions({ controlboard }, { toolboard });
 	const yAccels = yAccelerometerOptions({ controlboard }, { toolboard });
-	return ToolheadConfiguration.parse({
+	const res = {
 		...config,
 		toolboard: toolboard,
 		hotend: hotends.find((h) => h.id === config.hotend),
@@ -189,18 +189,17 @@ export const deserializeToolheadConfiguration = async (
 		xEndstop: xEndstopOptions(printerConfig, config).find((e) => e.id === config.xEndstop),
 		yEndstop: yEndstopOptions(printerConfig, config).find((e) => e.id === config.yEndstop),
 		xAccelerometer:
-			xAccels.find((a) => a.id === config.xAccelerometer) ?? (toolboard && toolboard.ADXL345SPI != null)
-				? xAccels.find((a) => a.id === 'toolboard')
-				: null,
+			xAccels.find((a) => a.id === config.xAccelerometer) ??
+			(toolboard && toolboard.ADXL345SPI != null ? xAccels.find((a) => a.id === 'toolboard') : null),
 		yAccelerometer:
-			yAccels.find((a) => a.id === config.yAccelerometer) ?? (toolboard && toolboard.ADXL345SPI != null)
-				? xAccels.find((a) => a.id === 'toolboard')
-				: null,
+			yAccels.find((a) => a.id === config.yAccelerometer) ??
+			(toolboard && toolboard.ADXL345SPI != null ? yAccels.find((a) => a.id === 'toolboard') : null),
 		partFan: partFanOptions({ controlboard }, { toolboard, axis: config.axis }).find((f) => f.id === config.partFan),
 		hotendFan: hotendFanOptions({ controlboard }, { toolboard, axis: config.axis }).find(
 			(f) => f.id === config.hotendFan,
 		),
-	} satisfies PartialToolheadConfiguration);
+	} satisfies PartialToolheadConfiguration;
+	return ToolheadConfiguration.parse(res);
 };
 
 export const deserializePartialToolheadConfiguration = async (
