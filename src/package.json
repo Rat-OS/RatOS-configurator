@@ -64,6 +64,7 @@
 		"tailwind-merge": "^1.14.0",
 		"tsx": "^4.7.0",
 		"typescript": "5.3.3",
+		"use-count-up": "^3.0.1",
 		"zod": "^3.20.2",
 		"zod-refine": "^1.1.1",
 		"zx": "^7.2.3"

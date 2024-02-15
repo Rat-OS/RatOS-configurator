@@ -149,6 +149,9 @@ dependencies:
   typescript:
     specifier: 5.3.3
     version: 5.3.3
+  use-count-up:
+    specifier: ^3.0.1
+    version: 3.0.1(react@18.2.0)
   zod:
     specifier: ^3.20.2
     version: 3.20.2
@@ -6719,6 +6722,23 @@ packages:
       querystringify: 2.2.0
       requires-port: 1.0.0
     dev: true
+
+  /use-count-up@3.0.1(react@18.2.0):
+    resolution: {integrity: sha512-jlVsXJYje6jh+xwQaCEYrwHoB+nRyillNEmr21bhe9kw7tpRzyrSq9jQs9UOlo+8hCFkuOmjUihL3IjEK/piVg==}
+    peerDependencies:
+      react: '>=16.8.0'
+    dependencies:
+      react: 18.2.0
+      use-elapsed-time: 3.0.2(react@18.2.0)
+    dev: false
+
+  /use-elapsed-time@3.0.2(react@18.2.0):
+    resolution: {integrity: sha512-2EY9lJ5DWbAvT8wWiEp6Ztnl46DjXz2j78uhWbXaz/bg3OfpbgVucCAlcN8Bih6hTJfFTdVYX9L6ySMn5py/wQ==}
+    peerDependencies:
+      react: '>=16.8.0'
+    dependencies:
+      react: 18.2.0
+    dev: false
 
   /use-sync-external-store@1.2.0(react@18.2.0):
     resolution: {integrity: sha512-eEgnFxGQ1Ife9bzYs6VLi8/4X6CObHMw9Qr9tPY43iKwsPw8xE8+EFsf/2cFZ5S3esXgpWgtSCtLNS41F+sKPA==}

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface WebRTCConfig {
 	iceServers?: RTCIceServer[];
@@ -9,26 +9,68 @@ export function useWebRTC(url: string) {
 	const videoElRef = useRef<HTMLVideoElement>(null);
 	const audioElRef = useRef<HTMLVideoElement>(null);
 	const peerConnection = useRef<RTCPeerConnection | null>(null);
+	const urlRef = useRef<string>(url);
 	const isConnecting = useRef<boolean>(false);
+	const [connectionState, setConnectionState] = useState<RTCPeerConnectionState | null>(null);
 	const remotePCId = useRef<string | null>(null);
-	useEffect(() => {
-		const connect = async () => {
-			if (peerConnection.current) {
-				peerConnection.current.close();
-				peerConnection.current = null;
+
+	const onIceCandidate = useCallback((e: RTCPeerConnectionIceEvent) => {
+		if (e.candidate) {
+			return fetch(urlRef.current, {
+				body: JSON.stringify({
+					type: 'remote_candidate',
+					id: remotePCId.current,
+					candidates: [e.candidate],
+				}),
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				method: 'POST',
+			}).catch(function (error) {
+				window.console.error(error);
+			});
+		}
+	}, []);
+
+	const connect = useCallback(async () => {
+		if (peerConnection.current) {
+			peerConnection.current.close();
+			peerConnection.current = null;
+		}
+		isConnecting.current = true;
+		try {
+			setConnectionState('new');
+			var config: WebRTCConfig = {
+				sdpSemantics: 'unified-plan',
+			};
+
+			if (document.getElementById('use-stun') && (document.getElementById('use-stun') as any).checked) {
+				config.iceServers = [{ urls: ['stun:stun.l.google.com:19302'] }];
 			}
-			isConnecting.current = true;
-			try {
-				var config: WebRTCConfig = {
-					sdpSemantics: 'unified-plan',
+
+			const urlSearchParams = new URLSearchParams(url);
+			const params = Object.fromEntries(urlSearchParams.entries());
+
+			const response = await fetch(url, {
+				body: JSON.stringify({
+					type: 'request',
+					res: params.res,
+				}),
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				method: 'POST',
+			});
+			if (response.ok) {
+				const parsedResponse = (await response.json()) as {
+					id: string;
+					sdp: string;
+					type: RTCSdpType;
+					iceServers?: RTCIceServer[];
 				};
-
-				if (document.getElementById('use-stun') && (document.getElementById('use-stun') as any).checked) {
-					config.iceServers = [{ urls: ['stun:stun.l.google.com:19302'] }];
+				if (parsedResponse.iceServers) {
+					config.iceServers = parsedResponse.iceServers;
 				}
-
-				const urlSearchParams = new URLSearchParams(url);
-				const params = Object.fromEntries(urlSearchParams.entries());
 				peerConnection.current = new RTCPeerConnection(config);
 				peerConnection.current.addTransceiver('video', { direction: 'recvonly' });
 				//peerConnection.current.addTransceiver('audio', {direction: 'recvonly'});
@@ -44,80 +86,85 @@ export function useWebRTC(url: string) {
 						if (audioElRef.current) audioElRef.current.srcObject = evt.streams[0];
 					}
 				});
+				peerConnection.current.addEventListener('connectionstatechange', () => {
+					const conState = peerConnection.current?.connectionState;
+					console.log(conState);
+					setConnectionState(conState ?? null);
+				});
 
-				const response = await fetch(url, {
+				remotePCId.current = parsedResponse.id;
+				await peerConnection.current.setRemoteDescription(parsedResponse);
+				const answer = await peerConnection.current.createAnswer();
+				await peerConnection.current.setLocalDescription(answer);
+				await new Promise(function (resolve) {
+					if (peerConnection.current == null) {
+						throw new Error('peerConnection.current is null');
+					}
+					if (peerConnection.current.iceGatheringState === 'complete') {
+						resolve(null);
+					} else {
+						function checkState() {
+							if (peerConnection.current == null) {
+								throw new Error('peerConnection.current is null');
+							}
+							if (peerConnection.current.iceGatheringState === 'complete') {
+								peerConnection.current.removeEventListener('icegatheringstatechange', checkState);
+								resolve(null);
+							}
+						}
+						peerConnection.current.addEventListener('icegatheringstatechange', checkState);
+					}
+				});
+				peerConnection.current.addEventListener('icecandidate', onIceCandidate);
+				var offer = peerConnection.current.localDescription;
+
+				if (offer == null) {
+					throw new Error('No offer from peerConnection');
+				}
+
+				await fetch(url, {
 					body: JSON.stringify({
-						type: 'request',
-						res: params.res,
+						type: offer.type,
+						id: remotePCId.current,
+						sdp: offer.sdp,
 					}),
 					headers: {
 						'Content-Type': 'application/json',
 					},
 					method: 'POST',
 				});
-				if (response.ok) {
-					console.log('response is good');
-					const parsedResponse = (await response.json()) as { id: string; sdp: string; type: RTCSdpType };
-
-					remotePCId.current = parsedResponse.id;
-					await peerConnection.current.setRemoteDescription(parsedResponse);
-					const answer = await peerConnection.current.createAnswer();
-					await peerConnection.current.setLocalDescription(answer);
-					await new Promise(function (resolve) {
-						if (peerConnection.current == null) {
-							throw new Error('peerConnection.current is null');
-						}
-						if (peerConnection.current.iceGatheringState === 'complete') {
-							resolve(null);
-						} else {
-							function checkState() {
-								if (peerConnection.current == null) {
-									throw new Error('peerConnection.current is null');
-								}
-								if (peerConnection.current.iceGatheringState === 'complete') {
-									peerConnection.current.removeEventListener('icegatheringstatechange', checkState);
-									resolve(null);
-								}
-							}
-							peerConnection.current.addEventListener('icegatheringstatechange', checkState);
-						}
-					});
-					var offer = peerConnection.current.localDescription;
-
-					if (offer == null) {
-						throw new Error('No offer from peerConnection');
-					}
-
-					const finalResponse = await fetch(url, {
-						body: JSON.stringify({
-							type: offer.type,
-							id: remotePCId.current,
-							sdp: offer.sdp,
-						}),
-						headers: {
-							'Content-Type': 'application/json',
-						},
-						method: 'POST',
-					});
-					const finalResult = await finalResponse.json();
-					console.log('final result', finalResult);
-				} else {
-					console.log('response is not good', response.status, response.statusText, response.url, response.body);
-				}
-			} finally {
-				isConnecting.current = false;
+			} else {
+				setConnectionState('failed');
 			}
-		};
+		} catch (e) {
+			console.error(e);
+			setConnectionState('failed');
+		} finally {
+			isConnecting.current = false;
+		}
+	}, [onIceCandidate, url]);
+
+	useEffect(() => {
 		if (url && isConnecting.current === false) {
 			connect();
 		} else if (peerConnection.current && isConnecting.current === false) {
 			peerConnection.current.close();
 		}
-	}, [url]);
+	}, [connect, url]);
+
+	useEffect(() => {
+		if (['failed', 'disconnected'].includes(connectionState ?? '')) {
+			const reconnectTimeout = setTimeout(() => {
+				connect();
+			}, 5000);
+			return () => clearTimeout(reconnectTimeout);
+		}
+	}, [connect, connectionState]);
 
 	return {
 		videoRef: videoElRef,
 		audioRef: audioElRef,
+		connectionState,
 		close: useCallback(() => {
 			peerConnection.current?.close();
 		}, []),

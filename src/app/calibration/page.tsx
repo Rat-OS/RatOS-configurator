@@ -23,6 +23,7 @@ import { useMoonrakerState } from '../../moonraker/hooks';
 import { useChangeEffect } from '../../hooks/useChangeEffect';
 import { ExposureIcon } from '../../components/common/icons/exposure';
 import { FocusControls } from './focus-controls';
+import { Spinner } from '../../components/common/spinner';
 
 const useGcodeCommand = () => {
 	return useCallback((command: string) => {
@@ -158,8 +159,8 @@ const Slider: React.FC<SliderProps> = ({ onChange, min, max, initialValue }) => 
 };
 
 export default function Page() {
-	const { videoRef } = useWebRTC(`${url}/webcam/webrtc`);
-	const [settings, , , settingsQuery] = useMoonrakerState('RatOS', 'camera-settings');
+	const { videoRef, connectionState } = useWebRTC(`${url}/webcam/webrtc`);
+	const [settings] = useMoonrakerState('RatOS', 'camera-settings');
 	const containerRef = useRef<HTMLDivElement | null>(null);
 	const [dragOffset, setDragOffset] = useState<[number, number] | null>(null);
 	const [dragOutside, setDragOutside] = useState<{ x: false | number; y: false | number }>({ x: false, y: false });
@@ -178,14 +179,21 @@ export default function Page() {
 	const gcodeCommand = useGcodeCommand();
 	const [animate] = useAutoAnimate();
 
+	const scale = useCallback(
+		(val: number) => {
+			const vidWidth = videoRef.current?.videoWidth ?? 1;
+			const frameWidth = containerRef.current?.getBoundingClientRect().width ?? 1;
+			const videoScale = frameWidth > 0 && vidWidth > 0 ? frameWidth / vidWidth : 1;
+			return val * zoom * videoScale;
+		},
+		[videoRef, zoom],
+	);
+
 	const toScreen = useCallback(
 		(val: number) => {
-			const vidWidth = videoRef.current?.videoWidth ?? 0;
-			const frameWidth = containerRef.current?.getBoundingClientRect().width ?? 0;
-			const videoScale = frameWidth > 0 && vidWidth > 0 ? frameWidth / vidWidth : 0;
-			return val * (settings?.pixelPrMm ?? 0) * zoom * videoScale;
+			return scale(val) * (settings?.pixelPrMm ?? 0);
 		},
-		[settings?.pixelPrMm, videoRef, zoom],
+		[scale, settings?.pixelPrMm],
 	);
 
 	const [tempZoomExpand, clearTempZoomExpand] = useChangeEffect([zoom], 2000, true);
@@ -222,6 +230,7 @@ export default function Page() {
 		},
 		{
 			target: videoRef,
+			enabled: connectionState === 'connected',
 			drag: {
 				enabled: canMove,
 				from: () => [0, 0],
@@ -436,6 +445,11 @@ export default function Page() {
 	}, [isAdvancedVisible, isExposureVisible, isFocusVisible, isGainVisible]);
 	const draggedX = dragOffset == null ? 0 : dragOffset[0] / zoom;
 	const draggedY = dragOffset == null ? 0 : dragOffset[1] / zoom;
+	const outerNozzleDiameter = toScreen(settings ? settings.outerNozzleDiameter / 2 : 0);
+	const outerNozzleDiameterPercentWidth =
+		(outerNozzleDiameter / (containerRef.current?.getBoundingClientRect().width ?? 0)) * 100;
+	const outerNozzleDiameterPercentHeight =
+		(outerNozzleDiameter / (containerRef.current?.getBoundingClientRect().height ?? 0)) * 100;
 	return (
 		<div className="flex h-[calc(100vh_-_64px)] w-full items-center">
 			<div
@@ -470,8 +484,8 @@ export default function Page() {
 						className={twJoin(
 							'absolute inset-0',
 							dragOutside.x && dragOutside.x > 0
-								? 'bg-gradient-to-r from-red-500 to-red-500/0'
-								: 'bg-gradient-to-l from-red-500 to-red-500/0',
+								? 'left-0 right-2/3 bg-gradient-to-r from-red-500/70 to-red-500/0'
+								: 'left-2/3 right-0 bg-gradient-to-l from-red-500/70 to-red-500/0',
 						)}
 						style={{ opacity: dragOutside.x ? Math.abs(dragOutside.x - (dragOffset?.[0] ?? 0)) / 200 : 0 }}
 					/>
@@ -479,8 +493,8 @@ export default function Page() {
 						className={twJoin(
 							'absolute inset-0',
 							dragOutside.y && dragOutside.y > 0
-								? 'bg-gradient-to-b from-red-500 to-red-500/0'
-								: 'bg-gradient-to-t from-red-500 to-red-500/0',
+								? 'bottom-2/3 top-0 bg-gradient-to-b from-red-500/70 to-red-500/0'
+								: 'bottom-0 top-2/3 bg-gradient-to-t from-red-500/70 to-red-500/0',
 						)}
 						style={{ opacity: dragOutside.y ? Math.abs(dragOutside.y - (dragOffset?.[1] ?? 0)) / 200 : 0 }}
 					/>
@@ -496,10 +510,24 @@ export default function Page() {
 						<circle
 							cx="50%"
 							cy="50%"
-							r={toScreen(settings ? settings.outerNozzleDiameter / 2 : 0)}
+							r={outerNozzleDiameter}
 							fill="none"
 							className="stroke-brand-500 opacity-50 transition-all ease-in-out"
 							strokeWidth="2"
+						/>
+						<rect
+							x="50%"
+							y={`${50 - outerNozzleDiameterPercentHeight}%`}
+							height={`${outerNozzleDiameterPercentHeight * 2}%`}
+							width={2}
+							className="fill-brand-500/50 transition-all ease-in-out"
+						/>
+						<rect
+							x={`${50 - outerNozzleDiameterPercentWidth}%`}
+							y="50%"
+							width={`${outerNozzleDiameterPercentWidth * 2}%`}
+							height={2}
+							className="fill-brand-500/50 transition-all ease-in-out"
 						/>
 					</svg>
 				</div>
@@ -527,6 +555,20 @@ export default function Page() {
 								</div>
 							))}
 					</div>
+				</div>
+				<div
+					className={twMerge(
+						'pointer-events-none absolute inset-0 flex items-center justify-center',
+						'text-green-500 dark:text-green-500',
+						connectionState === 'connected' && 'opacity-0',
+						connectionState === 'connecting' && 'text-brand-500 dark:text-brand-500',
+						connectionState === 'closed' && 'text-yellow-500 dark:text-yellow-500',
+						connectionState === 'failed' && 'text-rose-500 dark:text-rose-500',
+						connectionState === 'disconnected' && 'text-amber-500 dark:text-amber-500',
+						connectionState === 'new' && 'text-sky-500 dark:text-sky-500',
+					)}
+				>
+					<Spinner noMargin={true} className={twMerge('h-1/3 w-1/3 animate-spin text-inherit')} />
 				</div>
 			</div>
 		</div>
