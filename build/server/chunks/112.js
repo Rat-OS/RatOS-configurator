@@ -10,6 +10,14 @@ var map = {
 		2490,
 		490
 	],
+	"./caramba-chonk": [
+		6891,
+		891
+	],
+	"./caramba-chonk.ts": [
+		6891,
+		891
+	],
 	"./caramba-hybrid": [
 		4487,
 		487
