@@ -1,11 +1,12 @@
 import React, { Fragment, useCallback, useEffect, useState } from 'react';
 import { Listbox, Transition } from '@headlessui/react';
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
-import { twJoin } from 'tailwind-merge';
+import { twJoin, twMerge } from 'tailwind-merge';
 import { Badge, BadgeProps } from '../common/badge';
 import { DropdownQuery, DropdownQueryInput, DropdownQueryKeys, DropdownQueryOutput, trpc } from '../../utils/trpc';
 import { Spinner } from '../common/spinner';
 import { useSerializedPrinterConfiguration } from '../../hooks/usePrinterConfiguration';
+import { useAutoAnimate } from '@formkit/auto-animate/react';
 
 type Option = {
 	id: number | string;
@@ -20,6 +21,7 @@ interface DropdownProps<DropdownOption extends Option = Option> {
 	onSelect?: (option: DropdownOption) => void;
 	isFetching?: boolean;
 	label: string;
+	error?: string;
 	sort?: boolean;
 	disabled?: boolean;
 	badge?: BadgeProps | BadgeProps[];
@@ -87,21 +89,31 @@ export const Dropdown = <DropdownOption extends Option = Option>(props: Dropdown
 	const options =
 		props.sort == false ? props.options : props.options.slice(0).sort((a, b) => a.title.localeCompare(b.title));
 
+	const inputClass = twMerge(
+		'relative flex w-full cursor-default items-center justify-between rounded-md bg-white py-1.5 pl-3 pr-3 text-left text-zinc-900 shadow-sm ring-1 ring-inset ring-zinc-300 focus:outline-none focus:ring-2 focus:ring-brand-600 dark:bg-zinc-900 dark:text-zinc-300 dark:ring-zinc-700 dark:focus:ring-brand-400 sm:text-sm sm:leading-6',
+		props.error
+			? 'ring-red-300 text-red-900 placeholder-red-300 focus:ring-red-500 dark:ring-red-500 dark:text-red-400 dark:placeholder-red-700'
+			: 'ring-zinc-300 text-zinc-900 placeholder-zinc-300 focus:ring-brand-600 dark:ring-zinc-700 dark:text-zinc-100 dark:placeholder-zinc-700 dark:focus:ring-brand-400 ',
+	);
+
+	const [animate] = useAutoAnimate();
+
 	return (
 		<Listbox value={value?.id ?? value === null ? null : undefined} onChange={onSelected} disabled={props.disabled}>
 			{({ open }) => {
 				return (
 					<>
-						<Listbox.Label className="block text-sm font-semibold leading-6 text-zinc-700 dark:text-zinc-300">
+						<Listbox.Label
+							className={twMerge(
+								'block text-sm font-semibold leading-6 text-zinc-700 dark:text-zinc-300',
+								props.error && 'text-red-600 dark:text-red-400',
+							)}
+						>
 							{props.label}
 						</Listbox.Label>
 						{props.onShown && <OnDropdownOpened open={open} onShown={props.onShown} />}
 						<div className="relative mt-1">
-							<Listbox.Button
-								className="relative flex w-full cursor-default items-center justify-between rounded-md bg-white py-1.5 pl-3 pr-3 text-left text-zinc-900 shadow-sm ring-1 ring-inset ring-zinc-300 focus:outline-none focus:ring-2 focus:ring-brand-600 dark:bg-zinc-900 dark:text-zinc-300 dark:ring-zinc-700 dark:focus:ring-brand-400 sm:text-sm sm:leading-6"
-								disabled={props.disabled}
-								title={value?.title}
-							>
+							<Listbox.Button className={inputClass} disabled={props.disabled} title={value?.title}>
 								<span className="flex-1 truncate">{value?.title ?? 'Pick from the list...'}</span>
 								<span className={twJoin('flex items-center space-x-1', props.disabled && '-mr-1.5')}>
 									{props.badge &&
@@ -120,6 +132,9 @@ export const Dropdown = <DropdownOption extends Option = Option>(props: Dropdown
 									</span>
 								)}
 							</Listbox.Button>
+							<div ref={animate}>
+								{props.error && <p className="mt-2 text-sm text-red-600 dark:text-red-400">{props.error}</p>}
+							</div>
 
 							<Transition
 								show={open}
@@ -144,7 +159,7 @@ export const Dropdown = <DropdownOption extends Option = Option>(props: Dropdown
 										<Listbox.Option
 											key={option.id}
 											className={({ active, disabled }) =>
-												twJoin(
+												twMerge(
 													active ? 'dark bg-brand-600 text-white' : 'text-zinc-900 dark:text-zinc-300',
 													disabled && 'text-zinc-400 dark:text-zinc-500',
 													'relative cursor-default select-none py-2 pl-3 pr-9',

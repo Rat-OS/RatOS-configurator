@@ -35,7 +35,7 @@ export const TextInput = <T extends string | number>(props: TextInputProps<T>) =
 	);
 
 	const error = props.error ? (
-		<p className="mt-2 text-sm text-red-600" id={fieldId.current + '-error'}>
+		<p className="mt-2 text-sm text-red-600 dark:text-red-400" id={fieldId.current + '-error'}>
 			{props.error}
 		</p>
 	) : null;

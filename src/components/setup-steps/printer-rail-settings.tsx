@@ -1,13 +1,13 @@
 import { Dropdown } from '../forms/dropdown';
 import { Board } from '../../zods/boards';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Drivers } from '../../data/drivers';
 import { findPreset, Steppers } from '../../data/steppers';
-import { BadgeProps } from '../common/badge';
+import { BadgeProps, badgeBackgroundColorStyle, badgeBorderColorStyle } from '../common/badge';
 import { TextInput } from '../forms/text-input';
 import { Banner } from '../common/banner';
 import { BoltIcon, LightBulbIcon } from '@heroicons/react/24/outline';
-import { useSetRecoilState } from 'recoil';
+import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { FireIcon } from '@heroicons/react/24/solid';
 import {
 	BasePrinterRail,
@@ -17,15 +17,20 @@ import {
 	matchesDefaultRail,
 } from '../../zods/motion';
 import { deserializeDriver, serializePrinterRail } from '../../utils/serialization';
-import { PrinterRailState } from '../../recoil/printer';
-import { useToolhead } from '../../hooks/useToolheadConfiguration';
+import { PrinterRailState, PrinterRailsState } from '../../recoil/printer';
+import { useToolheads } from '../../hooks/useToolheadConfiguration';
 import { trpc } from '../../utils/trpc';
+import { twMerge } from 'tailwind-merge';
+import { z } from 'zod';
+
+const railArray = z.array(BasePrinterRail);
 
 interface PrinterRailSettingsProps {
 	selectedBoard: Board | null;
 	printerRail: Zod.infer<typeof BasePrinterRail>;
 	printerRailDefault: Zod.infer<typeof PrinterRailDefinition>;
 	performanceMode?: boolean | null;
+	errors: z.inferFormattedError<typeof BasePrinterRail>;
 	/**
 	 * This component should always be rendered to ensure the settings are updated when
 	 * switching performance mode, even if it isn't visible.
@@ -34,10 +39,12 @@ interface PrinterRailSettingsProps {
 }
 
 export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) => {
-	const toolhead = useToolhead(props.printerRailDefault.axis);
+	const toolheads = useToolheads();
+	const toolhead = toolheads.find((th) => th.getExtruderAxis() === props.printerRail.axis);
 	const usesToolboard = toolhead?.getExtruderAxis() === props.printerRailDefault.axis && toolhead?.hasToolboard();
 	const board = usesToolboard ? toolhead.getToolboard() : props.selectedBoard;
 	const setPrinterRail = useSetRecoilState(PrinterRailState(props.printerRail.axis));
+	const printerRails = useRecoilValue(PrinterRailsState);
 	const integratedDriver =
 		board?.integratedDrivers &&
 		board.integratedDrivers[
@@ -54,10 +61,43 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 			? props.printerRailDefault.performanceMode?.homingSpeed ?? props.printerRailDefault.homingSpeed
 			: props.printerRailDefault.homingSpeed,
 	);
-	const [motorSlot, setMotorSlot] = useState(props.printerRail.motorSlot);
+	const [motorSlot, setMotorSlot] = useState(
+		props.printerRail.motorSlot && props.selectedBoard?.motorSlots?.[props.printerRail.motorSlot]
+			? props.printerRail.motorSlot
+			: undefined,
+	);
 	const guessMotorSlot = trpc.mcu.reversePinLookup.useQuery(
 		{ axis: props.printerRail.axis, hasToolboard: toolhead?.hasToolboard() ?? false, boardPath: board?.path ?? '' },
 		{ enabled: !!board },
+	);
+	const errorCount = Object.keys(props.errors).reduce((acc, key) => {
+		const objKey = key as keyof typeof props.errors;
+		const keyErrors = props.errors[objKey];
+		if (keyErrors == null) {
+			return acc;
+		}
+		const count = Array.isArray(keyErrors) ? keyErrors.length : keyErrors._errors.length;
+		return acc + count;
+	}, 0);
+
+	const isSlotInUse = useCallback(
+		(slot: string | undefined) => {
+			if (slot == null) {
+				return false;
+			}
+			return printerRails.some((pr) => {
+				const railToolhead = toolheads.find((th) => th.getExtruderAxis() === pr.axis);
+				if (pr.axis === props.printerRail.axis) {
+					return false;
+				}
+				if (railToolhead?.hasToolboard()) {
+					// The rail is an extruder rail and the toolhead has a toolboard, no chance of conflict.
+					return false;
+				}
+				return pr.motorSlot === slot;
+			});
+		},
+		[printerRails, props.printerRail.axis, toolheads],
 	);
 
 	useEffect(() => {
@@ -203,7 +243,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 	}, [current, driver, props.printerRail, homingSpeed, setPrinterRail, stepper, voltage.id, motorSlot]);
 
 	const isRecommendedPresetCompatible = recommendedPreset && recommendedPreset.run_current === current;
-	const extruderName =
+	const railName =
 		props.printerRail.axis === 'extruder'
 			? 'Extruder T0'
 			: props.printerRail.axis === PrinterAxis.extruder1
@@ -218,6 +258,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 						}
 						const hasDiagPin = board.motorSlots?.[ms].diag_pin != null;
 						const hasEndstopPin = board.motorSlots?.[ms].endstop_pin != null;
+						const isInUse = isSlotInUse(ms);
 						const disabled =
 							(props.printerRailDefault.axis.startsWith('x') || props.printerRailDefault.axis.startsWith('y')) &&
 							!hasDiagPin;
@@ -230,6 +271,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 									? ({ children: 'No diag pin', color: disabled ? 'red' : 'gray' } satisfies BadgeProps)
 									: undefined,
 								!hasEndstopPin ? ({ children: 'No endstop pin', color: 'gray' } satisfies BadgeProps) : undefined,
+								isInUse === true ? ({ children: 'In use', color: 'orange' } satisfies BadgeProps) : undefined,
 							].filter(Boolean),
 						};
 					})
@@ -245,10 +287,30 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 		return !hasDiagPin && disabled ? ({ children: 'No diag pin', color: 'red' } satisfies BadgeProps) : undefined;
 	}, [board, motorSlot, props.printerRailDefault.axis]);
 	return props.isVisible ? (
-		<div className="break-inside-avoid-column rounded-md border border-zinc-300 p-4 shadow-lg dark:border-zinc-700">
+		<div
+			className={twMerge(
+				'break-inside-avoid-column rounded-md border border-zinc-300 p-4 shadow-lg dark:border-zinc-700',
+				errorCount > 0 && badgeBorderColorStyle({ color: 'red' }),
+				errorCount > 0 && badgeBackgroundColorStyle({ color: 'red' }),
+			)}
+		>
 			<div className="">
-				<h3 className="text-sm font-medium leading-6 text-zinc-700 dark:text-zinc-300">{extruderName}</h3>
-				<p className="text-sm text-zinc-500 dark:text-zinc-400">{props.printerRail.axisDescription}</p>
+				<h3
+					className={twMerge(
+						'text-sm font-bold leading-6 text-zinc-700 dark:text-zinc-300',
+						errorCount > 0 && 'text-red-900/80 dark:text-red-100',
+					)}
+				>
+					{railName}
+				</h3>
+				<p
+					className={twMerge(
+						'text-sm text-zinc-500 dark:text-zinc-400',
+						errorCount > 0 && 'text-red-800/80 dark:text-red-100/60',
+					)}
+				>
+					{props.printerRail.axisDescription}
+				</p>
 			</div>
 			<div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
 				{motorSlotOptions && (
@@ -256,6 +318,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 						<Dropdown
 							label="Motor Slot"
 							options={motorSlotOptions}
+							error={props.errors.motorSlot?._errors.join('\n')}
 							onSelect={(ms) => {
 								setMotorSlot(ms.id);
 							}}

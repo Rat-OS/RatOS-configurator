@@ -350,11 +350,9 @@ describe('server', async () => {
 				});
 				if (config.toolheads[0].xAccelerometer?.id !== 'none') {
 					expect(xSections.length).toBeGreaterThan(0);
-					console.log(xSections);
 				}
 				if (config.toolheads[0].yAccelerometer?.id !== 'none') {
 					expect(ySections.length).toBeGreaterThan(0);
-					console.log(ySections);
 				}
 			});
 			test.concurrent('contains position_min/max/endstop for x/y', () => {

@@ -8,6 +8,7 @@ import { runSudoScript } from '../helpers/run-script';
 import {
 	AutoFlashableBoard,
 	Board,
+	BoardPath,
 	BoardWithDetectionStatus,
 	ToolboardWithDetectionStatus,
 	reversePinLookup,
@@ -44,22 +45,29 @@ export const getBoards = async () => {
 		});
 	}
 	const defs = await glob(`${process.env.RATOS_CONFIGURATION_PATH}/boards/*/board-definition.json`);
-	const boards = z.array(BoardWithDetectionStatus).parse(
+	const boards = 
 		defs
 			.map((f) =>
 				f.trim() === ''
 					? null
 					: {
 							...(JSON.parse(fs.readFileSync(f).toString()) as BoardWithDetectionStatus),
-							path: f.replace('board-definition.json', ''),
+							path: BoardPath.parse(f.replace('board-definition.json', '')),
 						},
 			)
 			.filter(Boolean)
 			.map((b) => {
 				b.detected = detect(b);
-				return b;
-			}),
-	);
+				try {
+					return BoardWithDetectionStatus.parse(b);
+				} catch (e) {
+					throw new TRPCError({
+						code: 'INTERNAL_SERVER_ERROR',
+						message: `Invalid board definition for ${b.name} in ${b.path}`,
+						cause: e,
+					});
+				}
+			});
 	ServerCache.set('boards', boards);
 	return boards;
 };

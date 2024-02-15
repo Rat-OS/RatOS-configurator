@@ -159,6 +159,7 @@ export const BasePrinterRail = z.object({
 });
 
 export const PrinterRailDefinition = BasePrinterRail.extend({
+	motorSlot: z.undefined(),
 	performanceMode: z
 		.object({
 			current: z.number().min(0),
