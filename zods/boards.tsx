@@ -268,90 +268,106 @@ export const reversePinLookup: (pins: AnySlotPin, board: Board) => z.infer<typeo
 	return undefined;
 };
 
-export const Board = z.object({
-	id: z.string(),
-	isToolboard: z.boolean().optional(),
-	isHost: z.boolean().optional(),
-	serialPath: z.string().optional(),
-	name: z.string(),
-	manufacturer: z.string(),
-	firmwareBinaryName: z.string(),
-	compileScript: z.string(),
-	flashScript: z.string().optional(),
-	flashInstructions: z.string().optional(),
-	disableAutoFlash: z.boolean().optional(),
-	documentationLink: z.string().optional(),
-	hasQuirksFiles: z.boolean().optional(),
-	driverCount: z.number(),
-	integratedDrivers: z.record(z.nativeEnum(PrinterAxis), z.string()).optional(),
-	extruderlessConfig: z.string().optional(),
-	fourPinFanConnectorCount: z.number().optional(),
-	driverVoltages: Voltage.array().default([24]),
-	hasMcuTempSensor: z.boolean().default(true),
-	alternativePT1000Resistor: z.number().optional(),
-	motorSlots: z.record(MotorSlotKey, MotorSlot).optional(),
-	outputPins: z
-		.array(
-			z.object({
-				pin: z.string(),
-				name: z.string(),
-				value: z.number().min(0).max(1),
-			}),
-		)
-		.optional(),
-	dfu: z
-		.object({
-			dfuBootImage: z.string(),
-			flashDevice: z.string(),
-			instructions: z.array(z.string()),
-			reminder: z.string().optional(),
-			hasBoot0Jumper: z.boolean(),
-		})
-		.optional(),
-	stepperSPI: z
-		.object({
-			software: z.object({
-				sclk: z.string(),
-				mosi: z.string(),
-				miso: z.string(),
-			}),
-		})
-		.or(
-			z.object({
-				hardware: z.object({
-					bus: z.string(),
-				}),
-			}),
-		)
-		.optional(),
-	ADXL345SPI: z
-		.object({
-			cs_pin: z.string(),
-		})
-		.and(
-			z
-				.object({
-					software: z.object({
-						sclk: z.string(),
-						mosi: z.string(),
-						miso: z.string(),
-					}),
-				})
-				.or(
-					z.object({
-						hardware: z.object({
-							bus: z.string(),
-						}),
-					}),
-				),
-		)
-		.optional(),
-	path: z.string(),
-});
+export const BoardID = z.string().brand('BoardID');
+export const BoardPath = z.string().brand('BoardPath');
+export const BoardSerialPath = z.string().brand('BoardSerialPath');
 
-export const BoardWithDetectionStatus = Board.extend({
-	detected: z.boolean(),
-});
+const integratedDrivers = z.record(z.nativeEnum(PrinterAxis), z.string());
+const motorSlots = z.record(MotorSlotKey, MotorSlot);
+
+export const Board = z
+	.object({
+		id: BoardID,
+		isToolboard: z.boolean().optional(),
+		isHost: z.boolean().optional(),
+		serialPath: BoardSerialPath.optional(),
+		name: z.string(),
+		manufacturer: z.string(),
+		firmwareBinaryName: z.string(),
+		compileScript: z.string(),
+		flashScript: z.string().optional(),
+		flashInstructions: z.string().optional(),
+		disableAutoFlash: z.boolean().optional(),
+		documentationLink: z.string().optional(),
+		hasQuirksFiles: z.boolean().optional(),
+		driverCount: z.number(),
+		integratedDrivers: integratedDrivers.optional(),
+		extruderlessConfig: z.string().optional(),
+		fourPinFanConnectorCount: z.number().optional(),
+		driverVoltages: Voltage.array().default([24]),
+		hasMcuTempSensor: z.boolean().default(true),
+		alternativePT1000Resistor: z.number().optional(),
+		motorSlots: z.record(MotorSlotKey, MotorSlot).optional(),
+		outputPins: z
+			.array(
+				z.object({
+					pin: z.string(),
+					name: z.string(),
+					value: z.number().min(0).max(1),
+				}),
+			)
+			.optional(),
+		dfu: z
+			.object({
+				dfuBootImage: z.string(),
+				flashDevice: z.string(),
+				instructions: z.array(z.string()),
+				reminder: z.string().optional(),
+				hasBoot0Jumper: z.boolean(),
+			})
+			.optional(),
+		stepperSPI: z
+			.object({
+				software: z.object({
+					sclk: z.string(),
+					mosi: z.string(),
+					miso: z.string(),
+				}),
+			})
+			.or(
+				z.object({
+					hardware: z.object({
+						bus: z.string(),
+					}),
+				}),
+			)
+			.optional(),
+		ADXL345SPI: z
+			.object({
+				cs_pin: z.string(),
+			})
+			.and(
+				z
+					.object({
+						software: z.object({
+							sclk: z.string(),
+							mosi: z.string(),
+							miso: z.string(),
+						}),
+					})
+					.or(
+						z.object({
+							hardware: z.object({
+								bus: z.string(),
+							}),
+						}),
+					),
+			)
+			.optional(),
+		path: BoardPath,
+	})
+	.and(
+		z
+			.object({ isToolboard: z.literal(true), motorSlots: z.undefined() })
+			.or(z.object({ motorSlots: motorSlots }))
+			.or(z.object({ isHost: z.literal(true), motorSlots: z.undefined() })),
+	);
+
+export const BoardWithDetectionStatus = Board.and(
+	z.object({
+		detected: z.boolean(),
+	}),
+);
 
 export const AutoFlashableBoard = z.object({
 	id: z.string(),
@@ -359,22 +375,26 @@ export const AutoFlashableBoard = z.object({
 	isToolboard: z.boolean().optional(),
 	compileScript: z.string(),
 	flashScript: z.string(),
-	path: z.string(),
+	path: BoardPath,
 });
 
-export const Toolboard = Board.extend({
-	isToolboard: z.literal(true),
-	isHost: z.literal(false).optional(),
-	integratedDrivers: Board.shape.integratedDrivers.and(
-		z.object({
-			[PrinterAxis.extruder]: z.string(),
-		}),
-	),
-});
+export const Toolboard = Board.and(
+	z.object({
+		isToolboard: z.literal(true),
+		isHost: z.literal(false).optional(),
+		integratedDrivers: integratedDrivers.and(
+			z.object({
+				[PrinterAxis.extruder]: z.string(),
+			}),
+		),
+	}),
+);
 
-export const ToolboardWithDetectionStatus = Toolboard.extend({
-	detected: z.boolean(),
-});
+export const ToolboardWithDetectionStatus = Toolboard.and(
+	z.object({
+		detected: z.boolean(),
+	}),
+);
 
 export type Board = z.infer<typeof Board>;
 export type BoardWithDetectionStatus = z.infer<typeof BoardWithDetectionStatus>;

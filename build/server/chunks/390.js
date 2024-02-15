@@ -1496,13 +1496,21 @@ const getBoards = async ()=>{
         });
     }
     const defs = await (0,external_glob_.glob)(`${process.env.RATOS_CONFIGURATION_PATH}/boards/*/board-definition.json`);
-    const boards = external_zod_.z.array(zods_boards/* BoardWithDetectionStatus */.Ai).parse(defs.map((f)=>f.trim() === "" ? null : {
+    const boards = defs.map((f)=>f.trim() === "" ? null : {
             ...JSON.parse(external_fs_default().readFileSync(f).toString()),
-            path: f.replace("board-definition.json", "")
+            path: zods_boards/* BoardPath.parse */.Ui.parse(f.replace("board-definition.json", ""))
         }).filter(Boolean).map((b)=>{
         b.detected = detect(b);
-        return b;
-    }));
+        try {
+            return zods_boards/* BoardWithDetectionStatus.parse */.Ai.parse(b);
+        } catch (e) {
+            throw new server_.TRPCError({
+                code: "INTERNAL_SERVER_ERROR",
+                message: `Invalid board definition for ${b.name} in ${b.path}`,
+                cause: e
+            });
+        }
+    });
     ServerCache.set("boards", boards);
     return boards;
 };

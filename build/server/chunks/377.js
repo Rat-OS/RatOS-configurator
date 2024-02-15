@@ -1318,7 +1318,7 @@ const ControlboardState = (0,recoil__WEBPACK_IMPORTED_MODULE_3__.atom)({
                 const board = await read(ControlboardState.key);
                 if (board != null) {
                     const boardId = zod__WEBPACK_IMPORTED_MODULE_4__.z.object({
-                        path: _zods_boards__WEBPACK_IMPORTED_MODULE_8__/* .Board.shape.path */ .$l.shape.path
+                        path: _zods_boards__WEBPACK_IMPORTED_MODULE_8__/* .BoardPath */ .Ui
                     }).safeParse(board);
                     if (boardId.success) {
                         const boardReq = await _helpers_trpc__WEBPACK_IMPORTED_MODULE_2__/* .trpcClient.mcu.boards.query */ .u.mcu.boards.query({
@@ -1448,7 +1448,7 @@ const PrinterToolheadState = (0,recoil__WEBPACK_IMPORTED_MODULE_0__.atomFamily)(
                             if (freshToolboard) {
                                 if (freshToolboard != null) {
                                     const toolboardPath = zod__WEBPACK_IMPORTED_MODULE_2__.z.object({
-                                        path: _zods_boards__WEBPACK_IMPORTED_MODULE_5__/* .Toolboard.shape.path */ .MG.shape.path
+                                        path: _zods_boards__WEBPACK_IMPORTED_MODULE_5__/* .BoardPath */ .Ui
                                     }).safeParse(freshToolboard);
                                     if (toolboardPath.success) {
                                         const boardReq = await _helpers_trpc__WEBPACK_IMPORTED_MODULE_4__/* .trpcClient.mcu.boards.query */ .u.mcu.boards.query({
@@ -1676,13 +1676,15 @@ const extractToolheadFromPrinterConfiguration = (toolOrAxis, config)=>{
 /* harmony export */   "MO": () => (/* binding */ reversePinLookup),
 /* harmony export */   "MW": () => (/* binding */ ControlBoardPinMap),
 /* harmony export */   "Oy": () => (/* binding */ ToolboardPinMap),
+/* harmony export */   "Ui": () => (/* binding */ BoardPath),
+/* harmony export */   "WQ": () => (/* binding */ BoardID),
 /* harmony export */   "WX": () => (/* binding */ SPIPins),
 /* harmony export */   "X2": () => (/* binding */ UARTPins),
 /* harmony export */   "_u": () => (/* binding */ hasSPI),
 /* harmony export */   "m9": () => (/* binding */ ToolboardWithDetectionStatus),
 /* harmony export */   "uh": () => (/* binding */ hasUART)
 /* harmony export */ });
-/* unused harmony exports PinMap, MotorSlot, MotorSlotKey */
+/* unused harmony exports PinMap, MotorSlot, MotorSlotKey, BoardSerialPath */
 /* harmony import */ var zod__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8316);
 /* harmony import */ var zod__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(zod__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _motion__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(6680);
@@ -1915,11 +1917,16 @@ const reversePinLookup = (pins, board)=>{
     }
     return undefined;
 };
+const BoardID = zod__WEBPACK_IMPORTED_MODULE_0__.z.string().brand("BoardID");
+const BoardPath = zod__WEBPACK_IMPORTED_MODULE_0__.z.string().brand("BoardPath");
+const BoardSerialPath = zod__WEBPACK_IMPORTED_MODULE_0__.z.string().brand("BoardSerialPath");
+const integratedDrivers = zod__WEBPACK_IMPORTED_MODULE_0__.z.record(zod__WEBPACK_IMPORTED_MODULE_0__.z.nativeEnum(_motion__WEBPACK_IMPORTED_MODULE_1__/* .PrinterAxis */ .po), zod__WEBPACK_IMPORTED_MODULE_0__.z.string());
+const motorSlots = zod__WEBPACK_IMPORTED_MODULE_0__.z.record(MotorSlotKey, MotorSlot);
 const Board = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
-    id: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
+    id: BoardID,
     isToolboard: zod__WEBPACK_IMPORTED_MODULE_0__.z.boolean().optional(),
     isHost: zod__WEBPACK_IMPORTED_MODULE_0__.z.boolean().optional(),
-    serialPath: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional(),
+    serialPath: BoardSerialPath.optional(),
     name: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
     manufacturer: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
     firmwareBinaryName: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
@@ -1930,7 +1937,7 @@ const Board = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
     documentationLink: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional(),
     hasQuirksFiles: zod__WEBPACK_IMPORTED_MODULE_0__.z.boolean().optional(),
     driverCount: zod__WEBPACK_IMPORTED_MODULE_0__.z.number(),
-    integratedDrivers: zod__WEBPACK_IMPORTED_MODULE_0__.z.record(zod__WEBPACK_IMPORTED_MODULE_0__.z.nativeEnum(_motion__WEBPACK_IMPORTED_MODULE_1__/* .PrinterAxis */ .po), zod__WEBPACK_IMPORTED_MODULE_0__.z.string()).optional(),
+    integratedDrivers: integratedDrivers.optional(),
     extruderlessConfig: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().optional(),
     fourPinFanConnectorCount: zod__WEBPACK_IMPORTED_MODULE_0__.z.number().optional(),
     driverVoltages: _motion__WEBPACK_IMPORTED_MODULE_1__/* .Voltage.array */ .v6.array().default([
@@ -1975,29 +1982,37 @@ const Board = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
             bus: zod__WEBPACK_IMPORTED_MODULE_0__.z.string()
         })
     }))).optional(),
-    path: zod__WEBPACK_IMPORTED_MODULE_0__.z.string()
-});
-const BoardWithDetectionStatus = Board.extend({
+    path: BoardPath
+}).and(zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
+    isToolboard: zod__WEBPACK_IMPORTED_MODULE_0__.z.literal(true),
+    motorSlots: zod__WEBPACK_IMPORTED_MODULE_0__.z.undefined()
+}).or(zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
+    motorSlots: motorSlots
+})).or(zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
+    isHost: zod__WEBPACK_IMPORTED_MODULE_0__.z.literal(true),
+    motorSlots: zod__WEBPACK_IMPORTED_MODULE_0__.z.undefined()
+})));
+const BoardWithDetectionStatus = Board.and(zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
     detected: zod__WEBPACK_IMPORTED_MODULE_0__.z.boolean()
-});
+}));
 const AutoFlashableBoard = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
     id: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
     disableAutoFlash: zod__WEBPACK_IMPORTED_MODULE_0__.z.literal(false).optional(),
     isToolboard: zod__WEBPACK_IMPORTED_MODULE_0__.z.boolean().optional(),
     compileScript: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
     flashScript: zod__WEBPACK_IMPORTED_MODULE_0__.z.string(),
-    path: zod__WEBPACK_IMPORTED_MODULE_0__.z.string()
+    path: BoardPath
 });
-const Toolboard = Board.extend({
+const Toolboard = Board.and(zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
     isToolboard: zod__WEBPACK_IMPORTED_MODULE_0__.z.literal(true),
     isHost: zod__WEBPACK_IMPORTED_MODULE_0__.z.literal(false).optional(),
-    integratedDrivers: Board.shape.integratedDrivers.and(zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
+    integratedDrivers: integratedDrivers.and(zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
         [_motion__WEBPACK_IMPORTED_MODULE_1__/* .PrinterAxis.extruder */ .po.extruder]: zod__WEBPACK_IMPORTED_MODULE_0__.z.string()
     }))
-});
-const ToolboardWithDetectionStatus = Toolboard.extend({
+}));
+const ToolboardWithDetectionStatus = Toolboard.and(zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
     detected: zod__WEBPACK_IMPORTED_MODULE_0__.z.boolean()
-});
+}));
 
 
 /***/ }),
@@ -2120,6 +2135,8 @@ const Fan = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
 /* harmony import */ var _printer__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(5996);
 /* harmony import */ var _motion__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(6680);
 /* harmony import */ var _toolhead__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(4130);
+/* harmony import */ var _helpers_toolhead__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(7187);
+
 
 
 
@@ -2137,15 +2154,95 @@ const BasePrinterConfiguration = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
     standstillStealth: zod__WEBPACK_IMPORTED_MODULE_0__.z.boolean().default(false),
     rails: zod__WEBPACK_IMPORTED_MODULE_0__.z.array(_motion__WEBPACK_IMPORTED_MODULE_4__/* .PrinterRail */ .JQ)
 }).strict();
-const PrinterConfiguration = BasePrinterConfiguration.refine((data)=>data.size == null || (data.printer.sizes?.length ?? 0) > 0 && data.size != null, "Printer size must be provided if printer has size options, otherwise it must be omitted").refine((data)=>data.toolheads.map((t)=>t.toolboard).filter(Boolean).length + data.controlboard.driverCount >= data.printer.driverCountRequired, "Your combination of controlboard and toolboards do not have enough stepper drivers for this printer");
+const PrinterConfiguration = BasePrinterConfiguration.superRefine((arg, ctx)=>{
+    // Size validation
+    if (arg.size != null) {
+        const sizes = arg.printer.sizes ?? [];
+        if (!sizes.includes(arg.size)) {
+            ctx.addIssue({
+                code: zod__WEBPACK_IMPORTED_MODULE_0__.z.ZodIssueCode.custom,
+                message: `Size ${arg.size} is not a valid size for a ${arg.printer.name} config`
+            });
+        }
+    } else if (arg.printer.sizes != null && arg.printer.sizes.length > 0) {
+        ctx.addIssue({
+            code: zod__WEBPACK_IMPORTED_MODULE_0__.z.ZodIssueCode.custom,
+            message: `Size is required for a ${arg.printer.name} config`
+        });
+    }
+}).superRefine((arg, ctx)=>{
+    // Driver count validation
+    const toolboardCount = arg.toolheads.map((t)=>t.toolboard).filter(Boolean).length;
+    if (toolboardCount + arg.controlboard.driverCount < arg.printer.driverCountRequired) {
+        ctx.addIssue({
+            code: zod__WEBPACK_IMPORTED_MODULE_0__.z.ZodIssueCode.too_small,
+            message: `Your combination of controlboard and toolboards do not have enough stepper drivers for a ${arg.printer.name} config`,
+            minimum: arg.printer.driverCountRequired,
+            inclusive: true,
+            type: "number"
+        });
+    }
+}).superRefine((arg, ctx)=>{
+    // Rail motor slot validation
+    const toolheads = arg.toolheads.map((t)=>new _helpers_toolhead__WEBPACK_IMPORTED_MODULE_6__/* .ToolheadHelper */ .D(t));
+    const errors = arg.rails.map((r, i)=>{
+        const toolhead = toolheads.find((th)=>th.getExtruderAxis() === r.axis);
+        if (r.motorSlot != null) {
+            const conflicts = arg.rails.filter((pr)=>{
+                const conflictingToolhead = toolheads.find((th)=>th.getExtruderAxis() === pr.axis);
+                if (pr.axis === r.axis || toolhead?.hasToolboard() != null) {
+                    return false;
+                }
+                if (conflictingToolhead?.hasToolboard != null) {
+                    // The rail is an extruder rail and the toolhead has a toolboard, no chance of conflict.
+                    return false;
+                }
+                return pr.motorSlot === r.motorSlot;
+            });
+            const railName = (axis)=>axis === "extruder" ? "Extruder T0" : axis === _motion__WEBPACK_IMPORTED_MODULE_4__/* .PrinterAxis.extruder1 */ .po.extruder1 ? "Extruder T1" : "Stepper " + axis.toLocaleUpperCase();
+            if (conflicts.length === 1) {
+                ctx.addIssue({
+                    code: zod__WEBPACK_IMPORTED_MODULE_0__.z.ZodIssueCode.custom,
+                    message: `Motor slot ${r.motorSlot} is already in use on ${railName(conflicts[0].axis)}`,
+                    path: [
+                        "rails",
+                        i,
+                        "motorSlot"
+                    ]
+                });
+            } else if (conflicts.length > 1) {
+                ctx.addIssue({
+                    code: zod__WEBPACK_IMPORTED_MODULE_0__.z.ZodIssueCode.custom,
+                    message: `Motor slot ${r.motorSlot} is already in use on ${conflicts.slice(0, -1).map((cr)=>railName(cr.axis)).join(", ")} and ${railName(conflicts[conflicts.length - 1].axis)}`,
+                    path: [
+                        "rails",
+                        i,
+                        "motorSlot"
+                    ]
+                });
+            }
+            return conflicts.length > 0 ? {
+                rail: r,
+                conflicts
+            } : 0;
+        }
+        return null;
+    }).filter(Boolean);
+    if (errors.length > 0) {
+        ctx.addIssue({
+            code: zod__WEBPACK_IMPORTED_MODULE_0__.z.ZodIssueCode.custom,
+            message: "Motor slot conflicts detected"
+        });
+    }
+});
 const SerializedPrinterConfiguration = BasePrinterConfiguration.extend({
     printer: _printer__WEBPACK_IMPORTED_MODULE_3__/* .PrinterDefinition.shape.id */ .Q.shape.id,
-    controlboard: _boards__WEBPACK_IMPORTED_MODULE_1__/* .Board.shape.id */ .$l.shape.id,
+    controlboard: _boards__WEBPACK_IMPORTED_MODULE_1__/* .BoardID */ .WQ,
     toolheads: zod__WEBPACK_IMPORTED_MODULE_0__.z.array(_toolhead__WEBPACK_IMPORTED_MODULE_5__/* .SerializedToolheadConfiguration */ .Qk).min(1).max(2),
     controllerFan: _hardware__WEBPACK_IMPORTED_MODULE_2__/* .Fan.shape.id */ .XG.shape.id,
     rails: zod__WEBPACK_IMPORTED_MODULE_0__.z.array(_motion__WEBPACK_IMPORTED_MODULE_4__/* .SerializedPrinterRail */ .Ah)
 }).strict();
-const PartialPrinterConfiguration = PrinterConfiguration.innerType().innerType().extend({
+const PartialPrinterConfiguration = BasePrinterConfiguration.extend({
     toolheads: zod__WEBPACK_IMPORTED_MODULE_0__.z.array(_toolhead__WEBPACK_IMPORTED_MODULE_5__/* .PartialToolheadConfiguration */ .b2).min(1).max(2)
 }).strict().partial().optional();
 const SerializedPartialPrinterConfiguration = SerializedPrinterConfiguration.extend({
@@ -2170,6 +2267,8 @@ const SerializedPartialPrinterConfiguration = SerializedPrinterConfiguration.ext
 /* harmony import */ var _motion__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(6680);
 /* harmony import */ var _toolhead__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(4130);
 /* harmony import */ var _hardware__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(7670);
+/* harmony import */ var _boards__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(95);
+
 
 
 
@@ -2232,7 +2331,7 @@ const PrinterDefinition = zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
     }).strict().describe("Speed limits for this printer"),
     defaults: zod__WEBPACK_IMPORTED_MODULE_0__.z.object({
         toolheads: zod__WEBPACK_IMPORTED_MODULE_0__.z.array(_toolhead__WEBPACK_IMPORTED_MODULE_4__/* .SerializedToolheadConfiguration */ .Qk).describe("Default toolheads for this printer"),
-        board: zod__WEBPACK_IMPORTED_MODULE_0__.z.string().describe("Default board for this printer. Should be the name of the board directory."),
+        board: _boards__WEBPACK_IMPORTED_MODULE_6__/* .BoardID.describe */ .WQ.describe("Default board for this printer. Should be the name of the board directory."),
         rails: zod__WEBPACK_IMPORTED_MODULE_0__.z.array(_motion__WEBPACK_IMPORTED_MODULE_3__/* .SerializedPrinterRailDefinition */ .r).describe("Default rails for this printer"),
         controllerFan: _hardware__WEBPACK_IMPORTED_MODULE_5__/* .Fan.shape.id.optional */ .XG.shape.id.optional().describe("Default controller fan for this printer")
     }).strict().describe("Default hardware for this printer")
@@ -2321,7 +2420,7 @@ const SerializedToolheadConfiguration = BaseToolheadConfiguration.extend({
     partFan: _hardware__WEBPACK_IMPORTED_MODULE_2__/* .Fan.shape.id */ .XG.shape.id,
     xAccelerometer: _hardware__WEBPACK_IMPORTED_MODULE_2__/* .Accelerometer.shape.id.optional */ .M3.shape.id.optional().nullable(),
     yAccelerometer: _hardware__WEBPACK_IMPORTED_MODULE_2__/* .Accelerometer.shape.id.optional */ .M3.shape.id.optional().nullable(),
-    toolboard: _boards__WEBPACK_IMPORTED_MODULE_1__/* .Toolboard.shape.serialPath.optional */ .MG.shape.serialPath.optional().nullable(),
+    toolboard: _boards__WEBPACK_IMPORTED_MODULE_1__/* .BoardID.optional */ .WQ.optional().nullable(),
     probe: _hardware__WEBPACK_IMPORTED_MODULE_2__/* .Probe.shape.id.optional */ .lV.shape.id.optional().nullable()
 }).strict();
 const SerializedPartialToolheadConfiguration = SerializedToolheadConfiguration.partial().optional();

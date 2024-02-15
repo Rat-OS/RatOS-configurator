@@ -19,7 +19,7 @@
 			"toolNumber": 0
 		}
 	],
-	"size": 200,
+	"size": 300,
 	"controllerFan": "2pin",
 	"performanceMode": true,
 	"stealthchop": false,

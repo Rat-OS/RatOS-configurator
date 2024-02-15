@@ -170,6 +170,7 @@ const BasePrinterRail = zod__WEBPACK_IMPORTED_MODULE_0__.object({
     microstepping: zod__WEBPACK_IMPORTED_MODULE_0__.number().min(16).max(256).default(64).describe("Microstepping of the stepper driver, higher values increase resolution and lower noise but increases load on the MCU")
 });
 const PrinterRailDefinition = BasePrinterRail.extend({
+    motorSlot: zod__WEBPACK_IMPORTED_MODULE_0__.undefined(),
     performanceMode: zod__WEBPACK_IMPORTED_MODULE_0__.object({
         current: zod__WEBPACK_IMPORTED_MODULE_0__.number().min(0),
         voltage: Voltage.default(StepperVoltage["24V"]).describe("Voltage of the stepper driver in performance mode"),

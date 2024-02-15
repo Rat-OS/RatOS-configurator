@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StepNavButtons } from '../step-nav-buttons';
 import { StepScreenProps } from '../../hooks/useSteps';
 import { DropdownWithPrinterQuery } from '../forms/dropdown';
@@ -32,6 +32,7 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 		partialPrinterConfiguration,
 	} = usePrinterConfiguration();
 	const errors: string[] = [];
+	let formattedErrors = parsedPrinterConfiguration.success === false ? parsedPrinterConfiguration.error.format() : null;
 	if (partialPrinterConfiguration != null) {
 		if (parsedPrinterConfiguration.success === false) {
 			parsedPrinterConfiguration.error.flatten().formErrors.forEach((message) => {
@@ -39,6 +40,13 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 			});
 		}
 	}
+	useEffect(() => {
+		if (parsedPrinterConfiguration.success === false) {
+			if (parsedPrinterConfiguration.error.errors.some((e) => e.path[0] === 'rails')) {
+				setAdvancedSteppers(true);
+			}
+		}
+	}, [parsedPrinterConfiguration]);
 	return (
 		<>
 			<div className="p-8">
@@ -131,7 +139,7 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 				<div>
 					{selectedPrinter && (
 						<div className="grid gap-4 py-4 sm:grid-cols-2" ref={railAnimate}>
-							{selectedPrinterRails.map((rail) => {
+							{selectedPrinterRails.map((rail, ri) => {
 								const defaultRail = selectedPrinter.defaults.rails.find((r) => r.axis === rail.axis);
 								if (defaultRail == null) {
 									throw new Error('No printer default for axis ' + rail.axis);
@@ -139,6 +147,7 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 								return (
 									<PrinterRailSettings
 										key={rail.axis + (performanceMode ? 'performance' : '')}
+										errors={formattedErrors?.rails?.[ri] != null ? formattedErrors.rails[ri] : { _errors: [] }}
 										selectedBoard={selectedBoard}
 										printerRail={rail}
 										printerRailDefault={deserializePrinterRailDefinition(defaultRail)}

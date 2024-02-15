@@ -238,6 +238,7 @@ describe('configuration', async () => {
 				controlboard: defaultBoard,
 				toolheads: toolheads,
 				rails: defaultRails,
+				size: printer.sizes?.[0],
 				performanceMode: false,
 				standstillStealth: false,
 				stealthchop: false,

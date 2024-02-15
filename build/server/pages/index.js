@@ -1399,7 +1399,10 @@ const StepNavButtons = (props)=>{
 var utils_trpc = __webpack_require__(945);
 // EXTERNAL MODULE: ./hooks/usePrinterConfiguration.tsx
 var usePrinterConfiguration = __webpack_require__(2312);
+// EXTERNAL MODULE: ./node_modules/.pnpm/@formkit+auto-animate@0.8.0/node_modules/@formkit/auto-animate/react/index.mjs + 1 modules
+var react = __webpack_require__(6187);
 ;// CONCATENATED MODULE: ./components/forms/dropdown.tsx
+
 
 
 
@@ -1460,6 +1463,8 @@ const Dropdown = (props)=>{
         props.options
     ]);
     const options = props.sort == false ? props.options : props.options.slice(0).sort((a, b)=>a.title.localeCompare(b.title));
+    const inputClass = (0,external_tailwind_merge_namespaceObject.twMerge)("relative flex w-full cursor-default items-center justify-between rounded-md bg-white py-1.5 pl-3 pr-3 text-left text-zinc-900 shadow-sm ring-1 ring-inset ring-zinc-300 focus:outline-none focus:ring-2 focus:ring-brand-600 dark:bg-zinc-900 dark:text-zinc-300 dark:ring-zinc-700 dark:focus:ring-brand-400 sm:text-sm sm:leading-6", props.error ? "ring-red-300 text-red-900 placeholder-red-300 focus:ring-red-500 dark:ring-red-500 dark:text-red-400 dark:placeholder-red-700" : "ring-zinc-300 text-zinc-900 placeholder-zinc-300 focus:ring-brand-600 dark:ring-zinc-700 dark:text-zinc-100 dark:placeholder-zinc-700 dark:focus:ring-brand-400 ");
+    const [animate] = (0,react/* useAutoAnimate */.u)();
     return /*#__PURE__*/ jsx_runtime_.jsx(external_headlessui_react_.Listbox, {
         value: value?.id ?? value === null ? null : undefined,
         onChange: onSelected,
@@ -1468,7 +1473,7 @@ const Dropdown = (props)=>{
             return /*#__PURE__*/ (0,jsx_runtime_.jsxs)(jsx_runtime_.Fragment, {
                 children: [
                     /*#__PURE__*/ jsx_runtime_.jsx(external_headlessui_react_.Listbox.Label, {
-                        className: "block text-sm font-semibold leading-6 text-zinc-700 dark:text-zinc-300",
+                        className: (0,external_tailwind_merge_namespaceObject.twMerge)("block text-sm font-semibold leading-6 text-zinc-700 dark:text-zinc-300", props.error && "text-red-600 dark:text-red-400"),
                         children: props.label
                     }),
                     props.onShown && /*#__PURE__*/ jsx_runtime_.jsx(OnDropdownOpened, {
@@ -1479,7 +1484,7 @@ const Dropdown = (props)=>{
                         className: "relative mt-1",
                         children: [
                             /*#__PURE__*/ (0,jsx_runtime_.jsxs)(external_headlessui_react_.Listbox.Button, {
-                                className: "relative flex w-full cursor-default items-center justify-between rounded-md bg-white py-1.5 pl-3 pr-3 text-left text-zinc-900 shadow-sm ring-1 ring-inset ring-zinc-300 focus:outline-none focus:ring-2 focus:ring-brand-600 dark:bg-zinc-900 dark:text-zinc-300 dark:ring-zinc-700 dark:focus:ring-brand-400 sm:text-sm sm:leading-6",
+                                className: inputClass,
                                 disabled: props.disabled,
                                 title: value?.title,
                                 children: [
@@ -1507,6 +1512,13 @@ const Dropdown = (props)=>{
                                     })
                                 ]
                             }),
+                            /*#__PURE__*/ jsx_runtime_.jsx("div", {
+                                ref: animate,
+                                children: props.error && /*#__PURE__*/ jsx_runtime_.jsx("p", {
+                                    className: "mt-2 text-sm text-red-600 dark:text-red-400",
+                                    children: props.error
+                                })
+                            }),
                             /*#__PURE__*/ jsx_runtime_.jsx(external_headlessui_react_.Transition, {
                                 show: open,
                                 as: react_.Fragment,
@@ -1528,7 +1540,7 @@ const Dropdown = (props)=>{
                                             children: "No options available"
                                         }),
                                         options.map((option)=>/*#__PURE__*/ jsx_runtime_.jsx(external_headlessui_react_.Listbox.Option, {
-                                                className: ({ active , disabled  })=>(0,external_tailwind_merge_namespaceObject.twJoin)(active ? "dark bg-brand-600 text-white" : "text-zinc-900 dark:text-zinc-300", disabled && "text-zinc-400 dark:text-zinc-500", "relative cursor-default select-none py-2 pl-3 pr-9"),
+                                                className: ({ active , disabled  })=>(0,external_tailwind_merge_namespaceObject.twMerge)(active ? "dark bg-brand-600 text-white" : "text-zinc-900 dark:text-zinc-300", disabled && "text-zinc-400 dark:text-zinc-500", "relative cursor-default select-none py-2 pl-3 pr-9"),
                                                 disabled: option.disabled,
                                                 value: option.id,
                                                 children: ({ selected , active  })=>/*#__PURE__*/ (0,jsx_runtime_.jsxs)(jsx_runtime_.Fragment, {
@@ -1845,7 +1857,7 @@ const TextInput = (props)=>{
     }) : null;
     const inputClass = (0,external_tailwind_merge_namespaceObject.twJoin)(props.error ? "ring-red-300 text-red-900 placeholder-red-300 focus:ring-red-500 dark:ring-red-500 dark:text-red-400 dark:placeholder-red-700" : "ring-zinc-300 text-zinc-900 placeholder-zinc-300 focus:ring-brand-600 dark:ring-zinc-700 dark:text-zinc-100 dark:placeholder-zinc-700 dark:focus:ring-brand-400 ", "block w-full rounded-md bg-white py-1.5 pl-3 pr-3 text-leftshadow-sm ring-1 ring-inset focus:outline-none dark:bg-zinc-900 sm:text-sm sm:leading-6 border-0");
     const error = props.error ? /*#__PURE__*/ jsx_runtime_.jsx("p", {
-        className: "mt-2 text-sm text-red-600",
+        className: "mt-2 text-sm text-red-600 dark:text-red-400",
         id: fieldId.current + "-error",
         children: props.error
     }) : null;
@@ -1922,12 +1934,12 @@ var endstops = __webpack_require__(1572);
 
 
 const useToolhead = (toolOrAxis)=>{
-    const toolheadConfigs = (0,external_recoil_.useRecoilValue)(recoil_toolhead/* PrinterToolheadsState */.$T);
-    const toolhead = (0,react_.useMemo)(()=>{
+    const toolheadConfigs = useRecoilValue(PrinterToolheadsState);
+    const toolhead = useMemo(()=>{
         if (toolOrAxis == null) {
             return null;
         }
-        const toolheads = toolheadConfigs?.filter(Boolean).map((th)=>new helpers_toolhead/* ToolheadHelper */.D(th));
+        const toolheads = toolheadConfigs?.filter(Boolean).map((th)=>new ToolheadHelper(th));
         const th = toolheads?.find((th)=>th.getTool() === toolOrAxis || th.getMotionAxis() === toolOrAxis || th.getExtruderAxis() === toolOrAxis);
         return th;
     }, [
@@ -1935,6 +1947,15 @@ const useToolhead = (toolOrAxis)=>{
         toolheadConfigs
     ]);
     return toolhead;
+};
+const useToolheads = ()=>{
+    const toolheadConfigs = (0,external_recoil_.useRecoilValue)(recoil_toolhead/* PrinterToolheadsState */.$T);
+    const toolheads = (0,react_.useMemo)(()=>{
+        return toolheadConfigs?.filter(Boolean).map((th)=>new helpers_toolhead/* ToolheadHelper */.D(th));
+    }, [
+        toolheadConfigs
+    ]);
+    return toolheads;
 };
 const useToolheadConfiguration = (toolOrAxis, errorIfNotExist = true)=>{
     const toolheadConfigs = (0,external_recoil_.useRecoilValue)(recoil_toolhead/* LoadablePrinterToolheadsState */.wm);
@@ -2004,6 +2025,8 @@ const useToolheadConfiguration = (toolOrAxis, errorIfNotExist = true)=>{
     };
 };
 
+// EXTERNAL MODULE: external "zod"
+var external_zod_ = __webpack_require__(8316);
 ;// CONCATENATED MODULE: ./components/setup-steps/printer-rail-settings.tsx
 
 
@@ -2020,16 +2043,22 @@ const useToolheadConfiguration = (toolOrAxis, errorIfNotExist = true)=>{
 
 
 
+
+
+
+const railArray = external_zod_.z.array(motion/* BasePrinterRail */.g6);
 const PrinterRailSettings = (props)=>{
-    const toolhead = useToolhead(props.printerRailDefault.axis);
+    const toolheads = useToolheads();
+    const toolhead = toolheads.find((th)=>th.getExtruderAxis() === props.printerRail.axis);
     const usesToolboard = toolhead?.getExtruderAxis() === props.printerRailDefault.axis && toolhead?.hasToolboard();
     const board = usesToolboard ? toolhead.getToolboard() : props.selectedBoard;
     const setPrinterRail = (0,external_recoil_.useSetRecoilState)((0,recoil_printer/* PrinterRailState */.ew)(props.printerRail.axis));
+    const printerRails = (0,external_recoil_.useRecoilValue)(recoil_printer/* PrinterRailsState */.q7);
     const integratedDriver = board?.integratedDrivers && board.integratedDrivers[props.printerRail.axis.startsWith("extruder") ? motion/* PrinterAxis.extruder */.po.extruder : props.printerRail.axis];
     const [driver, setDriver] = (0,react_.useState)(integratedDriver != null ? (0,serialization/* deserializeDriver */.Df)(integratedDriver) ?? props.printerRail.driver : props.printerRail.driver);
     const [stepper, setStepper] = (0,react_.useState)(props.printerRail.stepper);
     const [homingSpeed, setHomingSpeed] = (0,react_.useState)(props.performanceMode ? props.printerRailDefault.performanceMode?.homingSpeed ?? props.printerRailDefault.homingSpeed : props.printerRailDefault.homingSpeed);
-    const [motorSlot, setMotorSlot] = (0,react_.useState)(props.printerRail.motorSlot);
+    const [motorSlot, setMotorSlot] = (0,react_.useState)(props.printerRail.motorSlot && props.selectedBoard?.motorSlots?.[props.printerRail.motorSlot] ? props.printerRail.motorSlot : undefined);
     const guessMotorSlot = utils_trpc/* trpc.mcu.reversePinLookup.useQuery */.SX.mcu.reversePinLookup.useQuery({
         axis: props.printerRail.axis,
         hasToolboard: toolhead?.hasToolboard() ?? false,
@@ -2037,6 +2066,35 @@ const PrinterRailSettings = (props)=>{
     }, {
         enabled: !!board
     });
+    const errorCount = Object.keys(props.errors).reduce((acc, key)=>{
+        const objKey = key;
+        const keyErrors = props.errors[objKey];
+        if (keyErrors == null) {
+            return acc;
+        }
+        const count = Array.isArray(keyErrors) ? keyErrors.length : keyErrors._errors.length;
+        return acc + count;
+    }, 0);
+    const isSlotInUse = (0,react_.useCallback)((slot)=>{
+        if (slot == null) {
+            return false;
+        }
+        return printerRails.some((pr)=>{
+            const railToolhead = toolheads.find((th)=>th.getExtruderAxis() === pr.axis);
+            if (pr.axis === props.printerRail.axis) {
+                return false;
+            }
+            if (railToolhead?.hasToolboard()) {
+                // The rail is an extruder rail and the toolhead has a toolboard, no chance of conflict.
+                return false;
+            }
+            return pr.motorSlot === slot;
+        });
+    }, [
+        printerRails,
+        props.printerRail.axis,
+        toolheads
+    ]);
     (0,react_.useEffect)(()=>{
         if (guessMotorSlot.data && motorSlot == null && board?.motorSlots?.[guessMotorSlot.data] != null) {
             setMotorSlot(guessMotorSlot.data);
@@ -2161,13 +2219,14 @@ const PrinterRailSettings = (props)=>{
         motorSlot
     ]);
     const isRecommendedPresetCompatible = recommendedPreset && recommendedPreset.run_current === current;
-    const extruderName = props.printerRail.axis === "extruder" ? "Extruder T0" : props.printerRail.axis === motion/* PrinterAxis.extruder1 */.po.extruder1 ? "Extruder T1" : "Stepper " + props.printerRail.axis.toLocaleUpperCase();
+    const railName = props.printerRail.axis === "extruder" ? "Extruder T0" : props.printerRail.axis === motion/* PrinterAxis.extruder1 */.po.extruder1 ? "Extruder T1" : "Stepper " + props.printerRail.axis.toLocaleUpperCase();
     const motorSlotOptions = board?.motorSlots != null && motorSlot != null && Object.keys(board.motorSlots).length > 0 ? Object.keys(board.motorSlots).map((ms)=>{
         if (board.motorSlots?.[ms].title == null) {
             return null;
         }
         const hasDiagPin = board.motorSlots?.[ms].diag_pin != null;
         const hasEndstopPin = board.motorSlots?.[ms].endstop_pin != null;
+        const isInUse = isSlotInUse(ms);
         const disabled = (props.printerRailDefault.axis.startsWith("x") || props.printerRailDefault.axis.startsWith("y")) && !hasDiagPin;
         return {
             id: ms,
@@ -2181,6 +2240,10 @@ const PrinterRailSettings = (props)=>{
                 !hasEndstopPin ? {
                     children: "No endstop pin",
                     color: "gray"
+                } : undefined,
+                isInUse === true ? {
+                    children: "In use",
+                    color: "orange"
                 } : undefined
             ].filter(Boolean)
         };
@@ -2201,17 +2264,21 @@ const PrinterRailSettings = (props)=>{
         props.printerRailDefault.axis
     ]);
     return props.isVisible ? /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
-        className: "break-inside-avoid-column rounded-md border border-zinc-300 p-4 shadow-lg dark:border-zinc-700",
+        className: (0,external_tailwind_merge_namespaceObject.twMerge)("break-inside-avoid-column rounded-md border border-zinc-300 p-4 shadow-lg dark:border-zinc-700", errorCount > 0 && badgeBorderColorStyle({
+            color: "red"
+        }), errorCount > 0 && badgeBackgroundColorStyle({
+            color: "red"
+        })),
         children: [
             /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
                 className: "",
                 children: [
                     /*#__PURE__*/ jsx_runtime_.jsx("h3", {
-                        className: "text-sm font-medium leading-6 text-zinc-700 dark:text-zinc-300",
-                        children: extruderName
+                        className: (0,external_tailwind_merge_namespaceObject.twMerge)("text-sm font-bold leading-6 text-zinc-700 dark:text-zinc-300", errorCount > 0 && "text-red-900/80 dark:text-red-100"),
+                        children: railName
                     }),
                     /*#__PURE__*/ jsx_runtime_.jsx("p", {
-                        className: "text-sm text-zinc-500 dark:text-zinc-400",
+                        className: (0,external_tailwind_merge_namespaceObject.twMerge)("text-sm text-zinc-500 dark:text-zinc-400", errorCount > 0 && "text-red-800/80 dark:text-red-100/60"),
                         children: props.printerRail.axisDescription
                     })
                 ]
@@ -2224,6 +2291,7 @@ const PrinterRailSettings = (props)=>{
                         children: /*#__PURE__*/ jsx_runtime_.jsx(Dropdown, {
                             label: "Motor Slot",
                             options: motorSlotOptions,
+                            error: props.errors.motorSlot?._errors.join("\n"),
                             onSelect: (ms)=>{
                                 setMotorSlot(ms.id);
                             },
@@ -2331,8 +2399,6 @@ const PrinterRailSettings = (props)=>{
     }) : null;
 };
 
-// EXTERNAL MODULE: ./node_modules/.pnpm/@formkit+auto-animate@0.8.0/node_modules/@formkit/auto-animate/react/index.mjs + 1 modules
-var react = __webpack_require__(6187);
 ;// CONCATENATED MODULE: ./components/warning-message.tsx
 
 
@@ -2676,6 +2742,7 @@ const HardwareSelection = (props)=>{
     const [advancedSteppers, setAdvancedSteppers] = (0,react_.useState)(false);
     const { selectedControllerFan , selectedBoard , selectedPrinter , performanceMode , setPerformanceMode , stealthchop , setStealthchop , standstillStealth , setStandstillStealth , selectedPrinterRails , setSelectedControllerFan: setControllerFan , serializedPrinterConfiguration , parsedPrinterConfiguration , partialPrinterConfiguration  } = (0,usePrinterConfiguration/* usePrinterConfiguration */.G3)();
     const errors = [];
+    let formattedErrors = parsedPrinterConfiguration.success === false ? parsedPrinterConfiguration.error.format() : null;
     if (partialPrinterConfiguration != null) {
         if (parsedPrinterConfiguration.success === false) {
             parsedPrinterConfiguration.error.flatten().formErrors.forEach((message)=>{
@@ -2683,6 +2750,15 @@ const HardwareSelection = (props)=>{
             });
         }
     }
+    (0,react_.useEffect)(()=>{
+        if (parsedPrinterConfiguration.success === false) {
+            if (parsedPrinterConfiguration.error.errors.some((e)=>e.path[0] === "rails")) {
+                setAdvancedSteppers(true);
+            }
+        }
+    }, [
+        parsedPrinterConfiguration
+    ]);
     return /*#__PURE__*/ (0,jsx_runtime_.jsxs)(jsx_runtime_.Fragment, {
         children: [
             /*#__PURE__*/ (0,jsx_runtime_.jsxs)("div", {
@@ -2815,12 +2891,15 @@ const HardwareSelection = (props)=>{
                         children: selectedPrinter && /*#__PURE__*/ jsx_runtime_.jsx("div", {
                             className: "grid gap-4 py-4 sm:grid-cols-2",
                             ref: railAnimate,
-                            children: selectedPrinterRails.map((rail)=>{
+                            children: selectedPrinterRails.map((rail, ri)=>{
                                 const defaultRail = selectedPrinter.defaults.rails.find((r)=>r.axis === rail.axis);
                                 if (defaultRail == null) {
                                     throw new Error("No printer default for axis " + rail.axis);
                                 }
                                 return /*#__PURE__*/ jsx_runtime_.jsx(PrinterRailSettings, {
+                                    errors: formattedErrors?.rails?.[ri] != null ? formattedErrors.rails[ri] : {
+                                        _errors: []
+                                    },
                                     selectedBoard: selectedBoard,
                                     printerRail: rail,
                                     printerRailDefault: (0,serialization/* deserializePrinterRailDefinition */.Oj)(defaultRail),
@@ -4222,8 +4301,6 @@ const parseSignal = (dBm)=>{
     }
 };
 
-// EXTERNAL MODULE: external "zod"
-var external_zod_ = __webpack_require__(8316);
 ;// CONCATENATED MODULE: ./helpers/validators/wifi.ts
 
 const hostnameInput = external_zod_.z.object({

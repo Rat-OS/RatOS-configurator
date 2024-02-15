@@ -23,6 +23,14 @@ export const useToolhead = (toolOrAxis: ToolOrAxis | PrinterAxis | undefined) =>
 	return toolhead;
 };
 
+export const useToolheads = () => {
+	const toolheadConfigs = useRecoilValue(PrinterToolheadsState);
+	const toolheads = useMemo(() => {
+		return toolheadConfigs?.filter(Boolean).map((th) => new ToolheadHelper(th));
+	}, [toolheadConfigs]);
+	return toolheads;
+};
+
 type MaybeToolhead<T extends boolean> = T extends true ? ToolheadHelper<any> : ToolheadHelper<any> | null;
 
 export const useToolheadConfiguration = <T extends boolean = true>(

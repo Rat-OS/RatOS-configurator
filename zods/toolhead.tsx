@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Toolboard } from './boards';
+import { BoardID, BoardSerialPath, Toolboard } from './boards';
 import { Hotend, Thermistor, Extruder, Probe, Endstop, Fan, Accelerometer, Nozzle } from './hardware';
 import { PrinterAxis } from './motion';
 import { getDefaultNozzle } from '../data/nozzles';
@@ -64,7 +64,7 @@ export const SerializedToolheadConfiguration = BaseToolheadConfiguration.extend(
 	partFan: Fan.shape.id,
 	xAccelerometer: Accelerometer.shape.id.optional().nullable(),
 	yAccelerometer: Accelerometer.shape.id.optional().nullable(),
-	toolboard: Toolboard.shape.serialPath.optional().nullable(),
+	toolboard: BoardID.optional().nullable(),
 	probe: Probe.shape.id.optional().nullable(),
 }).strict();
 export const SerializedPartialToolheadConfiguration = SerializedToolheadConfiguration.partial().optional();
