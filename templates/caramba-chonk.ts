@@ -15,8 +15,8 @@ ${helper.renderBoards()}
 ### BASE SETUP
 #############################################################################################################
 ${helper.renderBase()}
-[include RatOS/printers/caramba/caramba.cfg]
-[include RatOS/printers/caramba/macros.cfg]
+[include RatOS/printers/caramba-chonk/caramba.cfg]
+[include RatOS/printers/caramba-chonk/macros.cfg]
 
 # Extruder
 ${helper.renderExtruder()}
