@@ -4052,7 +4052,7 @@ const deserializePartialToolheadConfiguration = async (config, printerConfig, bo
 };
 const deserializePartialPrinterConfiguration = async (config)=>{
     const boards = await (0,mcu/* getBoards */.DC)();
-    const controlboard = boards.find((b)=>b.serialPath === config?.controlboard);
+    const controlboard = boards.find((b)=>b.id === config?.controlboard);
     const toolheads = config.toolheads == null ? undefined : await Promise.all(config.toolheads.map(async (th)=>await deserializePartialToolheadConfiguration(th, config, boards)));
     return PartialPrinterConfiguration.parse({
         toolheads: toolheads,
