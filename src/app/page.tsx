@@ -9,6 +9,7 @@ import { HistoryTable } from './historyTable';
 import { useMoonrakerQuery, usePrinterObjectQuery } from '../moonraker/hooks';
 import { useMemo } from 'react';
 import { Duration, DurationLikeObject } from 'luxon';
+import { CountUp } from 'use-count-up';
 
 const secondaryNavigation = [
 	{ name: 'History', href: '#', current: true },
@@ -27,19 +28,19 @@ export default function Page() {
 			return [
 				{
 					name: 'Total Print Time',
-					value: 'N/A',
+					value: 0,
 				},
 				{
 					name: 'Longest Print',
-					value: 'N/A',
+					value: 0,
 				},
 				{
 					name: 'Avg. Print',
-					value: 'N/A',
+					value: 0,
 				},
 				{
 					name: 'Total Filament Used',
-					value: 'N/A',
+					value: 0,
 					unit: 'meters',
 				},
 			];
@@ -48,7 +49,7 @@ export default function Page() {
 			{ hours: jobTotals.data.job_totals.total_print_time / 60 / 60 },
 			{ locale: 'en-GB' },
 		)
-			.shiftTo(...(['seconds', 'minutes', 'hours'].filter(Boolean) as (keyof DurationLikeObject)[]))
+			.shiftTo(...(['seconds', 'minutes', 'hours', 'days'].filter(Boolean) as (keyof DurationLikeObject)[]))
 			.normalize()
 			.toObject();
 		const longestPrint = Duration.fromObject(
@@ -67,27 +68,27 @@ export default function Page() {
 			{
 				name: 'Total Print Time',
 				value: [
-					totalPrintTime.hours && { val: `${totalPrintTime.hours}`, unit: 'hrs' },
-					{ val: `${totalPrintTime.minutes}`, unit: 'mins' },
+					totalPrintTime.days && { val: totalPrintTime.days, unit: 'days' },
+					totalPrintTime.hours && { val: totalPrintTime.hours, unit: 'hrs' },
+					!totalPrintTime.days && { val: totalPrintTime.minutes, unit: 'mins' },
 				].filter(Boolean),
 			},
 			{
 				name: 'Longest Print',
 				value: [
-					longestPrint.hours && { val: `${longestPrint.hours}`, unit: 'hrs' },
-					{ val: `${longestPrint.minutes}`, unit: 'mins' },
+					longestPrint.hours && { val: longestPrint.hours, unit: 'hrs' },
+					{ val: longestPrint.minutes, unit: 'mins' },
 				].filter(Boolean),
 			},
 			{
 				name: 'Avg. Print',
-				value: [
-					avgPrint.hours && { val: `${avgPrint.hours}`, unit: 'hrs' },
-					{ val: `${avgPrint.minutes}`, unit: 'mins' },
-				].filter(Boolean),
+				value: [avgPrint.hours && { val: avgPrint.hours, unit: 'hrs' }, { val: avgPrint.minutes, unit: 'mins' }].filter(
+					Boolean,
+				),
 			},
 			{
 				name: 'Total Filament Used',
-				value: (jobTotals.data.job_totals.total_filament_used / 1000).toFixed(2),
+				value: jobTotals.data.job_totals.total_filament_used / 1000,
 				unit: 'meters',
 			},
 		];
@@ -174,14 +175,16 @@ export default function Page() {
 								<p className="mt-2 flex items-baseline gap-x-2">
 									{!Array.isArray(stat.value) ? (
 										<>
-											<span className="text-4xl font-semibold tracking-tight text-white">{stat.value}</span>
+											<span className="text-4xl font-semibold tracking-tight text-white">
+												<CountUp start={0} end={stat.value} decimalPlaces={2} isCounting={stat.value > 0} />
+											</span>
 											{stat.unit ? <span className="text-sm text-zinc-400">{stat.unit}</span> : null}
 										</>
 									) : (
 										stat.value.map(({ val, unit }, idx) => (
 											<span key={idx} className="flex items-baseline gap-x-2">
 												<span key={idx} className="text-4xl font-semibold tracking-tight text-white">
-													{val}
+													<CountUp start={0} end={val} decimalPlaces={0} isCounting={(val ?? 0) > 0}></CountUp>
 												</span>
 												{unit ? <span className="truncate text-sm text-zinc-400">{unit}</span> : null}
 											</span>
