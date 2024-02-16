@@ -172,9 +172,9 @@ export const constructKlipperConfigUtils = async (config: PrinterConfiguration) 
 			const rail = this.getRail(axis);
 			factor = Math.max(0, Math.min(1, factor));
 			if (['TMC2130', 'TMC5160', 'TMC2240'].includes(rail.driver.type)) {
-				return `driver_SGT: ${Math.round(factor * 127) - 64}`;
+				return `driver_SGT: ${Math.round(factor * 127) - 64} # Lower value = higher sensitity, range -64 to 63`;
 			} else {
-				return `driver_SGTHRS: ${Math.round(factor * 255)}`;
+				return `driver_SGTHRS: ${Math.round(factor * 255)} # Lower value = lower sensitivity, range 0 to 255`;
 			}
 		},
 		getAxisDriverDiagConfig(axis: PrinterAxis) {
