@@ -238,7 +238,7 @@ export const deserializePartialPrinterConfiguration = async (
 	config: SerializedPartialPrinterConfiguration,
 ): Promise<PartialPrinterConfiguration> => {
 	const boards = await getBoards();
-	const controlboard = boards.find((b) => b.serialPath === config?.controlboard);
+	const controlboard = boards.find((b) => b.id === config?.controlboard);
 	const toolheads =
 		config.toolheads == null
 			? undefined
