@@ -878,7 +878,7 @@ export const constructKlipperConfigHelpers = async (
 				case '4pin-dedicated':
 					this.requireControlboardPin('4p_fan_part_cooling_tach_pin');
 					result.push(`# 4-pin fan connected to a dedicated 4-pin fan header on the controller board`);
-					result.push(`pin: !${this.getControlboardPins()['4p_fan_part_cooling_tach_pin']}`);
+					result.push(`pin: ${this.getControlboardPins()['4p_fan_part_cooling_tach_pin']}`);
 					result.push(`cycle_time:  0.00004`);
 					if (this.getControlboardPins()['4p_fan_part_cooling_tach_pin'] != null) {
 						result.push(`tachometer_pin: ^${this.getControlboardPins()['4p_fan_part_cooling_tach_pin']}`);

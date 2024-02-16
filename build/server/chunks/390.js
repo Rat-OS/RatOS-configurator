@@ -498,7 +498,7 @@ class ToolheadGenerator extends helpers_toolhead/* ToolheadHelper */.D {
             case "4pin-dedicated":
                 this.requireControlboardPin("4p_fan_part_cooling_pin");
                 result.push(`# 4-pin fan connected to a dedicated 4-pin fan header on the controller board`);
-                result.push(`pin: !${this.controlboardPins?.["4p_fan_part_cooling_pin"]}`);
+                result.push(`pin: ${this.controlboardPins?.["4p_fan_part_cooling_pin"]}`);
                 result.push(`cycle_time:  0.00004`);
                 if (this.controlboardPins?.["4p_fan_part_cooling_tach_pin"] != null) {
                     result.push(`tachometer_pin: ${this.controlboardPins?.["4p_fan_part_cooling_tach_pin"]}`);
@@ -519,7 +519,7 @@ class ToolheadGenerator extends helpers_toolhead/* ToolheadHelper */.D {
             case "4pin-dedicated-toolboard":
                 this.requireToolboardPin("4p_fan_part_cooling_tach_pin");
                 result.push(`# 4-pin fan connected to a dedicated 4-pin fan header on the toolboard on T${this.getTool()} (${this.getToolboardName()})`);
-                result.push(`pin: !${this.getPinPrefix()}${this.toolboardPins?.["4p_fan_part_cooling_tach_pin"]}`);
+                result.push(`pin: ${this.getPinPrefix()}${this.toolboardPins?.["4p_fan_part_cooling_tach_pin"]}`);
                 result.push(`cycle_time:  0.00004`);
                 if (this.toolboardPins?.["4p_fan_part_cooling_tach_pin"] != null) {
                     result.push(`tachometer_pin: ${this.toolboardPins?.["4p_fan_part_cooling_tach_pin"]}`);
@@ -551,7 +551,7 @@ class ToolheadGenerator extends helpers_toolhead/* ToolheadHelper */.D {
             case "4pin-dedicated":
                 this.requireControlboardPin("4p_fan_part_cooling_tach_pin");
                 result.push(`# 4-pin fan connected to a dedicated 4-pin fan header on the controller board`);
-                result.push(`pin: !${this.controlboardPins?.["4p_fan_part_cooling_tach_pin"]}`);
+                result.push(`pin: ${this.controlboardPins?.["4p_fan_part_cooling_tach_pin"]}`);
                 result.push(`cycle_time:  0.00004`);
                 if (this.controlboardPins?.["4p_fan_part_cooling_tach_pin"] != null) {
                     result.push(`tachometer_pin: ^${this.controlboardPins?.["4p_fan_part_cooling_tach_pin"]}`);
@@ -572,7 +572,7 @@ class ToolheadGenerator extends helpers_toolhead/* ToolheadHelper */.D {
             case "4pin-dedicated-toolboard":
                 this.requireToolboardPin("4p_toolhead_cooling_pin");
                 result.push(`# 4-pin fan connected to a dedicated 4-pin fan header on the toolboard on T${this.getTool()} (${this.getToolboardName()})`);
-                result.push(`pin: !${this.getPinPrefix()}${this.toolboardPins?.["4p_toolhead_cooling_pin"]}`);
+                result.push(`pin: ${this.getPinPrefix()}${this.toolboardPins?.["4p_toolhead_cooling_pin"]}`);
                 result.push(`cycle_time:  0.00004`);
                 if (this.toolboardPins?.["4p_toolhead_cooling_tach_pin"] != null) {
                     result.push(`tachometer_pin: ^${this.toolboardPins?.["4p_toolhead_cooling_tach_pin"]}`);
@@ -1341,7 +1341,7 @@ const constructKlipperConfigExtrasGenerator = (config, utils)=>{
                 case "4pin-dedicated":
                     this.requireControlboardPin("4p_fan_part_cooling_tach_pin");
                     result.push(`# 4-pin fan connected to a dedicated 4-pin fan header on the controller board`);
-                    result.push(`pin: !${this.getControlboardPins()["4p_fan_part_cooling_tach_pin"]}`);
+                    result.push(`pin: ${this.getControlboardPins()["4p_fan_part_cooling_tach_pin"]}`);
                     result.push(`cycle_time:  0.00004`);
                     if (this.getControlboardPins()["4p_fan_part_cooling_tach_pin"] != null) {
                         result.push(`tachometer_pin: ^${this.getControlboardPins()["4p_fan_part_cooling_tach_pin"]}`);
