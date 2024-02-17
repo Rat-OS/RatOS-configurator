@@ -6,8 +6,14 @@ import './../styles/globals.css';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
 	return (
-		<html className={twJoin('dark h-full scroll-smooth', inter.variable, inter.className)}>
-			<body className="h-full bg-zinc-100 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-zinc-400 scrollbar-thumb-rounded-md dark:bg-[rgb(18,18,20)] dark:scrollbar-thumb-zinc-600">
+		<html
+			className={twJoin(
+				'dark h-full scroll-smooth scrollbar-thin scrollbar-track-transparent scrollbar-thumb-zinc-400 scrollbar-thumb-rounded-md dark:scrollbar-thumb-zinc-600',
+				inter.variable,
+				inter.className,
+			)}
+		>
+			<body className="h-full bg-zinc-100 dark:bg-[rgb(18,18,20)]">
 				<Redirecter hasLastPrinterSettings={hasLastPrinterSettings()}>{children}</Redirecter>
 			</body>
 		</html>

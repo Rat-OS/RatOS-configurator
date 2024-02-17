@@ -24,6 +24,7 @@ import { useChangeEffect } from '../../hooks/useChangeEffect';
 import { ExposureIcon } from '../../components/common/icons/exposure';
 import { FocusControls } from './focus-controls';
 import { Spinner } from '../../components/common/spinner';
+import { useWindowSize } from '../_hooks/resize';
 
 const useGcodeCommand = () => {
 	return useCallback((command: string) => {
@@ -162,6 +163,7 @@ export default function Page() {
 	const { videoRef, connectionState } = useWebRTC(`${url}/webcam/webrtc`);
 	const [settings] = useMoonrakerState('RatOS', 'camera-settings');
 	const containerRef = useRef<HTMLDivElement | null>(null);
+	const rootRef = useRef<HTMLDivElement | null>(null);
 	const [dragOffset, setDragOffset] = useState<[number, number] | null>(null);
 	const [dragOutside, setDragOutside] = useState<{ x: false | number; y: false | number }>({ x: false, y: false });
 	const { exposure, digitalGain, options, setOption } = useCameraSettings(url);
@@ -178,6 +180,7 @@ export default function Page() {
 	const [isCameraControlsVisible, setIsCameraControlsVisible] = useState(false);
 	const gcodeCommand = useGcodeCommand();
 	const [animate] = useAutoAnimate();
+	const windowSize = useWindowSize();
 
 	const scale = useCallback(
 		(val: number) => {
@@ -186,14 +189,16 @@ export default function Page() {
 			const videoScale = frameWidth > 0 && vidWidth > 0 ? frameWidth / vidWidth : 1;
 			return val * zoom * videoScale;
 		},
-		[videoRef, zoom],
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[videoRef.current, zoom, windowSize],
 	);
 
 	const toScreen = useCallback(
 		(val: number) => {
 			return scale(val) * (settings?.pixelPrMm ?? 0);
 		},
-		[scale, settings?.pixelPrMm],
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[scale, settings?.pixelPrMm, windowSize],
 	);
 
 	const [tempZoomExpand, clearTempZoomExpand] = useChangeEffect([zoom], 2000, true);
@@ -445,15 +450,28 @@ export default function Page() {
 	}, [isAdvancedVisible, isExposureVisible, isFocusVisible, isGainVisible]);
 	const draggedX = dragOffset == null ? 0 : dragOffset[0] / zoom;
 	const draggedY = dragOffset == null ? 0 : dragOffset[1] / zoom;
-	const outerNozzleDiameter = toScreen(settings ? settings.outerNozzleDiameter / 2 : 0);
-	const outerNozzleDiameterPercentWidth =
-		(outerNozzleDiameter / (containerRef.current?.getBoundingClientRect().width ?? 0)) * 100;
-	const outerNozzleDiameterPercentHeight =
-		(outerNozzleDiameter / (containerRef.current?.getBoundingClientRect().height ?? 0)) * 100;
+	const outerNozzleDiameter = useMemo(
+		() => toScreen(settings ? settings.outerNozzleDiameter / 2 : 0),
+		[settings, toScreen],
+	);
+	const outerNozzleDiameterPercentWidth = useMemo(
+		() =>
+			containerRef.current == null || connectionState !== 'connected'
+				? 0
+				: (outerNozzleDiameter / containerRef.current.getBoundingClientRect().width) * 100,
+		[connectionState, outerNozzleDiameter],
+	);
+	const outerNozzleDiameterPercentHeight = useMemo(
+		() =>
+			containerRef.current == null || connectionState !== 'connected'
+				? 0
+				: (outerNozzleDiameter / containerRef.current.getBoundingClientRect().height) * 100,
+		[connectionState, outerNozzleDiameter],
+	);
 	return (
-		<div className="flex h-[calc(100vh_-_64px)] w-full items-center">
+		<div className="flex h-[calc(100vh_-_64px)] w-full items-center" ref={rootRef}>
 			<div
-				className="relative mx-auto max-h-full min-h-[50vh] min-w-[50vw] max-w-fit overflow-hidden rounded-2xl object-contain shadow-lg"
+				className="relative mx-auto flex max-h-full min-h-[50vh] min-w-[50vw] max-w-fit items-center overflow-hidden rounded-2xl object-contain shadow-lg"
 				ref={containerRef}
 			>
 				<video
@@ -504,7 +522,10 @@ export default function Page() {
 							cy="50%"
 							r={toScreen(0.4 / 2)}
 							fill="none"
-							className="stroke-brand-500 transition-all ease-in-out"
+							className={twJoin(
+								'stroke-brand-500 transition-all ease-in-out',
+								connectionState === 'connected' && outerNozzleDiameter > 0 ? 'opacity-100' : 'opacity-0',
+							)}
 							strokeWidth="2"
 						/>
 						<circle
@@ -512,7 +533,10 @@ export default function Page() {
 							cy="50%"
 							r={outerNozzleDiameter}
 							fill="none"
-							className="stroke-brand-500 opacity-50 transition-all ease-in-out"
+							className={twJoin(
+								'stroke-brand-500 transition-all ease-in-out',
+								connectionState === 'connected' && outerNozzleDiameter > 0 ? 'opacity-50' : 'opacity-0',
+							)}
 							strokeWidth="2"
 						/>
 						<rect
@@ -520,14 +544,20 @@ export default function Page() {
 							y={`${50 - outerNozzleDiameterPercentHeight}%`}
 							height={`${outerNozzleDiameterPercentHeight * 2}%`}
 							width={2}
-							className="fill-brand-500/50 transition-all ease-in-out"
+							className={twJoin(
+								'fill-brand-500/50 transition-all ease-in-out',
+								connectionState === 'connected' && outerNozzleDiameter > 0 ? 'opacity-100' : 'opacity-0',
+							)}
 						/>
 						<rect
 							x={`${50 - outerNozzleDiameterPercentWidth}%`}
 							y="50%"
 							width={`${outerNozzleDiameterPercentWidth * 2}%`}
 							height={2}
-							className="fill-brand-500/50 transition-all ease-in-out"
+							className={twJoin(
+								'fill-brand-500/50 transition-all ease-in-out',
+								connectionState === 'connected' && outerNozzleDiameter > 0 ? 'opacity-100' : 'opacity-0',
+							)}
 						/>
 					</svg>
 				</div>
@@ -556,19 +586,28 @@ export default function Page() {
 							))}
 					</div>
 				</div>
-				<div
-					className={twMerge(
-						'pointer-events-none absolute inset-0 flex items-center justify-center',
-						'text-green-500 dark:text-green-500',
-						connectionState === 'connected' && 'opacity-0',
-						connectionState === 'connecting' && 'text-brand-500 dark:text-brand-500',
-						connectionState === 'closed' && 'text-yellow-500 dark:text-yellow-500',
-						connectionState === 'failed' && 'text-rose-500 dark:text-rose-500',
-						connectionState === 'disconnected' && 'text-amber-500 dark:text-amber-500',
-						connectionState === 'new' && 'text-sky-500 dark:text-sky-500',
-					)}
-				>
-					<Spinner noMargin={true} className={twMerge('h-1/3 w-1/3 animate-spin text-inherit')} />
+				<div className={twMerge('pointer-events-none absolute inset-0 flex items-center justify-center')}>
+					<h3
+						className={twMerge(
+							'absolute inset-0 flex items-center justify-center text-xl font-semibold text-rose-500 transition-all dark:text-rose-500',
+							connectionState === 'failed' ? 'animate-pulse opacity-100' : 'opacity-0',
+						)}
+					>
+						Webcam stream not found
+					</h3>
+					<Spinner
+						noMargin={true}
+						className={twMerge(
+							'h-1/3 w-1/3 animate-spin text-inherit transition-all',
+							'text-green-500 dark:text-green-500',
+							(connectionState === 'connected' || connectionState === 'failed') && 'opacity-0',
+							connectionState === 'failed' && 'text-rose-500 dark:text-rose-500',
+							connectionState === 'connecting' && 'text-brand-500 dark:text-brand-500',
+							connectionState === 'closed' && 'text-yellow-500 dark:text-yellow-500',
+							connectionState === 'disconnected' && 'text-amber-500 dark:text-amber-500',
+							connectionState === 'new' && 'text-sky-500 dark:text-sky-500',
+						)}
+					/>
 				</div>
 			</div>
 		</div>

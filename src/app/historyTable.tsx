@@ -1,3 +1,4 @@
+'use client';
 import {
 	ColumnDef,
 	flexRender,
@@ -19,6 +20,7 @@ import { getHost } from '../helpers/util';
 import { ChevronUpDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 import { ChevronDownIcon } from '@heroicons/react/24/solid';
 import { Spinner } from '../components/common/spinner';
+import { CountUp } from 'use-count-up';
 
 const findThumbnail = (thumbnails: MoonrakerHistoryJob['metadata']['thumbnails'], size: number) => {
 	const thumbnail = thumbnails.find((t) => t.size >= size);
@@ -137,7 +139,7 @@ const columns: ColumnDef<MoonrakerHistoryJob>[] = [
 			const filamentUsed = info.getValue<MoonrakerHistoryJob['filament_used']>() / 1000;
 			return (
 				<div className="flex min-w-0 items-center text-sm leading-6 text-zinc-400">
-					{filamentUsed.toFixed(2)} meters
+					<CountUp start={0} end={filamentUsed} isCounting={true} decimalPlaces={2} /> meters
 				</div>
 			);
 		},
@@ -218,20 +220,21 @@ export const HistoryTable = () => {
 	const { rows } = table.getRowModel();
 
 	const rowVirtualizer = useWindowVirtualizer({
-		count: rows.length,
+		count: totalFetched,
 		estimateSize: () => 64, //estimate row height for accurate scrollbar dragging
 		//measure dynamic row height, except in firefox because it measures table border height incorrectly
 		measureElement:
 			typeof window !== 'undefined' && navigator.userAgent.indexOf('Firefox') === -1
 				? (element) => element?.getBoundingClientRect().height
 				: undefined,
-		overscan: 5,
+		overscan: 3,
 		scrollMargin: tableRef.current?.offsetTop ?? 0,
+		paddingEnd: (tableRef.current?.offsetParent as HTMLElement)?.offsetTop ?? 0,
 	});
 
 	useEffect(() => {
 		const [lastItem] = [...rowVirtualizer.getVirtualItems()].reverse();
-
+		console.log(lastItem);
 		if (!lastItem) {
 			return;
 		}
@@ -318,6 +321,7 @@ export const HistoryTable = () => {
 							style={{
 								display: 'flex',
 								position: 'absolute',
+								height: `${virtualRow.size}px`, //this should always be a `style` as it changes on scroll
 								transform: `translateY(${virtualRow.start - rowVirtualizer.options.scrollMargin}px)`, //this should always be a `style` as it changes on scroll
 								width: '100%',
 							}}

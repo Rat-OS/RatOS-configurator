@@ -45,9 +45,9 @@ function Template({ children }: { children: React.ReactNode }) {
 
 	const onThemeChange = () => {
 		if (getCurrentTheme() === 'dark') {
-			document.documentElement.classList.add('dark');
+			document.documentElement.classList.add('dark', 'scrollbar-thumb-zinc-600');
 		} else {
-			document.documentElement.classList.remove('dark');
+			document.documentElement.classList.remove('dark', 'scrollbar-thumb-zinc-400');
 		}
 	};
 
