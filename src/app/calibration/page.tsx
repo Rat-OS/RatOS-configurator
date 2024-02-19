@@ -26,12 +26,7 @@ import { FocusControls } from './focus-controls';
 import { Spinner } from '../../components/common/spinner';
 import { useWindowSize } from '../_hooks/resize';
 import CountUp from 'react-countup';
-
-const useGcodeCommand = () => {
-	return useCallback((command: string) => {
-		console.log(command);
-	}, []);
-};
+import { useGcodeCommand } from '../_hooks/toolhead';
 
 const parseOptions = (options: string) => {
 	const matches = options.matchAll(/- available option:\s(\w+)\s.+(\[\d+\.\.\d+\])/g);
@@ -179,7 +174,7 @@ export default function Page() {
 	const [light, setLight] = useState(false);
 	const [zoom, setZoom] = useState(1);
 	const [isCameraControlsVisible, setIsCameraControlsVisible] = useState(false);
-	const gcodeCommand = useGcodeCommand();
+	const G = useGcodeCommand();
 	const [animate] = useAutoAnimate();
 	const windowSize = useWindowSize();
 	const toolhead = usePrinterObjectSubscription('toolhead');
@@ -238,7 +233,7 @@ export default function Page() {
 				} else {
 					const x = toMillimeters(dragOffset?.[0] ?? 0) * (settings?.flipHorizontal ? -1 : 1);
 					const y = toMillimeters(dragOffset?.[1] ?? 0) * (settings?.flipVertical ? -1 : 1);
-					gcodeCommand(`_NOZZLE_CALIBRATION_MOVE X=${x} Y=${y}`);
+					G`_NOZZLE_CALIBRATION_MOVE X=${x} Y=${y}`;
 					setDragOffset(null);
 					setDragOutside({ x: false, y: false });
 				}
@@ -288,7 +283,7 @@ export default function Page() {
 			icon: HomeIcon,
 			id: 'home',
 			onClick: () => {
-				gcodeCommand('G28');
+				G`G28`;
 				setIsHomed(true);
 			},
 			isActive: isHomed,
@@ -297,7 +292,7 @@ export default function Page() {
 			name: 'T0',
 			id: 't0',
 			onClick: () => {
-				gcodeCommand('_NOZZLE_CALIBRATION_LOAD_TOOL T=0');
+				G`_NOZZLE_CALIBRATION_LOAD_TOOL T=0`;
 			},
 			isActive: tool === 'T0',
 		},
@@ -305,7 +300,7 @@ export default function Page() {
 			name: 'T1',
 			id: 't1',
 			onClick: () => {
-				gcodeCommand('_NOZZLE_CALIBRATION_LOAD_TOOL T=1');
+				G`_NOZZLE_CALIBRATION_LOAD_TOOL T=1`;
 			},
 			isActive: tool === 'T1',
 		},
@@ -334,7 +329,7 @@ export default function Page() {
 			id: 'light',
 			onClick: () => {
 				const newVal = !light;
-				gcodeCommand(`_NOZZLE_CALIBRATION_SWITCH_LED STATE=${newVal ? 1 : 0}`);
+				G`_NOZZLE_CALIBRATION_SWITCH_LED STATE=${newVal ? 1 : 0}`;
 				setLight(newVal);
 			},
 			isActive: light,
@@ -389,7 +384,7 @@ export default function Page() {
 					icon: MapPinIcon,
 					id: 'reference',
 					onClick: () => {
-						gcodeCommand('_NOZZLE_CALIBRATION_SET_TOOL');
+						G`_NOZZLE_CALIBRATION_SET_TOOL`;
 					},
 					isActive: false,
 				},
@@ -403,7 +398,7 @@ export default function Page() {
 					isActive: canMove,
 				},
 			] satisfies ToolbarButton[],
-		[canMove, gcodeCommand, isSettingsVisible, tool],
+		[canMove, G, isSettingsVisible, tool],
 	);
 	const cameraControls = useMemo(() => {
 		const controls: ToolbarButton[] = [
