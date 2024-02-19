@@ -196,12 +196,30 @@ export default function Page() {
 		[videoRef.current, zoom, windowSize],
 	);
 
+	const invert = useCallback(
+		(val: number) => {
+			const vidWidth = videoRef.current?.videoWidth ?? 1;
+			const frameWidth = containerRef.current?.getBoundingClientRect().width ?? 1;
+			const videoScale = frameWidth > 0 && vidWidth > 0 ? frameWidth / vidWidth : 1;
+			return val / zoom / videoScale;
+		},
+		[videoRef, zoom],
+	);
+
 	const toScreen = useCallback(
 		(val: number) => {
 			return scale(val) * (settings?.pixelPrMm ?? 0);
 		},
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[scale, settings?.pixelPrMm, windowSize],
+	);
+
+	const toMillimeters = useCallback(
+		(val: number) => {
+			return invert(val) / (settings?.pixelPrMm ?? 0);
+		},
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[settings?.pixelPrMm],
 	);
 
 	const [tempZoomExpand, clearTempZoomExpand] = useChangeEffect([zoom], 2000, true);
@@ -218,9 +236,15 @@ export default function Page() {
 					setDragOffset([state.offset[0], state.offset[1]]);
 					setDragOutside({ x: state._movementBound[0], y: state._movementBound[1] });
 				} else {
+					const x = toMillimeters(dragOffset?.[0] ?? 0) * (settings?.flipHorizontal ? -1 : 1);
+					const y = toMillimeters(dragOffset?.[1] ?? 0) * (settings?.flipVertical ? -1 : 1);
+					gcodeCommand(`_NOZZLE_CALIBRATION_MOVE X=${x} Y=${y}`);
 					setDragOffset(null);
 					setDragOutside({ x: false, y: false });
 				}
+			},
+			onDrop: () => {
+				console.log('drop');
 			},
 			onPinch: (state) => {
 				setZoom((z) => Math.max(Math.min(z * state.offset[0], 10), 1));
@@ -309,11 +333,9 @@ export default function Page() {
 			icon: LightBulbIcon,
 			id: 'light',
 			onClick: () => {
-				setLight((l) => {
-					const newVal = !l;
-					gcodeCommand(`_NOZZLE_CALIBRATION_SWITCH_LED STATE=${newVal ? 1 : 0}`);
-					return newVal;
-				});
+				const newVal = !light;
+				gcodeCommand(`_NOZZLE_CALIBRATION_SWITCH_LED STATE=${newVal ? 1 : 0}`);
+				setLight(newVal);
 			},
 			isActive: light,
 		},
@@ -495,7 +517,7 @@ export default function Page() {
 						dragOffset == null && 'transition-transform ease-in-out',
 					)}
 					style={{
-						transform: `scale3d(${zoom * (settings?.flipHorizontal ? -1 : 1)}, ${zoom * (settings?.flipVertical ? -1 : 1)}, 1) translate3d(${draggedX}px, ${draggedY}px, 0)`,
+						transform: `scale3d(${zoom * (settings?.flipHorizontal ? -1 : 1)}, ${zoom * (settings?.flipVertical ? -1 : 1)}, 1) translate3d(${draggedX * (settings?.flipHorizontal ? -1 : 1)}px, ${draggedY * (settings?.flipVertical ? -1 : 1)}px, 0)`,
 					}}
 					autoPlay
 					muted

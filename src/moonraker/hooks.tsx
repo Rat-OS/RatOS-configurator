@@ -369,11 +369,9 @@ export const usePrinterObjectSubscription = <TArgs extends [PrinterObjectKeys, .
 	);
 
 	useEffect(() => {
-		console.log('keys changed');
 		const subscription = subscribeToObject(...(Object.keys(keys) as TArgs));
 		subscription
 			.then((sub) => {
-				console.log(sub.res);
 				setState(sub.res);
 			})
 			.catch((e) => {
