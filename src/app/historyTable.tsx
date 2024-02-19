@@ -20,7 +20,7 @@ import { getHost } from '../helpers/util';
 import { ChevronUpDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 import { ChevronDownIcon } from '@heroicons/react/24/solid';
 import { Spinner } from '../components/common/spinner';
-import { CountUp } from 'use-count-up';
+import CountUp from 'react-countup';
 
 const findThumbnail = (thumbnails: MoonrakerHistoryJob['metadata']['thumbnails'], size: number) => {
 	const thumbnail = thumbnails.find((t) => t.size >= size);
@@ -139,7 +139,7 @@ const columns: ColumnDef<MoonrakerHistoryJob>[] = [
 			const filamentUsed = info.getValue<MoonrakerHistoryJob['filament_used']>() / 1000;
 			return (
 				<div className="flex min-w-0 items-center text-sm leading-6 text-zinc-400">
-					<CountUp start={0} end={filamentUsed} isCounting={true} decimalPlaces={2} /> meters
+					<CountUp start={0} end={filamentUsed} preserveValue={true} decimals={2} /> meters
 				</div>
 			);
 		},

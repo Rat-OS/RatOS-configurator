@@ -121,7 +121,7 @@ export const SetupSteps: React.FC<WizardProps> = (props) => {
 	const { currentStepIndex, setCurrentStepIndex, screenProps, currentStep } = useSteps({
 		step: uriStep != null && uriStep < steps.length ? uriStep : defaultStep,
 		onStepChange: (step) => {
-			router.push(pathname + '?step=' + step, undefined);
+			router.push(`${pathname}?step=${step}`, undefined);
 			window.scrollTo(0, 0);
 		},
 		steps,

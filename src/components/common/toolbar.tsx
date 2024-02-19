@@ -12,7 +12,7 @@ type Icon = React.ForwardRefExoticComponent<
 export type ToolbarButton = {
 	id: string;
 	icon?: Icon;
-	name?: string;
+	name?: NonNullable<React.ReactNode>;
 	className?: string;
 	onClick: () => void;
 	subButtonPosition?: 'before' | 'after';

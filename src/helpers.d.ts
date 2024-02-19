@@ -57,3 +57,5 @@ type NestedObjectType<T> = {
 			? T[K]
 			: never;
 };
+
+type GitVersion = `${number}.${number}.${number}${`-${number}` | ``}${`-${string}` | ``}`;

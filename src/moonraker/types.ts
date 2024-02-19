@@ -23,7 +23,7 @@ export type MoonrakerDBItemResponse<Data = unknown> = {
 };
 
 export type MoonrakerDB = {
-	RatOS: { 'camera-settings': CameraSettings };
+	RatOS: { 'camera-settings': CameraSettings; __recoil: unknown };
 	mainsail: {
 		general: {
 			printername: string;
@@ -54,10 +54,38 @@ export type PrinterObjectQueries = {
 	>;
 	toolhead: MoonrakerMethod<
 		{
-			axis_maximum: {
-				x: number;
-				y: number;
-			};
+			homed_axes: string;
+			axis_minimum: [number, number, number, number];
+			axis_maximum: [number, number, number, number];
+			print_time: number;
+			stalls: number;
+			estimated_print_time: number;
+			extruder: `extruder` | `extruder1`;
+			position: [number, number, number, number];
+			max_velocity: number;
+			max_accel: number;
+			max_accel_to_decel: number;
+			square_corner_velocity: number;
+		},
+		void
+	>;
+	system_stats: MoonrakerMethod<
+		{
+			sysload: number;
+			memavail: number;
+			cputime: number;
+		},
+		void
+	>;
+	'gcode_macro T0': MoonrakerMethod<
+		{
+			active: boolean;
+		},
+		void
+	>;
+	'gcode_macro T1': MoonrakerMethod<
+		{
+			active: boolean;
 		},
 		void
 	>;
@@ -95,6 +123,21 @@ export type MoonrakerQueries = {
 				{
 					key: unknown;
 					namespace: MoonrakerNamespaces;
+				}
+			>;
+		};
+		connection: {
+			identify: MoonrakerMethod<
+				{
+					connection_id: number;
+				},
+				{
+					client_name: string;
+					version: GitVersion;
+					type: 'web' | 'mobile' | 'desktop' | 'display' | 'bot' | 'agent' | 'other';
+					url: string;
+					access_token?: string;
+					api_key?: string;
 				}
 			>;
 		};
@@ -137,7 +180,10 @@ export type MoonrakerQueries = {
 	};
 	printer: {
 		objects: {
-			query: MoonrakerMethod<{ status: unknown; eventtime: number }, { objects: PrinterObjectsMoonrakerQueryParams }>;
+			query: MoonrakerMethod<
+				{ status: unknown; eventtime: number },
+				{ objects: PrinterObjectsMoonrakerQueryParams | null }
+			>;
 		};
 	};
 };

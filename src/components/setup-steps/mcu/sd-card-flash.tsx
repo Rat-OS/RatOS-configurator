@@ -73,7 +73,7 @@ export const SDCardFlashing: React.FC<SDCardFlashingProps> = (props) => {
 				}
 				className="w-52 justify-center"
 				disabled={compile.isLoading && !isFirmwareReady}
-				href={isFirmwareReady ? '/api/download-firmware?boardPath=' + encodeURIComponent(props.board.path) : undefined}
+				href={isFirmwareReady ? `/api/download-firmware?boardPath=${encodeURIComponent(props.board.path)}` : undefined}
 			>
 				{isFirmwareReady ? (
 					<span>

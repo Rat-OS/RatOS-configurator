@@ -10,9 +10,10 @@ import {
 } from '@heroicons/react/24/outline';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useCallback } from 'react';
+import type { Route } from 'next';
 
 export const useLocalPathname = () => {
-	const pathname = (usePathname() ?? '/').replace('/configure', '');
+	const pathname = (usePathname() ?? '/').replace('/configure', '') as Route;
 	return pathname;
 };
 
@@ -25,17 +26,28 @@ export const useIsRouteActive = () => {
 		[pathname],
 	);
 };
+
+type NavigationItem = {
+	name: string;
+	href: Route;
+	current: boolean;
+	icon: React.FC<React.ComponentProps<'svg'>>;
+	iconClass?: string;
+};
+
+const routes: NavigationItem[] = [
+	{ name: 'Setup Wizard', href: '/wizard', current: false, icon: SparklesIcon },
+	{ name: 'Dashboard', href: '/', current: false, icon: TvIcon },
+	{ name: 'Visual Calibration', href: '/calibration', current: false, icon: VideoCameraIcon },
+	{ name: 'Analysis', href: '/', current: false, icon: PresentationChartLineIcon },
+	{ name: 'Boards', href: '/', current: false, icon: CpuChipIcon },
+	{ name: 'Motion', href: '/', current: false, icon: ArrowsPointingOutIcon, iconClass: 'rotate-45' },
+	{ name: 'Toolheads', href: '/', current: false, icon: ArrowDownOnSquareIcon },
+];
+
 export const useNavigation = () => {
 	const isRouteActive = useIsRouteActive();
-	return [
-		{ name: 'Setup Wizard', href: '/wizard', current: false, icon: SparklesIcon },
-		{ name: 'Dashboard', href: '/', current: false, icon: TvIcon },
-		{ name: 'Visual Calibration', href: '/calibration', current: false, icon: VideoCameraIcon },
-		{ name: 'Analysis', href: '/analysis', current: false, icon: PresentationChartLineIcon },
-		{ name: 'Boards', href: '/boards', current: false, icon: CpuChipIcon },
-		{ name: 'Motion', href: '/motion', current: false, icon: ArrowsPointingOutIcon, iconClass: 'rotate-45' },
-		{ name: 'Toolheads', href: '/toolheads', current: false, icon: ArrowDownOnSquareIcon },
-	].map((n) => {
+	return routes.map((n) => {
 		n.current = isRouteActive(n.href);
 		return n;
 	});

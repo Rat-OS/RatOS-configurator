@@ -1,5 +1,5 @@
 'use client';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { UseMutationOptions, UseQueryOptions, useMutation, useQuery } from '@tanstack/react-query';
 import useWebSocket from 'react-use-websocket';
 import { migrateToLatest } from './migrations';
@@ -27,6 +27,7 @@ import type {
 	PrinterObjectResult,
 } from './types';
 import { getHost } from '../helpers/util';
+import { merge } from 'ts-deepmerge';
 
 let REQ_ID = 0;
 
@@ -38,9 +39,12 @@ const getWsURL = () => {
 	return `ws://${host}/websocket`;
 };
 
+const subscriptions: { [key: number]: Partial<PrinterObjectsMoonrakerQueryParams> } = {};
+
 export const useMoonraker = () => {
 	const inFlightRequests = useRef<InFlightRequestCallbacks>({});
 	const inFlightRequestTimeouts = useRef<InFlightRequestTimeouts>({});
+	const localSubscriptions = useRef<number[]>([]);
 	const onReadyCallbacks = useRef<{ resolve: () => void; reject: () => void }[]>([]);
 	const [wsUrl, setWsUrl] = useState(getWsURL());
 	useEffect(() => {
@@ -55,6 +59,22 @@ export const useMoonraker = () => {
 				const parsed = JSON.parse(message.data) as MoonrakerResponse;
 				if (inFlightRequests.current[parsed.id] != null) {
 					return true;
+				}
+				if (parsed.method === 'notify_status_update' && parsed.params != null) {
+					const res = parsed.params[0] as { [key in PrinterObjectKeys]: PrinterObjectResult<PrinterObjectKeys> };
+					if (res != null) {
+						for (const sub of localSubscriptions.current) {
+							const objects = subscriptions[sub];
+							if (objects != null) {
+								for (const key in objects) {
+									if (res[key as PrinterObjectKeys] != null) {
+										return true;
+									}
+								}
+							}
+						}
+					}
+					return false;
 				}
 				return false;
 			} catch (e) {
@@ -90,7 +110,6 @@ export const useMoonraker = () => {
 			}),
 		[whenReady],
 	);
-
 	const moonrakerQuery: MoonrakerQueryFn & MoonrakerMutationFn = useCallback(
 		async <Response = any,>(method: string, params: any = {}) => {
 			await isReady();
@@ -119,6 +138,43 @@ export const useMoonraker = () => {
 			});
 		},
 		[isReady, sendJsonMessage],
+	);
+
+	const subscribeToObject = useCallback(
+		async <TArgs extends [PrinterObjectKeys, ...PrinterObjectKeys[]]>(...args: TArgs) => {
+			const objects = Object.fromEntries(args.map((key) => [key, null])) as PrinterObjectsMoonrakerQueryParams;
+			const allSubscribedObjects = Object.assign(
+				{},
+				objects,
+				...Object.values(subscriptions).filter((v) => v != null),
+			) as PrinterObjectsMoonrakerQueryParams;
+			const res = (
+				await moonrakerQuery('printer.objects.subscribe' as 'printer.objects.query', { objects: allSubscribedObjects })
+			).status as {
+				[K in TArgs[number]]: PrinterObjectResult<K>;
+			};
+
+			const reqId = REQ_ID;
+			subscriptions[reqId] = objects;
+			localSubscriptions.current.push(reqId);
+			return {
+				res,
+				unsuscribe: async () => {
+					localSubscriptions.current = localSubscriptions.current.filter((v) => v !== reqId);
+					if (subscriptions[reqId] == null) {
+						delete subscriptions[reqId];
+						const allSubscribedObjects = Object.assign(
+							{},
+							...Object.values(subscriptions).filter((v) => v != null),
+						) as PrinterObjectsMoonrakerQueryParams;
+						await moonrakerQuery('printer.objects.subscribe' as 'printer.objects.query', {
+							objects: allSubscribedObjects,
+						});
+					}
+				},
+			};
+		},
+		[moonrakerQuery],
 	);
 
 	const saveItem = useCallback<MoonrakerSaveItemFn>(
@@ -180,15 +236,32 @@ export const useMoonraker = () => {
 				// eslint-disable-next-line react-hooks/exhaustive-deps
 				delete inFlightRequests.current[reqId];
 			}
+			if (localSubscriptions.current.length > 0) {
+				localSubscriptions.current.forEach((sub) => {
+					delete subscriptions[sub];
+				});
+				localSubscriptions.current = [];
+				const allSubscribedObjects = Object.assign(
+					{},
+					...Object.values(subscriptions).filter((v) => v != null),
+				) as PrinterObjectsMoonrakerQueryParams;
+				moonrakerQuery('printer.objects.subscribe' as 'printer.objects.query', {
+					objects: Object.keys(allSubscribedObjects).length > 0 ? allSubscribedObjects : null,
+				}).catch((e) => {
+					// ignore
+				});
+			}
 			onReadyCallbacks.current.forEach((cb) => cb.reject());
 			onReadyCallbacks.current = [];
 		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
 	return {
 		query: moonrakerQuery,
 		saveItem,
 		getItem,
+		subscribeToObject,
 		status: moonrakerStatus,
 		lastMessage: lastJsonMessage,
 		isReady: readyState === 1,
@@ -271,11 +344,72 @@ export const usePrinterObjectQuery = <TArgs extends [PrinterObjectKeys, ...Print
 		queryKey: args,
 		queryFn: async () => {
 			const objects = Object.fromEntries(args.map((key) => [key, null])) as PrinterObjectsMoonrakerQueryParams;
-			return (await query('printer.objects.query', { objects })).status as Promise<{
+			return (await query('printer.objects.query', { objects })).status as {
 				[K in TArgs[number]]: PrinterObjectResult<K>;
-			}>;
+			};
 		},
 	});
+};
+
+export const usePrinterObjectSubscription = <TArgs extends [PrinterObjectKeys, ...PrinterObjectKeys[]]>(
+	...args: TArgs
+) => {
+	const [state, setState] = useState<
+		| {
+				[K in TArgs[number]]: PrinterObjectResult<K>;
+		  }
+		| null
+	>(null);
+	const { subscribeToObject, lastMessage } = useMoonraker();
+
+	const keys = useMemo(
+		() => Object.fromEntries(args.map((key) => [key, null])) as PrinterObjectsMoonrakerQueryParams,
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[JSON.stringify(args.sort())],
+	);
+
+	useEffect(() => {
+		console.log('keys changed');
+		const subscription = subscribeToObject(...(Object.keys(keys) as TArgs));
+		subscription
+			.then((sub) => {
+				console.log(sub.res);
+				setState(sub.res);
+			})
+			.catch((e) => {
+				if (e instanceof Error) {
+					console.error(e);
+				}
+			});
+		return () => {
+			subscription
+				.then((sub) => sub.unsuscribe())
+				.catch((e) => {
+					if (e instanceof Error) {
+						console.error(e);
+					}
+				});
+		};
+	}, [keys, subscribeToObject]);
+
+	useEffect(() => {
+		if (lastMessage?.method === 'notify_status_update' && lastMessage.params != null) {
+			const res = lastMessage.params[0] as { [key in PrinterObjectKeys]: PrinterObjectResult<PrinterObjectKeys> };
+			const changed = {} as typeof res;
+			for (const key in keys) {
+				if (res[key as keyof typeof res] != null) {
+					changed[key as keyof typeof res] = res[key as keyof typeof res];
+				}
+			}
+			if (Object.keys(changed).length > 0) {
+				setState((prev) => {
+					return merge(prev ?? {}, changed);
+				});
+			}
+		}
+	}, [keys, lastMessage]);
+
+	return state;
 };
 
 export const useNamespacedItemMutation = <

@@ -5,6 +5,7 @@ import React, { Fragment } from 'react';
 import { VariantProps, cva } from 'class-variance-authority';
 import { Menu, Transition } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
+import { Route } from 'next';
 
 const buttonStyle = cva(
 	'inline-flex space-x-2 items-center px-4 py-2 border text-sm font-semibold rounded-md shadow-sm focus:outline-none focus:ring-2 capitalize',
@@ -68,7 +69,7 @@ export type Intents = NonNullable<Required<VariantProps<typeof buttonStyle>>['in
 interface ButtonProps extends React.PropsWithChildren<VariantProps<typeof buttonStyle>> {
 	onClick?: () => void;
 	className?: string;
-	href?: string;
+	href?: Route;
 	title?: string;
 	dropdownItems?: {
 		onClick: () => void;

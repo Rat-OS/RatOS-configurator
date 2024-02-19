@@ -1,12 +1,5 @@
 import pino from 'pino';
-import pretty from 'pino-pretty';
 import { serverSchema } from '../../env/schema.mjs';
-
-const stream = pretty({
-	levelFirst: true,
-	colorize: true,
-	ignore: 'time,hostname,pid',
-});
 
 let logger: pino.Logger | null = null;
 export const getLogger = () => {

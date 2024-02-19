@@ -9,7 +9,7 @@ import { HistoryTable } from './historyTable';
 import { useMoonrakerQuery, usePrinterObjectQuery } from '../moonraker/hooks';
 import { useMemo } from 'react';
 import { Duration, DurationLikeObject } from 'luxon';
-import { CountUp } from 'use-count-up';
+import CountUp from 'react-countup';
 
 const secondaryNavigation = [
 	{ name: 'History', href: '#', current: true },
@@ -176,7 +176,7 @@ export default function Page() {
 									{!Array.isArray(stat.value) ? (
 										<>
 											<span className="text-4xl font-semibold tracking-tight text-white">
-												<CountUp start={0} end={stat.value} decimalPlaces={2} isCounting={stat.value > 0} />
+												<CountUp start={0} end={stat.value} decimals={2} preserveValue={true} />
 											</span>
 											{stat.unit ? <span className="text-sm text-zinc-400">{stat.unit}</span> : null}
 										</>
@@ -184,7 +184,7 @@ export default function Page() {
 										stat.value.map(({ val, unit }, idx) => (
 											<span key={idx} className="flex items-baseline gap-x-2">
 												<span key={idx} className="text-4xl font-semibold tracking-tight text-white">
-													<CountUp start={0} end={val} decimalPlaces={0} isCounting={(val ?? 0) > 0}></CountUp>
+													<CountUp start={0} end={val ?? 0} decimals={0} preserveValue={true}></CountUp>
 												</span>
 												{unit ? <span className="truncate text-sm text-zinc-400">{unit}</span> : null}
 											</span>

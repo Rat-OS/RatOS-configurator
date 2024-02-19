@@ -19,12 +19,13 @@ import { useDebounce } from '../_hooks/debounce';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { twJoin, twMerge } from 'tailwind-merge';
 import { CameraSettingsDialog } from './camera-settings-dialog';
-import { useMoonrakerState } from '../../moonraker/hooks';
+import { useMoonrakerState, usePrinterObjectSubscription } from '../../moonraker/hooks';
 import { useChangeEffect } from '../../hooks/useChangeEffect';
 import { ExposureIcon } from '../../components/common/icons/exposure';
 import { FocusControls } from './focus-controls';
 import { Spinner } from '../../components/common/spinner';
 import { useWindowSize } from '../_hooks/resize';
+import CountUp from 'react-countup';
 
 const useGcodeCommand = () => {
 	return useCallback((command: string) => {
@@ -181,6 +182,8 @@ export default function Page() {
 	const gcodeCommand = useGcodeCommand();
 	const [animate] = useAutoAnimate();
 	const windowSize = useWindowSize();
+	const toolhead = usePrinterObjectSubscription('toolhead');
+	const tool = toolhead?.toolhead.extruder === 'extruder' ? 'T0' : 'T1';
 
 	const scale = useCallback(
 		(val: number) => {
@@ -270,17 +273,17 @@ export default function Page() {
 			name: 'T0',
 			id: 't0',
 			onClick: () => {
-				gcodeCommand('T0');
+				gcodeCommand('_NOZZLE_CALIBRATION_LOAD_TOOL T=0');
 			},
-			isActive: true,
+			isActive: tool === 'T0',
 		},
 		{
 			name: 'T1',
 			id: 't1',
 			onClick: () => {
-				gcodeCommand('T1');
+				gcodeCommand('_NOZZLE_CALIBRATION_LOAD_TOOL T=1');
 			},
-			isActive: false,
+			isActive: tool === 'T1',
 		},
 	];
 	const topRightControls: ToolbarButton[] = [
@@ -289,7 +292,14 @@ export default function Page() {
 			id: 'zoom',
 			subButtonPosition: 'before',
 			className: 'font-mono',
-			name: zoom === 10 ? 'MAX!' : `${Math.round(zoom * 100)}%`,
+			name:
+				zoom >= 10 ? (
+					'MAX!'
+				) : (
+					<>
+						<CountUp preserveValue={true} start={0} end={Math.round(zoom * 100)} duration={0.15} />%
+					</>
+				),
 			onClick: () => {
 				toggleIsZoomExpanded();
 			},
@@ -299,8 +309,11 @@ export default function Page() {
 			icon: LightBulbIcon,
 			id: 'light',
 			onClick: () => {
-				gcodeCommand('SET_LED VALUE=1');
-				setLight((l) => !l);
+				setLight((l) => {
+					const newVal = !l;
+					gcodeCommand(`_NOZZLE_CALIBRATION_SWITCH_LED STATE=${newVal ? 1 : 0}`);
+					return newVal;
+				});
 			},
 			isActive: light,
 		},
@@ -350,11 +363,11 @@ export default function Page() {
 					isActive: isSettingsVisible,
 				},
 				{
-					name: 'Set Reference',
+					name: tool === 'T0' ? 'Set reference' : 'Set offset',
 					icon: MapPinIcon,
 					id: 'reference',
 					onClick: () => {
-						gcodeCommand('SET_VAOC_REFERENCE');
+						gcodeCommand('_NOZZLE_CALIBRATION_SET_TOOL');
 					},
 					isActive: false,
 				},
@@ -368,7 +381,7 @@ export default function Page() {
 					isActive: canMove,
 				},
 			] satisfies ToolbarButton[],
-		[canMove, gcodeCommand, isSettingsVisible],
+		[canMove, gcodeCommand, isSettingsVisible, tool],
 	);
 	const cameraControls = useMemo(() => {
 		const controls: ToolbarButton[] = [

@@ -14,14 +14,14 @@ import { ServerCache } from '../helpers/cache';
 
 export const appRouter = router({
 	version: publicProcedure.query(async () => {
-		return await promisify(exec)('git describe --tags --always', {
+		return (await promisify(exec)('git describe --tags --always', {
 			cwd: process.env.RATOS_CONFIGURATION_PATH,
-		}).then(({ stdout }) => stdout.trim());
+		}).then(({ stdout }) => stdout.trim())) as GitVersion;
 	}),
 	klipperVersion: publicProcedure.query(async () => {
-		return await promisify(exec)('git describe --tags --always', { cwd: process.env.KLIPPER_DIR }).then(({ stdout }) =>
+		return (await promisify(exec)('git describe --tags --always', { cwd: process.env.KLIPPER_DIR }).then(({ stdout }) =>
 			stdout.trim(),
-		);
+		)) as GitVersion;
 	}),
 	osVersion: publicProcedure.query(async () => {
 		if (process.env.NODE_ENV === 'development') {
