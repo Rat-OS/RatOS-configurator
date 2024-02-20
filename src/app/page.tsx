@@ -46,21 +46,24 @@ export default function Page() {
 			];
 		}
 		const totalPrintTime = Duration.fromObject(
-			{ hours: jobTotals.data.job_totals.total_print_time / 60 / 60 },
+			{
+				hours:
+					jobTotals.data.job_totals.total_print_time === 0 ? 0 : jobTotals.data.job_totals.total_print_time / 60 / 60,
+			},
 			{ locale: 'en-GB' },
 		)
 			.shiftTo(...(['seconds', 'minutes', 'hours', 'days'].filter(Boolean) as (keyof DurationLikeObject)[]))
 			.normalize()
 			.toObject();
 		const longestPrint = Duration.fromObject(
-			{ hours: jobTotals.data.job_totals.longest_print / 60 / 60 },
+			{ hours: jobTotals.data.job_totals.longest_print === 0 ? 0 : jobTotals.data.job_totals.longest_print / 60 / 60 },
 			{ locale: 'en-GB' },
 		)
 			.shiftTo(...(['seconds', 'minutes', 'hours'].filter(Boolean) as (keyof DurationLikeObject)[]))
 			.normalize()
 			.toObject();
 		const avg = jobTotals.data.job_totals.total_print_time / jobTotals.data.job_totals.total_jobs;
-		const avgPrint = Duration.fromObject({ hours: avg / 60 / 60 }, { locale: 'en-GB' })
+		const avgPrint = Duration.fromObject({ hours: isNaN(avg) ? 0 : avg / 60 / 60 }, { locale: 'en-GB' })
 			.shiftTo(...(['seconds', 'minutes', 'hours'].filter(Boolean) as (keyof DurationLikeObject)[]))
 			.normalize()
 			.toObject();
@@ -115,7 +118,7 @@ export default function Page() {
 				</div>
 
 				{/* Heading */}
-				<div className="bg-zinc-700/10">
+				<div className="bg-zinc-700/15">
 					<div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-x-8 gap-y-4 px-4 py-4 @screen-sm:flex-row @screen-sm:items-center @screen-sm:px-6 @screen-lg:px-8">
 						<div>
 							<div className="flex items-center gap-x-3">

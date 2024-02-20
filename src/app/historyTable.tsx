@@ -345,6 +345,17 @@ export const HistoryTable = () => {
 						</tr>
 					);
 				})}
+				{totalFetched === 0 && (
+					<tr>
+						<td
+							colSpan={columns.length}
+							className="flex h-96 flex-grow flex-col items-center justify-center p-4 text-center text-zinc-100 @screen-sm:px-6 @screen-lg:px-8"
+						>
+							<h4 className="mb-4 text-4xl font-bold">No print history found</h4>
+							<div className="text-xl text-zinc-400">What are you waiting for? Go print something!</div>
+						</td>
+					</tr>
+				)}
 			</tbody>
 		</table>
 	);
