@@ -248,9 +248,9 @@ export default function Page() {
 
 	const toScreen = useCallback(
 		(val: number) => {
+			(() => windowSize)(); // Mark used so we still get linting.
 			return scale(val) * (settings?.pixelPrMm ?? 0);
 		},
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[scale, settings?.pixelPrMm, windowSize],
 	);
 
@@ -258,8 +258,7 @@ export default function Page() {
 		(val: number) => {
 			return invert(val) / (settings?.pixelPrMm ?? 0);
 		},
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[settings?.pixelPrMm],
+		[invert, settings?.pixelPrMm],
 	);
 
 	const [tempZoomExpand, clearTempZoomExpand] = useChangeEffect([zoom], 2000, true);
