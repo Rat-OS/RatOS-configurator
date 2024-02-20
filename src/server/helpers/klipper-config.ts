@@ -182,7 +182,7 @@ export const constructKlipperConfigUtils = async (config: PrinterConfiguration) 
 				return `diag_pin: ^${this.getAxisPin(axis, '_diag_pin')}`;
 			}
 			if (this.getRail(axis).driver.protocol === 'SPI') {
-				return `diag1_pin: ^${this.getAxisPin(axis, '_diag_pin')}`;
+				return `diag1_pin: ^!${this.getAxisPin(axis, '_diag_pin')}`;
 			}
 			return '';
 		},
