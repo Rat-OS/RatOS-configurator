@@ -563,7 +563,7 @@ export default function Page() {
 	return (
 		<div className="flex h-[calc(100vh_-_64px)] w-full items-center" ref={rootRef}>
 			<div
-				className="relative mx-auto flex max-h-full min-h-[50vh] min-w-[50vw] max-w-fit items-center overflow-hidden rounded-2xl object-contain shadow-lg"
+				className="relative mx-auto flex max-h-full min-h-[50vh] min-w-[50vw] max-w-fit items-center overflow-hidden object-contain shadow-lg"
 				ref={containerRef}
 			>
 				<video
@@ -609,6 +609,30 @@ export default function Page() {
 						style={{ opacity: dragOutside.y ? Math.abs(dragOutside.y - (dragOffset?.[1] ?? 0)) / 200 : 0 }}
 					/>
 					<svg width="100%" height="100%">
+						<rect
+							x="50%"
+							y={`${50 - outerNozzleDiameterPercentHeight}%`}
+							height={`${outerNozzleDiameterPercentHeight * 2}%`}
+							width="0.2vw"
+							shapeRendering="geometricPrecision"
+							className={twJoin(
+								'fill-brand-500 transition-all ease-in-out',
+								connectionState === 'connected' && outerNozzleDiameter > 0 ? 'opacity-100' : 'opacity-0',
+							)}
+							style={{ transform: 'translateX(-0.10vw)' }}
+						/>
+						<rect
+							x={`${50 - outerNozzleDiameterPercentWidth}%`}
+							y="50%"
+							width={`${outerNozzleDiameterPercentWidth * 2}%`}
+							height="0.2vw"
+							shapeRendering="geometricPrecision"
+							className={twJoin(
+								'fill-brand-500 transition-all ease-in-out',
+								connectionState === 'connected' && outerNozzleDiameter > 0 ? 'opacity-100' : 'opacity-0',
+							)}
+							style={{ transform: 'translateY(-0.10vw)' }}
+						/>
 						<circle
 							cx="50%"
 							cy="50%"
@@ -618,7 +642,8 @@ export default function Page() {
 								'stroke-brand-500 transition-all ease-in-out',
 								connectionState === 'connected' && outerNozzleDiameter > 0 ? 'opacity-100' : 'opacity-0',
 							)}
-							strokeWidth="2"
+							shapeRendering="geometricPrecision"
+							strokeWidth="0.2vw"
 						/>
 						<circle
 							cx="50%"
@@ -627,29 +652,10 @@ export default function Page() {
 							fill="none"
 							className={twJoin(
 								'stroke-brand-500 transition-all ease-in-out',
-								connectionState === 'connected' && outerNozzleDiameter > 0 ? 'opacity-50' : 'opacity-0',
-							)}
-							strokeWidth="2"
-						/>
-						<rect
-							x="50%"
-							y={`${50 - outerNozzleDiameterPercentHeight}%`}
-							height={`${outerNozzleDiameterPercentHeight * 2}%`}
-							width={2}
-							className={twJoin(
-								'fill-brand-500/50 transition-all ease-in-out',
 								connectionState === 'connected' && outerNozzleDiameter > 0 ? 'opacity-100' : 'opacity-0',
 							)}
-						/>
-						<rect
-							x={`${50 - outerNozzleDiameterPercentWidth}%`}
-							y="50%"
-							width={`${outerNozzleDiameterPercentWidth * 2}%`}
-							height={2}
-							className={twJoin(
-								'fill-brand-500/50 transition-all ease-in-out',
-								connectionState === 'connected' && outerNozzleDiameter > 0 ? 'opacity-100' : 'opacity-0',
-							)}
+							shapeRendering="geometricPrecision"
+							strokeWidth="0.2vw"
 						/>
 					</svg>
 				</div>
