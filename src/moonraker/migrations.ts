@@ -1,3 +1,4 @@
+import { getHost } from '../helpers/util';
 import { MoonrakerDBItemResponse } from './types';
 
 interface Migration {
@@ -6,18 +7,13 @@ interface Migration {
 	up: () => Promise<{ result: string }>;
 	down: () => Promise<{ result: string }>;
 }
-const host =
-	process.env.NEXT_PUBLIC_KLIPPER_HOSTNAME != null && process.env.NEXT_PUBLIC_KLIPPER_HOSTNAME.trim() != ''
-		? process.env.NEXT_PUBLIC_KLIPPER_HOSTNAME
-		: typeof window !== 'undefined'
-			? window.location.hostname
-			: '';
+
 export const migrations: Migration[] = [
 	{
 		version: 1,
 		description: "Undo double JSON encoding of RatOS's data",
 		up: async () => {
-			const res = await window.fetch(`http://${host}/server/database/item?namespace=RatOS`);
+			const res = await window.fetch(`http://${getHost()}/server/database/item?namespace=RatOS`);
 			if (res.ok) {
 				const data = (await res.json()) as
 					| { result: MoonrakerDBItemResponse<{ [key: string]: unknown }> }
@@ -33,7 +29,7 @@ export const migrations: Migration[] = [
 					try {
 						const parsed = JSON.parse(value as any);
 						console.log('Migrating', key, 'from', value, 'to', parsed);
-						await window.fetch(`http://${host}/server/database/item`, {
+						await window.fetch(`http://${getHost()}/server/database/item`, {
 							method: 'POST',
 							headers: {
 								'Content-Type': 'application/json',
@@ -46,16 +42,19 @@ export const migrations: Migration[] = [
 						});
 					} catch (e) {
 						console.error('Error migrating', key, value, 'clearing key');
-						await window.fetch(`http://${host}/server/database/item?namespace=RatOS&key=${encodeURIComponent(key)}`, {
-							method: 'DELETE',
-							headers: {
-								'Content-Type': 'application/json',
+						await window.fetch(
+							`http://${getHost()}/server/database/item?namespace=RatOS&key=${encodeURIComponent(key)}`,
+							{
+								method: 'DELETE',
+								headers: {
+									'Content-Type': 'application/json',
+								},
+								body: JSON.stringify({
+									namespace: 'RatOS',
+									key,
+								}),
 							},
-							body: JSON.stringify({
-								namespace: 'RatOS',
-								key,
-							}),
-						});
+						);
 						continue;
 					}
 				}
@@ -66,7 +65,7 @@ export const migrations: Migration[] = [
 		},
 		down: async () => {
 			// drop table
-			const res = await window.fetch(`http://${host}/server/database/item?namespace=RatOS`);
+			const res = await window.fetch(`http://${getHost()}/server/database/item?namespace=RatOS`);
 			if (res.ok) {
 				const data = (await res.json()) as
 					| { result: MoonrakerDBItemResponse<{ [key: string]: unknown }> }
@@ -80,7 +79,7 @@ export const migrations: Migration[] = [
 				const result: string[] = [];
 				for await (const [key, value] of Object.entries(data.result.value)) {
 					const encoded = JSON.stringify(value as any);
-					await window.fetch(`http://${host}/server/database/item`, {
+					await window.fetch(`http://${getHost()}/server/database/item`, {
 						method: 'POST',
 						headers: {
 							'Content-Type': 'application/json',
@@ -101,7 +100,7 @@ export const migrations: Migration[] = [
 ];
 
 export const getCurrentVersion = async (): Promise<number> => {
-	const res = await window.fetch(`http://${host}/server/database/item?namespace=RatOS&key=__db_version`);
+	const res = await window.fetch(`http://${getHost()}/server/database/item?namespace=RatOS&key=__db_version`);
 	if (res.ok) {
 		const data = (await res.json()) as { result: MoonrakerDBItemResponse<number> } | { error: { message: string } };
 		if ('error' in data) {
@@ -113,7 +112,7 @@ export const getCurrentVersion = async (): Promise<number> => {
 };
 
 export const setCurrentVersion = async (version: number) => {
-	await window.fetch(`http://${host}/server/database/item`, {
+	await window.fetch(`http://${getHost()}/server/database/item`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
