@@ -163,8 +163,8 @@ export default function Page() {
 	const [dragOffset, setDragOffset] = useState<[number, number] | null>(null);
 	const [dragOutside, setDragOutside] = useState<{ x: false | number; y: false | number }>({ x: false, y: false });
 	const { exposure, digitalGain, options, setOption } = useCameraSettings(url);
-	const [isHomed, setIsHomed] = useState(false);
 	const [canMove, setCanMove] = useState(false);
+	const [isHoming, setIsHoming] = useState(false);
 	const [isSettingsVisible, setIsSettingsVisible] = useState(false);
 	const [_isZoomExpanded, _setIsZoomExpanded] = useState(false);
 	const [isExposureVisible, setIsExposureVisible] = useState(false);
@@ -282,15 +282,19 @@ export default function Page() {
 		{
 			icon: HomeIcon,
 			id: 'home',
-			onClick: () => {
-				G`G28`;
-				setIsHomed(true);
+			title: 'Home the printer (G28)',
+			isLoading: isHoming,
+			onClick: async () => {
+				setIsHoming(true);
+				await G`G28`;
+				setIsHoming(false);
 			},
-			isActive: isHomed,
+			isActive: toolhead?.toolhead.homed_axes === 'xyz',
 		},
 		{
 			name: 'T0',
 			id: 't0',
+			title: 'Switch to tool 0 (T0)',
 			onClick: () => {
 				G`_NOZZLE_CALIBRATION_LOAD_TOOL T=0`;
 			},
@@ -299,6 +303,7 @@ export default function Page() {
 		{
 			name: 'T1',
 			id: 't1',
+			title: 'Switch to tool 1 (T1)',
 			onClick: () => {
 				G`_NOZZLE_CALIBRATION_LOAD_TOOL T=1`;
 			},
@@ -309,6 +314,7 @@ export default function Page() {
 		{
 			icon: MagnifyingGlassIcon,
 			id: 'zoom',
+			title: `${isZoomExpanded ? 'Hide' : 'Show'} zoom controls`,
 			subButtonPosition: 'before',
 			className: 'font-mono',
 			name:
@@ -327,6 +333,7 @@ export default function Page() {
 		{
 			icon: LightBulbIcon,
 			id: 'light',
+			title: `${light ? 'Turn off' : 'Turn on'} the LEDs`,
 			onClick: () => {
 				const newVal = !light;
 				G`_NOZZLE_CALIBRATION_SWITCH_LED STATE=${newVal ? 1 : 0}`;
@@ -340,6 +347,7 @@ export default function Page() {
 			name: '1X',
 			id: '1x',
 			parent: 'zoom',
+			title: `Set zoom to 1X (100%)`,
 			className: 'font-mono',
 			onClick: () => {
 				setZoom(1);
@@ -350,6 +358,7 @@ export default function Page() {
 			name: '2X',
 			id: '2x',
 			parent: 'zoom',
+			title: `Set zoom to 2X (200%)`,
 			className: 'font-mono',
 			onClick: () => {
 				setZoom(2);
@@ -360,6 +369,7 @@ export default function Page() {
 			name: '4X',
 			id: '4x',
 			parent: 'zoom',
+			title: `Set zoom to 4X (400%)`,
 			className: 'font-mono',
 			onClick: () => {
 				setZoom(4);
@@ -374,6 +384,7 @@ export default function Page() {
 					name: 'Settings',
 					icon: CogIcon,
 					id: 'settings',
+					title: 'Show camera settings dialog',
 					onClick: () => {
 						setIsSettingsVisible((vis) => !vis);
 					},
@@ -383,6 +394,7 @@ export default function Page() {
 					name: tool === 'T0' ? 'Set reference' : 'Set offset',
 					icon: MapPinIcon,
 					id: 'reference',
+					title: `Set the ${tool === 'T0' ? 'T0 reference point' : 'T1 offset'}`,
 					onClick: () => {
 						G`_NOZZLE_CALIBRATION_SET_TOOL`;
 					},
@@ -392,6 +404,7 @@ export default function Page() {
 					name: 'Move',
 					icon: ArrowsPointingOutIcon,
 					id: 'move',
+					title: `${canMove ? 'Disable' : 'Enable'} drag and drop calibration`,
 					onClick: () => {
 						setCanMove((m) => !m);
 					},
@@ -406,6 +419,7 @@ export default function Page() {
 				icon: CameraIcon,
 				id: 'settings',
 				subButtonPosition: 'before',
+				title: `${isCameraControlsVisible ? 'Hide' : 'Show'} camera controls`,
 				onClick: () => {
 					setIsCameraControlsVisible((vis) => !vis);
 				},
@@ -422,6 +436,7 @@ export default function Page() {
 				parent: 'settings',
 				hidden: isGainVisible || isAdvancedVisible || isExposureVisible,
 				name: 'Focus',
+				title: `${isFocusVisible ? 'Hide' : 'Show'} focus controls`,
 				children: <FocusControls isVisible={isFocusVisible} toggle={setIsFocusVisible} />,
 				onClick: () => {
 					console.log('exposure controls');
@@ -437,6 +452,7 @@ export default function Page() {
 				id: 'exposure',
 				parent: 'settings',
 				hidden: isGainVisible || isAdvancedVisible || isFocusVisible,
+				title: `${isExposureVisible ? 'Hide' : 'Show'} exposure controls`,
 				name: 'Exposure',
 				onClick: () => {
 					console.log('exposure controls');
@@ -451,6 +467,7 @@ export default function Page() {
 				icon: LightBulbIcon,
 				id: 'gain',
 				parent: 'settings',
+				title: `${isGainVisible ? 'Hide' : 'Show'} gain controls`,
 				hidden: isExposureVisible || isAdvancedVisible || isFocusVisible,
 				name: 'Gain',
 				onClick: () => {
@@ -463,8 +480,9 @@ export default function Page() {
 			},
 			{
 				icon: SwatchIcon,
-				id: 'whitebalance',
+				id: 'advanced-camera-controls',
 				parent: 'settings',
+				title: `${isAdvancedVisible ? 'Hide' : 'Show'} advanced camera controls`,
 				name: 'Advanced',
 				hidden: isExposureVisible || isGainVisible || isFocusVisible,
 				onClick: () => {

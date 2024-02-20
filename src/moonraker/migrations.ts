@@ -158,9 +158,11 @@ export const migrateToLatest = async () => {
 	const latestVersion = Math.max(...migrations.map((m) => m.version));
 	if (currentVersion === latestVersion) {
 		console.log('Already at latest version');
+		return;
 	}
 	if (isMigrating) {
-		return console.log('Already migrating, ignoring..');
+		console.log('Already migrating, ignoring..');
+		return;
 	}
 	console.log('Migrating to latest version...', currentVersion, latestVersion);
 	await migrate(currentVersion, latestVersion);

@@ -1,13 +1,5 @@
 'use client';
-import {
-	SparklesIcon,
-	TvIcon,
-	PresentationChartLineIcon,
-	CpuChipIcon,
-	ArrowsPointingOutIcon,
-	ArrowDownOnSquareIcon,
-	VideoCameraIcon,
-} from '@heroicons/react/24/outline';
+import { SparklesIcon, TvIcon, VideoCameraIcon } from '@heroicons/react/24/outline';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useCallback } from 'react';
 import type { Route } from 'next';
@@ -39,10 +31,10 @@ const routes: NavigationItem[] = [
 	{ name: 'Setup Wizard', href: '/wizard', current: false, icon: SparklesIcon },
 	{ name: 'Dashboard', href: '/', current: false, icon: TvIcon },
 	{ name: 'Visual Calibration', href: '/calibration', current: false, icon: VideoCameraIcon },
-	{ name: 'Analysis', href: '/', current: false, icon: PresentationChartLineIcon },
-	{ name: 'Boards', href: '/', current: false, icon: CpuChipIcon },
-	{ name: 'Motion', href: '/', current: false, icon: ArrowsPointingOutIcon, iconClass: 'rotate-45' },
-	{ name: 'Toolheads', href: '/', current: false, icon: ArrowDownOnSquareIcon },
+	// { name: 'Analysis', href: '/', current: false, icon: PresentationChartLineIcon },
+	// { name: 'Boards', href: '/', current: false, icon: CpuChipIcon },
+	// { name: 'Motion', href: '/', current: false, icon: ArrowsPointingOutIcon, iconClass: 'rotate-45' },
+	// { name: 'Toolheads', href: '/', current: false, icon: ArrowDownOnSquareIcon },
 ];
 
 export const useNavigation = () => {

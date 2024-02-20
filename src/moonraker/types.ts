@@ -113,6 +113,16 @@ export type MoonrakerMutations = {
 			>;
 		};
 	};
+	printer: {
+		gcode: {
+			script: MoonrakerMethod<
+				void,
+				{
+					script: GCode;
+				}
+			>;
+		};
+	};
 };
 
 export type MoonrakerQueries = {

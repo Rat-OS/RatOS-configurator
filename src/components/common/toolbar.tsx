@@ -1,6 +1,7 @@
 import { useAutoAnimate } from '@formkit/auto-animate/react';
 import React from 'react';
 import { twJoin, twMerge } from 'tailwind-merge';
+import { Spinner } from './spinner';
 
 type Icon = React.ForwardRefExoticComponent<
 	React.SVGProps<SVGSVGElement> & {
@@ -11,6 +12,8 @@ type Icon = React.ForwardRefExoticComponent<
 
 export type ToolbarButton = {
 	id: string;
+	title: string;
+	isLoading?: boolean;
 	icon?: Icon;
 	name?: NonNullable<React.ReactNode>;
 	className?: string;
@@ -44,6 +47,7 @@ const Button = (button: React.PropsWithChildren<ToolbarButton>) => {
 				<button
 					onClick={button.onClick}
 					type="button"
+					title={button.title}
 					className={twMerge(
 						'flex items-center space-x-2 whitespace-nowrap px-5 py-3 text-sm font-medium text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-100',
 						button.isActive ? 'hover:text-brand:600 text-brand-600 dark:text-brand-500 dark:hover:text-brand-500' : '',
@@ -51,7 +55,10 @@ const Button = (button: React.PropsWithChildren<ToolbarButton>) => {
 						button.className,
 					)}
 				>
-					{button.icon && <button.icon className="inline h-5 w-5 flex-shrink-0" aria-hidden="true" />}
+					{button.isLoading && <Spinner noMargin={true} className="inline h-5 w-5 flex-shrink-0" aria-hidden="true" />}
+					{button.icon && !button.isLoading && (
+						<button.icon className="inline h-5 w-5 flex-shrink-0" aria-hidden="true" />
+					)}
 					{button.name && <span className="inline">{button.name}</span>}
 				</button>
 			</div>

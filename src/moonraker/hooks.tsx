@@ -124,11 +124,16 @@ export const useMoonraker = () => {
 					}
 					resolve(result);
 				};
+				let timeout = 10 * 1000;
+				if (method === 'printer.gcode.script') {
+					// Allow 60 seconds for gcode macros.
+					timeout = 60 * 1000;
+				}
 				inFlightRequestTimeouts.current[id] = window.setTimeout(() => {
 					inFlightRequests.current[id]?.(new Error('Request timed out'), null);
 					delete inFlightRequests.current[id];
 					delete inFlightRequestTimeouts.current[id];
-				}, 10 * 1000); // 10 second timeout.
+				}, timeout); // 10 second timeout.
 				sendJsonMessage({
 					jsonrpc: '2.0',
 					method,
@@ -314,25 +319,21 @@ export const useMoonrakerQuery = <
 export const useMoonrakerMutation = <
 	K extends MoonrakerMutationKeys = MoonrakerMutationKeys,
 	P extends MoonrakerMutationParams<K> = MoonrakerMutationParams<K>,
-	O extends Omit<
-		UseMutationOptions<MoonrakerMutationResult<K>, unknown, MoonrakerMutationResult<K>, K[]>,
-		'queryKey' | 'queryFn'
-	> = Omit<
-		UseMutationOptions<MoonrakerMutationResult<K>, unknown, MoonrakerMutationResult<K>, K[]>,
-		'queryKey' | 'queryFn'
+	O extends Omit<UseMutationOptions<MoonrakerMutationResult<K>, unknown, P, K[]>, 'mutationKey' | 'mutationFn'> = Omit<
+		UseMutationOptions<MoonrakerMutationResult<K>, unknown, P, K[]>,
+		'mutationKey' | 'mutationFn'
 	>,
 >(
-	...args: P extends void ? [K, O?] : [K, P, O?]
+	...args: [K, O?]
 ) => {
 	const { query } = useMoonraker();
-	const options = args.length === 3 ? args[2] : args[1];
-	const params = args.length === 3 ? args[1] : undefined;
+	const options = args[1];
 	const key = args[0];
-	const passed = (args.length === 3 ? [key, params] : [key]) as P extends void ? [K] : [K, P];
 	return useMutation({
 		...options,
 		mutationKey: [args[0]],
-		mutationFn: async () => {
+		mutationFn: async (params: P) => {
+			const passed = (params ? [key, params] : [key]) as P extends void ? [K] : [K, P];
 			return query(...passed) as Promise<MoonrakerMutationResult<K>>;
 		},
 	});

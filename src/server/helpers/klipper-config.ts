@@ -688,42 +688,52 @@ export const constructKlipperConfigHelpers = async (
 			const th = this.getToolheads().find((th) => th.getProbe() != null);
 			if (th) {
 				result.push(`[include RatOS/z-probe/${th.getProbe()?.id + '.cfg'}]`);
-				if (th.hasToolboard() && th.getProbe()?.id === 'bltouch') {
-					result.push('[include RatOS/toolboard/bltouch.cfg]');
-				}
 			}
+			result.push(this.renderProbePinSection(true));
 			return result.join('\n');
 		},
-		renderProbePinSection() {
+		renderProbePinSection(onlyPins = false) {
 			const result: string[] = [];
 			const th = this.getToolheads().find((th) => th.getProbe() != null);
 			if (th) {
 				switch (th.getProbe()?.id) {
 					case 'bltouch':
+						const controlPin =
+							th.getPinPrefix() + (onlyPins ? th.getPinFromAlias('bltouch_control_pin') : 'bltouch_control_pin');
+						const sensorPin =
+							th.getPinPrefix() + (onlyPins ? th.getPinFromAlias('bltouch_sensor_pin') : 'bltouch_sensor_pin');
 						result.push(`# BLTouch configuration`);
 						result.push(`[bltouch]`);
-						result.push(`z_offset: 0`);
+						result.push('control_pin: ' + controlPin);
+						result.push('sensor_pin: ^' + sensorPin);
+						if (!onlyPins) {
+							result.push(`z_offset: 0`);
+						}
 						break;
 					case 'beacon':
 						// print reminder about beacon calibration
-						const reminder: string[] = [];
-						reminder.push('# REMEMBER TO CALIBRATE YOUR BEACON!');
-						reminder.push(
-							'# Follow along from step 6 in the official beacon guide https://docs.beacon3d.com/quickstart/#6-calibrate-beacon',
-						);
-						extrasGenerator.addReminder(reminder.join('\n'));
+						if (!onlyPins) {
+							const reminder: string[] = [];
+							reminder.push('# REMEMBER TO CALIBRATE YOUR BEACON!');
+							reminder.push(
+								'# Follow along from step 6 in the official beacon guide https://docs.beacon3d.com/quickstart/#6-calibrate-beacon',
+							);
+							extrasGenerator.addReminder(reminder.join('\n'));
+						}
 						break;
 					default:
-						const pinPrefix = th.getPinPrefix();
+						const pin = th.getPinPrefix() + (onlyPins ? th.getPinFromAlias('probe_pin') : 'probe_pin');
 						result.push('# Probe configuration');
 						result.push('[probe]');
-						result.push('z_offset: 0.0 # Will be commented out after a successful PROBE_CALIBRATE and SAVE_CONFIG');
-						result.push(
-							`pin: ^${pinPrefix}probe_pin # For NPN NC probes such as the Super Pinda / Vinda / SupCR / Decoprobe probes.`,
-						);
-						result.push(`#pin: ^!${pinPrefix}probe_pin # NPN NO (refer to the specs of your probe)`);
-						result.push(`#pin: ${pinPrefix}probe_pin # PNP NO (refer to the specs of your probe)`);
-						result.push(`#pin: !${pinPrefix}probe_pin # PNP NC (refer to the specs of your probe)`);
+						if (!onlyPins) {
+							result.push('z_offset: 0.0 # Will be commented out after a successful PROBE_CALIBRATE and SAVE_CONFIG');
+						}
+						result.push(`pin: ^${pin}# For NPN NC probes such as the Super Pinda / Vinda / SupCR / Decoprobe probes.`);
+						if (!onlyPins) {
+							result.push(`#pin: ^!${pin} # NPN NO (refer to the specs of your probe)`);
+							result.push(`#pin: ${pin} # PNP NO (refer to the specs of your probe)`);
+							result.push(`#pin: !${pin} # PNP NC (refer to the specs of your probe)`);
+						}
 						break;
 				}
 			}

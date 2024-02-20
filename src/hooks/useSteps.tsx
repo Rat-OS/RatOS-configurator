@@ -22,6 +22,7 @@ type NormalizedGeneric<P extends NoExtraProps | Object = NoExtraProps> = P exten
 export interface StepScreen<P extends NoExtraProps | Object = NoExtraProps> {
 	renderScreen: (screenProps: StepScreenProps & NormalizedGeneric<P>) => JSX.Element | null;
 	id: string;
+	canBeSkippedTo?: boolean;
 	name: string | ((props: Omit<StepScreenProps, 'name' | 'description'> & NormalizedGeneric<P>) => string);
 	description: string | ((props: Omit<StepScreenProps, 'name' | 'description'> & NormalizedGeneric<P>) => string);
 	href: string;

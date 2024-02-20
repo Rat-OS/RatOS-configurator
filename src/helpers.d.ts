@@ -59,3 +59,5 @@ type NestedObjectType<T> = {
 };
 
 type GitVersion = `${number}.${number}.${number}${`-${number}` | ``}${`-${string}` | ``}`;
+
+type GCode = Nominal<string, 'G-Code'>;

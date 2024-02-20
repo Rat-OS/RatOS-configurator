@@ -26,7 +26,7 @@ export const moonrakerWriteEffect = <T extends any = unknown>(): AtomEffect<T> =
 				params.node.key,
 				newValue,
 			);
-			DispatchSaveAtomEvent(params.node.key, newValue);
+			DispatchSaveAtomEvent(params.node.key, newValue == null ? 'null' : newValue); // Moonraker doesn't save null values..
 		});
 	};
 };

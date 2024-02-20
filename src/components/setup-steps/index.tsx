@@ -19,7 +19,7 @@ interface WizardProps {
 	hasWifiInterface?: boolean;
 }
 
-const makeSteps = (toolheads: ToolheadConfiguration<any>[]): StepScreen[] => {
+const makeSteps = (toolheads: ToolheadConfiguration<any>[], isConfigValid: boolean): StepScreen[] => {
 	let nextIndex = 0;
 	const getNextIndex = () => {
 		nextIndex++;
@@ -43,6 +43,7 @@ const makeSteps = (toolheads: ToolheadConfiguration<any>[]): StepScreen[] => {
 		{
 			id: getNextIndex(),
 			name: 'Control board preparation',
+			canBeSkippedTo: isConfigValid,
 			description: 'Firmware flashing and connectivity',
 			href: '#',
 			renderScreen: (screenProps) => <MCUPreparation {...screenProps} key={screenProps.key} />,
@@ -53,6 +54,7 @@ const makeSteps = (toolheads: ToolheadConfiguration<any>[]): StepScreen[] => {
 		result.push({
 			id: getNextIndex(),
 			name: `${th.getToolCommand()} Toolboard Preparation`,
+			canBeSkippedTo: isConfigValid,
 			description: `Firmware flashing and connectivity for toolboard on ${th.getDescription().toLocaleLowerCase()}`,
 			href: '#',
 			renderScreen: (screenProps) => (
@@ -63,6 +65,7 @@ const makeSteps = (toolheads: ToolheadConfiguration<any>[]): StepScreen[] => {
 	result.push({
 		id: getNextIndex(),
 		name: 'Hardware Selection',
+		canBeSkippedTo: isConfigValid,
 		description: 'Select your printer',
 		href: '#',
 		renderScreen: (screenProps) => <HardwareSelection {...screenProps} key={screenProps.key} />,
@@ -70,6 +73,7 @@ const makeSteps = (toolheads: ToolheadConfiguration<any>[]): StepScreen[] => {
 	result.push({
 		id: getNextIndex(),
 		name: 'Confirm your setup',
+		canBeSkippedTo: isConfigValid,
 		description: 'Confirm your setup and start printing',
 		href: '#',
 		renderScreen: (screenProps) => <WizardComplete {...screenProps} key={screenProps.key} />,
@@ -114,7 +118,7 @@ export const SetupSteps: React.FC<WizardProps> = (props) => {
 	const router = useRouter();
 	const pathname = useLocalPathname();
 	const ths = useRecoilValue(LoadablePrinterToolheadsState);
-	const steps = useMemo(() => makeSteps(ths), [ths]);
+	const steps = useMemo(() => makeSteps(ths, ths?.length > 0), [ths]);
 	const uriStep = searchParams?.get('step') ? parseInt(searchParams?.get('step') ?? '', 10) : null;
 	const defaultStep = props.hasWifiInterface && !props.isConnectedToWifi ? 0 : 1;
 
