@@ -3,8 +3,11 @@ import { Redirecter } from './_hooks/navigation';
 import { twJoin } from 'tailwind-merge';
 import { inter } from './fonts';
 import './../styles/globals.css';
+import { headers } from 'next/headers';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+	// Stupid hack to make this a dynamic component. Too much Next.js magic.
+	headers().get('x-configurator');
 	return (
 		<html
 			className={twJoin(
