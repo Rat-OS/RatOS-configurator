@@ -40,7 +40,18 @@ module.exports = {
 				'2xs': '0.6rem',
 				s: '0.8125rem',
 			},
+			containers: {
+				'screen-sm': '640px',
+				'screen-md': '768px',
+				'screen-lg': '1024px',
+				'screen-xl': '1280px',
+				'screen-2xl': '1536px',
+			},
 		},
 	},
-	plugins: [require('@tailwindcss/forms'), require('tailwind-scrollbar')({ nocompatible: true })],
+	plugins: [
+		require('@tailwindcss/forms'),
+		require('@tailwindcss/container-queries'),
+		require('tailwind-scrollbar')({ nocompatible: true }),
+	],
 };

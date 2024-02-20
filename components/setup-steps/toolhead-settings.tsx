@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useToolheadConfiguration } from '../../hooks/useToolheadConfiguration';
 import { stringToTitleObject } from '../../utils/serialization';
-import { ToolOrAxis } from '../../zods/toolhead';
+import { ToolOrAxis, ToolheadConfiguration } from '../../zods/toolhead';
 import { Dropdown, DropdownWithPrinterQuery } from '../forms/dropdown';
 import { Spinner } from '../common/spinner';
 import { twMerge } from 'tailwind-merge';
@@ -14,6 +14,8 @@ import { z } from 'zod';
 interface ToolheadSettingsProps {
 	toolOrAxis: ToolOrAxis;
 }
+
+type ToolheadSettingsErrors = z.typeToFlattenedError<ToolheadConfiguration<any>>;
 
 export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 	const { toolhead, setToolhead } = useToolheadConfiguration(props.toolOrAxis);
@@ -28,6 +30,7 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 	const [selectedHotendFan, setSelectedHotendFan] = useState(toolhead.getHotendFan() ?? null);
 	const [selectedXAccelerometer, setSelectedXAccelerometer] = useState(toolhead.getXAccelerometer() ?? null);
 	const [selectedYAccelerometer, setSelectedYAccelerometer] = useState(toolhead.getYAccelerometer() ?? null);
+	const [errors, setErrors] = useState<ToolheadSettingsErrors | null>(null);
 
 	const setNozzleType = (val: ReturnType<typeof stringToTitleObject<z.infer<typeof Nozzle>['type']>>) => {
 		setSelectedNozzle({ ...selectedNozzle, type: val.id });
@@ -51,8 +54,19 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 			xAccelerometer: selectedXAccelerometer,
 			yAccelerometer: selectedYAccelerometer,
 		});
-		if (updated && Object.keys(updated).length > 0) {
-			setToolhead({ ...toolhead.getConfig(), ...updated });
+		if (updated?.success && updated.data && Object.keys(updated.data).length > 0) {
+			const ret = setToolhead({ ...toolhead.getConfig(), ...updated.data });
+			ret.then((res) => {
+				if (!res.success) {
+					setErrors(res.error.formErrors);
+				} else {
+					setErrors(null);
+				}
+			});
+		} else if (!updated?.success) {
+			setErrors(updated?.error.formErrors ?? null);
+		} else {
+			setErrors(null);
 		}
 	}, [
 		selectedExtruder,
@@ -136,6 +150,7 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 					<TextInput
 						type="number"
 						label="Nozzle Diameter"
+						error={errors?.fieldErrors.nozzle?.join('\n')}
 						value={selectedNozzle.diameter}
 						onChange={setNozzleDiameter}
 						inputMode="decimal"

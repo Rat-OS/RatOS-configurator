@@ -1,5 +1,3 @@
-import { env } from './env/server.mjs';
-
 /**
  * Don't be scared of the generics here.
  * All they do is to give us autocompletion when using this.
@@ -17,12 +15,13 @@ export default defineNextConfig({
 	distDir: 'build',
 	cleanDistDir: true,
 	basePath: '/configure',
+	
 	publicRuntimeConfig: {
 		// Will be available on both server and client
 		basePath: '/configure',
 	},
 	experimental: {
-		appDir: true,
 		instrumentationHook: true,
+		typedRoutes: true,
 	},
 });

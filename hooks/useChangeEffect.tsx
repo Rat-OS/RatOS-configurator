@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-export const useChangeEffect = (deps: unknown[], clearAfter?: number) => {
-	const [hasChanged, setHasChanged] = useState(false);
+export const useChangeEffect = (deps: unknown[], clearAfter?: number, resetTimeoutOnChange: boolean = false) => {
+	const [hasChanged, setHasChanged] = useState(0);
 	const lastDeps = useRef([...deps]);
 	useEffect(() => {
 		let changed = false;
@@ -11,20 +11,20 @@ export const useChangeEffect = (deps: unknown[], clearAfter?: number) => {
 			}
 		});
 		if (changed) {
-			setHasChanged(true);
+			setHasChanged((hasChanged) => (resetTimeoutOnChange ? hasChanged + 1 : 1));
 		}
 		lastDeps.current = [...deps];
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [...deps]);
 
 	const clear = useCallback(() => {
-		setHasChanged(false);
+		setHasChanged(0);
 	}, []);
 
 	useEffect(() => {
-		if (clearAfter != null && hasChanged) {
+		if (clearAfter != null && hasChanged > 0) {
 			const timeout = setTimeout(() => {
-				setHasChanged(false);
+				setHasChanged(0);
 			}, clearAfter);
 			return () => {
 				clearTimeout(timeout);
@@ -33,5 +33,5 @@ export const useChangeEffect = (deps: unknown[], clearAfter?: number) => {
 		return;
 	}, [clearAfter, hasChanged]);
 
-	return [hasChanged, clear] as const;
+	return [hasChanged > 0, clear] as const;
 };

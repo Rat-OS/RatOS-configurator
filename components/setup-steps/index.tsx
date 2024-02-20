@@ -1,4 +1,3 @@
-import { useRouter } from 'next/router';
 import React, { useMemo } from 'react';
 import { useRecoilValue } from 'recoil';
 import { ToolheadHelper } from '../../helpers/toolhead';
@@ -12,13 +11,15 @@ import { MCUPreparation } from './mcu-preparation';
 import { PrinterSelection } from './printer-selection';
 import { WifiSetup } from './wifi-setup';
 import { WizardComplete } from './wizard-complete';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useLocalPathname } from '../../app/_hooks/navigation';
 
 interface WizardProps {
 	isConnectedToWifi?: boolean;
 	hasWifiInterface?: boolean;
 }
 
-const makeSteps = (toolheads: ToolheadConfiguration<any>[]): StepScreen[] => {
+const makeSteps = (toolheads: ToolheadConfiguration<any>[], isConfigValid: boolean): StepScreen[] => {
 	let nextIndex = 0;
 	const getNextIndex = () => {
 		nextIndex++;
@@ -42,6 +43,7 @@ const makeSteps = (toolheads: ToolheadConfiguration<any>[]): StepScreen[] => {
 		{
 			id: getNextIndex(),
 			name: 'Control board preparation',
+			canBeSkippedTo: isConfigValid,
 			description: 'Firmware flashing and connectivity',
 			href: '#',
 			renderScreen: (screenProps) => <MCUPreparation {...screenProps} key={screenProps.key} />,
@@ -52,6 +54,7 @@ const makeSteps = (toolheads: ToolheadConfiguration<any>[]): StepScreen[] => {
 		result.push({
 			id: getNextIndex(),
 			name: `${th.getToolCommand()} Toolboard Preparation`,
+			canBeSkippedTo: isConfigValid,
 			description: `Firmware flashing and connectivity for toolboard on ${th.getDescription().toLocaleLowerCase()}`,
 			href: '#',
 			renderScreen: (screenProps) => (
@@ -62,6 +65,7 @@ const makeSteps = (toolheads: ToolheadConfiguration<any>[]): StepScreen[] => {
 	result.push({
 		id: getNextIndex(),
 		name: 'Hardware Selection',
+		canBeSkippedTo: isConfigValid,
 		description: 'Select your printer',
 		href: '#',
 		renderScreen: (screenProps) => <HardwareSelection {...screenProps} key={screenProps.key} />,
@@ -69,6 +73,7 @@ const makeSteps = (toolheads: ToolheadConfiguration<any>[]): StepScreen[] => {
 	result.push({
 		id: getNextIndex(),
 		name: 'Confirm your setup',
+		canBeSkippedTo: isConfigValid,
 		description: 'Confirm your setup and start printing',
 		href: '#',
 		renderScreen: (screenProps) => <WizardComplete {...screenProps} key={screenProps.key} />,
@@ -109,16 +114,18 @@ const LoadScreen: React.FC = () => {
 };
 
 export const SetupSteps: React.FC<WizardProps> = (props) => {
+	const searchParams = useSearchParams();
 	const router = useRouter();
+	const pathname = useLocalPathname();
 	const ths = useRecoilValue(LoadablePrinterToolheadsState);
-	const steps = useMemo(() => makeSteps(ths), [ths]);
-	const uriStep = router.query.step ? parseInt(router.query.step as string, 10) : null;
+	const steps = useMemo(() => makeSteps(ths, ths?.length > 0), [ths]);
+	const uriStep = searchParams?.get('step') ? parseInt(searchParams?.get('step') ?? '', 10) : null;
 	const defaultStep = props.hasWifiInterface && !props.isConnectedToWifi ? 0 : 1;
 
 	const { currentStepIndex, setCurrentStepIndex, screenProps, currentStep } = useSteps({
 		step: uriStep != null && uriStep < steps.length ? uriStep : defaultStep,
 		onStepChange: (step) => {
-			router.push('/?step=' + step, undefined, { shallow: true });
+			router.push(`${pathname}?step=${step}`, undefined);
 			window.scrollTo(0, 0);
 		},
 		steps,
@@ -129,14 +136,14 @@ export const SetupSteps: React.FC<WizardProps> = (props) => {
 	return (
 		<div className="mx-auto mt-8 grid max-w-3xl grid-cols-1 gap-6 sm:px-6 lg:max-w-7xl lg:grid-flow-col-dense lg:grid-cols-3">
 			<div className="lg:col-span-2 lg:col-start-1">
-				<div className="relative rounded-lg bg-white shadow dark:bg-zinc-800">
+				<div className="relative rounded-lg bg-white shadow dark:bg-zinc-900">
 					<React.Suspense fallback={<LoadScreen />}>
 						{isReady ? currentStep.renderScreen(screenProps) : <LoadScreen />}
 					</React.Suspense>
 				</div>
 			</div>
 			<div className="space-y-6 lg:col-span-1 lg:col-start-3">
-				<div className="overflow-hidden rounded-lg bg-white p-8 shadow dark:bg-zinc-800">
+				<div className="overflow-hidden rounded-lg bg-white p-8 shadow dark:bg-zinc-900">
 					<div className="mb-5 border-b border-zinc-200 pb-5 dark:border-zinc-800">
 						<h3 className="text-lg font-medium leading-6 text-zinc-900 dark:text-zinc-100">Setup Progress</h3>
 					</div>

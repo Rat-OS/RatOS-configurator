@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect } from 'react';
-import { useMoonraker } from '../hooks/useMoonraker';
+import { useMoonraker } from '../moonraker/hooks';
 import { ReadItem, RecoilSync } from 'recoil-sync';
 import { AtomEffect, DefaultValue } from 'recoil';
 
@@ -26,7 +26,7 @@ export const moonrakerWriteEffect = <T extends any = unknown>(): AtomEffect<T> =
 				params.node.key,
 				newValue,
 			);
-			DispatchSaveAtomEvent(params.node.key, newValue);
+			DispatchSaveAtomEvent(params.node.key, newValue == null ? 'null' : newValue); // Moonraker doesn't save null values..
 		});
 	};
 };
@@ -37,8 +37,8 @@ export const SyncWithMoonraker: React.FC<React.PropsWithChildren> = ({ children 
 	const moonraker = useMoonraker();
 	const read: ReadItem = useCallback(
 		async (itemKey) => {
-			const value = await moonraker.getItem(itemKey);
-			return value != null ? value : new DefaultValue();
+			const value = await moonraker.getItem('RatOS', itemKey as '__recoil');
+			return value != null && value != 'null' ? value : new DefaultValue();
 		},
 		[moonraker],
 	);
@@ -46,7 +46,7 @@ export const SyncWithMoonraker: React.FC<React.PropsWithChildren> = ({ children 
 	const saveAtom = useCallback(
 		async (event: Event) => {
 			const { itemKey, value } = (event as SaveAtomEvent).detail;
-			await moonraker.saveItem(itemKey, value);
+			await moonraker.saveItem('RatOS', itemKey as '__recoil', value);
 		},
 		[moonraker],
 	);

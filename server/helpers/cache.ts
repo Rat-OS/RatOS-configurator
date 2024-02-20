@@ -2,7 +2,7 @@ import NodeCache from 'node-cache';
 import { BoardWithDetectionStatus } from '../../zods/boards';
 import { CFGDirectories } from '../routers/printer';
 import { Extruder } from '../../zods/hardware';
-import { z } from 'zod';
+import { ZodType, z } from 'zod';
 
 type ServerCacheValue = {
 	[K in CFGDirectories]: unknown;
@@ -17,6 +17,33 @@ type ServerCache = Omit<NodeCache, 'get' | 'set'> & {
 export const ServerCache = new NodeCache({
 	useClones: false,
 }) as ServerCache;
+
+const serverCachePromiseLookup = new Map<string, Promise<any>>();
+
+export const cacheAsyncDirectoryFn = <
+	R extends ZodType,
+	K extends CFGDirectories,
+	T extends (directory: K, zod: R) => Promise<z.TypeOf<R>>,
+>(
+	fn: T,
+	cache: ServerCache,
+) => {
+	return async (directory: K, zod: R): Promise<z.TypeOf<R>[]> => {
+		let result = cache.get<ServerCacheKey>(`${directory}`);
+		if (result == null) {
+			let promise = serverCachePromiseLookup.get(`${directory}`);
+			if (promise == null) {
+				promise = fn(directory, zod) as Promise<z.TypeOf<R>[]>;
+				serverCachePromiseLookup.set(`${directory}`, promise);
+			} else {
+			}
+			const val = await promise;
+			cache.set(`${directory}`, val);
+			return val;
+		}
+		return result as Promise<z.TypeOf<R>[]>;
+	};
+};
 
 type MetadataCacheValue = {
 	[key: `parsePinAlias-${string}`]: { [key: string]: string | undefined };

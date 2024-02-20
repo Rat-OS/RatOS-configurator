@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST={};
+self.__REACT_LOADABLE_MANIFEST='{"../node_modules/.pnpm/@trpc+next@10.45.1_@tanstack+react-query@4.36.1_@trpc+client@10.45.1_@trpc+react-query@10.45._u6manka22tshvaan5vss5ew7wa/node_modules/@trpc/next/dist/index.mjs -> react-dom/server":{"id":43325,"files":["static/chunks/325.9a58eda57a3c30b1.js"]}}';

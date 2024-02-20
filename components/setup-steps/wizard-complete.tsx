@@ -21,7 +21,7 @@ import { PrinterAxis } from '../../zods/motion';
 import { ToolOrAxis } from '../../zods/toolhead';
 import { useToolheadConfiguration } from '../../hooks/useToolheadConfiguration';
 import { Spinner } from '../common/spinner';
-import { useQuery } from 'react-query';
+import { useQuery } from '@tanstack/react-query';
 import { FileChanges } from './file-changes';
 import { Disclosure } from '@headlessui/react';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
@@ -284,6 +284,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 
 	const client = trpc.useContext().client;
 	const filesToWrite = useQuery({
+		queryKey: ['filesToWrite', serializedPrinterConfiguration],
 		queryFn: async () => {
 			const res = await client.printer.getFilesToWrite.mutate({
 				config: serializedPrinterConfiguration ?? ({} as any),
@@ -493,7 +494,6 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 													</div>
 												</dl>
 												<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
-													{motionErrors}
 													{parsedPrinterConfiguration.data.rails?.map((rail, i) => (
 														<div className="sm:col-span-1" key={i}>
 															<dt className="text-sm font-medium capitalize leading-6 text-zinc-900 dark:text-zinc-100">
@@ -533,21 +533,12 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 									</div>
 								</dl>
 								<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
-									{(motionErrors?.length ?? 0) > 0 ? (
-										<div className=" space-y-4 dark:border-zinc-700 sm:col-span-2">
-											<ErrorMessage title="Invalid configuration">
-												Your configuration contains errors, you will not be able to save the configuration until you fix
-												them.
-											</ErrorMessage>
-										</div>
-									) : (
-										<div className=" space-y-4 dark:border-zinc-700 sm:col-span-2">
-											<InfoMessage title="Double check configuration">
-												If the above information is correct, go ahead and save the configuration. If not, go back and
-												change the configuration by clicking the steps in the "Setup Progress" panel.
-											</InfoMessage>
-										</div>
-									)}
+									<div className=" space-y-4 dark:border-zinc-700 sm:col-span-2">
+										<InfoMessage>
+											If the above information is correct, go ahead and save the configuration. If not, go back and
+											change the configuration by clicking the steps in the "Setup Progress" panel.
+										</InfoMessage>
+									</div>
 								</dl>
 							</div>
 						</div>

@@ -1,0 +1,1 @@
+"use strict";exports.id=9013,exports.ids=[9013,439],exports.modules={49013:(e,t,r)=>{r.d(t,{getLogger:()=>getLogger});var s=r(58545),o=r.n(s),n=r(11641);let p=null,getLogger=()=>{if(null!=p)return p;let e=n.serverSchema.parse(process.env),t={target:"pino/file",options:{destination:e.LOG_FILE,append:!0}};return p=o()({timestamp:!0,transport:t})}}};

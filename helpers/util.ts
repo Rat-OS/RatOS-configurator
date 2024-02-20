@@ -1,4 +1,8 @@
-export const getScriptRoot = () => {
-	// This is ... not great.. come up with something better
-	return process.env.RATOS_SCRIPT_DIR ?? __dirname.split('configurator/')[0] + 'configurator/scripts/';
+'use client';
+export const getHost = () => {
+	return process.env.NEXT_PUBLIC_KLIPPER_HOSTNAME != null && process.env.NEXT_PUBLIC_KLIPPER_HOSTNAME.trim() != ''
+		? process.env.NEXT_PUBLIC_KLIPPER_HOSTNAME
+		: typeof window !== 'undefined' && window.location?.hostname != null
+			? window.location.hostname
+			: null;
 };

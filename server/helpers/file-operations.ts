@@ -3,6 +3,11 @@ import { copyFile, unlink } from 'fs/promises';
 import { EOL } from 'os';
 import { createInterface } from 'readline';
 
+export const getScriptRoot = () => {
+	// This is ... not great.. come up with something better
+	return process.env.RATOS_SCRIPT_DIR ?? __dirname.split('configurator/')[0] + 'configurator/scripts/';
+};
+
 export const replaceInFileByLine = async (filePath: string, search: string | RegExp, replace: string | null) => {
 	if (!existsSync(filePath)) {
 		throw new Error('Firmware config file does not exist: ' + filePath);

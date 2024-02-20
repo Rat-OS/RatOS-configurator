@@ -1,9 +1,8 @@
-import { z } from 'zod';
+import { ZodError, z } from 'zod';
 import fs, { existsSync, readFileSync } from 'fs';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { TRPCError } from '@trpc/server';
-import { getScriptRoot } from '../../helpers/util';
 import { runSudoScript } from '../helpers/run-script';
 import {
 	AutoFlashableBoard,
@@ -20,12 +19,13 @@ import { SerializedToolheadConfiguration } from '../../zods/toolhead';
 import { getBoardSerialPath, getBoardChipId } from '../../helpers/board';
 import { copyFile, unlink } from 'fs/promises';
 import { serverSchema } from '../../env/schema.mjs';
-import { replaceInFileByLine } from '../helpers/file-operations';
+import { replaceInFileByLine, getScriptRoot } from '../helpers/file-operations';
 import { ToolheadHelper } from '../../helpers/toolhead';
-import { deserializeToolheadConfiguration, loadSerializedConfig } from './printer';
+import { deserializeToolheadConfiguration } from './printer';
 import { ServerCache } from '../helpers/cache';
 import { PrinterAxis } from '../../zods/motion';
 import { parseBoardPinConfig } from '../helpers/metadata';
+import { getLastPrinterSettings } from '../helpers/printer-settings';
 
 const inputSchema = z.object({
 	boardPath: z.string().optional(),
@@ -138,15 +138,37 @@ const mcuMiddleware = middleware(async ({ ctx, next, meta, rawInput }) => {
 	const parsedInput = inputSchema.safeParse(rawInput);
 	try {
 		boards = await getBoards();
-		toolhead =
-			parsedInput.success && parsedInput.data.toolhead
-				? new ToolheadHelper(await deserializeToolheadConfiguration(parsedInput.data.toolhead, {}, boards))
-				: undefined;
-		boards = await updateDetectionStatus(boards, toolhead);
+		try {
+			toolhead =
+				parsedInput.success && parsedInput.data.toolhead
+					? new ToolheadHelper(await deserializeToolheadConfiguration(parsedInput.data.toolhead, {}, boards))
+					: undefined;
+			boards = await updateDetectionStatus(boards, toolhead);
+		} catch (e) {
+			if (e instanceof ZodError) {
+				throw new TRPCError({
+					code: 'INTERNAL_SERVER_ERROR',
+					message: `Toolhead configuration cannot be deserialized, please check the configuration.\n${Object.entries(
+						e.flatten().fieldErrors,
+					)
+						.map(([k, v]) => `${k}: ${v}`)
+						.join('\n')}`,
+					cause: e,
+				});
+			}
+			throw new TRPCError({
+				code: 'INTERNAL_SERVER_ERROR',
+				message: `Toolhead configuration cannot be deserialized, please check the configuration.`,
+				cause: e,
+			});
+		}
 		if (meta?.includeHost !== true) {
 			boards = getBoardsWithoutHost(boards);
 		}
 	} catch (e) {
+		if (e instanceof TRPCError) {
+			throw e;
+		}
 		throw new TRPCError({
 			code: 'INTERNAL_SERVER_ERROR',
 			message: `Invalid board definition(s) in ${process.env.RATOS_CONFIGURATION_PATH}/boards.`,
@@ -298,12 +320,12 @@ export const mcuRouter = router({
 		.meta({
 			boardRequired: true,
 		})
-		.input(z.object({ axis: z.nativeEnum(PrinterAxis), hasToolboard: z.boolean(), boardPath: z.string() }))
+		.input(z.object({ axis: z.nativeEnum(PrinterAxis), canUseExtruderlessConfigs: z.boolean(), boardPath: z.string() }))
 		.query(async ({ ctx, input }) => {
 			if (ctx.board == null) {
 				return undefined;
 			}
-			const isExtruderlessBoard = ctx.board.extruderlessConfig != null && input.hasToolboard;
+			const isExtruderlessBoard = ctx.board.extruderlessConfig != null && input.canUseExtruderlessConfigs;
 			const pins = await parseBoardPinConfig(ctx.board, isExtruderlessBoard);
 
 			const axisAlias =
@@ -330,12 +352,7 @@ export const mcuRouter = router({
 			includeHost: true,
 		})
 		.mutation(async ({ ctx }) => {
-			const environment = serverSchema.parse(process.env);
-			const filePath = path.join(environment.RATOS_DATA_DIR, 'last-printer-settings.json');
-			if (!existsSync(filePath)) {
-				throw new Error("Couldn't find printer settings file: " + filePath);
-			}
-			const config = await loadSerializedConfig(filePath);
+			const config = await getLastPrinterSettings();
 			const toolheadHelpers = config.toolheads.map((t) => {
 				return new ToolheadHelper(t);
 			});

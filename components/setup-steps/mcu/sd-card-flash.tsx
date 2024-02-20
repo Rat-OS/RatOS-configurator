@@ -8,12 +8,12 @@
 
 import { ArrowDownTrayIcon, PlayIcon } from '@heroicons/react/24/solid';
 import React, { useState } from 'react';
-import { useMutation } from 'react-query';
+import { useMutation } from '@tanstack/react-query';
 import { trpc } from '../../../helpers/trpc';
 import { Button } from '../../common/button';
 import { Modal } from '../../common/modal';
 import { Spinner } from '../../common/spinner';
-import { useMoonraker } from '../../../hooks/useMoonraker';
+import { useMoonraker } from '../../../moonraker/hooks';
 import { Board } from '../../../zods/boards';
 import { ToolheadHelper } from '../../../helpers/toolhead';
 import { ErrorMessage } from '../../common/error-message';
@@ -32,11 +32,13 @@ export const SDCardFlashing: React.FC<SDCardFlashingProps> = (props) => {
 		onSuccess: () => setIsFirmwareReady(true),
 		onError: () => setIsFirmwareReady(false),
 	});
-	const shutdownMutation = useMutation<void, string>(() => {
-		if (isReady) {
-			return moonrakerQuery('machine.shutdown');
-		}
-		return Promise.reject('Cannot reboot raspberry pi: No connection to moonraker');
+	const shutdownMutation = useMutation<void, string>({
+		mutationFn: () => {
+			if (isReady) {
+				moonrakerQuery('machine.shutdown');
+			}
+			return Promise.reject('Cannot reboot raspberry pi: No connection to moonraker');
+		},
 	});
 
 	const shutdown = () => {
@@ -71,7 +73,7 @@ export const SDCardFlashing: React.FC<SDCardFlashingProps> = (props) => {
 				}
 				className="w-52 justify-center"
 				disabled={compile.isLoading && !isFirmwareReady}
-				href={isFirmwareReady ? '/api/download-firmware?boardPath=' + encodeURIComponent(props.board.path) : undefined}
+				href={isFirmwareReady ? `/api/download-firmware?boardPath=${encodeURIComponent(props.board.path)}` : undefined}
 			>
 				{isFirmwareReady ? (
 					<span>

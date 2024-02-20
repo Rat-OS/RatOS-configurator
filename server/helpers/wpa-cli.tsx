@@ -18,3 +18,7 @@ export const isConnectedToWifi = async () => {
 		return false;
 	}
 };
+
+export const isHostingHotspot = async () => {
+	return !(await isConnectedToWifi());
+};

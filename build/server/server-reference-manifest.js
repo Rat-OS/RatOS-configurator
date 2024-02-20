@@ -1,1 +1,1 @@
-self.__RSC_SERVER_MANIFEST={}
+self.__RSC_SERVER_MANIFEST="{\"node\":{},\"edge\":{}}"

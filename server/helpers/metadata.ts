@@ -14,7 +14,7 @@ import {
 	ToolboardPinMap,
 } from '../../zods/boards';
 import { Extruder } from '../../zods/hardware';
-import { getScriptRoot } from '../../helpers/util';
+import { getScriptRoot } from './file-operations';
 import { getLogger } from './logger';
 import { MetadataCache, cacheAsyncMetadataFn, cacheMetadataFn } from './cache';
 

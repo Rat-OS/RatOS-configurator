@@ -1,6 +1,6 @@
 import { CheckIcon } from '@heroicons/react/24/solid';
 import React from 'react';
-import { twJoin } from 'tailwind-merge';
+import { twJoin, twMerge } from 'tailwind-merge';
 import { StepScreen, StepScreenProps } from '../../hooks/useSteps';
 
 interface StepProps {
@@ -51,7 +51,11 @@ export const VerticalSteps: React.FC<StepProps> = (props) => {
 											aria-hidden="true"
 										/>
 									) : null}
-									<span className="group relative flex items-start" aria-current="step">
+									<span
+										className={twMerge('group relative flex items-start', step.canBeSkippedTo && 'cursor-pointer')}
+										aria-current="step"
+										onClick={!step.canBeSkippedTo ? undefined : () => props.setCurrentStepIndex(stepIdx)}
+									>
 										<span className="flex h-9 items-center" aria-hidden="true">
 											<span className="relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 border-brand-600 bg-white dark:border-brand-500 dark:bg-zinc-800">
 												<span className="h-2.5 w-2.5 rounded-full bg-brand-600 dark:bg-brand-500" />
@@ -73,7 +77,11 @@ export const VerticalSteps: React.FC<StepProps> = (props) => {
 											aria-hidden="true"
 										/>
 									) : null}
-									<span className="group relative flex items-start">
+									<span
+										className={twMerge('group relative flex items-start', step.canBeSkippedTo && 'cursor-pointer')}
+										aria-current="step"
+										onClick={!step.canBeSkippedTo ? undefined : () => props.setCurrentStepIndex(stepIdx)}
+									>
 										<span className="flex h-9 items-center" aria-hidden="true">
 											<span className="relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 border-zinc-300 bg-white dark:border-zinc-700 dark:bg-zinc-800">
 												<span className="h-2.5 w-2.5 rounded-full bg-transparent" />

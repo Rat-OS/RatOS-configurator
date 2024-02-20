@@ -7,6 +7,7 @@ import { PrinterAxis } from '../zods/motion';
 import { LoadablePrinterToolheadsState, PrinterToolheadState, PrinterToolheadsState } from '../recoil/toolhead';
 import { BaseToolheadConfiguration, ToolheadConfiguration, ToolNumber, ToolOrAxis } from '../zods/toolhead';
 import { defaultXEndstop } from '../data/endstops';
+import { hotendFanOptions, partFanOptions } from '../data/fans';
 
 export const useToolhead = (toolOrAxis: ToolOrAxis | PrinterAxis | undefined) => {
 	const toolheadConfigs = useRecoilValue(PrinterToolheadsState);
@@ -36,7 +37,7 @@ type MaybeToolhead<T extends boolean> = T extends true ? ToolheadHelper<any> : T
 export const useToolheadConfiguration = <T extends boolean = true>(
 	toolOrAxis: ToolOrAxis | PrinterAxis | undefined,
 	errorIfNotExist: T = true as T,
-): { toolhead: MaybeToolhead<T>; setToolhead: (th: ToolheadConfiguration<any>) => void } => {
+) => {
 	const toolheadConfigs = useRecoilValue(LoadablePrinterToolheadsState);
 	const toolheadConfigsRef = useRef(toolheadConfigs);
 	if (toolheadConfigsRef.current !== toolheadConfigs && toolheadConfigs.length > 0) {
@@ -81,8 +82,23 @@ export const useToolheadConfiguration = <T extends boolean = true>(
 					}
 				}
 				if (th.toolboard?.id != current.getToolboard()?.id) {
+					// Reset toolboard dependent options
 					if (th.toolboard == null && th.xEndstop.id === 'endstop-toolboard') {
 						th.xEndstop = defaultXEndstop;
+					}
+					if (th.partFan?.id.endsWith('-toolboard')) {
+						const newFan = partFanOptions(null, th).shift();
+						if (newFan == null) {
+							throw new Error(`No part fan options available for current T${th.toolNumber} configuration`);
+						}
+						th.partFan = newFan;
+					}
+					if (th.hotendFan?.id.endsWith('-toolboard')) {
+						const newFan = hotendFanOptions(null, th).shift();
+						if (newFan == null) {
+							throw new Error(`No hotend fan options available for current T${th.toolNumber} configuration`);
+						}
+						th.hotendFan = newFan;
 					}
 				}
 				if (th.thermistor != current.getThermistor()) {
@@ -92,9 +108,11 @@ export const useToolheadConfiguration = <T extends boolean = true>(
 				}
 				const val = BaseToolheadConfiguration.extend({ toolNumber: ToolNumber })
 					.nullable()
-					.parse({ ...th, toolNumber: current.getTool() });
-				set(PrinterToolheadState(current.getTool()), val);
-				return;
+					.safeParse({ ...th, toolNumber: current.getTool() });
+				if (val.success) {
+					set(PrinterToolheadState(current.getTool()), val.data);
+				}
+				return val;
 			},
 		[hasManuallySelectedThermistor],
 	);

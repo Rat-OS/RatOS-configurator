@@ -3,7 +3,7 @@ import { getLogger } from '../helpers/logger';
 
 import { parseMetadata } from '../helpers/metadata';
 import { Hotend, Extruder, Probe, thermistors, Endstop, Fan, Accelerometer } from '../../zods/hardware';
-import { constants, existsSync, readFileSync } from 'fs';
+import { constants, existsSync } from 'fs';
 import { PrinterDefinition, PrinterDefinitionWithResolvedToolheads } from '../../zods/printer';
 import {
 	PartialPrinterConfiguration,
@@ -42,8 +42,9 @@ import { BoardWithDetectionStatus } from '../../zods/boards';
 import { QueryLike, RouterLike } from '@trpc/react-query/shared';
 import { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
 import { ToolheadHelper } from '../../helpers/toolhead';
+import { getLastPrinterSettings, hasLastPrinterSettings, savePrinterSettings } from '../helpers/printer-settings';
 import { PrinterAxis } from '../../zods/motion';
-import { ServerCache } from '../helpers/cache';
+import { ServerCache, cacheAsyncDirectoryFn } from '../helpers/cache';
 import { klipperRestart } from '../helpers/klipper';
 import { access, copyFile, readFile, unlink, writeFile } from 'fs/promises';
 import { exec } from 'child_process';
@@ -57,7 +58,7 @@ function isNodeError(error: any): error is NodeJS.ErrnoException {
 type FileAction = 'created' | 'overwritten' | 'skipped' | 'error';
 export type CFGDirectories = 'hotends' | 'extruders' | 'z-probe';
 
-export const parseDirectory = async <T extends z.ZodType>(directory: CFGDirectories, zod: T) => {
+export const parseDirectory = cacheAsyncDirectoryFn(async <T extends z.ZodType>(directory: CFGDirectories, zod: T) => {
 	const cached = ServerCache.get(directory);
 	if (cached != null) {
 		return z.array(zod).parse(cached);
@@ -80,7 +81,7 @@ export const parseDirectory = async <T extends z.ZodType>(directory: CFGDirector
 	).filter((f): f is z.TypeOf<T> => f != null);
 	ServerCache.set(directory, res);
 	return res;
-};
+}, ServerCache);
 
 const serializedPartialConfigFromPrinterDefinition = (def: PrinterDefinition) => {
 	return SerializedPartialPrinterConfiguration.parse({
@@ -99,22 +100,25 @@ export const getPrinters = async <T extends boolean = false>(
 	resolveToolheads: T = false as T,
 ): Promise<MaybePrinterWithResolvedToolhead<T>[]> => {
 	const defs = glob(`${process.env.RATOS_CONFIGURATION_PATH}/printers/*/printer-definition.json`);
-	const hotends = parseDirectory('hotends', Hotend);
-	const boards = getBoards();
+	const hotends = await parseDirectory('hotends', Hotend);
+	const boards = await getBoards();
 	const toolheadPromises: { [id: string]: Promise<MaybeResolvedToolhead<T>>[] } = {};
-	const printers = (await defs)
-		.map((f) =>
-			f.trim() === ''
-				? null
-				: ({
-						...(JSON.parse(readFileSync(f).toString()) as {}),
-						path: f.replace('printer-definition.json', ''),
-						id: f.replace('/printer-definition.json', '').split('/').pop(),
-					} as z.infer<typeof PrinterDefinition>),
+	const printers = (
+		await Promise.all(
+			(await defs).map(async (f) =>
+				f.trim() === ''
+					? null
+					: ({
+							...(JSON.parse((await readFile(f)).toString()) as {}),
+							path: f.replace('printer-definition.json', ''),
+							id: f.replace('/printer-definition.json', '').split('/').pop(),
+						} as z.infer<typeof PrinterDefinition>),
+			),
 		)
-		.filter(Boolean);
+	).filter(Boolean);
 
 	printers.forEach((p) => {
+		const partialPrinter = serializedPartialConfigFromPrinterDefinition(p);
 		toolheadPromises[p.id] = p.defaults.toolheads.map(async (th) => {
 			const hotend = (await hotends).find((h) => h.id === th.hotend);
 			if (th.thermistor == null && hotend != null) {
@@ -124,12 +128,8 @@ export const getPrinters = async <T extends boolean = false>(
 				th.nozzle = getDefaultNozzle();
 			}
 			if (resolveToolheads) {
-				const dth = deserializeToolheadConfiguration(
-					th,
-					serializedPartialConfigFromPrinterDefinition(p),
-					await boards,
-				) as Promise<MaybeResolvedToolhead<T>>;
-				(th as MaybeResolvedToolhead<T>) = await dth;
+				const dth = (await deserializeToolheadConfiguration(th, partialPrinter, boards)) as MaybeResolvedToolhead<T>;
+				(th as MaybeResolvedToolhead<T>) = dth;
 			}
 			return th as MaybeResolvedToolhead<T>;
 		});
@@ -299,7 +299,8 @@ type FilesToWrite = {
 	fileName: string;
 	content: string;
 	overwrite: boolean;
-	exists: boolean;
+	exists?: boolean;
+	order?: number;
 }[];
 
 export type FilesToWriteWithState = (Omit<Unpacked<FilesToWrite>, 'content'> & {
@@ -319,18 +320,19 @@ export const getFilesToWrite = async (
 	);
 	const renderedTemplate = template(config, helper).trim();
 	const renderedPrinterCfg = initialPrinterCfg(config, helper).trim();
-	const extras: { fileName: string; content: string; overwrite: boolean }[] = extrasGenerator.getFilesToWrite();
+	const extras: FilesToWrite = extrasGenerator.getFilesToWrite();
 	return [
-		{ fileName: 'RatOS.cfg', content: renderedTemplate, overwrite: true },
+		{ fileName: 'RatOS.cfg', content: renderedTemplate, overwrite: true, order: 0 } as Unpacked<FilesToWrite>,
 		{
 			fileName: 'printer.cfg',
+			order: 1,
 			content: renderedPrinterCfg,
 			overwrite: !(await isPrinterCfgInitialized()),
-		},
+		} as Unpacked<FilesToWrite>,
 	]
 		.concat(extras)
 		.map((f) => {
-			const fileWithExists = f as { fileName: string; content: string; overwrite: boolean; exists: boolean };
+			const fileWithExists: Unpacked<FilesToWrite> = { ...f, exists: false };
 			if (overwriteFiles?.includes(fileWithExists.fileName) || overwriteFiles?.includes('*')) {
 				fileWithExists.overwrite = true;
 			}
@@ -426,10 +428,7 @@ const generateKlipperConfiguration = async <T extends boolean>(
 		);
 	}
 	try {
-		await writeFile(
-			path.join(environment.RATOS_DATA_DIR, 'last-printer-settings.json'),
-			JSON.stringify(serializePrinterConfiguration(config)),
-		);
+		await savePrinterSettings(serializePrinterConfiguration(config));
 	} catch (e) {
 		throw new Error(
 			"Couldn't backup your current printer settings to disk, but your klipper configuration has been generated.",
@@ -440,10 +439,7 @@ const generateKlipperConfiguration = async <T extends boolean>(
 
 export const compareSettings = async (newSettings: SerializedPrinterConfiguration): Promise<FilesToWriteWithState> => {
 	const environment = serverSchema.parse(process.env);
-	const lastSettingsFile = path.join(environment.RATOS_DATA_DIR, 'last-printer-settings.json');
-	const oldFiles = existsSync(lastSettingsFile)
-		? await getFilesToWrite(await loadSerializedConfig(lastSettingsFile))
-		: [];
+	const oldFiles = hasLastPrinterSettings() ? await getFilesToWrite(await getLastPrinterSettings()) : [];
 	const newFiles = await getFilesToWrite(await deserializePrinterConfiguration(newSettings));
 	const addedFiles = await Promise.all(
 		newFiles
@@ -467,6 +463,7 @@ export const compareSettings = async (newSettings: SerializedPrinterConfiguratio
 					diff: diff,
 					exists: f.exists,
 					overwrite: f.overwrite,
+					order: f.order,
 					state: 'created' as const,
 				} as Unpacked<FilesToWriteWithState>;
 			}),
@@ -493,6 +490,7 @@ export const compareSettings = async (newSettings: SerializedPrinterConfiguratio
 					diff: diff,
 					exists: f.exists,
 					overwrite: f.overwrite,
+					order: f.order,
 					state: 'removed' as const,
 				} as Unpacked<FilesToWriteWithState>;
 			}),
@@ -528,6 +526,7 @@ export const compareSettings = async (newSettings: SerializedPrinterConfiguratio
 					diff: diff,
 					exists: f.exists,
 					overwrite: f.overwrite,
+					order: f.order,
 					state: 'changed' as const,
 				} as Unpacked<FilesToWriteWithState>;
 			}),
@@ -540,14 +539,22 @@ export const compareSettings = async (newSettings: SerializedPrinterConfiguratio
 				diff: null,
 				exists: f.exists,
 				overwrite: f.overwrite,
+				order: f.order,
 				state: 'unchanged' as const,
 			} as Unpacked<FilesToWriteWithState>;
 		});
-	return addedFiles
+	const result = addedFiles
 		.concat(removedFiles)
 		.concat(changedFiles)
 		.concat(unchangedFiles)
 		.sort((a, b) => {
+			if (a.order != null || b.order != null) {
+				if ((a.order ?? 9999) > (b.order ?? 9999)) {
+					return 1;
+				} else if ((a.order ?? 9999) < (b.order ?? 9999)) {
+					return -1;
+				}
+			}
 			if (
 				newFiles.findIndex((nf) => nf.fileName === a.fileName) < newFiles.findIndex((nf) => nf.fileName === b.fileName)
 			) {
@@ -558,15 +565,26 @@ export const compareSettings = async (newSettings: SerializedPrinterConfiguratio
 			) {
 				return 1;
 			}
+			if (a.fileName < b.fileName) {
+				return -1;
+			}
+			if (a.fileName > b.fileName) {
+				return 1;
+			}
 			return 0;
 		});
+	return result;
 };
 
 export const loadSerializedConfig = async (filePath: string) => {
+	const config = await deserializePrinterConfiguration(await readSerializedConfig(filePath));
+	return config;
+};
+
+export const readSerializedConfig = async (filePath: string) => {
 	const configJson = await readFile(filePath);
 	const serializedConfig = SerializedPrinterConfiguration.parse(JSON.parse(configJson.toString()));
-	const config = await deserializePrinterConfiguration(serializedConfig);
-	return config;
+	return serializedConfig;
 };
 
 export const regenerateKlipperConfiguration = async <T extends boolean = false>(
@@ -574,13 +592,7 @@ export const regenerateKlipperConfiguration = async <T extends boolean = false>(
 	overwriteFiles?: string[],
 	skipFiles?: string[],
 ) => {
-	const environment = serverSchema.parse(process.env);
-	const filePath = fromFile ?? path.join(environment.RATOS_DATA_DIR, 'last-printer-settings.json');
-	if (!existsSync(filePath)) {
-		throw new Error("Couldn't find printer settings file: " + filePath);
-	}
-	const config = await loadSerializedConfig(filePath);
-	return await generateKlipperConfiguration<T>(config, overwriteFiles, skipFiles);
+	return await generateKlipperConfiguration<T>(await getLastPrinterSettings(fromFile), overwriteFiles, skipFiles);
 };
 
 const getToolhead = async <
@@ -622,6 +634,18 @@ const getToolheads = async <
 };
 
 export const printerRouter = router({
+	getSavedConfig: publicProcedure.output(SerializedPrinterConfiguration.nullable()).query(async (ctx) => {
+		const config = await getLastPrinterSettings(undefined, true);
+		return config;
+	}),
+	getSavedPrinterName: publicProcedure.output(z.string().nullable()).query(async (ctx) => {
+		const config = await getLastPrinterSettings(undefined, true);
+		const printer = (await getPrinters()).find((p) => p.id === config.printer);
+		if (printer == null) {
+			return null;
+		}
+		return printer.manufacturer + ' ' + printer.name;
+	}),
 	printers: publicProcedure
 		.output(z.array(PrinterDefinitionWithResolvedToolheads))
 		.query(async () =>

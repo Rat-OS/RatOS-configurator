@@ -41,6 +41,7 @@ interface PrinterRailSettingsProps {
 export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) => {
 	const toolheads = useToolheads();
 	const toolhead = toolheads.find((th) => th.getExtruderAxis() === props.printerRail.axis);
+	const canBeExtruderlessBoard = toolheads.every((th) => th.hasToolboard());
 	const usesToolboard = toolhead?.getExtruderAxis() === props.printerRailDefault.axis && toolhead?.hasToolboard();
 	const board = usesToolboard ? toolhead.getToolboard() : props.selectedBoard;
 	const setPrinterRail = useSetRecoilState(PrinterRailState(props.printerRail.axis));
@@ -67,7 +68,11 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 			: undefined,
 	);
 	const guessMotorSlot = trpc.mcu.reversePinLookup.useQuery(
-		{ axis: props.printerRail.axis, hasToolboard: toolhead?.hasToolboard() ?? false, boardPath: board?.path ?? '' },
+		{
+			axis: props.printerRail.axis,
+			canUseExtruderlessConfigs: canBeExtruderlessBoard,
+			boardPath: board?.path ?? '',
+		},
 		{ enabled: !!board },
 	);
 	const errorCount = Object.keys(props.errors).reduce((acc, key) => {

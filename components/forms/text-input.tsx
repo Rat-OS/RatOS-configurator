@@ -1,5 +1,6 @@
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { ExclamationCircleIcon } from '@heroicons/react/24/solid';
+import objectHash from 'object-hash';
 import React, { ChangeEvent, useCallback, useRef, useState } from 'react';
 import { twJoin } from 'tailwind-merge';
 
@@ -12,10 +13,8 @@ interface TextInputProps<T extends string | number>
 	onChange?: (val: T) => void;
 }
 
-let uid = 0;
-
 export const TextInput = <T extends string | number>(props: TextInputProps<T>) => {
-	const fieldId = useRef(uid++);
+	const fieldId = useRef(objectHash(props));
 	const { onChange: _onChange } = props;
 	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
@@ -31,7 +30,7 @@ export const TextInput = <T extends string | number>(props: TextInputProps<T>) =
 		props.error
 			? 'ring-red-300 text-red-900 placeholder-red-300 focus:ring-red-500 dark:ring-red-500 dark:text-red-400 dark:placeholder-red-700'
 			: 'ring-zinc-300 text-zinc-900 placeholder-zinc-300 focus:ring-brand-600 dark:ring-zinc-700 dark:text-zinc-100 dark:placeholder-zinc-700 dark:focus:ring-brand-400 ',
-		'block w-full rounded-md bg-white py-1.5 pl-3 pr-3 text-leftshadow-sm ring-1 ring-inset focus:outline-none dark:bg-zinc-900 sm:text-sm sm:leading-6 border-0',
+		'block w-full rounded-md bg-white py-1.5 pl-3 pr-3 text-leftshadow-sm ring-1 ring-inset focus:outline-none dark:bg-zinc-800 sm:text-sm sm:leading-6 border-0',
 	);
 
 	const error = props.error ? (
