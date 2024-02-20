@@ -13,6 +13,7 @@ import {
 	CogIcon,
 	MagnifyingGlassIcon,
 	ViewfinderCircleIcon,
+	BeakerIcon,
 } from '@heroicons/react/24/outline';
 import { z } from 'zod';
 import { useDebounce } from '../_hooks/debounce';
@@ -27,16 +28,22 @@ import { Spinner } from '../../components/common/spinner';
 import { useWindowSize } from '../_hooks/resize';
 import CountUp from 'react-countup';
 import { useGcodeCommand } from '../_hooks/toolhead';
+import { getHost } from '../../helpers/util';
+
+type Option = {
+	key: string;
+} & ({ min: number; max: number; float?: boolean } | { toggle?: true });
 
 const parseOptions = (options: string) => {
-	const matches = options.matchAll(/- available option:\s(\w+)\s.+(\[\d+\.\.\d+\])/g);
-	let result: { key: string; min: number; max: number }[] = [];
-	for (const match of matches) {
+	const ints = options.matchAll(/- available option:\s(\w+)\s.+(\[-?\d+\.\.\d+\])/g);
+	let result: Option[] = [];
+	for (const match of ints) {
 		const [min, max] = match[2]
 			.slice(1, -1)
 			.split('..')
 			.map((n) => parseInt(n, 10));
-		if ((result.find((o) => o.key === match[1])?.max ?? 999999999999) <= max) {
+		const existing = result.find((o) => o.key === match[1]);
+		if (existing && 'max' in existing && existing.max && existing.max <= max) {
 			continue;
 		}
 		result.push({
@@ -45,47 +52,74 @@ const parseOptions = (options: string) => {
 			max: ['redbalance', 'bluebalance', 'greenbalance'].includes(match[1]) ? 2000 : max,
 		});
 	}
+	const floats = options.matchAll(/- available option:\s(\w+)\s.+(\[-?\d+\.\d+\.\.\d+\.\d+\])/g);
+	for (const match of floats) {
+		const [min, max] = match[2]
+			.slice(1, -1)
+			.split('..')
+			.map((n) => parseFloat(n));
+		const existing = result.find((o) => o.key === match[1]);
+		if (existing && 'max' in existing && existing.max && existing.max <= max) {
+			continue;
+		}
+		result.push({
+			key: match[1],
+			float: true,
+			min,
+			max: ['redbalance', 'bluebalance', 'greenbalance'].includes(match[1]) ? 2000 : max,
+		});
+	}
+	const bools = options.matchAll(/- available option:\s(\w+)\s.+(\[false\.\.true\])/g);
+	for (const match of bools) {
+		result.push({
+			key: match[1],
+			toggle: true,
+		});
+	}
 	return result;
 };
 
 const ExposureZod = z.number().min(4).max(3522);
 const DigiGainZod = z.number().min(254).max(4095);
 const useCameraSettings = (url: string) => {
-	const [options, setOptions] = useState<{ key: string; min: number; max: number }[]>([]);
+	const [options, setOptions] = useState<Option[]>([]);
 	const exposure = useCallback(
 		async (val: z.input<typeof ExposureZod>) => {
 			const newExpo = ExposureZod.parse(val);
-			await fetch(`${url}/webcam/option?exposure=${newExpo}`);
+			await fetch(`${url}/option?exposure=${newExpo}`);
 		},
 		[url],
 	);
 	const digitalGain = useCallback(
 		async (val: number) => {
 			const newGain = DigiGainZod.parse(val);
-			await fetch(`${url}/webcam/option?digitalgain=${newGain}`);
+			await fetch(`${url}/option?digitalgain=${newGain}`);
 		},
 		[url],
 	);
 
 	const compression = useCallback(
 		async (val: NumbersBefore<101>) => {
-			const res = await fetch(`${url}/webcam/option?compressionquality=${val}`);
+			const res = await fetch(`${url}/option?compressionquality=${val}`);
 			setOptions(parseOptions(await res.text()));
 		},
 		[url],
 	);
 
 	const setOption = useCallback(
-		async (key: string, value: number) => {
+		async (key: string, value: number | boolean) => {
 			const opt = options.find((o) => o.key === key);
 			if (opt == null) {
 				throw new Error(`Invalid option ${key}`);
 			}
-			if (opt.min > value || opt.max < value) {
+			if (opt && 'toggle' in opt && typeof value !== 'boolean') {
+				throw new Error(`Expect a boolean value for ${key}, got ${value}`);
+			}
+			if (opt && 'max' in opt && (typeof value !== 'number' || opt.min > value || opt.max < value)) {
 				throw new Error(`Value ${value} is out of range for ${key}`);
 			}
 			try {
-				const res = await fetch(`${url}/webcam/option?${key}=${value}`);
+				const res = await fetch(`${url}/option?${key}=${value}`);
 				return res.ok;
 			} catch (e) {
 				return false;
@@ -105,15 +139,14 @@ const useCameraSettings = (url: string) => {
 	};
 };
 
-const url = 'http://ratos-vaoc.local';
-
 type SliderProps = {
 	min: number;
+	step?: number | 'any';
 	max: number;
 	onChange?: (val: number) => void;
 	initialValue?: number;
 };
-const Slider: React.FC<SliderProps> = ({ onChange, min, max, initialValue }) => {
+const Slider: React.FC<SliderProps> = ({ onChange, min, max, initialValue, step }) => {
 	const [val, setValue] = useState(initialValue ?? min);
 	const _onChange = useDebounce(
 		useCallback(
@@ -122,15 +155,15 @@ const Slider: React.FC<SliderProps> = ({ onChange, min, max, initialValue }) => 
 			},
 			[onChange],
 		),
-		500,
+		100,
 	);
 	const onInput = useCallback(
 		(e: React.ChangeEvent<HTMLInputElement>) => {
-			const val = parseInt(e.target.value, 10);
+			const val = step ? parseFloat(e.target.value) : parseInt(e.target.value, 10);
 			setValue(val);
 			_onChange(val);
 		},
-		[_onChange],
+		[_onChange, step],
 	);
 	return (
 		<div className="relative mb-6">
@@ -140,7 +173,7 @@ const Slider: React.FC<SliderProps> = ({ onChange, min, max, initialValue }) => 
 				onChange={onInput}
 				min={min}
 				max={max}
-				step={1}
+				step={step ?? 1}
 				className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-zinc-200 dark:bg-zinc-700"
 			/>
 			<span className="absolute -bottom-6 start-0 text-sm text-zinc-500 dark:text-zinc-400">Min ({min})</span>
@@ -155,8 +188,20 @@ const Slider: React.FC<SliderProps> = ({ onChange, min, max, initialValue }) => 
 	);
 };
 
+const getCameraUrl = () => {
+	const host = getHost();
+	if (host == null || host.trim() == '') {
+		return '/webcam';
+	}
+	return `http://${host}/webcam`;
+};
+
 export default function Page() {
-	const { videoRef, connectionState } = useWebRTC(`${url}/webcam/webrtc`);
+	const [url, setUrl] = useState(getCameraUrl());
+	useEffect(() => {
+		setUrl(getCameraUrl());
+	}, []);
+	const { videoRef, connectionState } = useWebRTC(url + '/webrtc');
 	const [settings] = useMoonrakerState('RatOS', 'camera-settings');
 	const containerRef = useRef<HTMLDivElement | null>(null);
 	const rootRef = useRef<HTMLDivElement | null>(null);
@@ -168,7 +213,7 @@ export default function Page() {
 	const [isSettingsVisible, setIsSettingsVisible] = useState(false);
 	const [_isZoomExpanded, _setIsZoomExpanded] = useState(false);
 	const [isExposureVisible, setIsExposureVisible] = useState(false);
-	const [isGainVisible, setIsGainVisible] = useState(false);
+	const [isColorVisible, setIsColorVisible] = useState(false);
 	const [isFocusVisible, setIsFocusVisible] = useState(false);
 	const [isAdvancedVisible, setIsAdvancedVisible] = useState(false);
 	const [light, setLight] = useState(false);
@@ -434,7 +479,7 @@ export default function Page() {
 				icon: ViewfinderCircleIcon,
 				id: 'focus',
 				parent: 'settings',
-				hidden: isGainVisible || isAdvancedVisible || isExposureVisible,
+				hidden: isColorVisible || isAdvancedVisible || isExposureVisible,
 				name: 'Focus',
 				title: `${isFocusVisible ? 'Hide' : 'Show'} focus controls`,
 				children: <FocusControls isVisible={isFocusVisible} toggle={setIsFocusVisible} />,
@@ -442,7 +487,7 @@ export default function Page() {
 					console.log('exposure controls');
 					setIsFocusVisible((vis) => !vis);
 					setIsExposureVisible(false);
-					setIsGainVisible(false);
+					setIsColorVisible(false);
 					setIsAdvancedVisible(false);
 				},
 				isActive: isFocusVisible,
@@ -451,51 +496,51 @@ export default function Page() {
 				icon: ExposureIcon as any,
 				id: 'exposure',
 				parent: 'settings',
-				hidden: isGainVisible || isAdvancedVisible || isFocusVisible,
+				hidden: isColorVisible || isAdvancedVisible || isFocusVisible,
 				title: `${isExposureVisible ? 'Hide' : 'Show'} exposure controls`,
 				name: 'Exposure',
 				onClick: () => {
 					console.log('exposure controls');
 					setIsExposureVisible((vis) => !vis);
-					setIsGainVisible(false);
+					setIsColorVisible(false);
 					setIsAdvancedVisible(false);
 					setIsFocusVisible(false);
 				},
 				isActive: isExposureVisible,
 			},
 			{
-				icon: LightBulbIcon,
-				id: 'gain',
+				icon: SwatchIcon,
+				id: 'color',
 				parent: 'settings',
-				title: `${isGainVisible ? 'Hide' : 'Show'} gain controls`,
+				title: `${isColorVisible ? 'Hide' : 'Show'} color controls`,
 				hidden: isExposureVisible || isAdvancedVisible || isFocusVisible,
-				name: 'Gain',
+				name: 'Color',
 				onClick: () => {
-					setIsGainVisible((vis) => !vis);
+					setIsColorVisible((vis) => !vis);
 					setIsExposureVisible(false);
 					setIsAdvancedVisible(false);
 					setIsFocusVisible(false);
 				},
-				isActive: isGainVisible,
+				isActive: isColorVisible,
 			},
 			{
-				icon: SwatchIcon,
+				icon: BeakerIcon,
 				id: 'advanced-camera-controls',
 				parent: 'settings',
 				title: `${isAdvancedVisible ? 'Hide' : 'Show'} advanced camera controls`,
 				name: 'Advanced',
-				hidden: isExposureVisible || isGainVisible || isFocusVisible,
+				hidden: isExposureVisible || isColorVisible || isFocusVisible,
 				onClick: () => {
 					setIsAdvancedVisible((vis) => !vis);
 					setIsExposureVisible(false);
-					setIsGainVisible(false);
+					setIsColorVisible(false);
 					setIsFocusVisible(false);
 				},
 				isActive: isAdvancedVisible,
 			},
 		];
 		return controls.reverse();
-	}, [isAdvancedVisible, isExposureVisible, isFocusVisible, isGainVisible]);
+	}, [isAdvancedVisible, isExposureVisible, isFocusVisible, isColorVisible]);
 	const draggedX = dragOffset == null ? 0 : dragOffset[0] / zoom;
 	const draggedY = dragOffset == null ? 0 : dragOffset[1] / zoom;
 	const outerNozzleDiameter = useMemo(
@@ -611,25 +656,62 @@ export default function Page() {
 				</div>
 				<div className="absolute bottom-24 left-1/4 right-1/4 max-h-[50%] overflow-y-scroll rounded-md bg-zinc-900/70 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-zinc-400 scrollbar-thumb-rounded-md dark:scrollbar-thumb-zinc-600">
 					<div ref={animate}>
-						{isExposureVisible && (
-							<div className="p-4">
-								<label className="block text-center text-base font-semibold text-zinc-200">Exposure</label>
-								<Slider min={4} max={3522} onChange={exposure} />
-							</div>
-						)}
-						{isGainVisible && (
-							<div className="p-4">
-								<label className="block text-center text-base font-semibold text-zinc-200">Gain</label>
-								<Slider min={254} max={4096} onChange={digitalGain} />
-							</div>
-						)}
+						{isExposureVisible &&
+							options
+								.filter(
+									(o) =>
+										o.key.toLowerCase().includes('gain') ||
+										o.key.toLowerCase().includes('exposure') ||
+										o.key.startsWith('Ae') ||
+										o.key.toLowerCase().includes('brightness'),
+								)
+								.filter((o) => o.key !== 'ColourGains')
+								.map((option) => (
+									<div className="p-4" key={option.key}>
+										<label className="block text-center text-base font-semibold capitalize text-zinc-200">
+											{option.key}
+										</label>
+										<Slider
+											min={'toggle' in option ? 0 : 'min' in option ? option.min : 0}
+											max={'toggle' in option ? 0 : 'max' in option ? option.max : 0}
+											step={'float' in option && option.float ? 'any' : 1}
+											onChange={(val) => setOption(option.key, 'toggle' in option ? !!val : val)}
+										/>
+									</div>
+								))}
+						{isColorVisible &&
+							options
+								.filter(
+									(o) =>
+										o.key.toLowerCase().includes('saturation') ||
+										o.key.toLowerCase().includes('contrast') ||
+										o.key.startsWith('Awb'),
+								)
+								.map((option) => (
+									<div className="p-4" key={option.key}>
+										<label className="block text-center text-base font-semibold capitalize text-zinc-200">
+											{option.key}
+										</label>
+										<Slider
+											min={'toggle' in option ? 0 : 'min' in option ? option.min : 0}
+											max={'toggle' in option ? 0 : 'max' in option ? option.max : 0}
+											step={'float' in option && option.float ? 'any' : 1}
+											onChange={(val) => setOption(option.key, 'toggle' in option ? !!val : val)}
+										/>
+									</div>
+								))}
 						{isAdvancedVisible &&
 							options.map((option) => (
 								<div className="p-4" key={option.key}>
 									<label className="block text-center text-base font-semibold capitalize text-zinc-200">
 										{option.key}
 									</label>
-									<Slider min={option.min} max={option.max} onChange={(val) => setOption(option.key, val)} />
+									<Slider
+										min={'toggle' in option ? 0 : 'min' in option ? option.min : 0}
+										max={'toggle' in option ? 0 : 'max' in option ? option.max : 0}
+										step={'float' in option && option.float ? 'any' : 1}
+										onChange={(val) => setOption(option.key, 'toggle' in option ? !!val : val)}
+									/>
 								</div>
 							))}
 					</div>

@@ -202,7 +202,7 @@ export const useMoonraker = () => {
 					namespace: namespace,
 					key,
 				});
-				return result.value as Data;
+				return (result?.value ?? null) as Data;
 			} catch (e) {
 				console.log(e);
 				return null;
