@@ -49,7 +49,7 @@ const Button = (button: React.PropsWithChildren<ToolbarButton>) => {
 					type="button"
 					title={button.title}
 					className={twMerge(
-						'flex items-center space-x-2 whitespace-nowrap px-5 py-3 text-sm font-medium text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-100',
+						'flex items-center space-x-2 whitespace-nowrap px-5 py-3 text-sm font-medium text-zinc-800 dark:text-zinc-200 hover:text-zinc-900 dark:hover:text-zinc-100',
 						button.isActive ? 'hover:text-brand:600 text-brand-600 dark:text-brand-500 dark:hover:text-brand-500' : '',
 						button.hidden ? 'hidden' : '',
 						button.className,
@@ -77,7 +77,7 @@ export default function Toolbar(props: ToolbarProps) {
 	return (
 		<nav
 			className={twMerge(
-				'flex overflow-hidden rounded-md border border-zinc-200 bg-white shadow dark:border-zinc-800 dark:bg-zinc-900/70',
+				'flex overflow-hidden rounded-md border border-zinc-200 bg-white shadow dark:border-zinc-800 dark:bg-zinc-900/80',
 				props.className,
 			)}
 			aria-label="Breadcrumb"
