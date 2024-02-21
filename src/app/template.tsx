@@ -237,8 +237,19 @@ function Template({ children }: { children: React.ReactNode }) {
 									<div className="mx-auto max-w-7xl sm:px-6">
 										<div className="">
 											<div className="flex h-16 items-center justify-between px-4 sm:px-0">
-												<div className="flex items-center"></div>
-												<div className="hidden items-center justify-between space-x-2 md:flex">
+												<div className="-mr-2 flex lg:hidden">
+													{/* Mobile menu button */}
+													<Disclosure.Button className="inline-flex items-center justify-center rounded-md bg-zinc-800 p-2 text-zinc-400 hover:bg-zinc-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-zinc-800">
+														<span className="sr-only">Open main menu</span>
+														{open ? (
+															<XMarkIcon className="block h-6 w-6" aria-hidden="true" />
+														) : (
+															<Bars3Icon className="block h-6 w-6" aria-hidden="true" />
+														)}
+													</Disclosure.Button>
+												</div>
+												<div className="hidden lg:flex"></div>
+												<div className="hidden items-center justify-between space-x-2 sm:flex">
 													<a
 														href="https://github.com/sponsors/miklschmidt"
 														target="_blank"
@@ -267,21 +278,10 @@ function Template({ children }: { children: React.ReactNode }) {
 														/>
 													)}
 												</div>
-												<div className="-mr-2 flex md:hidden">
-													{/* Mobile menu button */}
-													<Disclosure.Button className="inline-flex items-center justify-center rounded-md bg-zinc-800 p-2 text-zinc-400 hover:bg-zinc-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-zinc-800">
-														<span className="sr-only">Open main menu</span>
-														{open ? (
-															<XMarkIcon className="block h-6 w-6" aria-hidden="true" />
-														) : (
-															<Bars3Icon className="block h-6 w-6" aria-hidden="true" />
-														)}
-													</Disclosure.Button>
-												</div>
 											</div>
 										</div>
 									</div>
-									<Disclosure.Panel className="md:hidden">
+									<Disclosure.Panel className="lg:hidden">
 										<div className="space-y-1 pb-3 pt-2">
 											{navigation.map((item) => (
 												<Disclosure.Button
