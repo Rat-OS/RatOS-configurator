@@ -827,6 +827,20 @@ export const constructKlipperConfigHelpers = async (
 				const firstADXL = this.getToolhead(0).getXAccelerometerName();
 				const secondADXL = this.getToolhead(1).getXAccelerometerName();
 				result.push(`variable_adxl_chip: ["${firstADXL}", "${secondADXL}"]           # toolheads adxl chip names`);
+				result.push(`variable_toolchange_travel_speed: ${this.getMacroTravelSpeed()}     # parking travel speed`);
+				result.push(`variable_toolchange_travel_accel: ${this.getMacroTravelAccel()}     # parking travel accel`);
+				result.push(
+					`variable_shaper_x_freq: [0, 0, 0, 0]                    # shaper frequency [T0, T1, COPY, MIRROR]`,
+				);
+				result.push(
+					`variable_shaper_y_freq: [0, 0, 0, 0]                    # shaper frequency [T0, T1, COPY, MIRROR]`,
+				);
+				result.push(
+					`variable_shaper_x_type: ["mzv", "mzv", "mzv", "mzv"]    # shaper frequency algorythm [T0, T1, COPY, MIRROR]`,
+				);
+				result.push(
+					`variable_shaper_y_type: ["mzv", "mzv", "mzv", "mzv"]    # shaper frequency algorythm [T0, T1, COPY, MIRROR]`,
+				);
 			}
 			// Driver type variables (X1 is Y on hybrid)
 			result.push(
@@ -863,6 +877,18 @@ export const constructKlipperConfigHelpers = async (
 				);
 				result.push(`variable_toolchange_travel_speed: ${this.getMacroTravelSpeed()}     # parking travel speed`);
 				result.push(`variable_toolchange_travel_accel: ${this.getMacroTravelAccel()}     # parking travel accel`);
+				result.push(
+					`variable_shaper_x_freq: [0, 0, 0, 0]                    # shaper frequency [T0, T1, COPY, MIRROR]`,
+				);
+				result.push(
+					`variable_shaper_y_freq: [0, 0, 0, 0]                    # shaper frequency [T0, T1, COPY, MIRROR]`,
+				);
+				result.push(
+					`variable_shaper_x_type: ["mzv", "mzv", "mzv", "mzv"]    # shaper frequency algorythm [T0, T1, COPY, MIRROR]`,
+				);
+				result.push(
+					`variable_shaper_y_type: ["mzv", "mzv", "mzv", "mzv"]    # shaper frequency algorythm [T0, T1, COPY, MIRROR]`,
+				);
 			}
 			return this.formatInlineComments(result).join('\n');
 		},
