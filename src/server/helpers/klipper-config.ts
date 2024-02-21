@@ -47,9 +47,19 @@ export const constructKlipperConfigUtils = async (config: PrinterConfiguration) 
 						'A toolboard is required when using an extruderless controlboard configuration (your controlboard alone does not have enough drivers for this printer). Please add a toolboard to your configuration.',
 					);
 				}
-				return await ToolheadGenerator.fromConfig(thConfig, cbPins as PinMapZodFromBoard<false, false>);
+				return await ToolheadGenerator.fromConfig(
+					thConfig,
+					cbPins as PinMapZodFromBoard<false, false>,
+					config.printer,
+					config.size,
+				);
 			}
-			return await ToolheadGenerator.fromConfig(thConfig, cbPins as PinMapZodFromBoard<false, true>);
+			return await ToolheadGenerator.fromConfig(
+				thConfig,
+				cbPins as PinMapZodFromBoard<false, true>,
+				config.printer,
+				config.size,
+			);
 		}),
 	);
 
@@ -436,7 +446,7 @@ export const constructKlipperConfigHelpers = async (
 				// Very much dislike that this is necessary.
 				section.push(`position_min: -5`);
 			}
-			if ([PrinterAxis.x, PrinterAxis.y, PrinterAxis.z].includes(rail.axis)) {
+			if ([PrinterAxis.x, PrinterAxis.y, PrinterAxis.z, PrinterAxis.dual_carriage].includes(rail.axis)) {
 				section.push(`homing_speed: ${this.getAxisHomingSpeed(rail.axis)}`);
 			}
 			if (rail.gearRatio != null) {
@@ -868,13 +878,6 @@ export const constructKlipperConfigHelpers = async (
 			const toolheads = this.getToolheads();
 			const isIdex = toolheads.some((th) => th.getMotionAxis() === PrinterAxis.dual_carriage);
 			if (isIdex) {
-				const endstopSafetyMargin = 5;
-				const dcParkX = (size ?? config.size ?? 300) + config.printer.bedMargin.x[1] - endstopSafetyMargin;
-				result.push(
-					`variable_parking_position: [-${
-						config.printer.bedMargin.x[0] + endstopSafetyMargin
-					}, ${dcParkX}]                      # toolhead x parking position`,
-				);
 				result.push(`variable_toolchange_travel_speed: ${this.getMacroTravelSpeed()}     # parking travel speed`);
 				result.push(`variable_toolchange_travel_accel: ${this.getMacroTravelAccel()}     # parking travel accel`);
 				result.push(
@@ -967,9 +970,9 @@ export const constructKlipperConfigHelpers = async (
 			return extrasGenerator.getReminders().join('\n');
 		},
 		renderMacros() {
-			return this.getToolheads()
-				.map((th) => th.renderToolheadMacro())
-				.join('\n');
+			return this.formatInlineComments(this.getToolheads().flatMap((th) => th.renderToolheadMacro().split('\n'))).join(
+				'\n',
+			);
 		},
 		uncommentIf(condition: boolean | undefined | null) {
 			return condition === true ? '' : '#';

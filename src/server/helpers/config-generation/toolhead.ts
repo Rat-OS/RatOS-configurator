@@ -14,27 +14,36 @@ import {
 import { ToolheadHelper } from '../../../helpers/toolhead';
 import { getBoardSerialPath } from '../../../helpers/board';
 import { PrinterAxis } from '../../../zods/motion';
+import { PrinterConfiguration } from '../../../zods/printer-configuration';
 
 export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelper<IsToolboard> {
 	private toolboardPins: PinMapZodFromBoard<IsToolboard, false> | null;
 	private controlboardPins?: PinMapZodFromBoard<false, IsToolboard>;
+	private printer: PrinterConfiguration['printer'];
+	private size?: number | null;
 	public static async fromConfig<IT extends boolean>(
 		config: ToolheadConfiguration<IT>,
-		controlPins?: PinMapZodFromBoard<false, IT>,
+		controlPins: PinMapZodFromBoard<false, IT>,
+		printer: PrinterConfiguration['printer'],
+		size?: number | null,
 	): Promise<ToolheadGenerator<IT>> {
 		const toolboardPins: PinMapZodFromBoard<IT, false> | null = config.toolboard
 			? await parseBoardPinConfig<IT, false>(config.toolboard)
 			: null;
-		return new ToolheadGenerator<IT>(config, toolboardPins, controlPins);
+		return new ToolheadGenerator<IT>(config, toolboardPins, controlPins, printer, size);
 	}
 	constructor(
 		toolhead: ToolheadConfiguration<IsToolboard>,
 		toolboardPins: PinMapZodFromBoard<IsToolboard, false> | null,
-		controlboardPins?: PinMapZodFromBoard<false, IsToolboard>,
+		controlboardPins: PinMapZodFromBoard<false, IsToolboard>,
+		printer: PrinterConfiguration['printer'],
+		size?: number | null,
 	) {
 		super(toolhead);
 		this.toolboardPins = toolboardPins;
 		this.controlboardPins = controlboardPins;
+		this.printer = printer;
+		this.size = size;
 	}
 	public requireControlboardPin(pin: keyof ControlPins<false>) {
 		if (this.controlboardPins?.[pin] == null) {
@@ -372,6 +381,19 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 		return result.join('\n');
 	}
 	renderToolheadMacro() {
+		const endstopSafetyMargin = 5;
+		let parkX: number | null = null;
+		if (this.getMotionAxis() === PrinterAxis.x) {
+			parkX = this.printer.bedMargin.x[0] + endstopSafetyMargin;
+		} else if (this.getMotionAxis() === PrinterAxis.dual_carriage) {
+			if (this.size == null) {
+				throw new Error("Can't render T1 toolhead macro variables without an explicitly defined printer size");
+			}
+			parkX = this.size + this.printer.bedMargin.x[1] - endstopSafetyMargin;
+		}
+		if (parkX == null || isNaN(parkX)) {
+			throw new Error(`Failed to generate parking position for toolhead ${this.getToolCommand()}`);
+		}
 		const result = [
 			`[gcode_macro ${this.getToolCommand()}]`,
 			`variable_active: ${this.getTool() === 0 ? 'True' : 'False'}`,
@@ -379,9 +401,9 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 			`variable_hotend_type: "${this.getHotend().flowType.toUpperCase()}"`,
 			`variable_has_cht_nozzle: ${this.getNozzle().type === 'CHT' ? 'True' : 'False'}`,
 			`variable_enable_extruder_test: True`,
-			`variable_cooling_position_to_nozzle_distance: 40`,
-			`variable_tooolhead_sensor_to_extruder_gear_distance: 15`,
-			`variable_extruder_gear_to_cooling_position_distance: 30`,
+			`variable_cooling_position_to_nozzle_distance: 40 # heatbreak length from cold zone to nozzle`,
+			`variable_tooolhead_sensor_to_extruder_gear_distance: 15 # distance in mm from the sensor to the extruder gear`,
+			`variable_extruder_gear_to_cooling_position_distance: 30 # distance in mm from the extruder gear to the end of the hotend cold zone`,
 			`variable_filament_loading_nozzle_offset: -5`,
 			`variable_filament_grabbing_length: 5`,
 			`variable_filament_grabbing_speed: 1`,
@@ -389,15 +411,21 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 			`variable_extrude_before_unload: 0`,
 			`variable_extruder_load_speed: 60`,
 			`variable_filament_load_speed: 10`,
-			`variable_loading_position: 100`,
-			`variable_parking_position: 100`,
+		];
+		if (this.printer.kinematics == 'hybrid-corexy-idex') {
+			result.push(
+				`variable_loading_position: ${this.getTool() === 0 ? parkX + 25 : parkX - 25} # filament load x position`,
+				`variable_parking_position: ${parkX} # parking x position`,
+			);
+		}
+		result.push(
 			`gcode:`,
 			`	{% set x = params.X|default(-1.0)|float %}`,
 			`	{% set y = params.Y|default(-1.0)|float %}`,
 			`	{% set z = params.Z|default(0.0)|float %}`,
 			`	{% set s = params.S|default(1)|int %}`,
 			`	_SELECT_TOOL T=${this.getTool()} X={x} Y={y} Z={z} TOOLSHIFT={s}`,
-		];
+		);
 		return result.join('\n');
 	}
 }
