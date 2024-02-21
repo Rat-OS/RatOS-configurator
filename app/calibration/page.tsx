@@ -563,7 +563,7 @@ export default function Page() {
 	return (
 		<div className="flex h-[calc(100vh_-_64px)] w-full items-center" ref={rootRef}>
 			<div
-				className="relative mx-auto flex max-h-full min-h-[50vh] min-w-[50vw] max-w-fit items-center overflow-hidden object-contain shadow-lg"
+				className="relative mx-auto flex h-full max-h-full min-h-[50vh] min-w-[50vw] max-w-fit items-center overflow-hidden object-contain shadow-lg"
 				ref={containerRef}
 			>
 				<video
