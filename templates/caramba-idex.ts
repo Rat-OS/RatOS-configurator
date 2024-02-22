@@ -61,6 +61,7 @@ ${helper.renderMacros()}
 # Macro variable overrides
 [gcode_macro RatOS]
 ${helper.renderMacroVariableOverrides()}
+variable_home_y_first: True
 
 # Save variables
 ${helper.renderSaveVariables()}
@@ -130,7 +131,7 @@ ${helper.renderUserStepperSections({
 			max: (config.size ?? 300) + margin.max,
 			endstop: (config.size ?? 300) + margin.max,
 		}),
-		safeDistance: 70,
+		safeDistance: 60,
 	},
 	y: {
 		directionInverted: true,
