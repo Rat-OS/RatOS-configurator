@@ -275,8 +275,8 @@ export default function Page() {
 					setDragOffset([state.offset[0], state.offset[1]]);
 					setDragOutside({ x: state._movementBound[0], y: state._movementBound[1] });
 				} else {
-					const x = toMillimeters(dragOffset?.[0] ?? 0) * (settings?.flipHorizontal ? 1 : -1);
-					const y = toMillimeters(dragOffset?.[1] ?? 0) * (settings?.flipVertical ? 1 : -1);
+					const x = toMillimeters(dragOffset?.[0] ?? 0) * -1);
+					const y = toMillimeters(dragOffset?.[1] ?? 0) * -1);
 					G`_NOZZLE_CALIBRATION_MOVE X=${x} Y=${y}`;
 					setDragOffset(null);
 					setDragOutside({ x: false, y: false });
