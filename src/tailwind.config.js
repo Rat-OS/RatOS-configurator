@@ -23,6 +23,9 @@ module.exports = {
 					},
 				},
 			},
+			animation: {
+			  'spin-fast': 'spin 0.5s linear infinite',
+			},
 			colors: {
 				brand: {
 					100: '#deffcc',

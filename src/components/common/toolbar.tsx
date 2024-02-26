@@ -49,7 +49,7 @@ const Button = (button: React.PropsWithChildren<ToolbarButton>) => {
 					type="button"
 					title={button.title}
 					className={twMerge(
-						'flex items-center space-x-2 whitespace-nowrap px-5 py-3 text-sm font-medium text-zinc-800 dark:text-zinc-200 hover:text-zinc-900 dark:hover:text-zinc-100',
+						'flex items-center space-x-2 whitespace-nowrap px-5 py-3 text-sm font-medium text-zinc-700 transition-transform hover:text-black active:scale-95 dark:text-zinc-300 dark:hover:text-white',
 						button.isActive ? 'hover:text-brand:600 text-brand-600 dark:text-brand-500 dark:hover:text-brand-500' : '',
 						button.hidden ? 'hidden' : '',
 						button.className,

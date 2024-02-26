@@ -1,4 +1,5 @@
 import { CameraSettings } from '../app/calibration/camera-settings-dialog';
+import { CameraOption } from '../app/calibration/helpers';
 
 export type MoonrakerStatus = 'connected' | 'connecting' | 'not-running';
 
@@ -23,7 +24,11 @@ export type MoonrakerDBItemResponse<Data = unknown> = {
 };
 
 export type MoonrakerDB = {
-	RatOS: { 'camera-settings': CameraSettings; __recoil: unknown };
+	RatOS: {
+		'camera-settings': CameraSettings;
+		'camera-stream-settings': { [key: string]: CameraOption };
+		__recoil: unknown;
+	};
 	mainsail: {
 		general: {
 			printername: string;

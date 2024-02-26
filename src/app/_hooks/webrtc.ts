@@ -75,7 +75,6 @@ export function useWebRTC(url: string) {
 				peerConnection.current.addTransceiver('video', { direction: 'recvonly' });
 				//peerConnection.current.addTransceiver('audio', {direction: 'recvonly'});
 				peerConnection.current.addEventListener('track', function (evt) {
-					console.log('track event ' + evt.track.kind, evt.streams);
 					if (evt.track.kind == 'video') {
 						if (videoElRef.current) {
 							videoElRef.current.srcObject = evt.streams[0];
@@ -88,7 +87,6 @@ export function useWebRTC(url: string) {
 				});
 				peerConnection.current.addEventListener('connectionstatechange', () => {
 					const conState = peerConnection.current?.connectionState;
-					console.log(conState);
 					setConnectionState(conState ?? null);
 				});
 
