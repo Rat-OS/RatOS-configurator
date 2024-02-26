@@ -1037,7 +1037,7 @@ export const constructKlipperConfigHelpers = async (
 							if (motionPins[axis] == null) {
 								motionPins[axis] = [];
 							}
-							motionPins[axis]?.push(`${k}: ${val}`);
+							motionPins[axis]?.push(`${k}=${val}`);
 							return null;
 						} catch (e) {
 							// Don't emit unused motor slot pins.
