@@ -117,7 +117,9 @@ export const PrinterConfigurationState = selector<z.infer<typeof PartialPrinterC
 			controlboard,
 			controllerFan,
 			toolheads,
-		} satisfies { [key in keyof PrinterConfiguration]: PrinterConfiguration[key] | null | undefined });
+		} satisfies {
+			[key in keyof PrinterConfiguration]: NonNullable<PartialPrinterConfiguration>[key] | null | undefined;
+		});
 		if (printerConfig.success === false) {
 			console.error(printerConfig.error.flatten().fieldErrors);
 		}

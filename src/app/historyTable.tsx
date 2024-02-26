@@ -234,7 +234,6 @@ export const HistoryTable = () => {
 
 	useEffect(() => {
 		const [lastItem] = [...rowVirtualizer.getVirtualItems()].reverse();
-		console.log(lastItem);
 		if (!lastItem) {
 			return;
 		}

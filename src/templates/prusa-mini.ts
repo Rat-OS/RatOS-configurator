@@ -26,7 +26,7 @@ ${helper.renderExtruder()}
 ${helper.renderHotend()}
 
 # ADXL345 resonance testing configuration
-${helper.renderInputShaper(180)}
+${helper.renderInputShaper(config.size)}
 
 #############################################################################################################
 ### STEPPER MOTORS, DRIVERS & SPEED LIMITS
@@ -132,9 +132,9 @@ ${helper.renderUserStepperSections({
 		directionInverted: false,
 		limits: (margin) => {
 			return {
-				min: -2 - margin.min,
-				max: 180.4 + margin.max,
-				endstop: 180.4 + margin.max,
+				min: -margin.min,
+				max: config.size.x + margin.max,
+				endstop: config.size.x + margin.max,
 			};
 		},
 	},
@@ -142,16 +142,16 @@ ${helper.renderUserStepperSections({
 		directionInverted: false,
 		limits: (margin) => {
 			return {
-				min: -3 - margin.min,
-				max: 180 + margin.max,
-				endstop: -3 - margin.min,
+				min: -margin.min,
+				max: config.size.y + margin.max,
+				endstop: -margin.min,
 			};
 		},
 	},
 	z: {
 		limits: {
-			max: 214,
-			min: -0,
+			max: config.size.z,
+			min: 0,
 		},
 		directionInverted: true,
 	},

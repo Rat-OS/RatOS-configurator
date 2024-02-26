@@ -2,7 +2,6 @@ import { ToolheadConfiguration } from '../../../zods/toolhead';
 import {
 	parseBoardPinConfig,
 	PinMapZodFromBoard,
-	exportBoardPinAlias,
 	ControlPins,
 	ToolboardPins,
 	readInclude,
@@ -15,17 +14,18 @@ import { ToolheadHelper } from '../../../helpers/toolhead';
 import { getBoardSerialPath } from '../../../helpers/board';
 import { PrinterAxis } from '../../../zods/motion';
 import { PrinterConfiguration } from '../../../zods/printer-configuration';
+import type { RenderPinsFn } from '../klipper-config';
 
 export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelper<IsToolboard> {
 	private toolboardPins: PinMapZodFromBoard<IsToolboard, false> | null;
 	private controlboardPins?: PinMapZodFromBoard<false, IsToolboard>;
 	private printer: PrinterConfiguration['printer'];
-	private size?: number | null;
+	private size: PrinterConfiguration['size'];
 	public static async fromConfig<IT extends boolean>(
 		config: ToolheadConfiguration<IT>,
 		controlPins: PinMapZodFromBoard<false, IT>,
 		printer: PrinterConfiguration['printer'],
-		size?: number | null,
+		size: PrinterConfiguration['size'],
 	): Promise<ToolheadGenerator<IT>> {
 		const toolboardPins: PinMapZodFromBoard<IT, false> | null = config.toolboard
 			? await parseBoardPinConfig<IT, false>(config.toolboard)
@@ -37,7 +37,7 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 		toolboardPins: PinMapZodFromBoard<IsToolboard, false> | null,
 		controlboardPins: PinMapZodFromBoard<false, IsToolboard>,
 		printer: PrinterConfiguration['printer'],
-		size?: number | null,
+		size: PrinterConfiguration['size'],
 	) {
 		super(toolhead);
 		this.toolboardPins = toolboardPins;
@@ -64,6 +64,12 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 			return '';
 		}
 		return this.getTool();
+	}
+	getToolboardPins() {
+		if (this.toolboardPins == null) {
+			throw new Error(`Toolboard pins not available for toolhead ${this.getToolCommand()}`);
+		}
+		return this.toolboardPins;
 	}
 	getToolheadPin(axis: PrinterAxis, alias: string) {
 		const prefix = axis === this.getExtruderAxis() ? this.getPinPrefix() : '';
@@ -106,6 +112,23 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 			return pin;
 		}
 		throw new Error(`Unknown pin alias ${alias}`);
+	}
+	public getPinFromToolboardAlias(alias: keyof ToolboardPins<true>): string {
+		let pin = null;
+		let _alias =
+			alias.split('_')[0] === 'e1' ? (('e' + this.getExtruderToolAxisPinPrefix()) as keyof ToolboardPins<true>) : alias; // Toolheads only have one extruder.
+		if (!this.hasToolboard()) {
+			throw new Error(`Toolhead ${this.getTool()} is not configured to use a toolboard`);
+		}
+		if (this.toolboardPins?.[_alias] != null) {
+			pin = this.toolboardPins[_alias];
+		} else {
+			throw new Error(`Alias "${_alias}" not found in toolboard pin definition.`);
+		}
+		if (pin != null) {
+			return pin;
+		}
+		throw new Error(`Unknown pin alias ${_alias}`);
 	}
 	public getXEndstopPin() {
 		let pin: string;
@@ -162,15 +185,18 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 			return ''; // use controlboard
 		}
 	}
-	public renderToolboard() {
+	public renderToolboard(exportPinsFn?: RenderPinsFn) {
 		const pins = this.toolboardPins;
 		const toolboard = this.config.toolboard;
 		if (toolboard == null || pins == null) {
 			return '';
 		}
+		if (exportPinsFn == null) {
+			throw new Error('exportPinsFn is required when rendering toolboard');
+		}
 		const result = [
 			'', // Add a newline for readability.
-			exportBoardPinAlias(this.getToolboardName(), pins, this.getToolboardName()),
+			exportPinsFn(this.getToolboardName(), toolboard, this, this.getToolboardName()),
 			'', // Add a newline for readability.
 			`[mcu ${this.getToolboardName()}]`,
 			`serial: ${getBoardSerialPath(toolboard, this)}`,
@@ -386,13 +412,11 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 		if (this.getMotionAxis() === PrinterAxis.x) {
 			parkX = this.printer.bedMargin.x[0] + endstopSafetyMargin;
 		} else if (this.getMotionAxis() === PrinterAxis.dual_carriage) {
-			if (this.size == null) {
-				throw new Error("Can't render T1 toolhead macro variables without an explicitly defined printer size");
-			}
-			parkX = this.size + this.printer.bedMargin.x[1] - endstopSafetyMargin;
+			parkX = this.size.x + this.printer.bedMargin.x[1] - endstopSafetyMargin;
 		}
 		if (parkX == null || isNaN(parkX)) {
-			throw new Error(`Failed to generate parking position for toolhead ${this.getToolCommand()}`);
+			console.log(this.printer.bedMargin.x[0], this.size, this.printer.bedMargin.x[1]);
+			throw new Error(`Failed to generate parking position for toolhead ${this.getToolCommand()}. Generated: ${parkX}`);
 		}
 		const result = [
 			`[gcode_macro ${this.getToolCommand()}]`,

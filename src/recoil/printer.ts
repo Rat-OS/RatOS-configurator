@@ -1,5 +1,5 @@
 import { ReadAtomInterface, syncEffect } from 'recoil-sync';
-import { PrinterDefinition, PrinterDefinitionWithResolvedToolheads } from '../zods/printer';
+import { PrinterDefinitionWithResolvedToolheads } from '../zods/printer';
 import { trpcClient } from '../helpers/trpc';
 import { atomFamily, selector, DefaultValue, atom, noWait } from 'recoil';
 import { z } from 'zod';
@@ -8,6 +8,7 @@ import { deserializePrinterRail, serializePrinterRail } from '../utils/serializa
 import { SerializedPrinterRail, PrinterAxis, PrinterRail } from '../zods/motion';
 import { Board, BoardPath } from '../zods/boards';
 import { moonrakerWriteEffect } from '../components/sync-with-moonraker';
+import { PrinterSize } from '../zods/printer-configuration';
 
 let cachedPrinters: { [id: string]: z.infer<typeof PrinterDefinitionWithResolvedToolheads> } = {};
 
@@ -87,13 +88,13 @@ export const LoadablePrinterState = selector<z.infer<typeof PrinterDefinitionWit
 	},
 });
 
-export const PrinterSizeState = atom<number | null>({
+export const PrinterSizeState = atom<z.output<typeof PrinterSize> | null>({
 	key: 'PrinterOption',
 	default: null,
 	effects: [
 		moonrakerWriteEffect(),
 		syncEffect({
-			refine: getRefineCheckerForZodSchema(PrinterDefinition.shape.sizes.unwrap().element.nullable()),
+			refine: getRefineCheckerForZodSchema(PrinterSize.nullable()),
 		}),
 	],
 });

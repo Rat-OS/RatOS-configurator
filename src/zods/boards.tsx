@@ -86,6 +86,44 @@ export const PinMap = z.object({
 	'4p_controller_board_tach_pin': z.string().optional(),
 });
 
+export enum AxisPinPrefix {
+	x = 'x',
+	x1 = 'x1',
+	y = 'y',
+	y1 = 'y1',
+	y2 = 'y2',
+	z0 = 'z0',
+	z1 = 'z1',
+	z2 = 'z2',
+	z3 = 'z3',
+	e = 'e',
+	dual_carriage = 'dual_carriage',
+}
+
+export const pinAliasPrefixToPrinterAxis: { [key in AxisPinPrefix]: PrinterAxis } = {
+	x: PrinterAxis['x'],
+	x1: PrinterAxis['x1'],
+	y: PrinterAxis['y'],
+	y1: PrinterAxis['y1'],
+	y2: PrinterAxis['y2'],
+	z0: PrinterAxis['z'],
+	z1: PrinterAxis['z1'],
+	z2: PrinterAxis['z2'],
+	z3: PrinterAxis['z3'],
+	e: PrinterAxis['extruder'],
+	dual_carriage: PrinterAxis['dual_carriage'],
+};
+
+export const pinPrefixToAxis = z.nativeEnum(AxisPinPrefix).transform((v) => pinAliasPrefixToPrinterAxis[v] ?? null);
+export const axisToPinPrefix = z
+	.nativeEnum(PrinterAxis)
+	.transform(
+		(pa) =>
+			(Object.keys(pinAliasPrefixToPrinterAxis) as AxisPinPrefix[]).find(
+				(p) => pinAliasPrefixToPrinterAxis[p] === pa,
+			) ?? null,
+	);
+
 export const ControlBoardPinMap = PinMap.extend({
 	x_step_pin: z.string(),
 	x_dir_pin: z.string(),
@@ -221,32 +259,35 @@ export const hasUART = (slot: unknown) => {
 	return UARTPins.safeParse(slot).success;
 };
 
-export const MotorSlot = z
-	.object({
-		title: z.string(),
-		step_pin: z.string(),
-		dir_pin: z.string(),
-		enable_pin: z.string(),
-		diag_pin: z.string().optional(),
-		endstop_pin: z.string().optional(),
-		// UART
-		uart_pin: z.string().optional(),
-		uart_address: z.string().optional(),
-		rx_pin: z.string().optional(),
-		tx_pin: z.string().optional(),
-		// SPI
-		cs_pin: z.string().optional(),
-		spi_bus: z.string().optional(),
-		spi_software_mosi_pin: z.string().optional(),
-		spi_software_miso_pin: z.string().optional(),
-		spi_software_sclk_pin: z.string().optional(),
-	})
-	.refine(
-		(slot) => {
-			return hasSPI(slot) || hasUART(slot);
-		},
-		{ message: 'Motor slot must have either SPI or UART pins' },
-	);
+export const MotorSlotPins = z.object({
+	step_pin: z.string(),
+	dir_pin: z.string(),
+	enable_pin: z.string(),
+	diag_pin: z.string().optional(),
+	endstop_pin: z.string().optional(),
+	// UART
+	uart_pin: z.string().optional(),
+	rx_pin: z.string().optional(),
+	tx_pin: z.string().optional(),
+	// SPI
+	cs_pin: z.string().optional(),
+});
+
+export const MotorSlot = MotorSlotPins.extend({
+	title: z.string(),
+	// UART
+	uart_address: z.string().optional(),
+	// SPI
+	spi_bus: z.string().optional(),
+	spi_software_mosi_pin: z.string().optional(),
+	spi_software_miso_pin: z.string().optional(),
+	spi_software_sclk_pin: z.string().optional(),
+}).refine(
+	(slot) => {
+		return hasSPI(slot) || hasUART(slot);
+	},
+	{ message: 'Motor slot must have either SPI or UART pins' },
+);
 
 export type MotorSlot = z.output<typeof MotorSlot>;
 
