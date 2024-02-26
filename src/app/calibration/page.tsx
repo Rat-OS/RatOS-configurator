@@ -319,6 +319,12 @@ export default function Page() {
 				subButtonPosition: 'before',
 				title: `${isCameraControlsVisible ? 'Hide' : 'Show'} camera controls`,
 				onClick: () => {
+					if (isCameraControlsVisible) {
+						setIsFocusVisible(false);
+						setIsExposureVisible(false);
+						setIsColorVisible(false);
+						setIsAdvancedVisible(false);
+					}
 					setIsCameraControlsVisible((vis) => !vis);
 				},
 				isActive: isCameraControlsVisible,
