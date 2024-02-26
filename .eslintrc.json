@@ -1,6 +1,7 @@
 {
-	"plugins": ["unused-imports", "prettier"],
+	"plugins": ["@typescript-eslint", "unused-imports", "prettier"],
 	"extends": ["next/core-web-vitals", "plugin:react-hooks/recommended"],
+	"parser": "@typescript-eslint/parser",
 	"overrides": [
 		{
 			"files": ["*.tsx", "*.ts"],
@@ -9,9 +10,10 @@
 				"jsx-quotes": 1,
 				// "sort-imports": 1,
 				"no-duplicate-imports": 1,
-				"unused-imports/no-unused-imports": "error",
+				// "unused-imports/no-unused-imports": "error",
 				"prettier/prettier": ["warn", { "endOfLine": "auto" }]
 			}
 		}
-	]
+	],
+	"root": true
 }

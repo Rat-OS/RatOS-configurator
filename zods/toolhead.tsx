@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { BoardID, BoardSerialPath, Toolboard } from './boards';
+import { BoardID, Toolboard } from './boards';
 import { Hotend, Thermistor, Extruder, Probe, Endstop, Fan, Accelerometer, Nozzle } from './hardware';
 import { PrinterAxis } from './motion';
 import { getDefaultNozzle } from '../data/nozzles';

@@ -15,13 +15,11 @@ import {
 	ViewfinderCircleIcon,
 	BeakerIcon,
 } from '@heroicons/react/24/outline';
-import { z } from 'zod';
-import { useDebounce } from '../_hooks/debounce';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { twJoin, twMerge } from 'tailwind-merge';
 import { CameraSettingsDialog } from './camera-settings-dialog';
 import { useMoonrakerState, usePrinterObjectSubscription } from '../../moonraker/hooks';
-import { useChangeEffect } from '../../hooks/useChangeEffect';
+import { useChangeEffect, useDelayedChangeEffect } from '../../hooks/useChangeEffect';
 import { ExposureIcon } from '../../components/common/icons/exposure';
 import { FocusControls } from './focus-controls';
 import { Spinner } from '../../components/common/spinner';
@@ -29,164 +27,8 @@ import { useWindowSize } from '../_hooks/resize';
 import CountUp from 'react-countup';
 import { useGcodeCommand } from '../_hooks/toolhead';
 import { getHost } from '../../helpers/util';
-
-type Option = {
-	key: string;
-} & ({ min: number; max: number; float?: boolean } | { toggle?: true });
-
-const parseOptions = (options: string) => {
-	const ints = options.matchAll(/- available option:\s(\w+)\s.+(\[-?\d+\.\.\d+\])/g);
-	let result: Option[] = [];
-	for (const match of ints) {
-		const [min, max] = match[2]
-			.slice(1, -1)
-			.split('..')
-			.map((n) => parseInt(n, 10));
-		const existing = result.find((o) => o.key === match[1]);
-		if (existing && 'max' in existing && existing.max && existing.max <= max) {
-			continue;
-		}
-		result.push({
-			key: match[1],
-			min,
-			max: ['redbalance', 'bluebalance', 'greenbalance'].includes(match[1]) ? 2000 : max,
-		});
-	}
-	const floats = options.matchAll(/- available option:\s(\w+)\s.+(\[-?\d+\.\d+\.\.\d+\.\d+\])/g);
-	for (const match of floats) {
-		const [min, max] = match[2]
-			.slice(1, -1)
-			.split('..')
-			.map((n) => parseFloat(n));
-		const existing = result.find((o) => o.key === match[1]);
-		if (existing && 'max' in existing && existing.max && existing.max <= max) {
-			continue;
-		}
-		result.push({
-			key: match[1],
-			float: true,
-			min,
-			max: ['redbalance', 'bluebalance', 'greenbalance'].includes(match[1]) ? 2000 : max,
-		});
-	}
-	const bools = options.matchAll(/- available option:\s(\w+)\s.+(\[false\.\.true\])/g);
-	for (const match of bools) {
-		result.push({
-			key: match[1],
-			toggle: true,
-		});
-	}
-	return result;
-};
-
-const ExposureZod = z.number().min(4).max(3522);
-const DigiGainZod = z.number().min(254).max(4095);
-const useCameraSettings = (url: string) => {
-	const [options, setOptions] = useState<Option[]>([]);
-	const exposure = useCallback(
-		async (val: z.input<typeof ExposureZod>) => {
-			const newExpo = ExposureZod.parse(val);
-			await fetch(`${url}/option?exposure=${newExpo}`);
-		},
-		[url],
-	);
-	const digitalGain = useCallback(
-		async (val: number) => {
-			const newGain = DigiGainZod.parse(val);
-			await fetch(`${url}/option?digitalgain=${newGain}`);
-		},
-		[url],
-	);
-
-	const compression = useCallback(
-		async (val: NumbersBefore<101>) => {
-			const res = await fetch(`${url}/option?compressionquality=${val}`);
-			setOptions(parseOptions(await res.text()));
-		},
-		[url],
-	);
-
-	const setOption = useCallback(
-		async (key: string, value: number | boolean) => {
-			const opt = options.find((o) => o.key === key);
-			if (opt == null) {
-				throw new Error(`Invalid option ${key}`);
-			}
-			if (opt && 'toggle' in opt && typeof value !== 'boolean') {
-				throw new Error(`Expect a boolean value for ${key}, got ${value}`);
-			}
-			if (opt && 'max' in opt && (typeof value !== 'number' || opt.min > value || opt.max < value)) {
-				throw new Error(`Value ${value} is out of range for ${key}`);
-			}
-			try {
-				const res = await fetch(`${url}/option?${key}=${value}`);
-				return res.ok;
-			} catch (e) {
-				return false;
-			}
-		},
-		[options, url],
-	);
-
-	useEffect(() => {
-		compression(100);
-	}, [compression]);
-	return {
-		exposure,
-		digitalGain,
-		options,
-		setOption,
-	};
-};
-
-type SliderProps = {
-	min: number;
-	step?: number | 'any';
-	max: number;
-	onChange?: (val: number) => void;
-	initialValue?: number;
-};
-const Slider: React.FC<SliderProps> = ({ onChange, min, max, initialValue, step }) => {
-	const [val, setValue] = useState(initialValue ?? min);
-	const _onChange = useDebounce(
-		useCallback(
-			(val: number) => {
-				onChange?.(val);
-			},
-			[onChange],
-		),
-		100,
-	);
-	const onInput = useCallback(
-		(e: React.ChangeEvent<HTMLInputElement>) => {
-			const val = step ? parseFloat(e.target.value) : parseInt(e.target.value, 10);
-			setValue(val);
-			_onChange(val);
-		},
-		[_onChange, step],
-	);
-	return (
-		<div className="relative mb-6">
-			<input
-				type="range"
-				value={val}
-				onChange={onInput}
-				min={min}
-				max={max}
-				step={step ?? 1}
-				className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-zinc-200 dark:bg-zinc-700"
-			/>
-			<span className="absolute -bottom-6 start-0 text-sm text-zinc-500 dark:text-zinc-400">Min ({min})</span>
-			<span className="absolute -bottom-6 start-1/3 -translate-x-1/2 text-sm text-zinc-500 dark:text-zinc-400 rtl:translate-x-1/2">
-				{(max / 3).toFixed(2)}
-			</span>
-			<span className="absolute -bottom-6 start-2/3 -translate-x-1/2 text-sm text-zinc-500 dark:text-zinc-400 rtl:translate-x-1/2">
-				{((max / 3) * 2).toFixed(2)}
-			</span>
-			<span className="absolute -bottom-6 end-0 text-sm text-zinc-500 dark:text-zinc-400">Max ({max})</span>
-		</div>
-	);
-};
+import { useCameraSettings } from './hooks';
+import { Slider } from '../../components/forms/slider';
 
 const getCameraUrl = () => {
 	const host = getHost();
@@ -195,6 +37,8 @@ const getCameraUrl = () => {
 	}
 	return `http://${host}/webcam`;
 };
+
+const SnapshotEffectDuration = 200;
 
 export default function Page() {
 	const [url, setUrl] = useState(getCameraUrl());
@@ -207,7 +51,7 @@ export default function Page() {
 	const rootRef = useRef<HTMLDivElement | null>(null);
 	const [dragOffset, setDragOffset] = useState<[number, number] | null>(null);
 	const [dragOutside, setDragOutside] = useState<{ x: false | number; y: false | number }>({ x: false, y: false });
-	const { exposure, digitalGain, options, setOption } = useCameraSettings(url);
+	const { options, setOption } = useCameraSettings(url, connectionState === 'connected');
 	const [canMove, setCanMove] = useState(false);
 	const [isHoming, setIsHoming] = useState(false);
 	const [isSettingsVisible, setIsSettingsVisible] = useState(false);
@@ -216,14 +60,24 @@ export default function Page() {
 	const [isColorVisible, setIsColorVisible] = useState(false);
 	const [isFocusVisible, setIsFocusVisible] = useState(false);
 	const [isAdvancedVisible, setIsAdvancedVisible] = useState(false);
+	const [_isLockingCoordinates, setIsLockingCoordinates] = useState(false);
 	const [light, setLight] = useState(false);
 	const [zoom, setZoom] = useState(1);
 	const [isCameraControlsVisible, setIsCameraControlsVisible] = useState(false);
 	const G = useGcodeCommand();
 	const [animate] = useAutoAnimate();
 	const windowSize = useWindowSize();
-	const toolhead = usePrinterObjectSubscription('toolhead');
-	const tool = toolhead?.toolhead.extruder === 'extruder' ? 'T0' : 'T1';
+	const toolhead = usePrinterObjectSubscription(
+		(res) => ({ tool: res.toolhead.extruder === 'extruder' ? 'T0' : 'T1', homed_axes: res.toolhead.homed_axes }),
+		'toolhead',
+	);
+	const [isLockingCoordinates] = useChangeEffect([_isLockingCoordinates], SnapshotEffectDuration, true);
+	const [delayedIsLockingCoordinates] = useDelayedChangeEffect(
+		[_isLockingCoordinates],
+		SnapshotEffectDuration - 10,
+		10,
+		true,
+	);
 
 	const scale = useCallback(
 		(val: number) => {
@@ -275,15 +129,12 @@ export default function Page() {
 					setDragOffset([state.offset[0], state.offset[1]]);
 					setDragOutside({ x: state._movementBound[0], y: state._movementBound[1] });
 				} else {
-					const x = toMillimeters(dragOffset?.[0] ?? 0) * (settings?.flipHorizontal ? 1 : -1);
-					const y = toMillimeters(dragOffset?.[1] ?? 0) * (settings?.flipVertical ? 1 : -1);
+					const x = toMillimeters(dragOffset?.[0] ?? 0) * -1;
+					const y = toMillimeters(dragOffset?.[1] ?? 0) * -1;
 					G`_NOZZLE_CALIBRATION_MOVE X=${x} Y=${y}`;
 					setDragOffset(null);
 					setDragOutside({ x: false, y: false });
 				}
-			},
-			onDrop: () => {
-				console.log('drop');
 			},
 			onPinch: (state) => {
 				setZoom((z) => Math.max(Math.min(z * state.offset[0], 10), 1));
@@ -333,7 +184,7 @@ export default function Page() {
 				await G`G28`;
 				setIsHoming(false);
 			},
-			isActive: toolhead?.toolhead.homed_axes === 'xyz',
+			isActive: toolhead?.homed_axes === 'xyz',
 		},
 		{
 			name: 'T0',
@@ -342,7 +193,7 @@ export default function Page() {
 			onClick: () => {
 				G`_NOZZLE_CALIBRATION_LOAD_TOOL T=0`;
 			},
-			isActive: tool === 'T0',
+			isActive: toolhead?.tool === 'T0',
 		},
 		{
 			name: 'T1',
@@ -351,7 +202,7 @@ export default function Page() {
 			onClick: () => {
 				G`_NOZZLE_CALIBRATION_LOAD_TOOL T=1`;
 			},
-			isActive: tool === 'T1',
+			isActive: toolhead?.tool === 'T1',
 		},
 	];
 	const topRightControls: ToolbarButton[] = [
@@ -435,14 +286,17 @@ export default function Page() {
 					isActive: isSettingsVisible,
 				},
 				{
-					name: tool === 'T0' ? 'Set reference' : 'Set offset',
+					name: toolhead?.tool === 'T0' ? 'Set reference' : 'Set offset',
 					icon: MapPinIcon,
+					isLoading: isLockingCoordinates,
 					id: 'reference',
-					title: `Set the ${tool === 'T0' ? 'T0 reference point' : 'T1 offset'}`,
-					onClick: () => {
-						G`_NOZZLE_CALIBRATION_SET_TOOL`;
+					title: `Set the ${toolhead?.tool === 'T0' ? 'T0 reference point' : 'T1 offset'}`,
+					onClick: async () => {
+						setIsLockingCoordinates(true);
+						await G`_NOZZLE_CALIBRATION_SET_TOOL`;
+						setIsLockingCoordinates(false);
 					},
-					isActive: false,
+					isActive: isLockingCoordinates,
 				},
 				{
 					name: 'Move',
@@ -455,7 +309,7 @@ export default function Page() {
 					isActive: canMove,
 				},
 			] satisfies ToolbarButton[],
-		[canMove, G, isSettingsVisible, tool],
+		[isSettingsVisible, toolhead, isLockingCoordinates, canMove, G],
 	);
 	const cameraControls = useMemo(() => {
 		const controls: ToolbarButton[] = [
@@ -483,7 +337,6 @@ export default function Page() {
 				title: `${isFocusVisible ? 'Hide' : 'Show'} focus controls`,
 				children: <FocusControls isVisible={isFocusVisible} toggle={setIsFocusVisible} />,
 				onClick: () => {
-					console.log('exposure controls');
 					setIsFocusVisible((vis) => !vis);
 					setIsExposureVisible(false);
 					setIsColorVisible(false);
@@ -499,7 +352,6 @@ export default function Page() {
 				title: `${isExposureVisible ? 'Hide' : 'Show'} exposure controls`,
 				name: 'Exposure',
 				onClick: () => {
-					console.log('exposure controls');
 					setIsExposureVisible((vis) => !vis);
 					setIsColorVisible(false);
 					setIsAdvancedVisible(false);
@@ -542,24 +394,26 @@ export default function Page() {
 	}, [isAdvancedVisible, isExposureVisible, isFocusVisible, isColorVisible]);
 	const draggedX = dragOffset == null ? 0 : dragOffset[0] / zoom;
 	const draggedY = dragOffset == null ? 0 : dragOffset[1] / zoom;
-	const outerNozzleDiameter = useMemo(
-		() => toScreen(settings ? settings.outerNozzleDiameter / 2 : 0),
-		[settings, toScreen],
+	const nozzleRadius = useMemo(() => toScreen(0.4 / 2), [toScreen]);
+	const outerNozzleRadius = useMemo(
+		() => (isLockingCoordinates ? nozzleRadius : toScreen(settings ? settings.outerNozzleDiameter / 2 : 0)),
+		[toScreen, isLockingCoordinates, nozzleRadius, settings],
 	);
-	const outerNozzleDiameterPercentWidth = useMemo(
+	const outerNozzleRadiusPercentWidth = useMemo(
 		() =>
 			containerRef.current == null || connectionState !== 'connected'
 				? 0
-				: (outerNozzleDiameter / containerRef.current.getBoundingClientRect().width) * 100,
-		[connectionState, outerNozzleDiameter],
+				: (outerNozzleRadius / containerRef.current.getBoundingClientRect().width) * 100,
+		[connectionState, outerNozzleRadius],
 	);
-	const outerNozzleDiameterPercentHeight = useMemo(
+	const outerNozzleRadiusPercentHeight = useMemo(
 		() =>
 			containerRef.current == null || connectionState !== 'connected'
 				? 0
-				: (outerNozzleDiameter / containerRef.current.getBoundingClientRect().height) * 100,
-		[connectionState, outerNozzleDiameter],
+				: (outerNozzleRadius / containerRef.current.getBoundingClientRect().height) * 100,
+		[connectionState, outerNozzleRadius],
 	);
+	const strokeWidth = useMemo(() => toScreen(0.01), [toScreen]);
 	return (
 		<div className="flex h-[calc(100vh_-_64px)] w-full items-center" ref={rootRef}>
 			<div
@@ -609,53 +463,63 @@ export default function Page() {
 						style={{ opacity: dragOutside.y ? Math.abs(dragOutside.y - (dragOffset?.[1] ?? 0)) / 200 : 0 }}
 					/>
 					<svg width="100%" height="100%">
-						<rect
-							x="50%"
-							y={`${50 - outerNozzleDiameterPercentHeight}%`}
-							height={`${outerNozzleDiameterPercentHeight * 2}%`}
-							width="0.2vw"
-							shapeRendering="geometricPrecision"
+						<g
+							className={twJoin(connectionState === 'connected' && outerNozzleRadius > 0 ? 'opacity-100' : 'opacity-0')}
+						>
+							<rect
+								x="50%"
+								y={`${50 - outerNozzleRadiusPercentHeight}%`}
+								height={`${outerNozzleRadiusPercentHeight * 2}%`}
+								width={strokeWidth}
+								shapeRendering="geometricPrecision"
+								className="fill-brand-500 transition-all ease-in-out"
+								style={{ transform: `translateX(-${strokeWidth / 2})` }}
+							/>
+							<rect
+								x={`${50 - outerNozzleRadiusPercentWidth}%`}
+								y="50%"
+								width={`${outerNozzleRadiusPercentWidth * 2}%`}
+								height={strokeWidth}
+								shapeRendering="geometricPrecision"
+								className="fill-brand-500 transition-all ease-in-out"
+								style={{ transform: `translateY(-${strokeWidth / 2})` }}
+							/>
+						</g>
+						<circle
+							cx="50%"
+							cy="50%"
+							r={delayedIsLockingCoordinates ? outerNozzleRadius : outerNozzleRadius * 1.5}
+							fill="none"
 							className={twJoin(
-								'fill-brand-500 transition-all ease-in-out',
-								connectionState === 'connected' && outerNozzleDiameter > 0 ? 'opacity-100' : 'opacity-0',
+								'ease-out',
+								delayedIsLockingCoordinates ? 'fill-brand-300' : 'fill-brand-300/0 transition-all duration-700',
 							)}
-							style={{ transform: 'translateX(-0.10vw)' }}
-						/>
-						<rect
-							x={`${50 - outerNozzleDiameterPercentWidth}%`}
-							y="50%"
-							width={`${outerNozzleDiameterPercentWidth * 2}%`}
-							height="0.2vw"
 							shapeRendering="geometricPrecision"
-							className={twJoin(
-								'fill-brand-500 transition-all ease-in-out',
-								connectionState === 'connected' && outerNozzleDiameter > 0 ? 'opacity-100' : 'opacity-0',
-							)}
-							style={{ transform: 'translateY(-0.10vw)' }}
+							strokeWidth={0}
 						/>
 						<circle
 							cx="50%"
 							cy="50%"
-							r={toScreen(0.4 / 2)}
+							r={nozzleRadius}
 							fill="none"
 							className={twJoin(
 								'stroke-brand-500 transition-all ease-in-out',
-								connectionState === 'connected' && outerNozzleDiameter > 0 ? 'opacity-100' : 'opacity-0',
+								connectionState === 'connected' && outerNozzleRadius > 0 ? 'opacity-100' : 'opacity-0',
 							)}
 							shapeRendering="geometricPrecision"
-							strokeWidth="0.2vw"
+							strokeWidth={strokeWidth}
 						/>
 						<circle
 							cx="50%"
 							cy="50%"
-							r={outerNozzleDiameter}
+							r={outerNozzleRadius}
 							fill="none"
 							className={twJoin(
 								'stroke-brand-500 transition-all ease-in-out',
-								connectionState === 'connected' && outerNozzleDiameter > 0 ? 'opacity-100' : 'opacity-0',
+								connectionState === 'connected' && outerNozzleRadius > 0 ? 'opacity-100' : 'opacity-0',
 							)}
 							shapeRendering="geometricPrecision"
-							strokeWidth="0.2vw"
+							strokeWidth={strokeWidth}
 						/>
 					</svg>
 				</div>
@@ -677,8 +541,10 @@ export default function Page() {
 											{option.key}
 										</label>
 										<Slider
+											isBoolean={'toggle' in option}
 											min={'toggle' in option ? 0 : 'min' in option ? option.min : 0}
-											max={'toggle' in option ? 0 : 'max' in option ? option.max : 0}
+											initialValue={option.value === true ? 1 : option.value === false ? 0 : option.value}
+											max={'toggle' in option ? 1 : 'max' in option ? option.max : 0}
 											step={'float' in option && option.float ? 'any' : 1}
 											onChange={(val) => setOption(option.key, 'toggle' in option ? !!val : val)}
 										/>
@@ -698,8 +564,10 @@ export default function Page() {
 											{option.key}
 										</label>
 										<Slider
+											isBoolean={'toggle' in option}
 											min={'toggle' in option ? 0 : 'min' in option ? option.min : 0}
-											max={'toggle' in option ? 0 : 'max' in option ? option.max : 0}
+											initialValue={option.value === true ? 1 : option.value === false ? 0 : option.value}
+											max={'toggle' in option ? 1 : 'max' in option ? option.max : 0}
 											step={'float' in option && option.float ? 'any' : 1}
 											onChange={(val) => setOption(option.key, 'toggle' in option ? !!val : val)}
 										/>
@@ -712,8 +580,10 @@ export default function Page() {
 										{option.key}
 									</label>
 									<Slider
+										isBoolean={'toggle' in option}
 										min={'toggle' in option ? 0 : 'min' in option ? option.min : 0}
-										max={'toggle' in option ? 0 : 'max' in option ? option.max : 0}
+										initialValue={option.value === true ? 1 : option.value === false ? 0 : option.value}
+										max={'toggle' in option ? 1 : 'max' in option ? option.max : 0}
 										step={'float' in option && option.float ? 'any' : 1}
 										onChange={(val) => setOption(option.key, 'toggle' in option ? !!val : val)}
 									/>

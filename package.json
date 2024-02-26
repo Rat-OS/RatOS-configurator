@@ -31,6 +31,7 @@
 		"@trpc/react-query": "10.45.1",
 		"@trpc/server": "10.45.1",
 		"@types/deep-equal": "^1.0.4",
+		"@typescript-eslint/eslint-plugin": "^7.0.2",
 		"@use-gesture/react": "^10.3.0",
 		"axios": "^0.26.1",
 		"class-variance-authority": "^0.7.0",

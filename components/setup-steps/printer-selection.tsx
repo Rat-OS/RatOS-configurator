@@ -34,8 +34,6 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 	const selectedPrinter = useRecoilValue(LoadablePrinterState);
 	const selectedPrinterOption = useRecoilValue(PrinterSizeState);
 
-	// TODO: Set the toolheads here, should fix the problems!
-
 	const cards = printerQuery.data
 		? (printerQuery.data
 				.slice()
@@ -60,7 +58,10 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 								alt={`${p.manufacturer} ${p.name}`}
 							/>
 						),
-						options: p.sizes ? p.sizes.map((s) => ({ id: s, name: s + '' })) : undefined,
+						options:
+							Object.values(p.sizes).length > 1
+								? Object.entries(p.sizes).map(([key, volume]) => ({ id: key, name: key + '' }))
+								: undefined,
 					};
 				}) satisfies SelectablePrinter[])
 		: [];
@@ -81,13 +82,13 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 					reset(PrinterToolheadState(th.toolNumber));
 				});
 				set(PrinterState, printer);
-				if ((printer.sizes?.length ?? 0) > 0) {
-					if (option == null || typeof option.id !== 'number') {
+				if (Object.values(printer.sizes).length > 1) {
+					if (option == null || typeof option.id !== 'string') {
 						throw new Error('An option must be selected for printers that come in different size configurations');
 					}
-					set(PrinterSizeState, option.id);
+					set(PrinterSizeState, printer.sizes[option.id]);
 				} else {
-					set(PrinterSizeState, null);
+					set(PrinterSizeState, printer.sizes[Object.keys(printer.sizes)[0]]);
 				}
 				set(
 					PrinterToolheadsState,

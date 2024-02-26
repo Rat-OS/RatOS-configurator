@@ -45,29 +45,28 @@ export const getBoards = async () => {
 		});
 	}
 	const defs = await glob(`${process.env.RATOS_CONFIGURATION_PATH}/boards/*/board-definition.json`);
-	const boards = 
-		defs
-			.map((f) =>
-				f.trim() === ''
-					? null
-					: {
-							...(JSON.parse(fs.readFileSync(f).toString()) as BoardWithDetectionStatus),
-							path: BoardPath.parse(f.replace('board-definition.json', '')),
-						},
-			)
-			.filter(Boolean)
-			.map((b) => {
-				b.detected = detect(b);
-				try {
-					return BoardWithDetectionStatus.parse(b);
-				} catch (e) {
-					throw new TRPCError({
-						code: 'INTERNAL_SERVER_ERROR',
-						message: `Invalid board definition for ${b.name} in ${b.path}`,
-						cause: e,
-					});
-				}
-			});
+	const boards = defs
+		.map((f) =>
+			f.trim() === ''
+				? null
+				: {
+						...(JSON.parse(fs.readFileSync(f).toString()) as BoardWithDetectionStatus),
+						path: BoardPath.parse(f.replace('board-definition.json', '')),
+					},
+		)
+		.filter(Boolean)
+		.map((b) => {
+			b.detected = detect(b);
+			try {
+				return BoardWithDetectionStatus.parse(b);
+			} catch (e) {
+				throw new TRPCError({
+					code: 'INTERNAL_SERVER_ERROR',
+					message: `Invalid board definition for ${b.name} in ${b.path}`,
+					cause: e,
+				});
+			}
+		});
 	ServerCache.set('boards', boards);
 	return boards;
 };

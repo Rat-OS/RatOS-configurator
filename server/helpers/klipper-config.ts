@@ -5,16 +5,26 @@ import { findPreset } from '../../data/steppers';
 import { deserializePrinterRailDefinition } from '../../utils/serialization';
 import {
 	ControlPins,
-	exportBoardPinAlias,
 	getExtruderRotationDistance,
 	parseBoardPinConfig,
 	PinMapZodFromBoard,
+	ToolboardPins,
 } from './metadata';
-
+import { PrinterSizeDefinition } from '../../zods/printer';
 import { ToolheadGenerator } from './config-generation/toolhead';
 import { getBoardSerialPath } from '../../helpers/board';
 import { ToolOrAxis } from '../../zods/toolhead';
-import { MotorSlotKey, SPIPins, UARTPins, hasSPI, hasUART } from '../../zods/boards';
+import {
+	type Board,
+	MotorSlotKey,
+	SPIPins,
+	UARTPins,
+	hasSPI,
+	hasUART,
+	pinPrefixToAxis,
+	MotorSlotPins,
+	axisToPinPrefix,
+} from '../../zods/boards';
 import { z } from 'zod';
 import path from 'path';
 import { serverSchema } from '../../env/schema.mjs';
@@ -75,7 +85,7 @@ export const constructKlipperConfigUtils = async (config: PrinterConfiguration) 
 				throw new Error(`The controlboard has no "${pin}" defined in its config.`);
 			}
 		},
-		isExtruderToolheadAxis(axis: PrinterAxis) {
+		isExtruderToolheadAxis(axis: PrinterAxis | ToolOrAxis): axis is ToolOrAxis {
 			return toolheads.some((th) => th.getExtruderAxis() === axis);
 		},
 		getToolhead: (toolOrAxis: ToolOrAxis) => {
@@ -88,11 +98,11 @@ export const constructKlipperConfigUtils = async (config: PrinterConfiguration) 
 			}
 			return th;
 		},
-		renderCommentHeader(text: string, lines: string[]) {
+		renderCommentHeader(text: string, lines: string[] = []) {
 			const separator = `------------------------------------------------------------------------------------------------------------`;
 			const textPadding = (separator.length - text.length - 2) / 2;
 			const separatorWithText = `#${'-'.repeat(Math.floor(textPadding))} ${text} ${'-'.repeat(Math.ceil(textPadding))}`;
-			return [separatorWithText, ...lines, `#${separator}`];
+			return [separatorWithText, ...(lines.length ? lines.concat(`#${separator}`) : [])];
 		},
 		getToolheads: () => {
 			return toolheads.slice();
@@ -104,12 +114,21 @@ export const constructKlipperConfigUtils = async (config: PrinterConfiguration) 
 			}
 			return rail;
 		},
-		getAxisPin(axis: PrinterAxis, alias: string) {
-			const pinName = (axis === PrinterAxis.z ? 'z0' : axis) + alias;
+		getRailPinValue(
+			axis: PrinterAxis,
+			alias: string,
+			enabledMaps: ('controlboard' | 'toolboard')[] = ['controlboard', 'toolboard'],
+			includePrefix: boolean = true,
+		) {
+			const pinName =
+				this.printerAxisToPinAliasPrefix(axis) + '_' + (alias.startsWith('_') ? alias.substring(1) : alias);
 			let pinValue = null;
-			if (this.isExtruderToolheadAxis(axis)) {
-				pinValue = this.getToolhead(axis as ToolOrAxis).getToolheadPin(axis, alias);
-			} else {
+			if (this.isExtruderToolheadAxis(axis) && enabledMaps.includes('toolboard')) {
+				const th = this.getToolhead(axis);
+				pinValue = includePrefix
+					? th.getToolheadPin(axis, alias)
+					: th.getPinFromToolboardAlias(pinName as keyof ToolboardPins<true>);
+			} else if (enabledMaps.includes('controlboard')) {
 				const rail = this.getRail(axis);
 				const slotPin = alias.startsWith('_') ? alias.substring(1) : alias;
 				if (
@@ -189,10 +208,10 @@ export const constructKlipperConfigUtils = async (config: PrinterConfiguration) 
 		},
 		getAxisDriverDiagConfig(axis: PrinterAxis) {
 			if (this.getRail(axis).driver.protocol === 'UART') {
-				return `diag_pin: ^${this.getAxisPin(axis, '_diag_pin')}`;
+				return `diag_pin: ^${this.printerAxisToPinAliasPrefix(axis)}_diag_pin`;
 			}
 			if (this.getRail(axis).driver.protocol === 'SPI') {
-				return `diag1_pin: ^!${this.getAxisPin(axis, '_diag_pin')}`;
+				return `diag1_pin: ^!${this.printerAxisToPinAliasPrefix(axis)}_diag_pin`;
 			}
 			return '';
 		},
@@ -227,6 +246,53 @@ export const constructKlipperConfigUtils = async (config: PrinterConfiguration) 
 				const padding = longestLine - line.length + 2;
 				return line + ' '.repeat(padding) + ' ' + comment;
 			});
+		},
+		isPrinterAxis(axis: string | null): axis is PrinterAxis {
+			return Object.values(PrinterAxis).includes(axis as PrinterAxis);
+		},
+		pinAliasPrefixToPrinterAxis(prefix: string) {
+			const axis = pinPrefixToAxis.safeParse(prefix);
+			if (axis.success) {
+				return axis.data;
+			}
+			return null;
+		},
+		printerAxisToPinAliasPrefix(axis: PrinterAxis) {
+			const prefix = axisToPinPrefix.safeParse(axis);
+			if (prefix.success) {
+				return prefix.data;
+			}
+			return null;
+		},
+		getMotorComments(axis: PrinterAxis | Zod.infer<typeof PrinterRail>, header?: string) {
+			const rail = typeof axis === 'object' ? axis : config.rails.find((r) => r.axis === axis);
+			if (rail == null) {
+				throw new Error(`No rail found for axis ${axis}`);
+			}
+			const section = [`# ${rail.axisDescription}`];
+			if (this.isExtruderToolheadAxis(rail.axis)) {
+				const toolhead = this.getToolhead(rail.axis);
+				if (toolhead == null) {
+					throw new Error(`No toolhead found for ${rail.axis}`);
+				}
+				section.push(`# Connected to ${(toolhead.getToolboard() || config.controlboard).name}`);
+			} else if (rail.motorSlot && config.controlboard.motorSlots) {
+				section.push(
+					`# Connected to ${config.controlboard.motorSlots[rail.motorSlot].title} on ${config.controlboard.name}`,
+				);
+			}
+			return this.renderCommentHeader(header ?? rail.axis.toUpperCase(), section);
+		},
+		getMotorPinComments(axis: PrinterAxis | Zod.infer<typeof PrinterRail>, board: Board, header?: string) {
+			const rail = typeof axis === 'object' ? axis : config.rails.find((r) => r.axis === axis);
+			if (rail == null) {
+				throw new Error(`No rail found for axis ${axis}`);
+			}
+			const section = [];
+			if (rail.motorSlot && board.motorSlots) {
+				section.push(`# Assigned to slot: "${board.motorSlots[rail.motorSlot].title}"`);
+			}
+			return this.renderCommentHeader(header ?? rail.axis.toUpperCase(), section);
 		},
 	};
 };
@@ -320,19 +386,18 @@ export const constructKlipperConfigHelpers = async (
 	utils: KlipperConfigUtils,
 ) => {
 	return {
-		...utils,
 		renderToolboards() {
 			return utils
 				.getToolheads()
 				.map((th) => {
-					return th.renderToolboard();
+					return th.renderToolboard(this.renderBoardPinAlias);
 				})
 				.join('\n');
 		},
 		renderControlboard() {
 			const result = [
 				'', // Add a newline for readability.
-				exportBoardPinAlias(config.controlboard.id, utils.getControlboardPins()),
+				this.renderBoardPinAlias(config.controlboard.id, config.controlboard),
 				'', // Add a newline for readability.
 				`[mcu]`,
 				`serial: ${getBoardSerialPath(config.controlboard)}`,
@@ -387,29 +452,10 @@ export const constructKlipperConfigHelpers = async (
 				})
 				.join('\n');
 		},
-		getMotorComments(axis: PrinterAxis | Zod.infer<typeof PrinterRail>) {
-			const rail = typeof axis === 'object' ? axis : config.rails.find((r) => r.axis === axis);
-			if (rail == null) {
-				throw new Error(`No rail found for axis ${axis}`);
-			}
-			const section = [`# ${rail.axisDescription}`];
-			if (rail.motorSlot && config.controlboard.motorSlots) {
-				section.push(
-					`# Connected to ${config.controlboard.motorSlots[rail.motorSlot].title} on ${config.controlboard.name}`,
-				);
-			} else if (this.isExtruderToolheadAxis(rail.axis)) {
-				const toolhead = utils.getToolhead(rail.axis as ToolOrAxis);
-				if (toolhead == null) {
-					throw new Error(`No toolhead found for ${rail.axis}`);
-				}
-				section.push(`# Connected to ${(toolhead.getToolboard() || config.controlboard).name}`);
-			}
-			return utils.renderCommentHeader(rail.axis.toUpperCase(), section);
-		},
 		renderMotorSections() {
 			const sections = config.rails.map((r) => {
 				return (
-					this.getMotorComments(r).join('\n') +
+					utils.getMotorComments(r).join('\n') +
 					'\n' +
 					this.renderDriverSection(r, true) +
 					'\n' +
@@ -424,12 +470,12 @@ export const constructKlipperConfigHelpers = async (
 			if (rail == null) {
 				throw new Error(`No rail found for axis ${axis}`);
 			}
-			const section = noHeader ? [] : this.getMotorComments(rail);
+			const section = noHeader ? [] : utils.getMotorComments(rail);
 			section.push(
 				`[${utils.getAxisStepperName(rail.axis)}]`,
-				`step_pin: ${utils.getAxisPin(rail.axis, '_step_pin')}`,
-				`dir_pin: ${utils.getAxisPin(rail.axis, '_dir_pin')}`,
-				`enable_pin: !${utils.getAxisPin(rail.axis, '_enable_pin')}`,
+				`step_pin: ${utils.getRailPinValue(rail.axis, '_step_pin')}`,
+				`dir_pin: ${utils.getRailPinValue(rail.axis, '_dir_pin')}`,
+				`enable_pin: !${utils.getRailPinValue(rail.axis, '_enable_pin')}`,
 				`microsteps: ${rail.microstepping}`,
 			);
 			if (rail.axis === PrinterAxis.extruder || rail.axis === PrinterAxis.extruder1) {
@@ -447,7 +493,7 @@ export const constructKlipperConfigHelpers = async (
 				section.push(`position_min: -5`);
 			}
 			if ([PrinterAxis.x, PrinterAxis.y, PrinterAxis.z, PrinterAxis.dual_carriage].includes(rail.axis)) {
-				section.push(`homing_speed: ${this.getAxisHomingSpeed(rail.axis)}`);
+				section.push(`homing_speed: ${utils.getAxisHomingSpeed(rail.axis)}`);
 			}
 			if (rail.gearRatio != null) {
 				section.push(`gear_ratio: ${rail.gearRatio}`);
@@ -471,25 +517,27 @@ export const constructKlipperConfigHelpers = async (
 				(key extends PrinterAxis.z ? { limits: ExplicitObject<Omit<Limits, 'endstop'>> } : {}) &
 				(key extends PrinterAxis.dual_carriage ? { safeDistance: number } : {});
 		}) {
-			return this.formatInlineComments(
-				config.rails
-					.map((r) => {
-						const custom = customization[r.axis];
-						const { directionInverted, rotationComment, additionalLines } = custom ?? {};
-						const limits = custom != null && 'limits' in custom ? custom.limits : null;
-						const safeDistance = custom != null && 'safeDistance' in custom ? custom.safeDistance : undefined;
-						return this.renderUserStepperSection(
-							r.axis,
-							directionInverted,
-							limits,
-							safeDistance,
-							rotationComment,
-							additionalLines,
-						);
-					})
-					.join('\n')
-					.split('\n'),
-			).join('\n');
+			return utils
+				.formatInlineComments(
+					config.rails
+						.map((r) => {
+							const custom = customization[r.axis];
+							const { directionInverted, rotationComment, additionalLines } = custom ?? {};
+							const limits = custom != null && 'limits' in custom ? custom.limits : null;
+							const safeDistance = custom != null && 'safeDistance' in custom ? custom.safeDistance : undefined;
+							return this.renderUserStepperSection(
+								r.axis,
+								directionInverted,
+								limits,
+								safeDistance,
+								rotationComment,
+								additionalLines,
+							);
+						})
+						.join('\n')
+						.split('\n'),
+				)
+				.join('\n');
 		},
 		renderUserStepperSection<T extends PrinterAxis | Zod.infer<typeof PrinterRail>, UserLine extends string>(
 			axis: T,
@@ -510,10 +558,12 @@ export const constructKlipperConfigHelpers = async (
 			const dirComment = directionInverted
 				? `# Remove ! in front of pin name to reverse the direction of ${utils.getAxisStepperName(rail.axis)}`
 				: `# Add ! in front of pin name to reverse the direction of ${utils.getAxisStepperName(rail.axis)}`;
-			const section = this.getMotorComments(rail).concat([
-				`[${utils.getAxisStepperName(rail.axis)}]`,
-				`dir_pin: ${directionInverted ? '!' : ''}${utils.getAxisPin(rail.axis, '_dir_pin')} ${dirComment}`,
-			]);
+			const section = utils
+				.getMotorComments(rail)
+				.concat([
+					`[${utils.getAxisStepperName(rail.axis)}]`,
+					`dir_pin: ${directionInverted ? '!' : ''}${rail.axis.startsWith('extruder') ? utils.getExtruderPinPrefix() : ''}${utils.printerAxisToPinAliasPrefix(rail.axis)}_dir_pin ${dirComment}`,
+				]);
 			if (rail.axis === PrinterAxis.extruder || rail.axis === PrinterAxis.extruder1) {
 				const toolhead = utils.getToolhead(rail.axis);
 				if (toolhead == null) {
@@ -528,7 +578,7 @@ export const constructKlipperConfigHelpers = async (
 				section.push(`rotation_distance: ${rail.rotationDistance} ${rotationComment ? `# ${rotationComment}` : ''}`);
 			}
 			if ([PrinterAxis.x, PrinterAxis.y, PrinterAxis.z].includes(rail.axis)) {
-				section.push(`homing_speed: ${this.getAxisHomingSpeed(rail.axis)}`);
+				section.push(`homing_speed: ${utils.getAxisHomingSpeed(rail.axis)}`);
 			}
 			if (limits) {
 				const marginMin = rail.axis !== PrinterAxis.y ? config.printer.bedMargin.x[0] : config.printer.bedMargin.y[0];
@@ -562,7 +612,7 @@ export const constructKlipperConfigHelpers = async (
 				throw new Error(`No rail found for axis ${axis}`);
 			}
 			const preset = findPreset(rail.stepper, rail.driver, rail.voltage, rail.current);
-			const section = noHeader ? [] : this.getMotorComments(rail);
+			const section = noHeader ? [] : utils.getMotorComments(rail);
 			section.push(
 				`[${utils.getAxisDriverSectionName(rail.axis)}]`,
 				`stealthchop_threshold: ${config.stealthchop ? '9999999' : config.standstillStealth ? '1' : '0'}`,
@@ -570,7 +620,10 @@ export const constructKlipperConfigHelpers = async (
 			);
 			if (rail.driver.protocol === 'UART') {
 				// Render optional motor slot pins
-				if (rail.motorSlot) {
+				if (
+					rail.motorSlot &&
+					!(utils.isExtruderToolheadAxis(rail.axis) && utils.getToolhead(rail.axis).hasToolboard())
+				) {
 					const slotPins = config.controlboard.motorSlots?.[rail.motorSlot];
 					if (slotPins == null || !hasUART(config.controlboard.motorSlots?.[rail.motorSlot])) {
 						throw new Error(`No controlboard motor slot UART pins defined for motor slot ${rail.motorSlot}`);
@@ -579,7 +632,7 @@ export const constructKlipperConfigHelpers = async (
 						section.push(`${key}: ${pin}`);
 					});
 				} else {
-					section.push(`uart_pin: ${utils.getAxisPin(rail.axis, '_uart_pin')}`);
+					section.push(`uart_pin: ${utils.getRailPinValue(rail.axis, '_uart_pin')}`);
 				}
 			}
 			if (rail.driver.protocol === 'SPI') {
@@ -592,7 +645,7 @@ export const constructKlipperConfigHelpers = async (
 						section.push(`${key}: ${pin}`);
 					});
 				} else {
-					section.push(`cs_pin: ${utils.getAxisPin(rail.axis, '_uart_pin')}`);
+					section.push(`cs_pin: ${utils.getRailPinValue(rail.axis, '_uart_pin')}`);
 					if (config.controlboard.stepperSPI != null) {
 						if ('hardware' in config.controlboard.stepperSPI) {
 							section.push(`spi_bus: ${config.controlboard.stepperSPI.hardware.bus}`);
@@ -671,31 +724,31 @@ export const constructKlipperConfigHelpers = async (
 			return result.join('\n');
 		},
 		renderHotend() {
-			let result: string[] = this.getToolheads().map((th) => {
+			let result: string[] = utils.getToolheads().map((th) => {
 				return th.renderHotend();
 			});
 			return result.join('\n');
 		},
 		renderExtruder() {
-			let result: string[] = this.getToolheads().map((th) => {
+			let result: string[] = utils.getToolheads().map((th) => {
 				return th.renderExtruder();
 			});
 			return result.join('\n');
 		},
-		renderInputShaper(printerSize: number) {
+		renderInputShaper(printerSize: z.output<typeof PrinterSizeDefinition>) {
 			// Only renders x toolhead input shaper for now, IDEX uses macro magic for handling both toolheads.
 			let result: string[] = [];
 			result.push('[resonance_tester]');
-			const xToolhead = this.getToolhead(PrinterAxis.x);
+			const xToolhead = utils.getToolhead(PrinterAxis.x);
 			result.push(`accel_chip_x: adxl345 ${xToolhead.getXAccelerometerName()}`);
 			result.push(`accel_chip_y: adxl345 ${xToolhead.getYAccelerometerName()}`);
 			result.push('probe_points:');
-			result.push(`\t${printerSize / 2},${printerSize / 2},20`);
+			result.push(`\t${printerSize.x / 2},${printerSize.y / 2},20`);
 			return result.join('\n');
 		},
 		renderProbeIncludes() {
 			const result: string[] = [];
-			const th = this.getToolheads().find((th) => th.getProbe() != null);
+			const th = utils.getToolheads().find((th) => th.getProbe() != null);
 			if (th) {
 				result.push(`[include RatOS/z-probe/${th.getProbe()?.id + '.cfg'}]`);
 			}
@@ -704,7 +757,7 @@ export const constructKlipperConfigHelpers = async (
 		},
 		renderProbePinSection(onlyPins = false) {
 			const result: string[] = [];
-			const th = this.getToolheads().find((th) => th.getProbe() != null);
+			const th = utils.getToolheads().find((th) => th.getProbe() != null);
 			if (th) {
 				switch (th.getProbe()?.id) {
 					case 'bltouch':
@@ -751,7 +804,7 @@ export const constructKlipperConfigHelpers = async (
 		},
 		renderEndstopSection(pretunedSensorlessConfig?: string) {
 			const result: string[] = [];
-			const toolheads = this.getToolheads();
+			const toolheads = utils.getToolheads();
 			let yPin: 'sensorless' | string = 'sensorless';
 			toolheads.forEach((th) => {
 				if (th.getXEndstop().id !== 'sensorless') {
@@ -810,7 +863,7 @@ export const constructKlipperConfigHelpers = async (
 					result.push(extrasGenerator.generateSensorlessHomingIncludes());
 				}
 			}
-			if (this.getToolheads().every((th) => th.getProbe() == null)) {
+			if (utils.getToolheads().every((th) => th.getProbe() == null)) {
 				result.push(''); // Add a newline for readability.
 				result.push(`# Physical Z endstop configuration`);
 				result.push(`[stepper_z]`);
@@ -826,7 +879,7 @@ export const constructKlipperConfigHelpers = async (
 				`variable_bed_margin_x: [${config.printer.bedMargin.x[0]}, ${config.printer.bedMargin.x[1]}]`,
 				`variable_bed_margin_y: [${config.printer.bedMargin.y[0]}, ${config.printer.bedMargin.y[1]}]`,
 			];
-			const toolheads = this.getToolheads();
+			const toolheads = utils.getToolheads();
 			const isIdex = toolheads.some((th) => th.getMotionAxis() === PrinterAxis.dual_carriage);
 			// IDEX variables
 			if (isIdex) {
@@ -834,8 +887,8 @@ export const constructKlipperConfigHelpers = async (
 				result.push(
 					`variable_default_toolhead: ${probeTool}                             # the toolhead with the z-probe, 0=left 1=right toolhead`,
 				);
-				const firstADXL = this.getToolhead(0).getXAccelerometerName();
-				const secondADXL = this.getToolhead(1).getXAccelerometerName();
+				const firstADXL = utils.getToolhead(0).getXAccelerometerName();
+				const secondADXL = utils.getToolhead(1).getXAccelerometerName();
 				result.push(`variable_adxl_chip: ["${firstADXL}", "${secondADXL}"]           # toolheads adxl chip names`);
 				result.push(`variable_toolchange_travel_speed: ${this.getMacroTravelSpeed()}     # parking travel speed`);
 				result.push(`variable_toolchange_travel_accel: ${this.getMacroTravelAccel()}     # parking travel accel`);
@@ -865,7 +918,7 @@ export const constructKlipperConfigHelpers = async (
 			);
 			result.push(utils.getAxisDriverVariables(PrinterAxis.z, true));
 
-			return this.formatInlineComments(result).join('\n');
+			return utils.formatInlineComments(result).join('\n');
 		},
 		renderSaveVariables() {
 			return extrasGenerator.generateSaveVariables().join('\n');
@@ -875,7 +928,7 @@ export const constructKlipperConfigHelpers = async (
 				`variable_macro_travel_speed: ${this.getMacroTravelSpeed()}`,
 				`variable_macro_travel_accel: ${this.getMacroTravelAccel()}`,
 			];
-			const toolheads = this.getToolheads();
+			const toolheads = utils.getToolheads();
 			const isIdex = toolheads.some((th) => th.getMotionAxis() === PrinterAxis.dual_carriage);
 			if (isIdex) {
 				result.push(`variable_toolchange_travel_speed: ${this.getMacroTravelSpeed()}     # parking travel speed`);
@@ -893,7 +946,7 @@ export const constructKlipperConfigHelpers = async (
 					`variable_shaper_y_type: ["mzv", "mzv", "mzv", "mzv"]    # shaper frequency algorythm [T0, T1, COPY, MIRROR]`,
 				);
 			}
-			return this.formatInlineComments(result).join('\n');
+			return utils.formatInlineComments(result).join('\n');
 		},
 		renderControllerFan() {
 			let result: string[] = [];
@@ -904,23 +957,23 @@ export const constructKlipperConfigHelpers = async (
 			result.push(`[controller_fan controller_fan]`);
 			switch (config.controllerFan.id) {
 				case '2pin':
-					this.requireControlboardPin('fan_controller_board_pin');
+					utils.requireControlboardPin('fan_controller_board_pin');
 					result.push(`# 2-pin fan connected to the controller board`);
-					result.push(`pin: ${this.getControlboardPins().fan_controller_board_pin}`);
+					result.push(`pin: ${utils.getControlboardPins().fan_controller_board_pin}`);
 					break;
 				case '4pin':
-					this.requireControlboardPin('fan_controller_board_pin');
+					utils.requireControlboardPin('fan_controller_board_pin');
 					result.push(`# 4-pin fan connected to the controller board`);
-					result.push(`pin: !${this.getControlboardPins().fan_controller_board_pin}`);
+					result.push(`pin: !${utils.getControlboardPins().fan_controller_board_pin}`);
 					result.push(`cycle_time:  0.00004`);
 					break;
 				case '4pin-dedicated':
-					this.requireControlboardPin('4p_fan_part_cooling_tach_pin');
+					utils.requireControlboardPin('4p_fan_part_cooling_tach_pin');
 					result.push(`# 4-pin fan connected to a dedicated 4-pin fan header on the controller board`);
-					result.push(`pin: ${this.getControlboardPins()['4p_fan_part_cooling_tach_pin']}`);
+					result.push(`pin: ${utils.getControlboardPins()['4p_fan_part_cooling_tach_pin']}`);
 					result.push(`cycle_time:  0.00004`);
-					if (this.getControlboardPins()['4p_fan_part_cooling_tach_pin'] != null) {
-						result.push(`tachometer_pin: ^${this.getControlboardPins()['4p_fan_part_cooling_tach_pin']}`);
+					if (utils.getControlboardPins()['4p_fan_part_cooling_tach_pin'] != null) {
+						result.push(`tachometer_pin: ^${utils.getControlboardPins()['4p_fan_part_cooling_tach_pin']}`);
 						result.push(`tachometer_poll_interval: 0.0005`);
 					}
 					break;
@@ -931,7 +984,7 @@ export const constructKlipperConfigHelpers = async (
 		},
 		renderFans() {
 			const result: string[] = [];
-			const multipleToolheadPartFans = this.getToolheads().filter((th) => th.getPartFan()).length > 1;
+			const multipleToolheadPartFans = utils.getToolheads().filter((th) => th.getPartFan()).length > 1;
 			// Part fan
 			result.push(`# Part cooling fan`);
 			if (multipleToolheadPartFans) {
@@ -943,7 +996,8 @@ export const constructKlipperConfigHelpers = async (
 				);
 			}
 			result.push(
-				this.getToolheads()
+				utils
+					.getToolheads()
 					.map((th) => th.renderPartFan(multipleToolheadPartFans))
 					.join('\n'),
 			);
@@ -951,7 +1005,8 @@ export const constructKlipperConfigHelpers = async (
 			result.push(``);
 			result.push(`# Hotend cooling fan`);
 			result.push(
-				this.getToolheads()
+				utils
+					.getToolheads()
 					.map((th) => th.renderHotendFan())
 					.join('\n'),
 			);
@@ -959,6 +1014,60 @@ export const constructKlipperConfigHelpers = async (
 			result.push(``);
 			result.push(`# Controller cooling fan`);
 			result.push(this.renderControllerFan());
+			return result.join('\n');
+		},
+		renderBoardPinAlias(pinAlias: string, board: Board, toolhead?: Parameters<RenderPinsFn>[2], mcu?: string) {
+			const enabledMap: 'toolboard' | 'controlboard' = board.isToolboard ? 'toolboard' : 'controlboard';
+			const pins = !board.isToolboard ? utils.getControlboardPins() : toolhead?.getToolboardPins();
+			if (pins == null) {
+				throw new Error(`No pins found for ${board.name}.`);
+			}
+			const motionPins: { [key in PrinterAxis]?: string[] } = {};
+			const aliases = (Object.keys(pins) as Array<keyof typeof pins>)
+				.map((k) => {
+					const pinNameParts = k.split('_');
+					const prefix = pinNameParts[0] === 'dual' ? pinNameParts[0] + '_' + pinNameParts[1] : pinNameParts[0];
+					let axis = utils.pinAliasPrefixToPrinterAxis(prefix);
+					if (
+						utils.isPrinterAxis(axis) &&
+						Object.keys(MotorSlotPins.shape).indexOf(k.replace(prefix + '_', '')) !== -1
+					) {
+						try {
+							const val = utils.getRailPinValue(axis, k.replace(prefix, ''), [enabledMap], false);
+							if (motionPins[axis] == null) {
+								motionPins[axis] = [];
+							}
+							motionPins[axis]?.push(`${k}: ${val}`);
+							return null;
+						} catch (e) {
+							// Don't emit unused motor slot pins.
+							return null;
+						}
+					}
+					if (pins[k] == null) {
+						return k + '=null';
+					}
+					return k + '=' + pins[k];
+				})
+				.filter(Boolean);
+			// todoc fix motor pins from rail config
+			const result = [`[board_pins ${pinAlias}]`];
+			if (mcu != null) {
+				result.push(`mcu: ${mcu}`);
+			}
+			const renderedMotionPins: string[] = [];
+			Object.entries(motionPins).forEach(([axis, pins]) => {
+				if (pins != null && utils.isPrinterAxis(axis)) {
+					renderedMotionPins.push(
+						utils.getMotorPinComments(axis, board, `${axis.toUpperCase()} motor pins`).join('\n\t'),
+					);
+					renderedMotionPins.push(pins.join(',\n\t') + ',');
+				}
+			});
+			result.push(
+				`aliases:`,
+				`\t${renderedMotionPins.join('\n\t')}\n\t${utils.renderCommentHeader('GENERAL PINS')}\n\t${aliases.join(',\n\t')}`,
+			);
 			return result.join('\n');
 		},
 		renderBase() {
@@ -970,14 +1079,14 @@ export const constructKlipperConfigHelpers = async (
 			return extrasGenerator.getReminders().join('\n');
 		},
 		renderMacros() {
-			return this.formatInlineComments(this.getToolheads().flatMap((th) => th.renderToolheadMacro().split('\n'))).join(
-				'\n',
-			);
+			return utils
+				.formatInlineComments(utils.getToolheads().flatMap((th) => th.renderToolheadMacro().split('\n')))
+				.join('\n');
 		},
 		uncommentIf(condition: boolean | undefined | null) {
 			return condition === true ? '' : '#';
 		},
 	};
 };
-
 export type KlipperConfigHelper = Awaited<ReturnType<typeof constructKlipperConfigHelpers>>;
+export type RenderPinsFn = (pinAlias: string, board: Board, toolhead?: ToolheadGenerator<any>, mcu?: string) => string;

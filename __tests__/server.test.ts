@@ -40,7 +40,7 @@ const serializedConfigFromDefaults = (printer: PrinterDefinition): SerializedPri
 			}
 			return t;
 		}),
-		size: printer.sizes?.[0],
+		size: printer.sizes[Object.keys(printer.sizes)[0] as keyof typeof printer.sizes],
 		controlboard: printer.defaults.board,
 		printer: printer.id,
 		performanceMode: false,
@@ -150,6 +150,20 @@ describe('server', async () => {
 					.map(async (serialized) => {
 						const deserialized = await deserializePrinterConfiguration(serialized);
 						const reserialized = serializePrinterConfiguration(deserialized);
+						if (
+							(serialized.size == null || typeof serialized.size !== 'object') &&
+							typeof reserialized.size === 'object'
+						) {
+							// Handle PrinterConfiguration zod transform
+							if (serialized.size == null) {
+								expect(reserialized.size).toEqual(
+									deserialized.printer.sizes[Object.keys(deserialized.printer.sizes)[0]],
+								);
+							} else {
+								expect(reserialized.size?.x).toEqual(serialized.size);
+							}
+							serialized.size = reserialized.size;
+						}
 						expect(reserialized).toEqual(serialized);
 					}),
 			);

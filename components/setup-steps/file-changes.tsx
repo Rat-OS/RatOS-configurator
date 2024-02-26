@@ -11,6 +11,7 @@ import { StateCircle } from '../common/state-circle';
 import { Badge } from '../common/badge';
 import { Button, Intents } from '../common/button';
 import { useChangeEffect } from '../../hooks/useChangeEffect';
+import { CheckIcon } from '@heroicons/react/24/outline';
 
 interface FileChangesProps {
 	serializedConfig: SerializedPrinterConfiguration | null;
@@ -62,9 +63,10 @@ const ChangedFile: React.FC<ChangedFileProps> = (props) => {
 		file.state === 'created' ||
 		file.state === 'removed';
 	const isOverwritable = file.state === 'changed';
-	const isIgnorable = file.state === 'created' || file.state === 'removed';
-	const isIgnored = isMarkedIgnored || !wouldOtherwiseBeWritten;
+	const isIgnorable = file.state === 'created' || file.state === 'removed' || file.state === 'changed';
+	const isIgnored = isMarkedIgnored;
 	const isOverwritten = isMarkedOverwritten || (file.overwrite && file.exists);
+	const needsExplicitAction = isIgnorable && !isIgnored && !isOverwritten && !wouldOtherwiseBeWritten;
 	const isDeleted = file.state === 'removed' && !isIgnored;
 	const isCreated = file.state === 'created' && !isIgnored;
 	const isChanged = file.state === 'changed' && !isIgnored && isOverwritten;
@@ -94,7 +96,7 @@ const ChangedFile: React.FC<ChangedFileProps> = (props) => {
 		if (isIgnorable && !isIgnored) {
 			ignore = {
 				title: 'Ignore',
-				intent: 'indeterminate',
+				intent: needsExplicitAction ? 'danger' : 'indeterminate',
 				action: addFileToIgnore,
 			};
 		} else if (isIgnored) {
@@ -124,11 +126,15 @@ const ChangedFile: React.FC<ChangedFileProps> = (props) => {
 		isMarkedOverwritten,
 		isOverwritable,
 		isOverwritten,
+		needsExplicitAction,
 		removeFileToIgnore,
 		removeFileToOverwrite,
 	]);
 
 	const fileState: Intents = useMemo(() => {
+		if (needsExplicitAction) {
+			return 'danger';
+		}
 		if (file.state === 'changed') {
 			if ((isIgnored && file.overwrite) || (isOverwritten && !file.overwrite)) {
 				return 'warning';
@@ -151,7 +157,7 @@ const ChangedFile: React.FC<ChangedFileProps> = (props) => {
 			}
 		}
 		return 'indeterminate';
-	}, [file.overwrite, file.state, isIgnored, isOverwritten]);
+	}, [file.overwrite, file.state, isIgnored, isOverwritten, needsExplicitAction]);
 
 	const [shouldPing] = useChangeEffect([fileState], 4000);
 
@@ -211,13 +217,24 @@ const ChangedFile: React.FC<ChangedFileProps> = (props) => {
 							(isOverwritten && !isIgnored
 								? 'File will be backed up and overwritten.' +
 									(file.fileName != 'RatOS.cfg' ? ` Any changes you've made can be recovered from the backup.` : '')
-								: 'File will be skipped.')}
+								: !needsExplicitAction
+									? 'File will be skipped.'
+									: 'Please review the changes and make a decision.')}
 						{file.state === 'created' && (isIgnored ? 'File will be skipped.' : 'File will be created.')}
 						{file.state === 'removed' && (!isIgnored ? 'File will be deleted.' : 'File will remain untouched.')}
 					</p>
 				</div>
 			</div>
 			<div className="flex flex-none items-center gap-x-4">
+				<div className="flex flex-none items-center">
+					{needsExplicitAction ? (
+						<Button intent="info" onClick={() => showDiffModal(file)}>
+							Review changes
+						</Button>
+					) : (
+						<CheckIcon className="h-5 w-5 text-green-500 dark:text-brand-500" aria-hidden="true" />
+					)}
+				</div>
 				<Menu as="div" className="relative flex-none">
 					<Menu.Button className="-m-2.5 block p-2.5 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
 						<span className="sr-only">Open options</span>

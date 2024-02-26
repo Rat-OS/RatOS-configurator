@@ -97,7 +97,7 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 		<Disclosure as="div" className="">
 			{({ open }) => (
 				<>
-					<Disclosure.Button as="div" className="cursor-pointer border-b border-zinc-100 py-4 dark:border-zinc-700">
+					<Disclosure.Button as="div" className="cursor-pointer border-b border-zinc-100 py-4 dark:border-zinc-800">
 						<div className="flex items-center justify-between">
 							<h3 className="flex items-center space-x-2 text-base font-bold leading-7 text-zinc-900 dark:text-zinc-100">
 								<span>Toolhead {toolhead.getToolCommand()}</span>
@@ -273,14 +273,18 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 	const saveConfiguration = useCallback(async () => {
 		if (parsedPrinterConfiguration.success) {
 			saveConfigurationMutation.mutate(
-				{ config: serializePrinterConfiguration(parsedPrinterConfiguration.data), overwriteFiles: filesToOverwrite },
+				{
+					config: serializePrinterConfiguration(parsedPrinterConfiguration.data),
+					overwriteFiles: filesToOverwrite,
+					skipFiles: filesToIgnore,
+				},
 				{
 					onSuccess: props.nextScreen,
-					onError: (error) => window.scrollTo(0, 0),
+					onError: () => window.scrollTo(0, 0),
 				},
 			);
 		}
-	}, [parsedPrinterConfiguration, saveConfigurationMutation, filesToOverwrite, props.nextScreen]);
+	}, [parsedPrinterConfiguration, saveConfigurationMutation, filesToOverwrite, filesToIgnore, props.nextScreen]);
 
 	const client = trpc.useContext().client;
 	const filesToWrite = useQuery({
@@ -293,6 +297,14 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 		},
 		enabled: parsedPrinterConfiguration.success,
 	});
+
+	const requiresExplicitFileActions = filesToWrite.data?.some(
+		(f) =>
+			f.state === 'changed' &&
+			f.overwrite === false &&
+			!filesToIgnore.includes(f.fileName) &&
+			!filesToOverwrite.includes(f.fileName),
+	);
 
 	if (saveConfigurationMutation.error) {
 		errors.push(saveConfigurationMutation.error.message);
@@ -376,7 +388,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 								<Disclosure as={Fragment}>
 									{({ open }) => (
 										<>
-											<Disclosure.Button as="div" className="border-b border-zinc-100 py-4 dark:border-zinc-700">
+											<Disclosure.Button as="div" className="border-b border-zinc-100 py-4 dark:border-zinc-800">
 												<div className="flex cursor-pointer items-center justify-between">
 													<h3 className="flex items-center space-x-2 text-base font-bold leading-7 text-zinc-900 dark:text-zinc-100">
 														<span>General</span>
@@ -450,7 +462,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 								<Disclosure as={Fragment} defaultOpen={false}>
 									{({ open }) => (
 										<>
-											<Disclosure.Button as="div" className="border-b border-zinc-100 py-4 dark:border-zinc-700">
+											<Disclosure.Button as="div" className="border-b border-zinc-100 py-4 dark:border-zinc-800">
 												<div className="flex cursor-pointer items-center justify-between">
 													<h3 className="flex items-center space-x-2 text-base font-bold leading-7 text-zinc-900 dark:text-zinc-100">
 														<span>Motion</span>
@@ -516,12 +528,14 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 										</>
 									)}
 								</Disclosure>
-								<div className="border-b border-zinc-100 py-4 dark:border-zinc-700">
-									<div className="flex cursor-pointer items-center justify-between">
-										<h3 className="flex items-center space-x-2 text-base font-bold leading-7 text-zinc-900 dark:text-zinc-100">
-											Config files
-										</h3>
-									</div>
+
+								<div className="mb-5 mt-10 border-b border-zinc-200 pb-5 dark:border-zinc-700">
+									<h3 className="text-lg font-medium leading-6 text-zinc-900 dark:text-zinc-100">
+										Configuration Files
+									</h3>
+									<p className="mt-2 max-w-4xl text-sm text-zinc-500 dark:text-zinc-400">
+										Please review the changes to the configuration files.
+									</p>
 								</div>
 								<dl className="gap-y-4py-4 grid grid-cols-1 gap-x-4 sm:grid-cols-2">
 									<div className=" space-y-4 dark:border-zinc-700 sm:col-span-2">
@@ -549,7 +563,11 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 				left={{ onClick: props.previousScreen }}
 				right={{
 					onClick: saveConfiguration,
-					disabled: !parsedPrinterConfiguration.success || (motionErrors?.length ?? 0) > 0,
+					disabled:
+						!parsedPrinterConfiguration.success || (motionErrors?.length ?? 0) > 0 || requiresExplicitFileActions,
+					title: requiresExplicitFileActions
+						? 'You need to explicitly overwrite or ignore one or more files'
+						: undefined,
 					isLoading: saveConfigurationMutation.isLoading,
 					label: 'Confirm and save',
 				}}

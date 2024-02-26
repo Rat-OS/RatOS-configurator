@@ -23,7 +23,7 @@ ${r.renderExtruder()}
 ${r.renderHotend()}
 
 # ADXL345 resonance testing configuration
-${r.renderInputShaper(e.size??300)}
+${r.renderInputShaper(e.size)}
 
 #############################################################################################################
 ### STEPPER MOTORS, DRIVERS & SPEED LIMITS
@@ -99,7 +99,7 @@ ${r.renderUserMacroVariableOverrides()}
 ### Read more about klipper here: https://www.klipper3d.org/Overview.html
 #############################################################################################################
 
-${r.renderUserStepperSections({x:{directionInverted:!1,rotationComment:"40 for 20 tooth 2GT pulleys, 32 for 16 tooth 2GT pulleys",limits:e=>({min:0-e.min,max:180+e.max,endstop:0-e.min})},y:{directionInverted:!1,rotationComment:"40 for 20 tooth 2GT pulleys, 32 for 16 tooth 2GT pulleys",limits:e=>({min:0-e.min,max:180+e.max,endstop:0-e.min})},z:{directionInverted:!0,rotationComment:"4 for TR8*4 lead screws",limits:{min:0,max:180}},extruder:{directionInverted:!0,additionalLines:["#pressure_advance: 0.05 # Check https://www.klipper3d.org/Pressure_Advance.html for pressure advance tuning.","control: pid","pid_kp: 28.413","pid_ki: 1.334","pid_kd: 151.300"]}})}
+${r.renderUserStepperSections({x:{directionInverted:!1,rotationComment:"40 for 20 tooth 2GT pulleys, 32 for 16 tooth 2GT pulleys",limits:r=>({min:0-r.min,max:e.size.x+r.max,endstop:0-r.min})},y:{directionInverted:!1,rotationComment:"40 for 20 tooth 2GT pulleys, 32 for 16 tooth 2GT pulleys",limits:r=>({min:0-r.min,max:e.size.y+r.max,endstop:0-r.min})},z:{directionInverted:!0,rotationComment:"4 for TR8*4 lead screws",limits:{min:0,max:e.size.z}},extruder:{directionInverted:!0,additionalLines:["#pressure_advance: 0.05 # Check https://www.klipper3d.org/Pressure_Advance.html for pressure advance tuning.","control: pid","pid_kp: 28.413","pid_ki: 1.334","pid_kd: 151.300"]}})}
 
 [heater_bed]
 control: pid

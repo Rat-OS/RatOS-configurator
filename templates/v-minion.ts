@@ -25,7 +25,7 @@ ${helper.renderExtruder()}
 ${helper.renderHotend()}
 
 # ADXL345 resonance testing configuration
-${helper.renderInputShaper(180)}
+${helper.renderInputShaper(config.size)}
 
 
 #############################################################################################################
@@ -108,7 +108,7 @@ ${helper.renderUserStepperSections({
 		rotationComment: '40 for 20 tooth 2GT pulleys, 32 for 16 tooth 2GT pulleys',
 		limits: (margin) => ({
 			min: 0 - margin.min,
-			max: 180 + margin.max,
+			max: config.size.x + margin.max,
 			endstop: 0 - margin.min,
 		}),
 	},
@@ -117,7 +117,7 @@ ${helper.renderUserStepperSections({
 		rotationComment: '40 for 20 tooth 2GT pulleys, 32 for 16 tooth 2GT pulleys',
 		limits: (margin) => ({
 			min: 0 - margin.min,
-			max: 180 + margin.max,
+			max: config.size.y + margin.max,
 			endstop: 0 - margin.min,
 		}),
 	},
@@ -126,7 +126,7 @@ ${helper.renderUserStepperSections({
 		rotationComment: '4 for TR8*4 lead screws',
 		limits: {
 			min: 0,
-			max: 180,
+			max: config.size.z,
 		},
 	},
 	extruder: {

@@ -95,6 +95,7 @@ export const exportBoardPinAlias = (pinAlias: string, pins: z.infer<typeof PinMa
 		}
 		return k + '=' + pins[k];
 	});
+	// todoc fix motor pins from rail config
 	const result = [`[board_pins ${pinAlias}]`];
 	if (mcu != null) {
 		result.push(`mcu: ${mcu}`);

@@ -24,6 +24,14 @@ const SpeedLimits = z
 	})
 	.strict();
 
+export const PrinterSizeDefinition = z
+	.object({
+		x: z.number().min(0).describe('The print volume in X'),
+		y: z.number().min(0).describe('The print volume in Y'),
+		z: z.number().min(0).describe('The print volume in Z'),
+	})
+	.describe('The print volume of a printer');
+
 export const PrinterDefinition = z
 	.object({
 		id: z.string(),
@@ -32,7 +40,7 @@ export const PrinterDefinition = z
 		manufacturer: z.string().describe('The name of the manufacturer of this printer'),
 		documentationLink: z.string().describe('Link to the RatOS documentation for this printer'),
 		image: z.string().describe('Link to an image of the printer'),
-		sizes: z.array(z.number()).describe('Size options for this printer').optional(),
+		sizes: z.record(z.string(), PrinterSizeDefinition).describe('Size options for this printer'),
 		template: z.string().describe('Printer.cfg template for this printer'),
 		path: z.string().startsWith(startsWithServerValidation),
 		driverCountRequired: z.number().describe('Number of drivers required for this printer'),

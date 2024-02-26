@@ -23,7 +23,7 @@ ${r.renderExtruder()}
 ${r.renderHotend()}
 
 # ADXL345 resonance testing configuration
-${r.renderInputShaper(180)}
+${r.renderInputShaper(e.size)}
 
 #############################################################################################################
 ### STEPPER MOTORS, DRIVERS & SPEED LIMITS
@@ -122,7 +122,7 @@ ${r.renderUserMacroVariableOverrides()}
 ### Read more about klipper here: https://www.klipper3d.org/Overview.html
 #############################################################################################################
 
-${r.renderUserStepperSections({x:{directionInverted:!1,limits:e=>({min:-2-e.min,max:180.4+e.max,endstop:180.4+e.max})},y:{directionInverted:!1,limits:e=>({min:-3-e.min,max:180+e.max,endstop:-3-e.min})},z:{limits:{max:214,min:-0},directionInverted:!0},extruder:{directionInverted:!1,additionalLines:["pressure_advance: 0.04 # Check https://www.klipper3d.org/Pressure_Advance.html for pressure advance tuning.","control: pid","pid_kp: 20.184","pid_ki: 0.836","pid_kd: 121.862"]}})}
+${r.renderUserStepperSections({x:{directionInverted:!1,limits:r=>({min:-r.min,max:e.size.x+r.max,endstop:e.size.x+r.max})},y:{directionInverted:!1,limits:r=>({min:-r.min,max:e.size.y+r.max,endstop:-r.min})},z:{limits:{max:e.size.z,min:0},directionInverted:!0},extruder:{directionInverted:!1,additionalLines:["pressure_advance: 0.04 # Check https://www.klipper3d.org/Pressure_Advance.html for pressure advance tuning.","control: pid","pid_kp: 20.184","pid_ki: 0.836","pid_kd: 121.862"]}})}
 
 
 [heater_bed]

@@ -43,7 +43,6 @@ export const useDragPosition = (ref: React.RefObject<HTMLElement>) => {
 	const [pageXY, setPageXY] = useState<Position | null>(null);
 	const [clientXY, setClientXY] = useState<Position | null>(null);
 	const reset = useCallback(() => {
-		console.log('cleaning up');
 		setPageXY(null);
 		setClientXY(null);
 	}, []);
