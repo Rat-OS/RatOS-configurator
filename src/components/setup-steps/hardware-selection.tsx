@@ -129,7 +129,7 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 						<div className="col-span-2">
 							<Toggle
 								label="Standstill Stealth"
-								description="Makes steppers stilent when idling, but can cause unpredictable behavior on some drivers. Can result in skipped steps and positional errors, use with caution."
+								description="Makes steppers silent when idling, but can cause unpredictable behavior on some drivers. Can result in skipped steps and positional errors, use with caution."
 								onChange={setStandstillStealth}
 								value={!!standstillStealth}
 							/>
