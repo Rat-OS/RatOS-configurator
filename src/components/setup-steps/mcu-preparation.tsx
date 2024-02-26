@@ -94,7 +94,6 @@ export const MCUPreparation: React.FC<StepScreenProps & ExtraProps> = (props) =>
 				right: <CpuChipIcon className="h-8 w-8 text-zinc-500" />,
 			}));
 	}, [boardsQuery.isError, boardsQuery.data, toolhead]);
-	console.log(cards);
 
 	const selectedControlboard = boardsQuery.data?.find((c) => c.id == _controlBoard?.id) ?? null;
 	const selectedToolboard = boardsQuery.data?.find((c) => c.id == toolhead?.getToolboard()?.id) ?? null;
