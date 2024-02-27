@@ -94,6 +94,20 @@ export type PrinterObjectQueries = {
 		},
 		void
 	>;
+	'gcode_macro _VAOC': MoonrakerMethod<
+		{
+			is_started: boolean;
+		},
+		void
+	>;
+	configfile: MoonrakerMethod<
+		{
+			settings: {
+				[key: string]: unknown | undefined;
+			};
+		},
+		void
+	>;
 };
 
 // Moonraker Printer Object Types

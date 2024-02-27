@@ -5,7 +5,7 @@ interface WebRTCConfig {
 	sdpSemantics: 'unified-plan';
 }
 
-export function useWebRTC(url: string) {
+export function useWebRTC(url: string, onStreamStats?: (stats: RTCInboundRtpStreamStats) => void) {
 	const videoElRef = useRef<HTMLVideoElement>(null);
 	const audioElRef = useRef<HTMLVideoElement>(null);
 	const peerConnection = useRef<RTCPeerConnection | null>(null);
@@ -141,6 +141,24 @@ export function useWebRTC(url: string) {
 			isConnecting.current = false;
 		}
 	}, [onIceCandidate, url]);
+
+	// Get stream stats
+	useEffect(() => {
+		if (onStreamStats) {
+			const interval = setInterval(async () => {
+				if (peerConnection.current) {
+					const stats = await peerConnection.current.getStats();
+					stats.forEach((report) => {
+						if (report.type === 'inbound-rtp' && report.kind === 'video') {
+							const data = report as RTCInboundRtpStreamStats;
+							onStreamStats?.(data);
+						}
+					});
+				}
+			}, 1000);
+			return () => clearInterval(interval);
+		}
+	}, [onStreamStats]);
 
 	useEffect(() => {
 		if (url && isConnecting.current === false) {
