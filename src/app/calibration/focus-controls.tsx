@@ -28,7 +28,7 @@ export const FocusControls: React.FC<CameraSettingsProps> = (props) => {
 	return (
 		<div
 			className={twMerge(
-				'scroll absolute transform-gpu overflow-y-auto rounded-md border-y border-r border-zinc-800 bg-zinc-100 shadow-lg transition-all dark:bg-zinc-900/70',
+				'scroll absolute transform-gpu overflow-y-auto rounded-md border-y border-r border-zinc-800 bg-zinc-100 font-mono shadow-lg transition-all dark:bg-zinc-900/70',
 				props.isVisible ? ' -translate-y-full opacity-100' : 'pointer-events-none  -translate-y-2/3  opacity-0',
 				props.className,
 			)}
@@ -47,7 +47,7 @@ export const FocusControls: React.FC<CameraSettingsProps> = (props) => {
 							)}
 						>
 							<ChevronDoubleUpIcon className="inline h-5 w-5 flex-shrink-0" aria-hidden="true" />
-							<span className="inline">+1.0</span>
+							<span className="inline">+1.00</span>
 						</button>
 					</div>
 				</li>
@@ -61,7 +61,7 @@ export const FocusControls: React.FC<CameraSettingsProps> = (props) => {
 							)}
 						>
 							<ChevronUpIcon className="inline h-5 w-5 flex-shrink-0" aria-hidden="true" />
-							<span className="inline">+0.5</span>
+							<span className="inline">+0.50</span>
 						</button>
 					</div>
 				</li>
@@ -75,7 +75,35 @@ export const FocusControls: React.FC<CameraSettingsProps> = (props) => {
 							)}
 						>
 							<ChevronUpIcon className="inline h-5 w-5 flex-shrink-0" aria-hidden="true" />
-							<span className="inline">+0.1</span>
+							<span className="inline">+0.10</span>
+						</button>
+					</div>
+				</li>
+				<li className={twJoin('flex')}>
+					<div className={twJoin('flex flex-1 items-center justify-center text-center')}>
+						<button
+							onClick={() => G`G91\nG0 Z0.05`}
+							type="button"
+							className={twMerge(
+								'flex items-center justify-center space-x-2 whitespace-nowrap px-5 py-3 text-sm font-medium text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-100',
+							)}
+						>
+							<ChevronUpIcon className="inline h-5 w-5 flex-shrink-0" aria-hidden="true" />
+							<span className="inline">+0.05</span>
+						</button>
+					</div>
+				</li>
+				<li className={twJoin('flex')}>
+					<div className={twJoin('flex flex-1 items-center justify-center text-center')}>
+						<button
+							onClick={() => G`G91\nG0 Z-0.05`}
+							type="button"
+							className={twMerge(
+								'flex items-center justify-center space-x-2 whitespace-nowrap px-5 py-3 text-sm font-medium text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-100',
+							)}
+						>
+							<ChevronUpIcon className="inline h-5 w-5 flex-shrink-0" aria-hidden="true" />
+							<span className="inline">-0.05</span>
 						</button>
 					</div>
 				</li>
@@ -89,7 +117,7 @@ export const FocusControls: React.FC<CameraSettingsProps> = (props) => {
 							)}
 						>
 							<ChevronDownIcon className="inline h-5 w-5 flex-shrink-0" aria-hidden="true" />
-							<span className="inline">-0.1</span>
+							<span className="inline">-0.10</span>
 						</button>
 					</div>
 				</li>
@@ -103,7 +131,7 @@ export const FocusControls: React.FC<CameraSettingsProps> = (props) => {
 							)}
 						>
 							<ChevronDownIcon className="inline h-5 w-5 flex-shrink-0" aria-hidden="true" />
-							<span className="inline">-0.5</span>
+							<span className="inline">-0.50</span>
 						</button>
 					</div>
 				</li>
@@ -117,7 +145,7 @@ export const FocusControls: React.FC<CameraSettingsProps> = (props) => {
 							)}
 						>
 							<ChevronDoubleDownIcon className="inline h-5 w-5 flex-shrink-0" aria-hidden="true" />
-							<span className="inline">-1.0</span>
+							<span className="inline">-1.00</span>
 						</button>
 					</div>
 				</li>

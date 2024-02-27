@@ -1,8 +1,8 @@
 'use client';
-import { HomeIcon } from '@heroicons/react/24/solid';
+import { PlayIcon, StopIcon } from '@heroicons/react/24/solid';
 import Toolbar, { ToolbarButton, ToolbarButtonWithParent } from '../../components/common/toolbar';
 import { useWebRTC } from '../_hooks/webrtc';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { use, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useGesture } from '@use-gesture/react';
 import {
 	CameraIcon,
@@ -14,6 +14,7 @@ import {
 	MagnifyingGlassIcon,
 	ViewfinderCircleIcon,
 	BeakerIcon,
+	ArrowDownTrayIcon,
 } from '@heroicons/react/24/outline';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { twJoin, twMerge } from 'tailwind-merge';
@@ -29,6 +30,7 @@ import { useGcodeCommand } from '../_hooks/toolhead';
 import { getHost } from '../../helpers/util';
 import { useCameraSettings } from './hooks';
 import { Slider } from '../../components/forms/slider';
+import { useCallbackRef } from 'use-callback-ref';
 
 const getCameraUrl = () => {
 	const host = getHost();
@@ -45,15 +47,32 @@ export default function Page() {
 	useEffect(() => {
 		setUrl(getCameraUrl());
 	}, []);
-	const { videoRef, connectionState } = useWebRTC(url + '/webrtc');
+	const [fps, setFps] = useState<number | null>(null);
+	const [aspectRatio, setAspectRatio] = useState<number | null>(null);
+	const [containerAspectRatio, setContainerAspectRatio] = useState<number>(0.1);
+	const { videoRef, connectionState } = useWebRTC(
+		url + '/webrtc',
+		useCallback((stats: RTCInboundRtpStreamStats) => {
+			if (stats.framesPerSecond) {
+				setFps(stats.framesPerSecond);
+			}
+			if (stats.frameHeight && stats.frameWidth) {
+				setAspectRatio(stats.frameWidth / stats.frameHeight);
+			}
+		}, []),
+	);
 	const [settings] = useMoonrakerState('RatOS', 'camera-settings');
-	const containerRef = useRef<HTMLDivElement | null>(null);
+	const containerRef = useCallbackRef<HTMLDivElement | null>(null, (newRef, oldRef) => {
+		if (newRef != null) {
+			setContainerAspectRatio(newRef.getBoundingClientRect().width / newRef.getBoundingClientRect().height);
+		}
+	});
 	const rootRef = useRef<HTMLDivElement | null>(null);
 	const [dragOffset, setDragOffset] = useState<[number, number] | null>(null);
 	const [dragOutside, setDragOutside] = useState<{ x: false | number; y: false | number }>({ x: false, y: false });
 	const { options, setOption } = useCameraSettings(url, connectionState === 'connected');
 	const [canMove, setCanMove] = useState(false);
-	const [isHoming, setIsHoming] = useState(false);
+	const [isStartingVaoc, setIsStartingVaoc] = useState(false);
 	const [isSettingsVisible, setIsSettingsVisible] = useState(false);
 	const [_isZoomExpanded, _setIsZoomExpanded] = useState(false);
 	const [isExposureVisible, setIsExposureVisible] = useState(false);
@@ -67,10 +86,16 @@ export default function Page() {
 	const G = useGcodeCommand();
 	const [animate] = useAutoAnimate();
 	const windowSize = useWindowSize();
-	const toolhead = usePrinterObjectSubscription(
-		(res) => ({ tool: res.toolhead.extruder === 'extruder' ? 'T0' : 'T1', homed_axes: res.toolhead.homed_axes }),
-		'toolhead',
-	);
+	const toolhead = usePrinterObjectSubscription((res) => {
+		return {
+			tool: res.toolhead.extruder === 'extruder' ? 'T0' : 'T1',
+			homed_axes: res.toolhead.homed_axes,
+			position: res.toolhead.position,
+		};
+	}, 'toolhead');
+	const { isVaocStarted } = usePrinterObjectSubscription((res) => {
+		return { isVaocStarted: res['gcode_macro _VAOC'].is_started };
+	}, 'gcode_macro _VAOC') ?? { isVaocStarted: false };
 	const [isLockingCoordinates] = useChangeEffect([_isLockingCoordinates], SnapshotEffectDuration, true);
 	const [delayedIsLockingCoordinates] = useDelayedChangeEffect(
 		[_isLockingCoordinates],
@@ -78,6 +103,23 @@ export default function Page() {
 		10,
 		true,
 	);
+	const { hasZOffsetProbe } = usePrinterObjectSubscription((res) => {
+		return { hasZOffsetProbe: res.configfile.settings.z_offset_probe != null };
+	}, 'configfile') ?? { hasZOffsetProbe: false };
+	const [isZOffsetProbeVisible, setIsZOffsetProbeVisible] = useState(false);
+
+	useEffect(() => {
+		console.log(toolhead);
+	}, [toolhead]);
+
+	useEffect(() => {
+		if (containerRef.current != null) {
+			setContainerAspectRatio(
+				containerRef.current?.getBoundingClientRect().width / containerRef.current?.getBoundingClientRect().height ??
+					windowSize.width / windowSize.height,
+			);
+		}
+	}, [windowSize, containerRef]);
 
 	const scale = useCallback(
 		(val: number) => {
@@ -97,7 +139,7 @@ export default function Page() {
 			const videoScale = frameWidth > 0 && vidWidth > 0 ? frameWidth / vidWidth : 1;
 			return val / zoom / videoScale;
 		},
-		[videoRef, zoom],
+		[containerRef, videoRef, zoom],
 	);
 
 	const toScreen = useCallback(
@@ -131,7 +173,7 @@ export default function Page() {
 				} else {
 					const x = toMillimeters(dragOffset?.[0] ?? 0) * -1;
 					const y = toMillimeters(dragOffset?.[1] ?? 0) * -1;
-					G`_NOZZLE_CALIBRATION_MOVE X=${x} Y=${y}`;
+					G`_VAOC_MOVE X=${x} Y=${y}`;
 					setDragOffset(null);
 					setDragOutside({ x: false, y: false });
 				}
@@ -175,32 +217,39 @@ export default function Page() {
 
 	const topLeftControls: ToolbarButton[] = [
 		{
-			icon: HomeIcon,
-			id: 'home',
-			title: 'Home the printer (G28)',
-			isLoading: isHoming,
+			icon: isVaocStarted ? StopIcon : PlayIcon,
+			id: 'start/stop',
+			name: isVaocStarted ? undefined : 'Start Calibration',
+			title: isVaocStarted ? 'Stop calibration' : 'Start calibration',
 			onClick: async () => {
-				setIsHoming(true);
-				await G`G28`;
-				setIsHoming(false);
+				if (isStartingVaoc) {
+					return;
+				}
+				setIsStartingVaoc(true);
+				await (isVaocStarted ? G`_VAOC_END` : G`_VAOC_START`);
+				setIsStartingVaoc(false);
 			},
-			isActive: toolhead?.homed_axes === 'xyz',
+			isActive: isVaocStarted,
 		},
 		{
 			name: 'T0',
 			id: 't0',
+			hidden: !isVaocStarted,
 			title: 'Switch to tool 0 (T0)',
-			onClick: () => {
-				G`_NOZZLE_CALIBRATION_LOAD_TOOL T=0`;
+			onClick: async () => {
+				setCanMove(false);
+				await G`_VAOC_LOAD_TOOL T=0`;
 			},
 			isActive: toolhead?.tool === 'T0',
 		},
 		{
 			name: 'T1',
 			id: 't1',
+			hidden: !isVaocStarted,
 			title: 'Switch to tool 1 (T1)',
-			onClick: () => {
-				G`_NOZZLE_CALIBRATION_LOAD_TOOL T=1`;
+			onClick: async () => {
+				setCanMove(false);
+				await G`_VAOC_LOAD_TOOL T=1`;
 			},
 			isActive: toolhead?.tool === 'T1',
 		},
@@ -229,9 +278,9 @@ export default function Page() {
 			icon: LightBulbIcon,
 			id: 'light',
 			title: `${light ? 'Turn off' : 'Turn on'} the LEDs`,
-			onClick: () => {
+			onClick: async () => {
 				const newVal = !light;
-				G`_NOZZLE_CALIBRATION_SWITCH_LED STATE=${newVal ? 1 : 0}`;
+				await G`_VAOC_SWITCH_LED STATE=${newVal ? 1 : 0}`;
 				setLight(newVal);
 			},
 			isActive: light,
@@ -289,32 +338,89 @@ export default function Page() {
 					name: toolhead?.tool === 'T0' ? 'Set reference' : 'Set offset',
 					icon: MapPinIcon,
 					isLoading: isLockingCoordinates,
+					hidden: !isVaocStarted,
 					id: 'reference',
 					title: `Set the ${toolhead?.tool === 'T0' ? 'T0 reference point' : 'T1 offset'}`,
 					onClick: async () => {
+						setIsZOffsetProbeVisible(hasZOffsetProbe ? true : false);
 						setIsLockingCoordinates(true);
-						await G`_NOZZLE_CALIBRATION_SET_TOOL`;
+						await G`_VAOC_SET_TOOL`;
 						setIsLockingCoordinates(false);
+						setCanMove(false);
 					},
 					isActive: isLockingCoordinates,
 				},
 				{
-					name: 'Move',
+					name: canMove ? (
+						<span className="font-mono">
+							<CountUp preserveValue={true} decimals={2} start={0} end={toolhead?.position?.[0] ?? 0} />,{' '}
+							<CountUp preserveValue={true} decimals={2} start={0} end={toolhead?.position?.[1] ?? 0} />
+						</span>
+					) : (
+						'Move'
+					),
 					icon: ArrowsPointingOutIcon,
+					hidden: !isVaocStarted,
 					id: 'move',
 					title: `${canMove ? 'Disable' : 'Enable'} drag and drop calibration`,
 					onClick: () => {
+						if (!canMove) {
+							setIsFocusVisible(true);
+							setIsExposureVisible(false);
+							setIsColorVisible(false);
+							setIsAdvancedVisible(false);
+							setIsCameraControlsVisible(true);
+						} else {
+							setIsFocusVisible(false);
+							setIsExposureVisible(false);
+							setIsColorVisible(false);
+							setIsAdvancedVisible(false);
+							setIsCameraControlsVisible(false);
+						}
 						setCanMove((m) => !m);
 					},
 					isActive: canMove,
 				},
+				{
+					name: 'Z-Probe',
+					icon: ArrowDownTrayIcon,
+					title: 'Probe the z endstop to set the Z offset',
+					id: 'z-probe',
+					hidden: !isVaocStarted || !hasZOffsetProbe || !isZOffsetProbeVisible,
+					onClick: async () => {
+						await G`_VAOC_PROBE_Z_OFFSET`;
+					},
+					isActive: false,
+				},
 			] satisfies ToolbarButton[],
-		[isSettingsVisible, toolhead, isLockingCoordinates, canMove, G],
+		[
+			isSettingsVisible,
+			toolhead?.tool,
+			toolhead?.position,
+			isLockingCoordinates,
+			isVaocStarted,
+			canMove,
+			hasZOffsetProbe,
+			isZOffsetProbeVisible,
+			G,
+		],
 	);
 	const cameraControls = useMemo(() => {
 		const controls: ToolbarButton[] = [
 			{
 				icon: CameraIcon,
+				name: (
+					<span>
+						{fps == null ? (
+							'Loading...'
+						) : (
+							<span>
+								<CountUp start={0} preserveValue={true} duration={1} end={fps} /> FPS
+							</span>
+						)}
+					</span>
+				),
+				className: 'font-mono',
 				id: 'settings',
 				subButtonPosition: 'before',
 				title: `${isCameraControlsVisible ? 'Hide' : 'Show'} camera controls`,
@@ -331,7 +437,7 @@ export default function Page() {
 			},
 		];
 		return controls;
-	}, [isCameraControlsVisible]);
+	}, [fps, isCameraControlsVisible]);
 	const cameraControlsSubButtons = useMemo(() => {
 		const controls: ToolbarButtonWithParent[] = [
 			{
@@ -339,7 +445,7 @@ export default function Page() {
 				id: 'focus',
 				parent: 'settings',
 				hidden: isColorVisible || isAdvancedVisible || isExposureVisible,
-				name: 'Focus',
+				name: 'Z Focus',
 				title: `${isFocusVisible ? 'Hide' : 'Show'} focus controls`,
 				children: <FocusControls isVisible={isFocusVisible} toggle={setIsFocusVisible} />,
 				onClick: () => {
@@ -410,18 +516,18 @@ export default function Page() {
 			containerRef.current == null || connectionState !== 'connected'
 				? 0
 				: (outerNozzleRadius / containerRef.current.getBoundingClientRect().width) * 100,
-		[connectionState, outerNozzleRadius],
+		[connectionState, containerRef, outerNozzleRadius],
 	);
 	const outerNozzleRadiusPercentHeight = useMemo(
 		() =>
 			containerRef.current == null || connectionState !== 'connected'
 				? 0
 				: (outerNozzleRadius / containerRef.current.getBoundingClientRect().height) * 100,
-		[connectionState, outerNozzleRadius],
+		[connectionState, containerRef, outerNozzleRadius],
 	);
 	const strokeWidth = useMemo(() => toScreen(0.01), [toScreen]);
 	return (
-		<div className="flex h-[calc(100vh_-_64px)] w-full items-center" ref={rootRef}>
+		<div className="flex h-[calc(100vh_-_64px)] w-full select-none items-center" ref={rootRef}>
 			<div
 				className="relative mx-auto flex h-full max-h-full min-h-[50vh] min-w-[50vw] max-w-fit items-center overflow-hidden object-contain shadow-lg"
 				ref={containerRef}
@@ -440,15 +546,6 @@ export default function Page() {
 					muted
 					playsInline
 				/>
-				<Toolbar className="absolute left-5 top-5" buttons={topLeftControls} />
-				<Toolbar
-					className="absolute bottom-5 right-5 overflow-visible"
-					buttons={cameraControls}
-					subButtons={cameraControlsSubButtons}
-				/>
-				<Toolbar className="absolute right-5 top-5" buttons={topRightControls} subButtons={zoomControls} />
-				<Toolbar className="absolute bottom-5 left-5" buttons={bottomLeftControls} />
-				<CameraSettingsDialog isVisible={isSettingsVisible} toggle={setIsSettingsVisible} />
 				<div className={twJoin('pointer-events-none absolute inset-0 flex items-center justify-center')}>
 					<div
 						className={twJoin(
@@ -618,6 +715,28 @@ export default function Page() {
 							connectionState === 'disconnected' && 'text-amber-500 dark:text-amber-500',
 							connectionState === 'new' && 'text-sky-500 dark:text-sky-500',
 						)}
+					/>
+				</div>
+				<div
+					className="pointer-events-none absolute inset-0 top-1/2 -translate-y-1/2 transition-all"
+					style={aspectRatio ? { aspectRatio: Math.max(aspectRatio / zoom, containerAspectRatio) } : {}}
+				>
+					<Toolbar className="pointer-events-auto absolute left-5 top-5" buttons={topLeftControls} />
+					<Toolbar
+						className="pointer-events-auto absolute bottom-5 right-5 overflow-visible"
+						buttons={cameraControls}
+						subButtons={cameraControlsSubButtons}
+					/>
+					<Toolbar
+						className="pointer-events-auto absolute right-5 top-5"
+						buttons={topRightControls}
+						subButtons={zoomControls}
+					/>
+					<Toolbar className="pointer-events-auto absolute bottom-5 left-5" buttons={bottomLeftControls} />
+					<CameraSettingsDialog
+						className="pointer-events-auto"
+						isVisible={isSettingsVisible}
+						toggle={setIsSettingsVisible}
 					/>
 				</div>
 			</div>

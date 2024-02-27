@@ -1,7 +1,8 @@
 import { useAutoAnimate } from '@formkit/auto-animate/react';
-import React from 'react';
+import React, { useCallback } from 'react';
 import { twJoin, twMerge } from 'tailwind-merge';
 import { Spinner } from './spinner';
+import { useDebounce } from '../../app/_hooks/debounce';
 
 type Icon = React.ForwardRefExoticComponent<
 	React.SVGProps<SVGSVGElement> & {
@@ -17,7 +18,7 @@ export type ToolbarButton = {
 	icon?: Icon;
 	name?: NonNullable<React.ReactNode>;
 	className?: string;
-	onClick: () => void;
+	onClick: (() => void) | (() => Promise<void>);
 	subButtonPosition?: 'before' | 'after';
 	children?: React.ReactNode;
 	hidden?: boolean;
@@ -36,6 +37,15 @@ const animationOptions = { duration: 150 };
 
 const Button = (button: React.PropsWithChildren<ToolbarButton>) => {
 	const [animateRef] = useAutoAnimate();
+	const [isLoading, setIsLoading] = React.useState(false);
+	const _setIsLoading = useDebounce(setIsLoading, 200);
+	const _onClick = useCallback(async () => {
+		if (button.onClick && !button.isLoading) {
+			_setIsLoading(true);
+			await button.onClick();
+			_setIsLoading(false);
+		}
+	}, [_setIsLoading, button]);
 	return (
 		<li key={button.id} className={twJoin('flex')}>
 			{button.subButtonPosition === 'before' && (
@@ -45,7 +55,7 @@ const Button = (button: React.PropsWithChildren<ToolbarButton>) => {
 			)}
 			<div className={twJoin('flex items-center', button.isActive && 'dark:bg-zinc-800')}>
 				<button
-					onClick={button.onClick}
+					onClick={_onClick}
 					type="button"
 					title={button.title}
 					className={twMerge(
@@ -55,7 +65,9 @@ const Button = (button: React.PropsWithChildren<ToolbarButton>) => {
 						button.className,
 					)}
 				>
-					{button.isLoading && <Spinner noMargin={true} className="inline h-5 w-5 flex-shrink-0" aria-hidden="true" />}
+					{button.icon && (button.isLoading || isLoading) && (
+						<Spinner noMargin={true} className="inline h-5 w-5 flex-shrink-0" aria-hidden="true" />
+					)}
 					{button.icon && !button.isLoading && (
 						<button.icon className="inline h-5 w-5 flex-shrink-0" aria-hidden="true" />
 					)}
@@ -77,7 +89,7 @@ export default function Toolbar(props: ToolbarProps) {
 	return (
 		<nav
 			className={twMerge(
-				'flex overflow-hidden rounded-md border border-zinc-200 bg-white shadow dark:border-zinc-800 dark:bg-zinc-900/80',
+				'flex select-none overflow-hidden rounded-md border border-zinc-200 bg-white shadow dark:border-zinc-800 dark:bg-zinc-900/80',
 				props.className,
 			)}
 			aria-label="Breadcrumb"

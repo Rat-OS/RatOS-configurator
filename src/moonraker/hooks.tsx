@@ -137,9 +137,9 @@ export const useMoonraker = (options?: MoonrakerHookOptions) => {
 	);
 	const moonrakerQuery: MoonrakerQueryFn & MoonrakerMutationFn = useCallback(
 		async <Response = any,>(method: string, params: any = {}) => {
+			const id = ++REQ_ID;
 			await isReady();
 			return new Promise<Response>((resolve, reject) => {
-				const id = ++REQ_ID;
 				inFlightRequests.current[id] = (err, result) => {
 					if (err) {
 						return reject(err);
@@ -172,26 +172,28 @@ export const useMoonraker = (options?: MoonrakerHookOptions) => {
 
 	const subscribeToObject = useCallback(
 		async <TArgs extends [PrinterObjectKeys, ...PrinterObjectKeys[]]>(...args: TArgs) => {
-			console.debug('subscribing to', ...args);
+			console.log('subscribing to', ...args);
 			const objects = Object.fromEntries(args.map((key) => [key, null])) as PrinterObjectsMoonrakerQueryParams;
 			const allSubscribedObjects = Object.assign(
 				{},
 				objects,
 				...Object.values(subscriptions).filter((v) => v != null),
 			) as PrinterObjectsMoonrakerQueryParams;
-			const res = (
-				await moonrakerQuery('printer.objects.subscribe' as 'printer.objects.query', { objects: allSubscribedObjects })
-			).status as {
-				[K in TArgs[number]]: PrinterObjectResult<K>;
-			};
-
+			const q = moonrakerQuery('printer.objects.subscribe' as 'printer.objects.query', {
+				objects: allSubscribedObjects,
+			});
+			// Capture request id we just generated;
 			const reqId = REQ_ID;
 			subscriptions[reqId] = objects;
 			localSubscriptions.current.push(reqId);
+
+			const res = (await q).status as {
+				[K in TArgs[number]]: PrinterObjectResult<K>;
+			};
 			return {
 				res,
 				unsuscribe: async () => {
-					console.debug('unsubscribing from', ...args);
+					console.log('unsubscribing from', ...args);
 					localSubscriptions.current = localSubscriptions.current.filter((v) => v !== reqId);
 					if (subscriptions[reqId] == null) {
 						delete subscriptions[reqId];
@@ -381,7 +383,7 @@ export const usePrinterObjectQuery = <TArgs extends [PrinterObjectKeys, ...Print
 
 export const usePrinterObjectSubscription = <
 	TArgs extends [PrinterObjectKeys, ...PrinterObjectKeys[]],
-	R = { [K in TArgs[number]]: PrinterObjectResult<K> },
+	R extends object = { [K in TArgs[number]]: PrinterObjectResult<K> },
 >(
 	select: null | ((res: { [K in TArgs[number]]: PrinterObjectResult<K> }) => R),
 	...args: TArgs
@@ -414,9 +416,10 @@ export const usePrinterObjectSubscription = <
 						changed[key as keyof typeof res] = res[key as keyof typeof res];
 					}
 				}
-				if (Object.keys(changed).length > 0 && deepEqual(_select(changed), stateRef.current) === false) {
+				const changeSelection = _select(changed);
+				if (Object.keys(changed).length > 0 && deepEqual(changeSelection, stateRef.current) === false) {
 					setState((prev) => {
-						return _select(merge(prev ?? {}, changed));
+						return merge(prev ?? {}, changeSelection) as R;
 					});
 				}
 			},

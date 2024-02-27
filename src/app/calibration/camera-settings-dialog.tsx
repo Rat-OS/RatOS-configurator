@@ -5,6 +5,7 @@ import { useMoonrakerState } from '../../moonraker/hooks';
 import { useDebounce } from '../_hooks/debounce';
 import { twMerge } from 'tailwind-merge';
 import { XMarkIcon } from '@heroicons/react/24/outline';
+import { ScrollContainer } from '../../components/common/scroll-container';
 
 export const initialCameraSettings = {
 	pixelPrMm: 160,
@@ -62,7 +63,7 @@ export const CameraSettingsDialog: React.FC<CameraSettingsProps> = (props) => {
 	};
 
 	return (
-		<div
+		<ScrollContainer
 			className={twMerge(
 				'scroll absolute left-5 top-1/2 max-h-[50%] w-80 -translate-y-1/2 transform-gpu overflow-y-auto rounded-md border-y border-r border-zinc-800 bg-zinc-100 p-5 shadow-lg transition-all dark:bg-zinc-900/70',
 				props.isVisible ? 'translate-x-0 opacity-100' : 'pointer-events-none -translate-x-8 opacity-0',
@@ -101,12 +102,12 @@ export const CameraSettingsDialog: React.FC<CameraSettingsProps> = (props) => {
 					value={settings?.flipVertical ?? initialCameraSettings.flipVertical}
 				/>
 				<Toggle
-					label="Flip hoprizontal"
+					label="Flip horizontal"
 					onChange={(value) => setSettings({ ...(settings ?? initialCameraSettings), flipHorizontal: value ?? false })}
 					description="Whether to flip the camera horizontally"
 					value={settings?.flipHorizontal ?? initialCameraSettings.flipHorizontal}
 				/>
 			</div>
-		</div>
+		</ScrollContainer>
 	);
 };
