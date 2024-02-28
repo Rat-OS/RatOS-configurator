@@ -171,7 +171,7 @@ export default function Page() {
 					setDragOffset([state.offset[0], state.offset[1]]);
 					setDragOutside({ x: state._movementBound[0], y: state._movementBound[1] });
 				} else {
-					const x = toMillimeters(dragOffset?.[0] ?? 0) * -1;
+					const x = toMillimeters(dragOffset?.[0] ?? 0);
 					const y = toMillimeters(dragOffset?.[1] ?? 0) * -1;
 					G`_VAOC_MOVE X=${x} Y=${y}`;
 					setDragOffset(null);
@@ -353,8 +353,7 @@ export default function Page() {
 				{
 					name: canMove ? (
 						<span className="font-mono">
-							<CountUp preserveValue={true} decimals={2} start={0} end={toolhead?.position?.[0] ?? 0} />,{' '}
-							<CountUp preserveValue={true} decimals={2} start={0} end={toolhead?.position?.[1] ?? 0} />
+							{(toolhead?.position?.[0] ?? 0).toFixed(2)}, {(toolhead?.position?.[1] ?? 0).toFixed(2)}
 						</span>
 					) : (
 						'Move'
