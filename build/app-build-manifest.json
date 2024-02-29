@@ -49,6 +49,13 @@
       "static/chunks/955-f698f2c2ca068280.js",
       "static/chunks/app/page-add9622b7c63766a.js"
     ],
+    "/calibration/layout": [
+      "static/chunks/webpack-ce8a1dc2b884e385.js",
+      "static/chunks/858cab29-538c13f06f937103.js",
+      "static/chunks/625-c7ba609ca6aa018e.js",
+      "static/chunks/main-app-f44ac89f90b0ce86.js",
+      "static/chunks/app/calibration/layout-f3e493ba29592bb3.js"
+    ],
     "/calibration/page": [
       "static/chunks/webpack-ce8a1dc2b884e385.js",
       "static/chunks/858cab29-538c13f06f937103.js",
@@ -60,14 +67,7 @@
       "static/chunks/346-c510050fb6a338d6.js",
       "static/chunks/539-5a8fed02bbf72b87.js",
       "static/chunks/955-f698f2c2ca068280.js",
-      "static/chunks/app/calibration/page-dad28324d55212e7.js"
-    ],
-    "/calibration/layout": [
-      "static/chunks/webpack-ce8a1dc2b884e385.js",
-      "static/chunks/858cab29-538c13f06f937103.js",
-      "static/chunks/625-c7ba609ca6aa018e.js",
-      "static/chunks/main-app-f44ac89f90b0ce86.js",
-      "static/chunks/app/calibration/layout-f3e493ba29592bb3.js"
+      "static/chunks/app/calibration/page-92168743cae0a4b9.js"
     ],
     "/wizard/page": [
       "static/chunks/webpack-ce8a1dc2b884e385.js",
