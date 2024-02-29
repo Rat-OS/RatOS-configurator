@@ -342,6 +342,11 @@ export const useStreamSettings = ({
 	const mergedOptions = useMemo(() => {
 		return options.map((opt) => {
 			opt.value = settingsRef.current?.[opt.key]?.value ?? opt.value;
+			if ('max' in opt && opt.key === 'ExposureTime') {
+				// Limit exposure time to max 1/15th of a second.
+				opt.min = 0;
+				opt.max = 60000;
+			}
 			return opt;
 		});
 	}, [options]);
