@@ -4,7 +4,7 @@ import { twJoin, twMerge } from 'tailwind-merge';
 import { Spinner } from './spinner';
 import { useDebounce } from '../../app/_hooks/debounce';
 
-type Icon = React.ForwardRefExoticComponent<
+type Icon = React.FC<
 	React.SVGProps<SVGSVGElement> & {
 		title?: string | undefined;
 		titleId?: string | undefined;
