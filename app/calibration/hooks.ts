@@ -370,8 +370,8 @@ export const useStreamSettings = ({
 				throw new Error(`Value ${value} is out of range for ${key}`);
 			}
 			try {
-				const res = await fetch(`${url}/option?${key}=${value.toString()}`);
-				console.log(res.ok, isInitialLoading);
+				const intVal = typeof value === 'boolean' ? (value ? 1 : 0) : value;
+				const res = await fetch(`${url}/option?${key}=${intVal.toString()}`);
 				if (res.ok && isInitialLoading === false) {
 					console.log(
 						'saving',
@@ -397,8 +397,10 @@ export const useStreamSettings = ({
 		if (isConnected && isFetched && settingsRef.current != null) {
 			for (const opt in settingsRef.current) {
 				const val = settingsRef.current[opt]?.value;
-				if (val) {
-					fetch(`${url}/option?${opt}=${val.toString()}`);
+
+				const intVal = typeof val === 'boolean' ? (val ? 1 : 0) : val;
+				if (intVal != null) {
+					fetch(`${url}/option?${opt}=${intVal.toString()}`);
 				}
 			}
 		}
