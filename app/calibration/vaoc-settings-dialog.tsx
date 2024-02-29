@@ -14,34 +14,35 @@ export const initialCameraSettings = {
 	flipHorizontal: false,
 };
 
-export type CameraSettings = typeof initialCameraSettings;
+export type VaocSettings = typeof initialCameraSettings;
 
 type CameraSettingsProps = {
 	className?: string;
 	isVisible?: boolean;
+	settings: VaocSettings;
+	setSettings: (updater: VaocSettings | ((prev: VaocSettings) => VaocSettings)) => Promise<void>;
+	isSettingsFetched: boolean;
 	toggle: (visible: boolean) => void;
 };
 
-export const CameraSettingsDialog: React.FC<CameraSettingsProps> = (props) => {
+export const VaocSettingsDialog: React.FC<CameraSettingsProps> = (props) => {
+	const { settings, setSettings, isSettingsFetched } = props;
 	const hasLoaded = useRef(false);
-	const [settings, setSettings, settingsQuery] = useMoonrakerState('RatOS', 'camera-settings', initialCameraSettings);
-	const [pixelPrMm, setPixelPrMm] = useState<string | null>(
-		settingsQuery.isFetched ? settings.pixelPrMm.toFixed(2) : null,
-	);
+	const [pixelPrMm, setPixelPrMm] = useState<string | null>(isSettingsFetched ? settings.pixelPrMm.toFixed(2) : null);
 	const [outerNozzleDiameter, setOuterNozzleDiameter] = useState<string | null>(
-		settingsQuery.isFetched ? settings.outerNozzleDiameter.toFixed(2) : null,
+		isSettingsFetched ? settings.outerNozzleDiameter.toFixed(2) : null,
 	);
 	const debouncedSettings = useDebounce(setSettings, 200);
 
 	useEffect(() => {
-		if (settingsQuery.isFetched && hasLoaded.current === false) {
+		if (isSettingsFetched && hasLoaded.current === false) {
 			setPixelPrMm(settings?.pixelPrMm.toFixed(2) ?? initialCameraSettings.pixelPrMm.toFixed(2));
 			setOuterNozzleDiameter(
 				settings?.outerNozzleDiameter.toFixed(2) ?? initialCameraSettings.outerNozzleDiameter.toFixed(2),
 			);
 			hasLoaded.current = true;
 		}
-	}, [settings, settingsQuery.isFetched]);
+	}, [settings, isSettingsFetched]);
 
 	const onChangePixelPrMm = (value: string) => {
 		const parsed = parseFloat(value);
@@ -49,7 +50,7 @@ export const CameraSettingsDialog: React.FC<CameraSettingsProps> = (props) => {
 		if (isNaN(parsed)) {
 			return;
 		}
-		debouncedSettings((s) => ({ ...s, pixelPrMm: parsed }));
+		debouncedSettings((s) => ({ ...(s ?? {}), pixelPrMm: parsed }));
 	};
 
 	const onChangeOuterNozzleDiameter = (value: string) => {
@@ -59,13 +60,13 @@ export const CameraSettingsDialog: React.FC<CameraSettingsProps> = (props) => {
 		if (isNaN(parsed)) {
 			return;
 		}
-		debouncedSettings((s) => ({ ...s, outerNozzleDiameter: parsed }));
+		debouncedSettings((s) => ({ ...(s ?? {}), outerNozzleDiameter: parsed }));
 	};
 
 	return (
 		<ScrollContainer
 			className={twMerge(
-				'scroll absolute left-5 top-1/2 max-h-[50%] w-80 -translate-y-1/2 transform-gpu overflow-y-auto rounded-md border-y border-r border-zinc-800 bg-zinc-100 p-5 shadow-lg transition-all dark:bg-zinc-900/70',
+				'absolute left-5 top-1/2 max-h-[50%] w-80 -translate-y-1/2 transform-gpu overflow-y-auto rounded-md border-y border-r border-zinc-800 bg-zinc-100 p-5 shadow-lg transition-all dark:bg-zinc-900/70',
 				props.isVisible ? 'translate-x-0 opacity-100' : 'pointer-events-none -translate-x-8 opacity-0',
 				props.className,
 			)}
@@ -82,7 +83,7 @@ export const CameraSettingsDialog: React.FC<CameraSettingsProps> = (props) => {
 					label="Pixel per mm"
 					type="number"
 					value={pixelPrMm ?? ''}
-					placeholder={settingsQuery.isFetched ? undefined : 'Loading...'}
+					placeholder={isSettingsFetched ? undefined : 'Loading...'}
 					onChange={onChangePixelPrMm}
 					error={isNaN(parseFloat(pixelPrMm ?? '')) ? 'Not a valid number' : undefined}
 				/>
@@ -91,7 +92,7 @@ export const CameraSettingsDialog: React.FC<CameraSettingsProps> = (props) => {
 					type="number"
 					step={0.1}
 					value={outerNozzleDiameter ?? ''}
-					placeholder={settingsQuery.isFetched ? undefined : 'Loading...'}
+					placeholder={isSettingsFetched ? undefined : 'Loading...'}
 					onChange={onChangeOuterNozzleDiameter}
 					error={isNaN(parseFloat(outerNozzleDiameter ?? '')) ? 'Not a valid number' : undefined}
 				/>

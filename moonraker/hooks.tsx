@@ -482,10 +482,10 @@ export const useMoonrakerState = <
 	const query = useNamespacedItemQuery(namespace, key, { initialData: initialValue });
 	const mutation = useNamespacedItemMutation<N, K, V>(namespace, key);
 	const mutate = useCallback(
-		async (value: V | ((prev: V | null) => void)) => {
+		async (value: V | ((prev: NonNullable<V> | Val) => NonNullable<V> | Val)) => {
 			const newValue =
-				typeof value === 'function' ? (value as (prev: V | null) => V)(query.data ?? initialValue) : value;
-			mutation.mutate(newValue, {
+				typeof value === 'function' ? (value as (prev: NonNullable<V> | Val) => V)(query.data ?? initialValue) : value;
+			await mutation.mutateAsync(newValue, {
 				onSuccess: () => {
 					// Todo, implement optimistic updates
 					query.refetch();
