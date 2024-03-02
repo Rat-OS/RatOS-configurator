@@ -47,17 +47,29 @@ export const useUIState = () => {
 
 	const [isFullscreened, setIsFullscreened] = useState(false);
 
-	const toggleFullscreen = useCallback(async () => {
-		if (screenfull.isEnabled && rootRef.current) {
-			if (screenfull.isFullscreen) {
-				await screenfull.exit();
-				setIsFullscreened(false);
-			} else {
-				await screenfull.request(rootRef.current);
-				setIsFullscreened(true);
+	const toggleFullscreen = useCallback(
+		async (value?: boolean) => {
+			if (screenfull.isEnabled && rootRef.current) {
+				if (value != null) {
+					if (value) {
+						await screenfull.request(rootRef.current);
+					} else {
+						await screenfull.exit();
+					}
+					setIsFullscreened(value);
+				}
+				if (screenfull.isFullscreen || value === false) {
+					await screenfull.exit();
+					setIsFullscreened(false);
+				}
+				if (!screenfull.isFullscreen || value === true) {
+					await screenfull.request(rootRef.current);
+					setIsFullscreened(true);
+				}
 			}
-		}
-	}, [rootRef]);
+		},
+		[rootRef],
+	);
 
 	useEffect(() => {
 		if (screenfull.isEnabled) {
