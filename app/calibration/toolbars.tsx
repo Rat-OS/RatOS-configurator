@@ -36,7 +36,7 @@ type ToolbarsProps = {
 	settings: VaocSettings;
 	setSettings: (updater: VaocSettings | ((prev: VaocSettings) => VaocSettings)) => Promise<void>;
 	isSettingsFetched: boolean;
-	toggleFullscreen: null | (() => void);
+	toggleFullscreen: null | ((value?: boolean) => void);
 	isFullscreened: boolean;
 };
 
@@ -164,6 +164,9 @@ export const Toolbars: React.FC<ToolbarsProps> = (props) => {
 			onClick: async () => {
 				if (isStartingVaoc) {
 					return;
+				}
+				if (isVaocStarted && isFullscreened) {
+					props.toggleFullscreen?.(false);
 				}
 				setIsStartingVaoc(true);
 				await (isVaocStarted ? G`_VAOC_END` : G`_VAOC_START`);

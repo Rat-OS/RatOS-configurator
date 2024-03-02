@@ -66,7 +66,7 @@ export const VaocSettingsDialog: React.FC<CameraSettingsProps> = (props) => {
 	return (
 		<ScrollContainer
 			className={twMerge(
-				'absolute left-5 top-1/2 max-h-[50%] w-80 -translate-y-1/2 transform-gpu overflow-y-auto rounded-md border-y border-r border-zinc-800 bg-zinc-100 p-5 shadow-lg transition-all dark:bg-zinc-900/70',
+				'absolute left-5 top-1/2 max-h-[50%] w-80 -translate-y-1/2 scale-100 overflow-y-auto rounded-md border-y border-r border-zinc-800 bg-zinc-100 p-5 shadow-lg transition-all dark:bg-zinc-900/70',
 				props.isVisible ? 'translate-x-0 opacity-100' : 'pointer-events-none -translate-x-8 opacity-0',
 				props.className,
 			)}
