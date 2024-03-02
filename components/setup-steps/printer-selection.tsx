@@ -13,7 +13,13 @@ import { trpc } from '../../helpers/trpc';
 import { ShowWhenReady } from '../common/show-when-ready';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { useRecoilValue, useRecoilCallback } from 'recoil';
-import { PrinterSizeState, PrinterState, LoadablePrinterState, PrinterRailsState } from '../../recoil/printer';
+import {
+	PrinterSizeState,
+	PrinterState,
+	LoadablePrinterState,
+	PrinterRailsState,
+	ControlboardState,
+} from '../../recoil/printer';
 import { PrinterDefinitionWithResolvedToolheads } from '../../zods/printer';
 import { PrinterToolheadState, PrinterToolheadsState } from '../../recoil/toolhead';
 import { ToolheadHelper } from '../../helpers/toolhead';
@@ -31,6 +37,7 @@ interface SelectablePrinter<Option extends SelectableOption = SelectableOption>
 
 export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 	const printerQuery = trpc.printer.printers.useQuery();
+	const boardQuery = trpc.mcu.boards.useQuery({});
 	const selectedPrinter = useRecoilValue(LoadablePrinterState);
 	const selectedPrinterOption = useRecoilValue(PrinterSizeState);
 
@@ -60,14 +67,23 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 						),
 						options:
 							Object.values(p.sizes).length > 1
-								? Object.entries(p.sizes).map(([key, volume]) => ({ id: key, name: key + '' }))
+								? Object.entries(p.sizes).map(([key, volume]) => ({ id: key, name: key + '', volume }))
 								: undefined,
 					};
 				}) satisfies SelectablePrinter[])
 		: [];
 
 	const selectedCard = cards.find((c) => c.id === selectedPrinter?.id);
-	const selectedPrinterOptionFromCard = selectedCard?.options?.find((o) => o.id === selectedPrinterOption);
+	const selectedPrinterOptionFromCard = selectedCard?.options?.find((o) => {
+		if (typeof selectedPrinterOption !== 'string' && typeof selectedPrinterOption !== 'number') {
+			return (
+				selectedPrinterOption?.x === o.volume.x &&
+				selectedPrinterOption?.y === o.volume.y &&
+				selectedPrinterOption?.z === o.volume.z
+			);
+		}
+		return o.id === selectedPrinterOption;
+	});
 
 	const onSelectPrinter = useRecoilCallback(
 		({ set, reset, snapshot }) =>
@@ -78,6 +94,7 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 					return;
 				}
 				const oldToolheads = await snapshot.getPromise(PrinterToolheadsState);
+				const oldControllerBoard = await snapshot.getPromise(ControlboardState);
 				oldToolheads.forEach((th) => {
 					reset(PrinterToolheadState(th.toolNumber));
 				});
@@ -99,6 +116,10 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 				reset(StandstillStealthState);
 				reset(ControllerFanState);
 				reset(PrinterRailsState);
+				const defaultBoard = boardQuery.data?.find((b) => b.id === printer.defaults.board);
+				if (oldControllerBoard == null && defaultBoard != null) {
+					set(ControlboardState, defaultBoard);
+				}
 				if (printer.defaults.controllerFan) {
 					set(ControllerFanState, { id: printer.defaults.controllerFan, title: printer.defaults.controllerFan });
 				} else {

@@ -1,5 +1,5 @@
 import { CpuChipIcon } from '@heroicons/react/24/outline';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { trpc } from '../../helpers/trpc';
 import { usePrinterConfiguration } from '../../hooks/usePrinterConfiguration';
 import { StepScreen, StepScreenProps, useSteps } from '../../hooks/useSteps';
