@@ -311,7 +311,14 @@ export type MoonrakerHistoryJob = {
 	filename: string;
 	metadata: MoonrakerHistoryJobMetadata;
 	print_duration: number;
-	status: 'completed';
+	status:
+		| 'completed'
+		| 'error'
+		| 'in_progress'
+		| 'interrupted'
+		| 'klippy_disconnect'
+		| 'klippy_shutdown'
+		| 'server_exit';
 	start_time: number;
 	total_duration: number;
 };

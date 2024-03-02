@@ -34,6 +34,37 @@ const thumbUrl = (thumbnail: MoonrakerHistoryJob['metadata']['thumbnails'][0]) =
 	return `http://${getHost()}/server/files/gcodes/${thumbnail.relative_path}?timestamp=${thumbnail}`;
 };
 
+const getHistoryStateFillColor = (status: MoonrakerHistoryJob['status']) => {
+	switch (status) {
+		case 'error':
+		case 'klippy_disconnect':
+		case 'klippy_shutdown':
+		case 'server_exit':
+			return 'bg-rose-500/10 text-rose-500 dark:bg-rose-400/10 dark:text-rose-400';
+		case 'interrupted':
+			return 'bg-amber-500/10 text-amber-500 dark:bg-amber-400/10 dark:text-amber-400';
+		case 'in_progress':
+			return 'bg-sky-500/10 text-sky-500 dark:bg-sky-400/10 dark:text-sky-400';
+		default:
+			return 'bg-brand-500/10 text-brand-500 dark:bg-brand-400/10 dark:text-brand-400';
+	}
+};
+const getHistoryStateTextColor = (status: MoonrakerHistoryJob['status']) => {
+	switch (status) {
+		case 'error':
+		case 'klippy_disconnect':
+		case 'klippy_shutdown':
+		case 'server_exit':
+			return 'text-rose-900/80 dark:text-rose-100/80';
+		case 'interrupted':
+			return 'text-amber-900/80 dark:text-amber-100/80';
+		case 'in_progress':
+			return 'text-sky-900/80 dark:text-sky-100/80';
+		default:
+			return 'text-brand-900/80 dark:text-brand-100/80';
+	}
+};
+
 const columns: ColumnDef<MoonrakerHistoryJob>[] = [
 	{
 		header: () => <span>Filename</span>,
@@ -82,17 +113,13 @@ const columns: ColumnDef<MoonrakerHistoryJob>[] = [
 			const status = info.getValue<MoonrakerHistoryJob['status']>();
 			return (
 				<div className="flex min-w-0 items-center justify-end gap-x-2  @screen-sm:justify-start">
-					<div
-						className={twMerge(
-							status === 'completed' ? 'bg-green-400/10 text-green-400' : 'bg-rose-400/10 text-rose-400',
-							'flex-none rounded-full p-1',
-						)}
-					>
+					<div className={twMerge(getHistoryStateFillColor(status), 'flex-none rounded-full p-1')}>
 						<div className="h-1.5 w-1.5 rounded-full bg-current" />
 					</div>
 					<div
 						className={twMerge(
 							'truncate capitalize text-white',
+							getHistoryStateTextColor(status),
 							status === 'completed' ? 'text-green-100/80' : ' text-rose-100/80',
 						)}
 					>
