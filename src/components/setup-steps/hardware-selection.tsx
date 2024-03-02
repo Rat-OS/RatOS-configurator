@@ -48,7 +48,7 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 		}
 	}, [parsedPrinterConfiguration]);
 	return (
-		<>
+		<div>
 			<div className="p-8">
 				<div className="mb-5 border-b border-zinc-200 pb-5 dark:border-zinc-700">
 					<h3 className="text-lg font-medium leading-6 text-zinc-900 dark:text-zinc-100">
@@ -58,7 +58,7 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 						If your hardware isn't listed, pick the one closest to it and override as necessary in printer.cfg later
 					</p>
 				</div>
-				<div ref={animate} className="flex flex-col">
+				<div ref={animate}>
 					{errors.length > 0 && (
 						<ErrorMessage className="mb-4">
 							{errors.map((e) => (
@@ -168,6 +168,6 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 					title: parsedPrinterConfiguration.success === false ? 'Invalid printer configuration selected' : undefined,
 				}}
 			/>
-		</>
+		</div>
 	);
 };
