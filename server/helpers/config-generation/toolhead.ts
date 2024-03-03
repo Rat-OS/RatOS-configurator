@@ -15,6 +15,7 @@ import { getBoardSerialPath } from '../../../helpers/board';
 import { PrinterAxis } from '../../../zods/motion';
 import { PrinterConfiguration } from '../../../zods/printer-configuration';
 import type { RenderPinsFn } from '../klipper-config';
+import { getLogger } from '../logger';
 
 export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelper<IsToolboard> {
 	private toolboardPins: PinMapZodFromBoard<IsToolboard, false> | null;
@@ -415,7 +416,7 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 			parkX = this.size.x + this.printer.bedMargin.x[1] - endstopSafetyMargin;
 		}
 		if (parkX == null || isNaN(parkX)) {
-			console.log(this.printer.bedMargin.x[0], this.size, this.printer.bedMargin.x[1]);
+			getLogger().debug('renderToolheadMacro:', this.printer.bedMargin.x[0], this.size, this.printer.bedMargin.x[1]);
 			throw new Error(`Failed to generate parking position for toolhead ${this.getToolCommand()}. Generated: ${parkX}`);
 		}
 		const result = [

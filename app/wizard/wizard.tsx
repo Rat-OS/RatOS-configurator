@@ -15,10 +15,9 @@ interface WizardProps {
 }
 
 export const Wizard: React.FC<WizardProps> = (props) => {
-	const { data: version } = trpc.version.useQuery();
-	const { data: ip } = trpc.ipAddress.useQuery();
-	const isClient = useIsClient();
-	return !isClient ? null : (
+	const { data: version } = trpc.version.useQuery(undefined, { keepPreviousData: true, refetchOnMount: false });
+	const { data: ip } = trpc.ipAddress.useQuery(undefined, { keepPreviousData: true, refetchOnMount: false });
+	return (
 		<React.Suspense
 			fallback={
 				<div className="mb-4 flex h-96 items-center justify-center">
