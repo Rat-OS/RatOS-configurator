@@ -4,7 +4,7 @@
 	"scripts": {
 		"dev": "next dev | pino-pretty -c",
 		"build": "next build",
-		"start": "next start",
+		"start": "sleep 1 && curl -s -o /dev/null \"http://localhost:3000/configure\" &> /dev/null &\nnext start",
 		"lint": "next lint",
 		"lint:ci": "next lint --format json --output-file eslint_report.json .",
 		"test": "vitest",
