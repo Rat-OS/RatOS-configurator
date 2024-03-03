@@ -586,7 +586,6 @@ export const compareSettings = async (newSettings: SerializedPrinterConfiguratio
 			if (oldFile == null) {
 				throw new Error('This should never happen.');
 			}
-			console.log(oldFile.diskContent, oldFile.content);
 			return {
 				fileName: f.fileName,
 				diff: null,

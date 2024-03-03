@@ -172,7 +172,6 @@ export const useMoonraker = (options?: MoonrakerHookOptions) => {
 
 	const subscribeToObject = useCallback(
 		async <TArgs extends [PrinterObjectKeys, ...PrinterObjectKeys[]]>(...args: TArgs) => {
-			console.log('subscribing to', ...args);
 			const objects = Object.fromEntries(args.map((key) => [key, null])) as PrinterObjectsMoonrakerQueryParams;
 			const allSubscribedObjects = Object.assign(
 				{},
@@ -193,7 +192,6 @@ export const useMoonraker = (options?: MoonrakerHookOptions) => {
 			return {
 				res,
 				unsuscribe: async () => {
-					console.log('unsubscribing from', ...args);
 					localSubscriptions.current = localSubscriptions.current.filter((v) => v !== reqId);
 					if (subscriptions[reqId] == null) {
 						delete subscriptions[reqId];
