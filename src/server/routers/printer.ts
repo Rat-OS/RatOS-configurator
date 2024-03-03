@@ -475,7 +475,7 @@ export const compareSettings = async (newSettings: SerializedPrinterConfiguratio
 	const newFiles = await getFilesToWrite(await deserializePrinterConfiguration(newSettings));
 	const addedFiles = await Promise.all(
 		newFiles
-			.filter((f) => !oldFiles.some((of) => of.fileName === f.fileName))
+			.filter((f) => !f.exists || !oldFiles.some((of) => of.fileName === f.fileName))
 			.map(async (f) => {
 				const timehash = new Date().getTime() + objectHash(f);
 				await writeFile(`/tmp/ratos-added-new-${timehash}.cfg`, f.content);
@@ -502,7 +502,7 @@ export const compareSettings = async (newSettings: SerializedPrinterConfiguratio
 	);
 	const removedFiles = await Promise.all(
 		oldFiles
-			.filter((f) => !newFiles.some((nf) => nf.fileName === f.fileName))
+			.filter((f) => f.exists && !newFiles.some((nf) => nf.fileName === f.fileName))
 			.map(async (f) => {
 				const timehash = new Date().getTime() + objectHash(f);
 				await writeFile(`/tmp/ratos-removed-old-${timehash}.cfg`, f.content);
@@ -529,12 +529,14 @@ export const compareSettings = async (newSettings: SerializedPrinterConfiguratio
 	);
 	const changedFiles = await Promise.all(
 		newFiles
-			.filter((f) =>
-				oldFiles.some(
-					(of) =>
-						of.fileName === f.fileName &&
-						(of.content !== f.content || (f.lastSavedContent != null && of.content !== f.lastSavedContent)),
-				),
+			.filter(
+				(f) =>
+					f.exists &&
+					oldFiles.some(
+						(of) =>
+							of.fileName === f.fileName &&
+							(of.content !== f.content || (f.lastSavedContent != null && of.content !== f.lastSavedContent)),
+					),
 			)
 			.map(async (f) => {
 				const oldFile = oldFiles.find((of) => of.fileName === f.fileName);
@@ -573,13 +575,15 @@ export const compareSettings = async (newSettings: SerializedPrinterConfiguratio
 			}),
 	);
 	const unchangedFiles = newFiles
-		.filter((f) =>
-			oldFiles.some(
-				(of) =>
-					of.fileName === f.fileName &&
-					of.content === f.content &&
-					(f.lastSavedContent == null || of.content === f.lastSavedContent),
-			),
+		.filter(
+			(f) =>
+				f.exists &&
+				oldFiles.some(
+					(of) =>
+						of.fileName === f.fileName &&
+						of.content === f.content &&
+						(f.lastSavedContent == null || of.content === f.lastSavedContent),
+				),
 		)
 		.map((f) => {
 			const oldFile = oldFiles.find((of) => of.fileName === f.fileName);
