@@ -37,6 +37,11 @@ export const register = async () => {
 			logger.info('Regenerating last known config...');
 			const res = await regenerateKlipperConfiguration();
 			if (res.some((r) => r.action === 'created' || r.action === 'overwritten')) {
+				res.forEach((r) => {
+					if (r.action === 'created' || r.action === 'overwritten') {
+						logger.info(`File ${r.fileName} ${r.action}.`);
+					}
+				});
 				logger.info('Configuration changed, restarting klipper..');
 				try {
 					const restarted = await klipperRestart();

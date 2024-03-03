@@ -59,16 +59,18 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 						If your hardware isn't listed, pick the one closest to it and override as necessary in printer.cfg later
 					</p>
 				</div>
-				<div ref={animate}>
-					{errors.length > 0 && (
-						<ErrorMessage className="mb-4">
-							{errors.map((e) => (
-								<div className="mt-2" key={e}>
-									{e}
-								</div>
-							))}
-						</ErrorMessage>
-					)}
+				<div>
+					<div ref={animate}>
+						{errors.length > 0 && (
+							<ErrorMessage className="mb-4">
+								{errors.map((e) => (
+									<div className="mt-2" key={e}>
+										{e}
+									</div>
+								))}
+							</ErrorMessage>
+						)}
+					</div>
 					<div className="space-y-4">
 						{serializedPrinterConfiguration?.toolheads?.map((th, i) =>
 							th == null || th.axis == null ? null : (

@@ -55,7 +55,6 @@ export const VaocSettingsDialog: React.FC<CameraSettingsProps> = (props) => {
 
 	const onChangeOuterNozzleDiameter = (value: string) => {
 		const parsed = parseFloat(value);
-		console.log(value, parsed);
 		setOuterNozzleDiameter(value);
 		if (isNaN(parsed)) {
 			return;

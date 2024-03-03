@@ -4,7 +4,7 @@
 	"scripts": {
 		"dev": "next dev | pino-pretty -c",
 		"build": "next build",
-		"start": "sleep 1 && curl -s -o /dev/null \"http://localhost:3000/configure\" &> /dev/null &\nnext start",
+		"start": "sleep 1 && curl -s -o /dev/null --retry 20 --retry-all-errors --retry-delay 1 --retry-max-time 60 \"http://localhost:3000/configure\" &> /dev/null &\nnext start",
 		"lint": "next lint",
 		"lint:ci": "next lint --format json --output-file eslint_report.json .",
 		"test": "vitest",
