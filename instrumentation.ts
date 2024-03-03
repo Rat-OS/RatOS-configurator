@@ -35,26 +35,29 @@ export const register = async () => {
 		}
 		try {
 			logger.info('Regenerating last known config...');
-			await regenerateKlipperConfiguration();
-			logger.info('Config regenerated!');
+			const res = await regenerateKlipperConfiguration();
+			if (res.some((r) => r.action === 'created' || r.action === 'overwritten')) {
+				logger.info('Configuration changed, restarting klipper..');
+				try {
+					const restarted = await klipperRestart();
+					if (restarted) {
+						logger.info('Klipper restarted!');
+					} else {
+						logger.info(`Klipper was in a busy state. Please restart manually.`);
+					}
+				} catch (e) {
+					if (e instanceof Error) {
+						logger.error(`Failed to restart klipper: ${e.message}`);
+					}
+				}
+			} else {
+				logger.info('No configuration changes detected.');
+			}
 		} catch (e) {
 			if (e instanceof Error) {
 				logger.error(`Failed to regenerate config: ${e.message}`);
 			}
 			return;
-		}
-		logger.info('Restart klipper..');
-		try {
-			const restarted = await klipperRestart();
-			if (restarted) {
-				logger.info('Klipper restarted!');
-			} else {
-				logger.info(`Klipper was in a busy state. Please restart manually.`);
-			}
-		} catch (e) {
-			if (e instanceof Error) {
-				logger.error(`Failed to restart klipper: ${e.message}`);
-			}
 		}
 	}
 };

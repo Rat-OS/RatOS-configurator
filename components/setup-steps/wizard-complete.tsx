@@ -301,6 +301,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 	const requiresExplicitFileActions = filesToWrite.data?.some(
 		(f) =>
 			f.state === 'changed' &&
+			f.changedFromConfig === true &&
 			f.overwrite === false &&
 			!filesToIgnore.includes(f.fileName) &&
 			!filesToOverwrite.includes(f.fileName),

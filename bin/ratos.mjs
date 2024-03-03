@@ -96227,6 +96227,17 @@ var getRealPath = async (p) => {
 var program2 = new Command().name("RatOS CLI").version((await readPackageUp())?.packageJson.version ?? "unknown").description("RatOS CLI for interacting with the RatOS Configurator").option("-cwd, --cwd <path>", "Set the current working directory").configureOutput({
   outputError: (str, write) => write(errorColor(str))
 }).showSuggestionAfterError(true);
+program2.command("info").description("Print info about this RatOS installation").action(async () => {
+  const info = {
+    osVersion: await client.osVersion.query(),
+    version: await client.version.query(),
+    klipperVersion: await client.klipperVersion.query(),
+    ip: await client.ipAddress.query()
+  };
+  render_default(
+    /* @__PURE__ */ import_react29.default.createElement(Box_default, { flexDirection: "row", columnGap: 5, padding: 2, paddingTop: 1 }, /* @__PURE__ */ import_react29.default.createElement(Box_default, { flexDirection: "column", rowGap: 1 }, /* @__PURE__ */ import_react29.default.createElement(Text, { color: "white", dimColor: true }, "Machine IP"), /* @__PURE__ */ import_react29.default.createElement(Text, { color: "white", dimColor: true }, "RatOS Version"), /* @__PURE__ */ import_react29.default.createElement(Text, { color: "white", dimColor: true }, "Configurator Version"), /* @__PURE__ */ import_react29.default.createElement(Text, { color: "white", dimColor: true }, "Klipper Version")), /* @__PURE__ */ import_react29.default.createElement(Box_default, { flexDirection: "column", rowGap: 1 }, /* @__PURE__ */ import_react29.default.createElement(Text, null, info.ip), /* @__PURE__ */ import_react29.default.createElement(Text, null, info.osVersion), /* @__PURE__ */ import_react29.default.createElement(Text, null, info.version), /* @__PURE__ */ import_react29.default.createElement(Text, null, info.klipperVersion)))
+  );
+});
 var extensions = program2.command("extensions").description("Register, unregister or symlink extensions managed by the RatOS Configurator");
 var registerExtensions = extensions.command("register").description("Register an extension to be managed by the RatOS Configurator");
 var unregisterExtensions = extensions.command("unregister").description("Unregister an extension from the RatOS Configurator");

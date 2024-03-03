@@ -66,6 +66,42 @@ const program = new commander.Command()
 	})
 	.showSuggestionAfterError(true);
 
+program
+	.command('info')
+	.description('Print info about this RatOS installation')
+	.action(async () => {
+		const info = {
+			osVersion: await client.osVersion.query(),
+			version: await client.version.query(),
+			klipperVersion: await client.klipperVersion.query(),
+			ip: await client.ipAddress.query(),
+		};
+		render(
+			<Box flexDirection="row" columnGap={5} padding={2} paddingTop={1}>
+				<Box flexDirection="column" rowGap={1}>
+					<Text color="white" dimColor={true}>
+						Machine IP
+					</Text>
+					<Text color="white" dimColor={true}>
+						RatOS Version
+					</Text>
+					<Text color="white" dimColor={true}>
+						Configurator Version
+					</Text>
+					<Text color="white" dimColor={true}>
+						Klipper Version
+					</Text>
+				</Box>
+				<Box flexDirection="column" rowGap={1}>
+					<Text>{info.ip}</Text>
+					<Text>{info.osVersion}</Text>
+					<Text>{info.version}</Text>
+					<Text>{info.klipperVersion}</Text>
+				</Box>
+			</Box>,
+		);
+	});
+
 const extensions = program
 	.command('extensions')
 	.description('Register, unregister or symlink extensions managed by the RatOS Configurator');
