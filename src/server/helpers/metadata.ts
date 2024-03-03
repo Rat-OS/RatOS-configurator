@@ -178,12 +178,15 @@ export const readInclude = (fileName: string) => {
 	const environment = serverSchema.parse(process.env);
 	const fullPath = path.join(environment.RATOS_CONFIGURATION_PATH, fileName);
 	if (!existsSync(fullPath)) {
-		throw new Error("Extruder config file doesn't exist: " + fileName);
+		throw new Error("Included file doesn't exist: " + fileName);
 	}
 	return readFileSync(fullPath, 'utf-8');
 };
 export const stripIncludes = (content: string) => {
 	return stripLinesStartingWith(content, '[include');
+};
+export const extractIncludes = (content: string) => {
+	return extractLinesStartingWith(content, '[include');
 };
 export const stripCommentLines = (content: string) => {
 	return stripLinesStartingWith(content, '#');
@@ -192,6 +195,12 @@ export const stripLinesStartingWith = (content: string, start: string) => {
 	return content
 		.split('\n')
 		.filter((l) => !l.trim().startsWith(start))
+		.join('\n');
+};
+export const extractLinesStartingWith = (content: string, start: string) => {
+	return content
+		.split('\n')
+		.filter((l) => l.trim().startsWith(start))
 		.join('\n');
 };
 export const stripDriverSections = (content: string) => {

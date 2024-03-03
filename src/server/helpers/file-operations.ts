@@ -80,3 +80,32 @@ export const searchFileByLine = async (filePath: string, search: string | RegExp
 	});
 	return result;
 };
+
+export const extractLinesFromFile = async (filePath: string, start: number, end?: number) => {
+	if (!existsSync(filePath)) {
+		throw new Error('Firmware config file does not exist: ' + filePath);
+	}
+	const fileStream = createReadStream(filePath);
+
+	const rl = createInterface({
+		input: fileStream,
+		crlfDelay: Infinity,
+	});
+	let result: string[] = [];
+	let lineNumber = 0;
+	for await (const line of rl) {
+		lineNumber++;
+		if (lineNumber >= start && lineNumber <= (end ?? Infinity)) {
+			result.push(line);
+		}
+	}
+	await new Promise((resolve, reject) => {
+		fileStream.close((err) => {
+			if (err) {
+				throw reject(err);
+			}
+			resolve(null);
+		});
+	});
+	return result.join('\n');
+};

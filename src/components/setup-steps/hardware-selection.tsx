@@ -1,3 +1,4 @@
+'use client';
 import React, { useEffect, useState } from 'react';
 import { StepNavButtons } from '../step-nav-buttons';
 import { StepScreenProps } from '../../hooks/useSteps';

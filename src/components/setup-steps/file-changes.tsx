@@ -66,7 +66,8 @@ const ChangedFile: React.FC<ChangedFileProps> = (props) => {
 	const isIgnorable = file.state === 'created' || file.state === 'removed' || file.state === 'changed';
 	const isIgnored = isMarkedIgnored;
 	const isOverwritten = isMarkedOverwritten || (file.overwrite && file.exists);
-	const needsExplicitAction = isIgnorable && !isIgnored && !isOverwritten && !wouldOtherwiseBeWritten;
+	const needsExplicitAction =
+		isIgnorable && !isIgnored && !isOverwritten && !wouldOtherwiseBeWritten && file.changedFromConfig === true;
 	const isDeleted = file.state === 'removed' && !isIgnored;
 	const isCreated = file.state === 'created' && !isIgnored;
 	const isChanged = file.state === 'changed' && !isIgnored && isOverwritten;
@@ -194,7 +195,9 @@ const ChangedFile: React.FC<ChangedFileProps> = (props) => {
 						size="sm"
 						color={
 							file.state === 'changed'
-								? 'yellow'
+								? !file.changedFromConfig
+									? 'sky'
+									: 'yellow'
 								: file.state === 'created'
 									? 'green'
 									: file.state === 'removed'
@@ -203,13 +206,20 @@ const ChangedFile: React.FC<ChangedFileProps> = (props) => {
 						}
 					>
 						{file.state === 'changed'
-							? 'Pending changes'
+							? file.changedFromConfig
+								? 'Pending changes'
+								: 'Changed on disk'
 							: file.state === 'created'
 								? 'New file'
 								: file.state === 'removed'
 									? 'Deleted'
-									: 'Unchanged'}
+									: 'No updates'}
 					</Badge>
+					{file.changedOnDisk && (
+						<Badge size="sm" color="sky">
+							Changed on disk
+						</Badge>
+					)}
 				</div>
 				<div className="mt-1 flex items-center gap-x-2 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
 					<p className="">
@@ -222,6 +232,8 @@ const ChangedFile: React.FC<ChangedFileProps> = (props) => {
 									: 'Please review the changes and make a decision.')}
 						{file.state === 'created' && (isIgnored ? 'File will be skipped.' : 'File will be created.')}
 						{file.state === 'removed' && (!isIgnored ? 'File will be deleted.' : 'File will remain untouched.')}
+						{file.state === 'unchanged' &&
+							(file.changedOnDisk ? 'File has user modifications.' : 'File remains untouched.')}
 					</p>
 				</div>
 			</div>

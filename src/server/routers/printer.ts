@@ -1,9 +1,9 @@
 import { z } from 'zod';
 import { getLogger } from '../helpers/logger';
 
-import { parseMetadata } from '../helpers/metadata';
+import { extractIncludes, parseMetadata } from '../helpers/metadata';
 import { Hotend, Extruder, Probe, thermistors, Endstop, Fan, Accelerometer } from '../../zods/hardware';
-import { constants, existsSync } from 'fs';
+import { constants, existsSync, readFileSync } from 'fs';
 import { PrinterDefinition, PrinterDefinitionWithResolvedToolheads } from '../../zods/printer';
 import {
 	PartialPrinterConfiguration,
@@ -50,6 +50,7 @@ import { access, copyFile, readFile, unlink, writeFile } from 'fs/promises';
 import { exec } from 'child_process';
 import objectHash from 'object-hash';
 import { getDefaultNozzle } from '../../data/nozzles';
+import { extractLinesFromFile, searchFileByLine } from '../helpers/file-operations';
 
 function isNodeError(error: any): error is NodeJS.ErrnoException {
 	return error instanceof Error;
@@ -300,13 +301,30 @@ type FilesToWrite = {
 	content: string;
 	overwrite: boolean;
 	exists?: boolean;
+	diskContent?: string | null;
+	lastSavedContent?: string | null;
 	order?: number;
 }[];
 
 export type FilesToWriteWithState = (Omit<Unpacked<FilesToWrite>, 'content'> & {
 	state: FileState;
 	diff: string | null;
+	changedOnDisk?: boolean;
+	changedFromConfig?: boolean;
 })[];
+
+export const portModifications = async (file: string, content: string) => {
+	if (existsSync(file)) {
+		const klipperSectionLine = await searchFileByLine(
+			file,
+			'#*# <---------------------- SAVE_CONFIG ---------------------->',
+		);
+		if (klipperSectionLine !== false) {
+			content += '\n\n' + (await extractLinesFromFile(file, klipperSectionLine)) + '\n';
+		}
+	}
+	return content;
+};
 
 export const getFilesToWrite = async (
 	config: PrinterConfiguration,
@@ -315,11 +333,15 @@ export const getFilesToWrite = async (
 	const utils = await constructKlipperConfigUtils(config);
 	const extrasGenerator = constructKlipperConfigExtrasGenerator(config, utils);
 	const helper = await constructKlipperConfigHelpers(config, extrasGenerator, utils);
+	const environment = serverSchema.parse(process.env);
 	const { template, initialPrinterCfg } = await import(
 		`../../templates/${config.printer.template.replace('-printer.template.cfg', '.ts')}`
 	);
 	const renderedTemplate = template(config, helper).trim();
-	const renderedPrinterCfg = initialPrinterCfg(config, helper).trim();
+	const renderedPrinterCfg = await portModifications(
+		path.join(environment.KLIPPER_CONFIG_PATH, 'printer.cfg'),
+		initialPrinterCfg(config, helper).trim(),
+	);
 	const extras: FilesToWrite = extrasGenerator.getFilesToWrite();
 	return [
 		{ fileName: 'RatOS.cfg', content: renderedTemplate, overwrite: true, order: 0 } as Unpacked<FilesToWrite>,
@@ -332,13 +354,23 @@ export const getFilesToWrite = async (
 	]
 		.concat(extras)
 		.map((f) => {
-			const fileWithExists: Unpacked<FilesToWrite> = { ...f, exists: false };
+			const fileWithExists: Unpacked<FilesToWrite> = { ...f, exists: false, diskContent: null };
 			if (overwriteFiles?.includes(fileWithExists.fileName) || overwriteFiles?.includes('*')) {
 				fileWithExists.overwrite = true;
 			}
-			fileWithExists.exists = existsSync(
-				path.join(serverSchema.parse(process.env).KLIPPER_CONFIG_PATH, fileWithExists.fileName),
-			);
+			fileWithExists.exists = existsSync(path.join(environment.KLIPPER_CONFIG_PATH, fileWithExists.fileName));
+			if (fileWithExists.exists) {
+				fileWithExists.diskContent = readFileSync(
+					path.join(environment.KLIPPER_CONFIG_PATH, fileWithExists.fileName),
+					'utf-8',
+				);
+				if (existsSync(path.join(environment.RATOS_DATA_DIR, `last-${fileWithExists.fileName}`))) {
+					fileWithExists.lastSavedContent = readFileSync(
+						path.join(environment.RATOS_DATA_DIR, `last-${fileWithExists.fileName}`),
+						'utf-8',
+					);
+				}
+			}
 			return fileWithExists;
 		});
 };
@@ -355,17 +387,16 @@ const generateKlipperConfiguration = async <T extends boolean>(
 	const results: { fileName: string; action: FileAction; err?: unknown }[] = await Promise.all(
 		filesToWrite.map(async (file) => {
 			let action: FileAction = 'created';
+			let finalPath = path.join(environment.KLIPPER_CONFIG_PATH, file.fileName);
+			let lastSavedPath = path.join(environment.RATOS_DATA_DIR, `last-${file.fileName}`);
 			try {
-				await access(path.join(environment.KLIPPER_CONFIG_PATH, file.fileName), constants.F_OK);
+				await access(finalPath, constants.F_OK);
 				// At this point we know the file exists.
 				if (file.overwrite) {
 					// Make a back up.
 					const backupFilename = `${file.fileName.split('.').slice(0, -1).join('.')}-${getTimeStamp()}.cfg`;
 					try {
-						await copyFile(
-							path.join(environment.KLIPPER_CONFIG_PATH, file.fileName),
-							path.join(environment.KLIPPER_CONFIG_PATH, backupFilename),
-						);
+						await copyFile(finalPath, path.join(environment.KLIPPER_CONFIG_PATH, backupFilename));
 						// prune backups
 						const backups = await glob(
 							path.join(
@@ -412,7 +443,8 @@ const generateKlipperConfiguration = async <T extends boolean>(
 				if (skipFiles?.includes(file.fileName)) {
 					return { fileName: file.fileName, action: 'skipped' };
 				}
-				await writeFile(path.join(environment.KLIPPER_CONFIG_PATH, file.fileName), file.content);
+				await writeFile(finalPath, file.content);
+				await writeFile(lastSavedPath, file.content);
 				return { fileName: file.fileName, action: action };
 			} catch (e) {
 				return { fileName: file.fileName, action: 'error', err: e };
@@ -497,7 +529,13 @@ export const compareSettings = async (newSettings: SerializedPrinterConfiguratio
 	);
 	const changedFiles = await Promise.all(
 		newFiles
-			.filter((f) => oldFiles.some((of) => of.fileName === f.fileName && of.content !== f.content))
+			.filter((f) =>
+				oldFiles.some(
+					(of) =>
+						of.fileName === f.fileName &&
+						(of.content !== f.content || (f.lastSavedContent != null && of.content !== f.lastSavedContent)),
+				),
+			)
 			.map(async (f) => {
 				const oldFile = oldFiles.find((of) => of.fileName === f.fileName);
 				if (oldFile == null) {
@@ -526,19 +564,37 @@ export const compareSettings = async (newSettings: SerializedPrinterConfiguratio
 					diff: diff,
 					exists: f.exists,
 					overwrite: f.overwrite,
+					changedOnDisk: oldFile.diskContent !== oldFile.content,
+					changedFromConfig:
+						oldFile.content !== f.content || (f.lastSavedContent != null && oldFile.content !== f.lastSavedContent),
 					order: f.order,
 					state: 'changed' as const,
 				} as Unpacked<FilesToWriteWithState>;
 			}),
 	);
 	const unchangedFiles = newFiles
-		.filter((f) => oldFiles.some((of) => of.fileName === f.fileName && of.content === f.content))
+		.filter((f) =>
+			oldFiles.some(
+				(of) =>
+					of.fileName === f.fileName &&
+					of.content === f.content &&
+					(f.lastSavedContent == null || of.content === f.lastSavedContent),
+			),
+		)
 		.map((f) => {
+			const oldFile = oldFiles.find((of) => of.fileName === f.fileName);
+			if (oldFile == null) {
+				throw new Error('This should never happen.');
+			}
+			console.log(oldFile.diskContent, oldFile.content);
 			return {
 				fileName: f.fileName,
 				diff: null,
 				exists: f.exists,
 				overwrite: f.overwrite,
+				changedOnDisk: oldFile.diskContent !== oldFile.content,
+				changedFromConfig:
+					oldFile.content !== f.content || (f.lastSavedContent != null && oldFile.content !== f.lastSavedContent),
 				order: f.order,
 				state: 'unchanged' as const,
 			} as Unpacked<FilesToWriteWithState>;
