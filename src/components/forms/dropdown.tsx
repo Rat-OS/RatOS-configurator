@@ -49,7 +49,10 @@ export const useDropdownPrinterQueryState = <T extends DropdownQueryKeys = Dropd
 	if (variables && serializedPrinterConfiguration != null) {
 		variables[serializedPrinterConfiguration] = serializedConfig;
 	}
-	const data = (trpc.printer[query] as DropdownQuery<T>).useQuery(variables, { enabled: isShown });
+	const data = (trpc.printer[query] as DropdownQuery<T>).useQuery(variables, {
+		enabled: isShown,
+		keepPreviousData: true,
+	});
 	return {
 		options: (data.data ?? []) as DropdownQueryOutput<T>,
 		onShown: () => setIsShown(true),

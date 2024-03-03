@@ -149,7 +149,7 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 								}
 								return (
 									<PrinterRailSettings
-										key={rail.axis + (performanceMode ? 'performance' : '')}
+										key={rail.axis}
 										errors={formattedErrors?.rails?.[ri] != null ? formattedErrors.rails[ri] : { _errors: [] }}
 										selectedBoard={selectedBoard}
 										printerRail={rail}

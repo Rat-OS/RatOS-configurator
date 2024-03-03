@@ -44,6 +44,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 	const canBeExtruderlessBoard = toolheads.every((th) => th.hasToolboard());
 	const usesToolboard = toolhead?.getExtruderAxis() === props.printerRailDefault.axis && toolhead?.hasToolboard();
 	const board = usesToolboard ? toolhead.getToolboard() : props.selectedBoard;
+	const [performanceMode, setPerformanceMode] = useState(!!props.performanceMode);
 	const setPrinterRail = useSetRecoilState(PrinterRailState(props.printerRail.axis));
 	const printerRails = useRecoilValue(PrinterRailsState);
 	const integratedDriver =
@@ -58,7 +59,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 	);
 	const [stepper, setStepper] = useState(props.printerRail.stepper);
 	const [homingSpeed, setHomingSpeed] = useState(
-		props.performanceMode
+		performanceMode
 			? props.printerRailDefault.performanceMode?.homingSpeed ?? props.printerRailDefault.homingSpeed
 			: props.printerRailDefault.homingSpeed,
 	);
@@ -115,7 +116,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 		return {
 			...v,
 			badge:
-				findPreset(stepper, driver, v.id, undefined, props.performanceMode) != null
+				findPreset(stepper, driver, v.id, undefined, performanceMode) != null
 					? ({
 							children: 'Tuned Preset',
 							color: 'sky',
@@ -128,14 +129,14 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 			supportedVoltages.find(
 				(v) =>
 					v.id ===
-					(props.performanceMode && props.printerRailDefault.performanceMode?.voltage
+					(performanceMode && props.printerRailDefault.performanceMode?.voltage
 						? props.printerRailDefault.performanceMode.voltage
 						: props.printerRailDefault.voltage),
 			) ??
 			supportedVoltages[0],
 	);
 	const [current, setCurrent] = useState(
-		props.performanceMode && props.printerRailDefault.performanceMode
+		performanceMode && props.printerRailDefault.performanceMode
 			? props.printerRailDefault.performanceMode.current
 			: props.printerRail.current,
 	);
@@ -150,12 +151,12 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 		[props.printerRailDefault],
 	);
 	const recommendedPreset = useMemo(
-		() => findPreset(stepper, driver, voltage.id, undefined, props.performanceMode),
-		[stepper, driver, voltage, props.performanceMode],
+		() => findPreset(stepper, driver, voltage.id, undefined, performanceMode),
+		[stepper, driver, voltage, performanceMode],
 	);
 	const matchingPreset = useMemo(
-		() => findPreset(stepper, driver, voltage.id, current, props.performanceMode),
-		[stepper, driver, voltage, props.performanceMode, current],
+		() => findPreset(stepper, driver, voltage.id, current, performanceMode),
+		[stepper, driver, voltage, performanceMode, current],
 	);
 
 	const supportedDrivers = Drivers.filter((d) => {
@@ -164,7 +165,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 		return {
 			...d,
 			badge:
-				findPreset(stepper, d, voltage.id, undefined, props.performanceMode) != null
+				findPreset(stepper, d, voltage.id, undefined, performanceMode) != null
 					? ({
 							children: 'Tuned Preset',
 							color: 'sky',
@@ -176,7 +177,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 		return {
 			...s,
 			badge:
-				findPreset(s, driver, voltage.id, undefined, props.performanceMode) != null
+				findPreset(s, driver, voltage.id, undefined, performanceMode) != null
 					? ({
 							children: 'Tuned Preset',
 							color: 'sky',
@@ -207,6 +208,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 				setCurrent(props.printerRailDefault.current);
 			}
 		}
+		setPerformanceMode(!!props.performanceMode);
 		// We don't want to react to anything other than performance mode changes.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [props.performanceMode]);

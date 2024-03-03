@@ -171,7 +171,7 @@ export const serializePartialPrinterConfiguration = (
 };
 
 export const useSerializedPrinterConfiguration = () => {
-	const printerConfiguration = useRecoilValue(LoadablePrinterConfigurationState);
+	const printerConfiguration = useRecoilValue(PrinterConfigurationState);
 	const serializedPrinterConfiguration = useMemo(
 		() => serializePartialPrinterConfiguration(printerConfiguration ?? {}),
 		[printerConfiguration],
@@ -186,8 +186,8 @@ export const usePrinterConfiguration = () => {
 	const [stealthchop, setStealthchop] = useRecoilState(StealthchopState);
 	const [standstillStealth, setStandstillStealth] = useRecoilState(StandstillStealthState);
 	const [selectedControllerFan, setSelectedControllerFan] = useRecoilState(ControllerFanState);
-	const selectedPrinterRails = useRecoilValue(LoadablePrinterRailsState);
-	const printerConfiguration = useRecoilValue(LoadablePrinterConfigurationState);
+	const selectedPrinterRails = useRecoilValue(PrinterRailsState);
+	const printerConfiguration = useRecoilValue(PrinterConfigurationState);
 	const serializedPrinterConfiguration = useSerializedPrinterConfiguration();
 	const parsedPrinterConfiguration = PrinterConfiguration.safeParse(printerConfiguration);
 
