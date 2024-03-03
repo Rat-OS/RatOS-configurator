@@ -738,8 +738,13 @@ export const constructKlipperConfigHelpers = async (
 		renderInputShaper(printerSize: z.output<typeof PrinterSizeDefinition>) {
 			// Only renders x toolhead input shaper for now, IDEX uses macro magic for handling both toolheads.
 			let result: string[] = [];
-			result.push('[resonance_tester]');
 			const xToolhead = utils.getToolhead(PrinterAxis.x);
+			if ([xToolhead.getYAccelerometerName(), xToolhead.getXAccelerometerName()].includes('rpi')) {
+				// Include rpi adxl345 definition.
+				result.push(`[include RatOS/sensors/rpi-adxl345.cfg]`);
+				result.push(''); // Add a newline for readability.
+			}
+			result.push('[resonance_tester]');
 			result.push(`accel_chip_x: adxl345 ${xToolhead.getXAccelerometerName()}`);
 			result.push(`accel_chip_y: adxl345 ${xToolhead.getYAccelerometerName()}`);
 			result.push('probe_points:');
