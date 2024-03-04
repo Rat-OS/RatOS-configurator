@@ -135,11 +135,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 			) ??
 			supportedVoltages[0],
 	);
-	const [current, setCurrent] = useState(
-		performanceMode && props.printerRailDefault.performanceMode
-			? props.printerRailDefault.performanceMode.current
-			: props.printerRail.current,
-	);
+	const [current, setCurrent] = useState(props.printerRail.current);
 	const defaultPreset = useMemo(
 		() =>
 			findPreset(
