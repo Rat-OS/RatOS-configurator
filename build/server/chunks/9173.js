@@ -75,7 +75,7 @@ ${r.renderSaveVariables()}
 ### See: https://os.ratrig.com/docs/configuration/macros
 #############################################################################################################
 [gcode_macro RatOS]
-variable_relative_extrusion: False
+variable_relative_extrusion: True
 variable_preheat_extruder: True
 variable_calibrate_bed_mesh: True
 variable_nozzle_priming: "primeblob"
