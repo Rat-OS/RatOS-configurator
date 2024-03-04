@@ -150,16 +150,6 @@ export const Dropdown = <DropdownOption extends Option = Option>(props: Dropdown
 								leaveTo="transform translate-y-1 opacity-0"
 							>
 								<Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-zinc-400 scrollbar-thumb-rounded-md focus:outline-none dark:bg-zinc-800 dark:scrollbar-thumb-zinc-600 sm:text-sm">
-									{props.isFetching && (
-										<div className="flex justify-center px-3 py-2 text-sm text-zinc-400 dark:text-zinc-500">
-											<Spinner />
-										</div>
-									)}
-									{!props.isFetching && options.length === 0 && (
-										<div className="px-3 py-2 text-center text-sm text-zinc-400 dark:text-zinc-500">
-											No options available
-										</div>
-									)}
 									{options.map((option) => (
 										<Listbox.Option
 											key={option.id}
@@ -206,6 +196,16 @@ export const Dropdown = <DropdownOption extends Option = Option>(props: Dropdown
 											)}
 										</Listbox.Option>
 									))}
+									{props.isFetching && (
+										<div className="flex justify-center px-3 py-2 text-sm text-zinc-400 dark:text-zinc-500">
+											<Spinner />
+										</div>
+									)}
+									{!props.isFetching && options.length === 0 && (
+										<div className="px-3 py-2 text-center text-sm text-zinc-400 dark:text-zinc-500">
+											No options available
+										</div>
+									)}
 								</Listbox.Options>
 							</Transition>
 						</div>
