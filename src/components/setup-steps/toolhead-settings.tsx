@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useToolheadConfiguration } from '../../hooks/useToolheadConfiguration';
 import { stringToTitleObject } from '../../utils/serialization';
 import { ToolOrAxis, ToolheadConfiguration } from '../../zods/toolhead';
@@ -19,70 +19,28 @@ type ToolheadSettingsErrors = z.typeToFlattenedError<ToolheadConfiguration<any>>
 
 export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 	const { toolhead, setToolhead } = useToolheadConfiguration(props.toolOrAxis);
-	const [selectedHotend, setSelectedHotend] = useState(toolhead.getHotend() ?? null);
-	const [selectedNozzle, setSelectedNozzle] = useState(toolhead.getNozzle() ?? null);
-	const [selectedExtruder, setSelectedExtruder] = useState(toolhead.getExtruder() ?? null);
-	const [selectedThermistor, setSelectedThermistor] = useState(toolhead.getThermistor() ?? null);
-	const [selectedProbe, setSelectedProbe] = useState(toolhead.getProbe() ?? null);
-	const [selectedXEndstop, setSelectedXEndstop] = useState(toolhead.getXEndstop() ?? null);
-	const [selectedYEndstop, setSelectedYEndstop] = useState(toolhead.getYEndstop() ?? null);
-	const [selectedPartFan, setSelectedPartFan] = useState(toolhead.getPartFan() ?? null);
-	const [selectedHotendFan, setSelectedHotendFan] = useState(toolhead.getHotendFan() ?? null);
-	const [selectedXAccelerometer, setSelectedXAccelerometer] = useState(toolhead.getXAccelerometer() ?? null);
-	const [selectedYAccelerometer, setSelectedYAccelerometer] = useState(toolhead.getYAccelerometer() ?? null);
 	const [errors, setErrors] = useState<ToolheadSettingsErrors | null>(null);
 
-	const setNozzleType = (val: ReturnType<typeof stringToTitleObject<z.infer<typeof Nozzle>['type']>>) => {
-		setSelectedNozzle({ ...selectedNozzle, type: val.id });
-	};
-
-	const setNozzleDiameter = (diameter: number) => {
-		setSelectedNozzle({ ...selectedNozzle, diameter });
-	};
-
-	useEffect(() => {
-		const updated = toolhead.getChangeSet({
-			hotend: selectedHotend,
-			extruder: selectedExtruder,
-			thermistor: selectedThermistor,
-			probe: selectedProbe ?? undefined,
-			xEndstop: selectedXEndstop,
-			yEndstop: selectedYEndstop,
-			partFan: selectedPartFan,
-			nozzle: selectedNozzle,
-			hotendFan: selectedHotendFan,
-			xAccelerometer: selectedXAccelerometer,
-			yAccelerometer: selectedYAccelerometer,
-		});
-		if (updated?.success && updated.data && Object.keys(updated.data).length > 0) {
-			const ret = setToolhead({ ...toolhead.getConfig(), ...updated.data });
-			ret.then((res) => {
-				if (!res.success) {
-					setErrors(res.error.formErrors);
-				} else {
-					setErrors(null);
-				}
-			});
-		} else if (!updated?.success) {
-			setErrors(updated?.error.formErrors ?? null);
-		} else {
-			setErrors(null);
-		}
-	}, [
-		selectedExtruder,
-		selectedHotend,
-		selectedHotendFan,
-		selectedNozzle,
-		selectedPartFan,
-		selectedProbe,
-		selectedThermistor,
-		selectedXAccelerometer,
-		selectedXEndstop,
-		selectedYAccelerometer,
-		selectedYEndstop,
-		setToolhead,
-		toolhead,
-	]);
+	const setToolheadField = useCallback(
+		<F extends keyof ToolheadConfiguration<any>, V extends ToolheadConfiguration<any>[F]>(field: F, value: V): void => {
+			const updated = toolhead.getChangeSet({ [field]: value });
+			if (updated?.success && updated.data && Object.keys(updated.data).length > 0) {
+				const ret = setToolhead({ ...toolhead.getConfig(), ...updated.data });
+				ret.then((res) => {
+					if (!res.success) {
+						setErrors(res.error.formErrors);
+					} else if (res.data != null) {
+						setErrors(null);
+					}
+				});
+			} else if (!updated?.success) {
+				setErrors(updated?.error.formErrors ?? null);
+			} else {
+				setErrors(null);
+			}
+		},
+		[toolhead, setToolhead],
+	);
 
 	if (toolhead == null) {
 		return (
@@ -123,27 +81,27 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 				<div>
 					<DropdownWithPrinterQuery
 						query="hotends"
-						value={selectedHotend}
+						value={toolhead.getHotend()}
+						error={errors?.fieldErrors.hotend?.join('\n')}
 						label="Hotend"
-						onSelect={setSelectedHotend}
+						onSelect={(value) => setToolheadField('hotend', value)}
 					/>
 				</div>
 				<div>
 					<DropdownWithPrinterQuery
 						label="Hotend Thermistor"
 						query="thermistors"
-						onSelect={(thermistor) => {
-							setSelectedThermistor(thermistor.id);
-						}}
-						value={stringToTitleObject(selectedThermistor)}
+						error={errors?.fieldErrors.thermistor?.join('\n')}
+						onSelect={(thermistor) => setToolheadField('thermistor', thermistor.id)}
+						value={stringToTitleObject(toolhead.getThermistor())}
 					/>
 				</div>
 				<div>
 					<Dropdown
 						label="Nozzle Type"
-						onSelect={setNozzleType}
+						onSelect={(value) => setToolheadField('nozzle', { ...toolhead.getNozzle(), type: value.id })}
 						options={Object.values(Nozzle.shape.type.Values).map(stringToTitleObject)}
-						value={stringToTitleObject(selectedNozzle.type)}
+						value={stringToTitleObject(toolhead.getNozzle().type)}
 					/>
 				</div>
 				<div>
@@ -151,8 +109,8 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 						type="number"
 						label="Nozzle Diameter"
 						error={errors?.fieldErrors.nozzle?.join('\n')}
-						value={selectedNozzle.diameter}
-						onChange={setNozzleDiameter}
+						value={toolhead.getNozzle().diameter}
+						onChange={(value) => setToolheadField('nozzle', { ...toolhead.getNozzle(), diameter: value })}
 						inputMode="decimal"
 						step={0.1}
 						min={0.2}
@@ -172,12 +130,17 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 					<DropdownWithPrinterQuery
 						label="Extruder"
 						query="extruders"
-						onSelect={setSelectedExtruder}
-						value={selectedExtruder}
+						onSelect={(value) => setToolheadField('extruder', value)}
+						value={toolhead.getExtruder()}
 					/>
 				</div>
 				<div>
-					<DropdownWithPrinterQuery label="Probe" query="probes" onSelect={setSelectedProbe} value={selectedProbe} />
+					<DropdownWithPrinterQuery
+						label="Probe"
+						query="probes"
+						onSelect={(value) => setToolheadField('probe', value)}
+						value={toolhead.getProbe()}
+					/>
 				</div>
 			</div>
 			<div className="mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 dark:border-zinc-700 sm:grid-cols-2">
@@ -187,8 +150,8 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 						serializedPrinterConfiguration="config"
 						label="X Endstop"
 						query="xEndstops"
-						onSelect={setSelectedXEndstop}
-						value={selectedXEndstop}
+						onSelect={(value) => setToolheadField('xEndstop', value)}
+						value={toolhead.getXEndstop()}
 					/>
 				</div>
 				<div>
@@ -197,8 +160,8 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 						serializedPrinterConfiguration="config"
 						label="Y Endstop"
 						query="yEndstops"
-						onSelect={setSelectedYEndstop}
-						value={selectedYEndstop}
+						onSelect={(value) => setToolheadField('yEndstop', value)}
+						value={toolhead.getYEndstop()}
 					/>
 				</div>
 			</div>
@@ -209,8 +172,8 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 						serializedPrinterConfiguration="config"
 						label="Part cooling fan"
 						query="partFanOptions"
-						onSelect={setSelectedPartFan}
-						value={selectedPartFan}
+						onSelect={(value) => setToolheadField('partFan', value)}
+						value={toolhead.getPartFan()}
 					/>
 				</div>
 				<div>
@@ -219,8 +182,8 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 						serializedPrinterConfiguration="config"
 						label="Hotend fan"
 						query="hotendFanOptions"
-						onSelect={setSelectedHotendFan}
-						value={selectedHotendFan}
+						onSelect={(value) => setToolheadField('hotendFan', value)}
+						value={toolhead.getHotendFan()}
 					/>
 				</div>
 			</div>
@@ -238,8 +201,8 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 						serializedPrinterConfiguration="config"
 						label="X axis accelerometer"
 						query="xAccelerometerOptions"
-						onSelect={setSelectedXAccelerometer}
-						value={selectedXAccelerometer}
+						onSelect={(value) => setToolheadField('xAccelerometer', value)}
+						value={toolhead.getXAccelerometer()}
 						sort={false}
 					/>
 				</div>
@@ -249,8 +212,8 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 						serializedPrinterConfiguration="config"
 						label="Y axis accelerometer"
 						query="yAccelerometerOptions"
-						onSelect={setSelectedYAccelerometer}
-						value={selectedYAccelerometer}
+						onSelect={(value) => setToolheadField('yAccelerometer', value)}
+						value={toolhead.getYAccelerometer()}
 						sort={false}
 					/>
 				</div>
