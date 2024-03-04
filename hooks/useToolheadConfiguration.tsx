@@ -81,7 +81,7 @@ export const useToolheadConfiguration = <T extends boolean = true>(
 						}
 					}
 				}
-				if (th.toolboard?.id != current.getToolboard()?.id) {
+				if (th.toolboard?.id !== current.getToolboard()?.id) {
 					// Reset toolboard dependent options
 					if (th.toolboard == null && th.xEndstop.id === 'endstop-toolboard') {
 						th.xEndstop = defaultXEndstop;
@@ -101,7 +101,7 @@ export const useToolheadConfiguration = <T extends boolean = true>(
 						th.hotendFan = newFan;
 					}
 				}
-				if (th.thermistor != current.getThermistor()) {
+				if (th.thermistor !== current.getThermistor() && th.thermistor !== th.hotend.thermistor) {
 					setHasManuallySelectedThermistor(true);
 				} else if (th.hotend.id != current.getHotend().id && !hasManuallySelectedThermistor) {
 					th.thermistor = th.hotend.thermistor;
