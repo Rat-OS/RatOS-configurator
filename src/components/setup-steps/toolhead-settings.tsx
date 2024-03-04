@@ -100,6 +100,7 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 					<Dropdown
 						label="Nozzle Type"
 						onSelect={(value) => setToolheadField('nozzle', { ...toolhead.getNozzle(), type: value.id })}
+						error={errors?.fieldErrors.nozzle?.join('\n')}
 						options={Object.values(Nozzle.shape.type.Values).map(stringToTitleObject)}
 						value={stringToTitleObject(toolhead.getNozzle().type)}
 					/>
@@ -130,6 +131,7 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 					<DropdownWithPrinterQuery
 						label="Extruder"
 						query="extruders"
+						error={errors?.fieldErrors.extruder?.join('\n')}
 						onSelect={(value) => setToolheadField('extruder', value)}
 						value={toolhead.getExtruder()}
 					/>
@@ -138,6 +140,7 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 					<DropdownWithPrinterQuery
 						label="Probe"
 						query="probes"
+						error={errors?.fieldErrors.probe?.join('\n')}
 						onSelect={(value) => setToolheadField('probe', value)}
 						value={toolhead.getProbe()}
 					/>
@@ -149,6 +152,7 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 						vars={{ toolOrAxis: toolhead.getTool(), config: {} }}
 						serializedPrinterConfiguration="config"
 						label="X Endstop"
+						error={errors?.fieldErrors.xEndstop?.join('\n')}
 						query="xEndstops"
 						onSelect={(value) => setToolheadField('xEndstop', value)}
 						value={toolhead.getXEndstop()}
@@ -159,6 +163,7 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 						vars={{ toolOrAxis: toolhead.getTool(), config: {} }}
 						serializedPrinterConfiguration="config"
 						label="Y Endstop"
+						error={errors?.fieldErrors.yEndstop?.join('\n')}
 						query="yEndstops"
 						onSelect={(value) => setToolheadField('yEndstop', value)}
 						value={toolhead.getYEndstop()}
@@ -170,6 +175,7 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 					<DropdownWithPrinterQuery
 						vars={{ toolOrAxis: toolhead.getTool(), config: {} }}
 						serializedPrinterConfiguration="config"
+						error={errors?.fieldErrors.partFan?.join('\n')}
 						label="Part cooling fan"
 						query="partFanOptions"
 						onSelect={(value) => setToolheadField('partFan', value)}
@@ -180,6 +186,7 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 					<DropdownWithPrinterQuery
 						vars={{ toolOrAxis: toolhead.getTool(), config: {} }}
 						serializedPrinterConfiguration="config"
+						error={errors?.fieldErrors.hotendFan?.join('\n')}
 						label="Hotend fan"
 						query="hotendFanOptions"
 						onSelect={(value) => setToolheadField('hotendFan', value)}
@@ -200,6 +207,7 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 						vars={{ toolOrAxis: toolhead.getTool(), config: {} }}
 						serializedPrinterConfiguration="config"
 						label="X axis accelerometer"
+						error={errors?.fieldErrors.xAccelerometer?.join('\n')}
 						query="xAccelerometerOptions"
 						onSelect={(value) => setToolheadField('xAccelerometer', value)}
 						value={toolhead.getXAccelerometer()}
@@ -211,6 +219,7 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 						vars={{ toolOrAxis: toolhead.getTool(), config: {} }}
 						serializedPrinterConfiguration="config"
 						label="Y axis accelerometer"
+						error={errors?.fieldErrors.yAccelerometer?.join('\n')}
 						query="yAccelerometerOptions"
 						onSelect={(value) => setToolheadField('yAccelerometer', value)}
 						value={toolhead.getYAccelerometer()}
