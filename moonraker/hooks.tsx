@@ -29,6 +29,7 @@ import type {
 import { getHost } from '../helpers/util';
 import { merge } from 'ts-deepmerge';
 import deepEqual from 'deep-equal';
+import { e } from 'vitest/dist/reporters-rzC174PQ';
 
 let REQ_ID = 0;
 
@@ -415,6 +416,9 @@ export const usePrinterObjectSubscription = <
 					}
 				}
 				const changeSelection = _select(changed);
+				if (changeSelection == null || typeof changeSelection !== 'object') {
+					throw new Error('Invalid selection function, must return object, got ' + typeof changeSelection);
+				}
 				if (Object.keys(changed).length > 0 && deepEqual(changeSelection, stateRef.current) === false) {
 					setState((prev) => {
 						return merge(prev ?? {}, changeSelection) as R;
