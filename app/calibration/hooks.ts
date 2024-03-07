@@ -1,6 +1,11 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { CameraOption, parseOptions } from './helpers';
-import { useMoonrakerState } from '../../moonraker/hooks';
+import {
+	useMoonrakerQuery,
+	useMoonrakerState,
+	usePrinterObjectQuery,
+	usePrinterObjectSubscription,
+} from '../../moonraker/hooks';
 import { merge } from 'ts-deepmerge';
 import { getHost } from '../../helpers/util';
 import { useCallbackRef } from 'use-callback-ref';
@@ -256,6 +261,14 @@ const SNAPSHOT_DURATION = 200;
 export const useCrossHairState = (props: CrossHairStateProps) => {
 	const { toScreen, settings } = props;
 	const SnapshotEffectDuration = props.snapshotDuration ?? SNAPSHOT_DURATION;
+	const configFile = usePrinterObjectQuery('configfile');
+	const t0 = usePrinterObjectSubscription((res) => {
+		return { active: res['gcode_macro T0'].active };
+	}, 'gcode_macro T0');
+	const t1 = usePrinterObjectSubscription((res) => {
+		return { active: res['gcode_macro T1'].active };
+	}, 'gcode_macro T1');
+	const tool = t0?.active ? 0 : t1?.active ? 1 : 0;
 	const [isLockingCoordinates] = useChangeEffect([props.isLockingCoordinates], SnapshotEffectDuration, true);
 	const [containerSize, setContainerSize] = useState<[number, number]>([0, 0]);
 	const [delayedIsLockingCoordinates] = useDelayedChangeEffect(
@@ -264,9 +277,16 @@ export const useCrossHairState = (props: CrossHairStateProps) => {
 		10,
 		true,
 	);
-	const nozzleRadius = useMemo(() => toScreen(0.4 / 2), [toScreen]);
+	const nozzleRadius = useMemo(
+		() =>
+			toScreen(
+				((configFile.data?.configfile.settings[tool === 0 ? 'extruder' : 'extruder1'] as any)?.nozzle_diameter ?? 0.4) /
+					2,
+			),
+		[configFile.data?.configfile.settings, toScreen, tool],
+	);
 	const outerNozzleRadius = useMemo(
-		() => (isLockingCoordinates ? nozzleRadius : toScreen(settings ? settings.outerNozzleDiameter / 2 : 0)),
+		() => (isLockingCoordinates ? nozzleRadius : toScreen(settings ? settings.outerNozzleDiameter / 2 : 1)),
 		[toScreen, isLockingCoordinates, nozzleRadius, settings],
 	);
 	const outerNozzleRadiusPercentWidth = useMemo(
