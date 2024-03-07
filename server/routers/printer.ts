@@ -56,7 +56,7 @@ function isNodeError(error: any): error is NodeJS.ErrnoException {
 	return error instanceof Error;
 }
 
-type FileAction = 'created' | 'overwritten' | 'skipped' | 'error';
+type FileAction = 'created' | 'overwritten' | 'skipped' | 'error' | 'unchanged';
 export type CFGDirectories = 'hotends' | 'extruders' | 'z-probe';
 
 export const parseDirectory = cacheAsyncDirectoryFn(async <T extends z.ZodType>(directory: CFGDirectories, zod: T) => {
@@ -393,6 +393,9 @@ const generateKlipperConfiguration = async <T extends boolean>(
 				await access(finalPath, constants.F_OK);
 				// At this point we know the file exists.
 				if (file.overwrite) {
+					if (file.exists && file.diskContent === file.content) {
+						return { fileName: file.fileName, action: 'unchanged' };
+					}
 					// Make a back up.
 					const backupFilename = `${file.fileName.split('.').slice(0, -1).join('.')}-${getTimeStamp()}.cfg`;
 					try {
