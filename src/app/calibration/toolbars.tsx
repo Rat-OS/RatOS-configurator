@@ -64,7 +64,11 @@ const useToolbarState = (props: { zoom: number }) => {
 	const [isZOffsetProbeVisible, setIsZOffsetProbeVisible] = useState(false);
 
 	const live_position = usePrinterObjectSubscription((res) => {
-		return res.motion_report.live_position;
+		return {
+			x: res.motion_report.live_position?.[0],
+			y: res.motion_report.live_position?.[1],
+			z: res.motion_report.live_position?.[2],
+		};
 	}, 'motion_report');
 
 	const t0 = usePrinterObjectSubscription((res) => {
@@ -304,7 +308,7 @@ export const Toolbars: React.FC<ToolbarsProps> = (props) => {
 				{
 					name: canMove ? (
 						<span className="font-mono">
-							{(live_position?.[0] ?? 0).toFixed(2)}, {(live_position?.[1] ?? 0).toFixed(2)}
+							{(live_position?.x ?? 0).toFixed(2)}, {(live_position?.y ?? 0).toFixed(2)}
 						</span>
 					) : (
 						'Move'
