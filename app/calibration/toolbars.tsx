@@ -63,12 +63,9 @@ const useToolbarState = (props: { zoom: number }) => {
 	}, 'configfile') ?? { hasZOffsetProbe: false };
 	const [isZOffsetProbeVisible, setIsZOffsetProbeVisible] = useState(false);
 
-	const toolhead = usePrinterObjectSubscription((res) => {
-		return {
-			homed_axes: res.toolhead.homed_axes,
-			position: res.toolhead.position,
-		};
-	}, 'toolhead');
+	const live_position = usePrinterObjectSubscription((res) => {
+		return res.motion_report.live_position;
+	}, 'motion_report');
 
 	const t0 = usePrinterObjectSubscription((res) => {
 		return { active: res['gcode_macro T0'].active };
@@ -83,7 +80,7 @@ const useToolbarState = (props: { zoom: number }) => {
 	}, 'gcode_macro _VAOC') ?? { isVaocStarted: false };
 
 	return {
-		toolhead,
+		live_position,
 		tool: t0?.active ? 'T0' : t1?.active ? 'T1' : null,
 		isStartingVaoc,
 		setIsStartingVaoc,
@@ -127,7 +124,7 @@ export const Toolbars: React.FC<ToolbarsProps> = (props) => {
 		isFullscreened,
 	} = props;
 	const {
-		toolhead,
+		live_position,
 		tool,
 		isStartingVaoc,
 		setIsStartingVaoc,
@@ -307,7 +304,7 @@ export const Toolbars: React.FC<ToolbarsProps> = (props) => {
 				{
 					name: canMove ? (
 						<span className="font-mono">
-							{(toolhead?.position?.[0] ?? 0).toFixed(2)}, {(toolhead?.position?.[1] ?? 0).toFixed(2)}
+							{(live_position?.[0] ?? 0).toFixed(2)}, {(live_position?.[1] ?? 0).toFixed(2)}
 						</span>
 					) : (
 						'Move'
@@ -352,7 +349,7 @@ export const Toolbars: React.FC<ToolbarsProps> = (props) => {
 			isLoadingTool,
 			isVaocStarted,
 			canMove,
-			toolhead?.position,
+			live_position,
 			hasZOffsetProbe,
 			isZOffsetProbeVisible,
 			setIsSettingsVisible,
