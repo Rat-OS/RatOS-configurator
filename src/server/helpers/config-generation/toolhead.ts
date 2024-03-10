@@ -411,7 +411,7 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 		const endstopSafetyMargin = 5;
 		let parkX: number | null = null;
 		if (this.getMotionAxis() === PrinterAxis.x) {
-			parkX = this.printer.bedMargin.x[0] + endstopSafetyMargin;
+			parkX = -1 * this.printer.bedMargin.x[0] + endstopSafetyMargin;
 		} else if (this.getMotionAxis() === PrinterAxis.dual_carriage) {
 			parkX = this.size.x + this.printer.bedMargin.x[1] - endstopSafetyMargin;
 		}
