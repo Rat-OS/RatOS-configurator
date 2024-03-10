@@ -577,34 +577,57 @@ export const compareSettings = async (newSettings: SerializedPrinterConfiguratio
 				} as Unpacked<FilesToWriteWithState>;
 			}),
 	);
-	const unchangedFiles = newFiles
-		.filter(
-			(f) =>
-				f.exists &&
-				oldFiles.some(
-					(of) =>
-						of.fileName === f.fileName &&
-						of.content === f.content &&
-						(f.lastSavedContent == null || of.content === f.lastSavedContent),
-				),
-		)
-		.map((f) => {
-			const oldFile = oldFiles.find((of) => of.fileName === f.fileName);
-			if (oldFile == null) {
-				throw new Error('This should never happen.');
-			}
-			return {
-				fileName: f.fileName,
-				diff: null,
-				exists: f.exists,
-				overwrite: f.overwrite,
-				changedOnDisk: oldFile.diskContent !== oldFile.content,
-				changedFromConfig:
-					oldFile.content !== f.content || (f.lastSavedContent != null && oldFile.content !== f.lastSavedContent),
-				order: f.order,
-				state: 'unchanged' as const,
-			} as Unpacked<FilesToWriteWithState>;
-		});
+	const unchangedFiles = await Promise.all(
+		newFiles
+			.filter(
+				(f) =>
+					f.exists &&
+					oldFiles.some(
+						(of) =>
+							of.fileName === f.fileName &&
+							of.content === f.content &&
+							(f.lastSavedContent == null || of.content === f.lastSavedContent),
+					),
+			)
+			.map(async (f) => {
+				const oldFile = oldFiles.find((of) => of.fileName === f.fileName);
+				if (oldFile == null) {
+					throw new Error('This should never happen.');
+				}
+				let diff = null;
+				if (oldFile.diskContent !== oldFile.content) {
+					const timehash = new Date().getTime() + objectHash(f);
+					let oldPath = path.resolve(path.join(environment.KLIPPER_CONFIG_PATH, oldFile.fileName));
+					if (!oldFile.exists) {
+						oldPath = `/tmp/ratos-changed-old-${timehash}.cfg`;
+						await writeFile(oldPath, oldFile.content);
+					}
+					await writeFile(`/tmp/ratos-changed-new-${timehash}.cfg`, f.content);
+					diff = await new Promise<string | null>((resolve, reject) => {
+						exec(
+							`git diff --minimal --no-index ${oldPath} /tmp/ratos-changed-new-${timehash}.cfg`,
+							(err, stdout, stderr) => {
+								if (stdout.trim() == '') {
+									reject(stderr);
+								}
+								resolve(stdout);
+							},
+						);
+					});
+				}
+				return {
+					fileName: f.fileName,
+					diff: diff,
+					exists: f.exists,
+					overwrite: f.overwrite,
+					changedOnDisk: oldFile.diskContent !== oldFile.content,
+					changedFromConfig:
+						oldFile.content !== f.content || (f.lastSavedContent != null && oldFile.content !== f.lastSavedContent),
+					order: f.order,
+					state: 'unchanged' as const,
+				} as Unpacked<FilesToWriteWithState>;
+			}),
+	);
 	const result = addedFiles
 		.concat(removedFiles)
 		.concat(changedFiles)
