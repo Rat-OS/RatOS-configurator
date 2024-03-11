@@ -2,7 +2,7 @@
 import React from 'react';
 import { useRecoilValue } from 'recoil';
 import { twJoin } from 'tailwind-merge';
-import { KlippyReadyStates, KlippyStatusState, useKlippyStateHandler } from '../hooks/useKlippyStateHandler';
+import { KlippyReadyStates, useKlippyStateHandler } from '../hooks/useKlippyStateHandler';
 import { Badge, BadgeProps, badgeTextColorStyle } from './common/badge';
 
 interface Props {
@@ -27,8 +27,7 @@ const klipperStateToText = (klippyState: KlippyReadyStates) => {
 };
 
 export const KlippyStateBadge: React.FC<Props> = (props) => {
-	useKlippyStateHandler();
-	const klippyState = useRecoilValue(KlippyStatusState);
+	const klippyState = useKlippyStateHandler();
 	let color: BadgeProps['color'] = 'orange';
 	switch (klippyState) {
 		case 'error':

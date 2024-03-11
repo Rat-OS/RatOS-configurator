@@ -11,8 +11,29 @@ import { moonrakerExtensionsRouter } from './moonraker-extensions';
 import { printerRouter } from './printer';
 import { publicProcedure, router } from '../trpc';
 import { ServerCache } from '../helpers/cache';
+import { z } from 'zod';
+import { getLogger } from '../helpers/logger';
+import { PinoLogEvent } from '../../zods/util';
 
 export const appRouter = router({
+	clientLog: publicProcedure
+		.input(
+			z.object({
+				level: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']),
+				logEvent: PinoLogEvent,
+			}),
+		)
+		.mutation(async ({ input }) => {
+			let frontendLogger = getLogger().child({ source: 'frontend' }, { level: input.level });
+			for (const binding of input.logEvent.bindings) {
+				frontendLogger = frontendLogger.child(binding);
+			}
+			frontendLogger[input.logEvent.level.label](
+				input.logEvent.messages[0],
+				input.logEvent.messages[1],
+				...input.logEvent.messages.slice(2),
+			);
+		}),
 	version: publicProcedure.query(async () => {
 		return (await promisify(exec)('git describe --tags --always', {
 			cwd: process.env.RATOS_CONFIGURATION_PATH,

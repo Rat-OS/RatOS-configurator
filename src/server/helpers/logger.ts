@@ -1,5 +1,6 @@
 import pino from 'pino';
 import { serverSchema } from '../../env/schema.mjs';
+import { globalPinoOpts } from '../../helpers/logger';
 
 let logger: pino.Logger | null = null;
 export const getLogger = () => {
@@ -14,6 +15,6 @@ export const getLogger = () => {
 					target: 'pino/file',
 					options: { destination: environment.LOG_FILE, append: true },
 				};
-	logger = pino({ timestamp: true, transport: transportOption });
+	logger = pino({ ...globalPinoOpts, transport: transportOption });
 	return logger;
 };

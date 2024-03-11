@@ -13,6 +13,7 @@ import {
 } from '../zods/toolhead';
 import { PrinterState } from './printer';
 import { moonrakerWriteEffect } from '../components/sync-with-moonraker';
+import { getLogger } from '../app/_helpers/logger';
 
 export const isAxisValidForTool = (axis: PrinterAxis, tool: ToolNumber) => {
 	if (axis === PrinterAxis.dual_carriage && tool === 1) {
@@ -125,6 +126,7 @@ export const LoadablePrinterToolheadsState = selector<(ToolheadConfiguration<any
 	key: 'LoadablePrinterToolheadsState',
 	get: async ({ get }) => {
 		const loadable = get(noWait(PrinterToolheadsState));
+		getLogger().debug('LoadableToolheadState', loadable);
 		return {
 			hasValue: () => loadable.contents,
 			hasError: () => [],

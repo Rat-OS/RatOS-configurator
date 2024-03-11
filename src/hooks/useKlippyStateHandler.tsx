@@ -1,19 +1,16 @@
 'use client';
 
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { atom, useSetRecoilState } from 'recoil';
 import { useMoonraker } from '../moonraker/hooks';
 
 export type KlippyReadyStates = 'ready' | 'error' | 'shutdown' | 'startup' | 'unknown';
 
-export const KlippyStatusState = atom<KlippyReadyStates>({
-	key: 'KlippyReadyState',
-	default: 'unknown',
-});
-
 export const useKlippyStateHandler = () => {
-	const { query, lastMessage } = useMoonraker();
-	const setKlippyReadyState = useSetRecoilState(KlippyStatusState);
+	const { query, lastMessage } = useMoonraker({
+		passThroughUpdateMethods: ['notify_klippy_ready', 'notify_klippy_shutdown', 'notify_klippy_disconnected'],
+	});
+	const [klippyReadyState, setKlippyReadyState] = useState<KlippyReadyStates>('unknown');
 
 	const queryKlippyState = useCallback(async () => {
 		if (query != null) {
@@ -53,4 +50,6 @@ export const useKlippyStateHandler = () => {
 			queryKlippyState();
 		}
 	}, [lastMessage, queryKlippyState, setKlippyReadyState]);
+
+	return klippyReadyState;
 };

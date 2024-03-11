@@ -47,6 +47,7 @@ type MoonrakerStatusUpdate = { [key in PrinterObjectKeys]: PrinterObjectResult<P
 
 interface MoonrakerHookOptions {
 	onStatusUpdate?: (status: MoonrakerStatusUpdate) => void;
+	passThroughUpdateMethods?: string[];
 }
 
 export const useMoonraker = (options?: MoonrakerHookOptions) => {
@@ -87,6 +88,9 @@ export const useMoonraker = (options?: MoonrakerHookOptions) => {
 			try {
 				const parsed = JSON.parse(message.data) as MoonrakerResponse;
 				if (inFlightRequests.current[parsed.id] != null) {
+					return true;
+				}
+				if (options?.passThroughUpdateMethods?.length && options.passThroughUpdateMethods.includes(parsed.method)) {
 					return true;
 				}
 				return false;

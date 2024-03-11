@@ -4,6 +4,7 @@ import React, { useCallback, useEffect } from 'react';
 import { useMoonraker } from '../moonraker/hooks';
 import { ReadItem, RecoilSync } from 'recoil-sync';
 import { AtomEffect, DefaultValue } from 'recoil';
+import { getLogger } from '../app/_helpers/logger';
 
 const moonrakerSyncEventEmitter = new EventTarget();
 
@@ -21,10 +22,12 @@ export const DispatchSaveAtomEvent = (itemKey: string, value: unknown) => {
 export const moonrakerWriteEffect = <T extends any = unknown>(): AtomEffect<T> => {
 	return (params) => {
 		params.onSet((newValue) => {
-			console.debug(
+			getLogger().debug(
+				{
+					key: params.node.key,
+					value: newValue,
+				},
 				`RatOS Atom Sync Effect: new value was saved to moonraker "${params.trigger}"`,
-				params.node.key,
-				newValue,
 			);
 			DispatchSaveAtomEvent(params.node.key, newValue == null ? 'null' : newValue); // Moonraker doesn't save null values..
 		});

@@ -18,7 +18,7 @@
 		"leaveTo",
 		"leave"
 	],
-	"editor.defaultFormatter": "esbenp.prettier-vscode",
+	"editor.defaultFormatter": "dbaeumer.vscode-eslint",
 	"[typescript]": {
 		"editor.defaultFormatter": "dbaeumer.vscode-eslint",
 	},

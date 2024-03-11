@@ -121,7 +121,7 @@ function Template({ children }: { children: React.ReactNode }) {
 													</button>
 												</div>
 											</Transition.Child>
-											{/* Sidebar component, swap this element with another sidebar if you like */}
+											{/* Sidebar */}
 											<div className="flex grow flex-col gap-y-5 overflow-y-auto bg-zinc-900 px-6 pb-4 ring-1 ring-white/10">
 												<div className="flex h-16 shrink-0 items-center">
 													<Image width={160} height={40} className="h-8 w-auto" src={logoWhite} alt="Workflow" />
@@ -171,7 +171,7 @@ function Template({ children }: { children: React.ReactNode }) {
 
 						{/* Static sidebar for desktop */}
 						<div className="lg:z-1 hidden lg:fixed lg:inset-y-0 lg:flex lg:w-72 lg:flex-col">
-							{/* Sidebar component, swap this element with another sidebar if you like */}
+							{/* Sidebar */}
 							<div className="flex grow flex-col gap-y-5 overflow-y-auto bg-zinc-900 px-6 pb-4">
 								<div className="flex h-16 shrink-0 items-center">
 									<Image width={160} height={40} className="h-8 w-auto" src={logoWhite} alt="Workflow" />
@@ -233,99 +233,55 @@ function Template({ children }: { children: React.ReactNode }) {
 								</nav>
 							</div>
 						</div>
-						<Disclosure as="nav" className="bg-zinc-900 lg:ml-72">
-							{({ open }) => (
-								<>
-									<div className="mx-auto max-w-7xl sm:px-6">
-										<div className="">
-											<div className="flex h-16 items-center justify-between px-4 sm:px-0">
-												<div className="-mr-2 flex lg:hidden">
-													{/* Mobile menu button */}
-													<Disclosure.Button className="inline-flex items-center justify-center rounded-md bg-zinc-800 p-2 text-zinc-400 hover:bg-zinc-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-zinc-800">
-														<span className="sr-only">Open main menu</span>
-														{open ? (
-															<XMarkIcon className="block h-6 w-6" aria-hidden="true" />
-														) : (
-															<Bars3Icon className="block h-6 w-6" aria-hidden="true" />
-														)}
-													</Disclosure.Button>
-												</div>
-												<div className="hidden lg:flex"></div>
-												<div className="hidden items-center justify-between space-x-2 sm:flex">
-													<a
-														href="https://github.com/sponsors/miklschmidt"
-														target="_blank"
-														rel="noreferrer"
-														className="inline-flex items-center justify-center rounded-md border border-transparent bg-zinc-300 px-4 py-2 text-sm font-medium text-black shadow-sm hover:bg-zinc-400 focus:outline-none"
-													>
-														Donate
-													</a>
-													<a
-														href="https://os.ratrig.com/docs/introduction"
-														target="_blank"
-														rel="noreferrer"
-														className="inline-flex items-center justify-center rounded-md border border-transparent bg-transparent px-4 py-2 text-sm font-medium text-zinc-300 shadow-sm hover:bg-zinc-700 hover:text-white focus:outline-none"
-													>
-														Documentation
-													</a>
-													{theme === 'light' ? (
-														<MoonIcon
-															className="h-9 w-9 cursor-pointer rounded-md px-2 py-2 text-zinc-300 hover:bg-zinc-700 hover:text-brand-500"
-															onClick={setDarkMode}
-														/>
-													) : (
-														<SunIcon
-															className="h-9 w-9 cursor-pointer rounded-md px-2 py-2 text-zinc-300 hover:bg-zinc-700 hover:text-brand-500"
-															onClick={setLightMode}
-														/>
-													)}
-												</div>
-											</div>
+						<nav className="bg-zinc-900 lg:ml-72">
+							<div className="mx-auto max-w-7xl sm:px-6">
+								<div className="">
+									<div className="flex h-16 items-center justify-between px-4 sm:px-0">
+										<div className="-mr-2 flex lg:hidden">
+											{/* Mobile menu button */}
+											<button className="inline-flex items-center justify-center rounded-md bg-zinc-800 p-2 text-zinc-400 hover:bg-zinc-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-zinc-800">
+												<span className="sr-only">Open main menu</span>
+												{sidebarOpen ? (
+													<XMarkIcon className="block h-6 w-6" aria-hidden="true" />
+												) : (
+													<Bars3Icon className="block h-6 w-6" aria-hidden="true" />
+												)}
+											</button>
 										</div>
-									</div>
-									<Disclosure.Panel className="lg:hidden">
-										<div className="space-y-1 pb-3 pt-2">
-											{navigation.map((item) => (
-												<Disclosure.Button
-													key={item.name}
-													as="a"
-													href={item.href}
-													className={twMerge(
-														item.current
-															? 'bg-brand-50 border-brand-500 text-brand-500'
-															: 'border-transparent text-zinc-300 hover:border-zinc-600 hover:bg-zinc-700 hover:text-zinc-100',
-														'block border-l-4 py-2 pl-3 pr-4 text-base font-medium',
-													)}
-													aria-current={item.current ? 'page' : undefined}
-												>
-													{item.name}
-												</Disclosure.Button>
-											))}
-
-											<Disclosure.Button
-												as="a"
-												href={'https://github.com/sponsors/miklschmidt'}
-												className={
-													'block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-zinc-300 hover:border-zinc-600 hover:bg-zinc-700 hover:text-zinc-100'
-												}
+										<div className="hidden lg:flex"></div>
+										<div className="hidden items-center justify-between space-x-2 sm:flex">
+											<a
+												href="https://github.com/sponsors/miklschmidt"
+												target="_blank"
+												rel="noreferrer"
+												className="inline-flex items-center justify-center rounded-md border border-transparent bg-zinc-300 px-4 py-2 text-sm font-medium text-black shadow-sm hover:bg-zinc-400 focus:outline-none"
 											>
 												Donate
-											</Disclosure.Button>
-
-											<Disclosure.Button
-												as="a"
+											</a>
+											<a
 												href="https://os.ratrig.com/docs/introduction"
-												className={
-													'block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-zinc-300 hover:border-zinc-600 hover:bg-zinc-700 hover:text-zinc-100'
-												}
+												target="_blank"
+												rel="noreferrer"
+												className="inline-flex items-center justify-center rounded-md border border-transparent bg-transparent px-4 py-2 text-sm font-medium text-zinc-300 shadow-sm hover:bg-zinc-700 hover:text-white focus:outline-none"
 											>
 												Documentation
-											</Disclosure.Button>
+											</a>
+											{theme === 'light' ? (
+												<MoonIcon
+													className="h-9 w-9 cursor-pointer rounded-md px-2 py-2 text-zinc-300 hover:bg-zinc-700 hover:text-brand-500"
+													onClick={setDarkMode}
+												/>
+											) : (
+												<SunIcon
+													className="h-9 w-9 cursor-pointer rounded-md px-2 py-2 text-zinc-300 hover:bg-zinc-700 hover:text-brand-500"
+													onClick={setLightMode}
+												/>
+											)}
 										</div>
-									</Disclosure.Panel>
-								</>
-							)}
-						</Disclosure>
+									</div>
+								</div>
+							</div>
+						</nav>
 						<div className="lg:ml-72">{children}</div>
 					</div>
 				</SyncWithMoonraker>

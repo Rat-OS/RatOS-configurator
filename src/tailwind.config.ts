@@ -1,5 +1,6 @@
-const defaultTheme = require('tailwindcss/defaultTheme');
-module.exports = {
+import defaultTheme from 'tailwindcss/defaultTheme';
+import { Config } from 'tailwindcss/types/config';
+export default {
 	darkMode: 'class',
 	content: [
 		'./pages/**/*.{js,ts,jsx,tsx}',
@@ -15,16 +16,16 @@ module.exports = {
 			keyframes: {
 				ping: {
 					'0%': {
-						opacity: 100,
+						opacity: '100',
 					},
 					'75%, 100%': {
 						transform: 'scale(2)',
-						opacity: 0,
+						opacity: '0',
 					},
 				},
 			},
 			animation: {
-			  'spin-fast': 'spin 0.5s linear infinite',
+				'spin-fast': 'spin 0.5s linear infinite',
 			},
 			colors: {
 				brand: {
@@ -57,4 +58,4 @@ module.exports = {
 		require('@tailwindcss/container-queries'),
 		require('tailwind-scrollbar')({ nocompatible: true }),
 	],
-};
+} satisfies Config;

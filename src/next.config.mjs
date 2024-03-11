@@ -10,6 +10,8 @@ function defineNextConfig(config) {
 	return config;
 }
 
+import CopyPlugin from "copy-webpack-plugin";
+
 export default defineNextConfig({
 	reactStrictMode: true,
 	distDir: 'build',
@@ -24,4 +26,20 @@ export default defineNextConfig({
 		instrumentationHook: true,
 		typedRoutes: true,
 	},
+	webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+		// Note: we provide webpack above so you should not `require` it
+		// Perform customizations to webpack config
+		const destWasmFolder = "static/chunks/app/analysis";
+		config.plugins.push(new CopyPlugin({
+			patterns: [
+				{ from: "node_modules/scichart/_wasm/scichart2d.data", to: destWasmFolder },
+				{ from: "node_modules/scichart/_wasm/scichart2d.wasm", to: destWasmFolder },
+				{ from: "node_modules/scichart/_wasm/scichart3d.data", to: destWasmFolder },
+				{ from: "node_modules/scichart/_wasm/scichart3d.wasm", to: destWasmFolder },
+			]
+		}),)
+	
+		// Important: return the modified config
+		return config
+	}
 });

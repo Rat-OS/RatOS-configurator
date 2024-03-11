@@ -1,5 +1,12 @@
 'use client';
-import { SparklesIcon, TvIcon, VideoCameraIcon } from '@heroicons/react/24/solid';
+import {
+	ArrowDownOnSquareIcon,
+	ArrowsPointingOutIcon,
+	PresentationChartLineIcon,
+	SparklesIcon,
+	TvIcon,
+	VideoCameraIcon,
+} from '@heroicons/react/24/solid';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useCallback } from 'react';
 import type { Route } from 'next';
@@ -31,10 +38,10 @@ const routes: NavigationItem[] = [
 	{ name: 'Setup Wizard', href: '/wizard', current: false, icon: SparklesIcon },
 	{ name: 'Dashboard', href: '/', current: false, icon: TvIcon },
 	{ name: 'Visual Calibration', href: '/calibration', current: false, icon: VideoCameraIcon },
-	// { name: 'Analysis', href: '/', current: false, icon: PresentationChartLineIcon },
+	{ name: 'Analysis', href: '/analysis', current: false, icon: PresentationChartLineIcon },
 	// { name: 'Boards', href: '/', current: false, icon: CpuChipIcon },
-	// { name: 'Motion', href: '/', current: false, icon: ArrowsPointingOutIcon, iconClass: 'rotate-45' },
-	// { name: 'Toolheads', href: '/', current: false, icon: ArrowDownOnSquareIcon },
+	// { name: 'Motion', href: '/motion', current: false, icon: ArrowsPointingOutIcon, iconClass: 'rotate-45' },
+	// { name: 'Toolhead', href: '/toolhead', current: false, icon: ArrowDownOnSquareIcon },
 ];
 
 export const useNavigation = () => {

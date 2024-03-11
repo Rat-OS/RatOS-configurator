@@ -13,7 +13,7 @@
 	.dark .git-diff {
 		--diff-background-color: theme('colors.zinc.900');
 		--diff-text-color: theme(colors.zinc.300);
-		--diff-font-family: Consolas, Courier, monospace;
+		--diff-font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 		--diff-selection-background-color: theme(colors.sky.400 / 20%);
 		--diff-selection-text-color: var(--diff-text-color);
 		--diff-gutter-insert-background-color: theme(colors.brand.400 / 20%);
@@ -37,7 +37,7 @@
 	.git-diff {
 		--diff-background-color: theme('colors.zinc.50');
 		--diff-text-color: theme(colors.zinc.800);
-		--diff-font-family: Consolas, Courier, monospace;
+		--diff-font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 		--diff-selection-background-color: theme(colors.sky.400 / 20%);
 		--diff-selection-text-color: var(--diff-text-color);
 		--diff-gutter-insert-background-color: theme(colors.brand.400 / 20%);
