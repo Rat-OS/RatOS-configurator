@@ -64,7 +64,12 @@ ${helper.renderMacroVariableOverrides()}
 variable_home_y_first: True
 
 # Save variables
-${helper.renderSaveVariables()}
+${helper.renderSaveVariables({
+	xcontrolpoint: config.size.x / 2 - 51.7,
+	ycontrolpoint: config.size.y + 32,
+	zcontrolpoint: 10,
+	zoffsetcontrolpoint: 0,
+})}
 `;
 
 export const initialPrinterCfg = (config: PrinterConfiguration, helper: KlipperConfigHelper) => `
