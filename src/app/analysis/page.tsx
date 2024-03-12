@@ -27,13 +27,11 @@ export default function Page() {
 	const isClient = useIsClient();
 	console.log('Weehooo rendering', isClient);
 	return isClient ? (
-		<div className="mx-auto mt-8 grid grid-cols-1 gap-6 @container">
-			<div className="relative rounded-lg bg-white shadow dark:bg-zinc-900">
-				<React.Suspense fallback={<LoadScreen />}>
-					<Analysis />
-					{/* <BeltTension /> */}
-				</React.Suspense>
-			</div>
+		<div className="h-full p-4 @container">
+			<React.Suspense fallback={<LoadScreen />}>
+				<Analysis />
+				{/* <BeltTension /> */}
+			</React.Suspense>
 		</div>
 	) : null;
 }

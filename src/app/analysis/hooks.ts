@@ -29,6 +29,7 @@ type ToolheadHelperClass = InstanceType<typeof ToolheadHelper<any>>;
 
 interface RealtimeADXLOptions {
 	onDataUpdate?: (status: KlipperADXL345SubscriptionData) => void;
+	enabled?: boolean;
 	sensor: ReturnType<ToolheadHelperClass['getYAccelerometerName'] & ToolheadHelperClass['getYAccelerometerName']>;
 }
 
@@ -43,27 +44,30 @@ export const useRealtimeADXL = (options: RealtimeADXLOptions) => {
 	useEffect(() => {
 		setWsUrl(getWsURL());
 	}, []);
-	const { lastJsonMessage, sendJsonMessage, readyState } = useWebSocket<MoonrakerResponse>(wsUrl, {
-		shouldReconnect: (closeEvent) => {
-			return true;
-		},
-		onMessage: (message) => {
-			if (options?.onDataUpdate && isSubscribed) {
-				try {
-					const parsed = JSON.parse(message.data) as MoonrakerResponse;
-					if (parsed.params != null && 'data' in parsed.params) {
-						const res = parsed.params as KlipperADXL345SubscriptionData;
-						options.onDataUpdate?.(res);
+	const { lastJsonMessage, sendJsonMessage, readyState } = useWebSocket<MoonrakerResponse>(
+		options.enabled === false ? null : wsUrl,
+		{
+			shouldReconnect: (closeEvent) => {
+				return true;
+			},
+			onMessage: (message) => {
+				if (options?.onDataUpdate && isSubscribed) {
+					try {
+						const parsed = JSON.parse(message.data) as MoonrakerResponse;
+						if (parsed.params != null && 'data' in parsed.params) {
+							const res = parsed.params as KlipperADXL345SubscriptionData;
+							options.onDataUpdate?.(res);
+						}
+					} catch (e) {
+						console.warn('OnMessage: Failed to parse message', e, message.data);
 					}
-				} catch (e) {
-					console.warn('OnMessage: Failed to parse message', e, message.data);
 				}
-			}
+			},
+			reconnectAttempts: Infinity,
+			reconnectInterval: 3000,
+			share: false,
 		},
-		reconnectAttempts: Infinity,
-		reconnectInterval: 3000,
-		share: false,
-	});
+	);
 
 	const subscribe = useCallback(async <R = unknown>() => {
 		const id = ++REQ_ID;

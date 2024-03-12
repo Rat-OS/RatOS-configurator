@@ -156,8 +156,8 @@ export const useMoonraker = (options?: MoonrakerHookOptions) => {
 				};
 				let timeout = 10 * 1000;
 				if (method === 'printer.gcode.script') {
-					// Allow 60 seconds for gcode macros.
-					timeout = 60 * 1000;
+					// Allow 10 minutes for gcode macros.
+					timeout = 10 * 60 * 1000;
 				}
 				inFlightRequestTimeouts.current[id] = window.setTimeout(() => {
 					inFlightRequests.current[id]?.(new Error('Request timed out'), null);

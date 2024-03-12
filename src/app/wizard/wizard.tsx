@@ -26,8 +26,8 @@ export const Wizard: React.FC<WizardProps> = (props) => {
 			}
 		>
 			{/* Page header */}
-			<div className="mx-auto max-w-3xl px-4 sm:px-6 md:flex md:items-center md:justify-between md:space-x-5 lg:max-w-7xl lg:px-8">
-				<div className="flex items-center space-x-5">
+			<div className="mx-auto max-w-3xl px-4 md:flex md:items-center md:justify-between md:space-x-4 lg:max-w-7xl">
+				<div className="flex items-center">
 					<div>
 						<h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Printer Setup</h1>
 						<p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
@@ -35,13 +35,13 @@ export const Wizard: React.FC<WizardProps> = (props) => {
 						</p>
 					</div>
 				</div>
-				<div className="mt-6 md:mt-0">
-					<div className="flex space-x-1 sm:flex-row-reverse sm:justify-end sm:space-x-3 sm:space-y-0 sm:space-x-reverse md:flex-row md:space-x-3">
+				<div className="mt-6 flex flex-col items-stretch md:mt-0">
+					<div className="flex space-x-1 sm:flex-row-reverse sm:justify-end sm:space-x-2 sm:space-y-0 md:flex-row">
 						<KlippyStateBadge />
 						<MoonrakerStateBadge />
 					</div>
-					<div className="mt-2 flex justify-end">
-						<ActionsDropdown />
+					<div className="mt-2 flex">
+						<ActionsDropdown className="block flex-1" />
 					</div>
 				</div>
 			</div>

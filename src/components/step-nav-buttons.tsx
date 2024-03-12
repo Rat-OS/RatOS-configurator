@@ -74,8 +74,7 @@ export const StepNavButtons: React.FC<StepNavButtonsProps> = (props) => {
 	return (
 		<div className="px-8 pb-5">
 			<nav
-				className="flex items-center justify-between border-t border-zinc-200 
-		bg-white py-3 dark:border-zinc-700 dark:bg-zinc-900"
+				className="flex items-center justify-between border-t border-zinc-200 py-3 dark:border-zinc-700"
 				aria-label="Pagination"
 			>
 				{left}

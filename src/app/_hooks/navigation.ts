@@ -26,7 +26,7 @@ export const useIsRouteActive = () => {
 	);
 };
 
-type NavigationItem = {
+export type NavigationItem = {
 	name: string;
 	href: Route;
 	current: boolean;

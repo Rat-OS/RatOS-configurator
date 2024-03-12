@@ -1,22 +1,7 @@
-import {
-	signal as tfSignal,
-	Tensor1D,
-	sum,
-	pow,
-	div,
-	mul,
-	add,
-	real,
-	sqrt,
-	slice,
-	mean,
-	imag,
-	range,
-	sub,
-	tidy,
-} from '@tensorflow/tfjs-core';
+import { signal as tfSignal, Tensor1D, sum, pow, div, mean, sub, tidy } from '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-backend-webgl';
-import { TensorLike1D } from '@tensorflow/tfjs-core/dist/types';
+
+export type PSD = { frequencies: number[]; estimates: number[] };
 
 /**
  * Returns the ceil of the log2 of the absolute value of the passed number
@@ -56,7 +41,7 @@ export async function powerSpectralDensity(
 	signal: Tensor1D,
 	sample_rate: number,
 	options?: { fftSize?: number; _scaling?: string },
-): Promise<{ estimates: number[]; frequencies: number[] }> {
+): Promise<PSD> {
 	let { fftSize, _scaling } = Object.assign(
 		{
 			fftSize: 1 << nextpow2(sample_rate * WINDOW_T_SEC - 1),
@@ -132,7 +117,7 @@ export async function powerSpectralDensity(
 	);
 }
 
-export const welch = async (PSDs: { estimates: number[]; frequencies: number[] }[]) => {
+export const welch = async (PSDs: PSD[]): Promise<PSD> => {
 	if (PSDs.length == 0) throw new Error('Unable to calculate any PSD estimates');
 	if (PSDs.length == 1) {
 		console.warn('Not enough data to compute more than one segment, returning single modified periodogram.');

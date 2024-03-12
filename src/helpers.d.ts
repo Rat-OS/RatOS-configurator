@@ -61,3 +61,9 @@ type NestedObjectType<T> = {
 type GitVersion = `${number}.${number}.${number}${`-${number}` | ``}${`-${string}` | ``}`;
 
 type GCode = Nominal<string, 'G-Code'>;
+
+declare module 'tailwindcss/lib/util/flattenColorPalette' {
+	export default function flattenColorPalette(
+		colors: Record<string, string | Record<string, string>>,
+	): Record<string, string>;
+}
