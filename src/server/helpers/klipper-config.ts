@@ -260,6 +260,12 @@ export const constructKlipperConfigUtils = async (config: PrinterConfiguration) 
 		printerAxisToPinAliasPrefix(axis: PrinterAxis) {
 			const prefix = axisToPinPrefix.safeParse(axis);
 			if (prefix.success) {
+				if (prefix.data === 'e1') {
+					if (this.getToolhead(1).hasToolboard()) {
+						return 'e';
+					}
+					throw new Error(`No toolboard found for T1, e1 prefix is not supported`);
+				}
 				return prefix.data;
 			}
 			return null;
@@ -558,11 +564,16 @@ export const constructKlipperConfigHelpers = async (
 			const dirComment = directionInverted
 				? `# Remove ! in front of pin name to reverse the direction of ${utils.getAxisStepperName(rail.axis)}`
 				: `# Add ! in front of pin name to reverse the direction of ${utils.getAxisStepperName(rail.axis)}`;
+
+			let extruderPinPrefix = '';
+			if (rail.axis === PrinterAxis.extruder || rail.axis === PrinterAxis.extruder1) {
+				extruderPinPrefix = utils.getExtruderPinPrefix(rail.axis);
+			}
 			const section = utils
 				.getMotorComments(rail)
 				.concat([
 					`[${utils.getAxisStepperName(rail.axis)}]`,
-					`dir_pin: ${directionInverted ? '!' : ''}${rail.axis.startsWith('extruder') ? utils.getExtruderPinPrefix() : ''}${utils.printerAxisToPinAliasPrefix(rail.axis)}_dir_pin ${dirComment}`,
+					`dir_pin: ${directionInverted ? '!' : ''}${extruderPinPrefix}${utils.printerAxisToPinAliasPrefix(rail.axis)}_dir_pin ${dirComment}`,
 				]);
 			if (rail.axis === PrinterAxis.extruder || rail.axis === PrinterAxis.extruder1) {
 				const toolhead = utils.getToolhead(rail.axis);

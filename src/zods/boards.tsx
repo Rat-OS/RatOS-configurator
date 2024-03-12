@@ -97,6 +97,7 @@ export enum AxisPinPrefix {
 	z2 = 'z2',
 	z3 = 'z3',
 	e = 'e',
+	e1 = 'e1',
 	dual_carriage = 'dual_carriage',
 }
 
@@ -111,6 +112,7 @@ export const pinAliasPrefixToPrinterAxis: { [key in AxisPinPrefix]: PrinterAxis 
 	z2: PrinterAxis['z2'],
 	z3: PrinterAxis['z3'],
 	e: PrinterAxis['extruder'],
+	e1: PrinterAxis['extruder1'],
 	dual_carriage: PrinterAxis['dual_carriage'],
 };
 
