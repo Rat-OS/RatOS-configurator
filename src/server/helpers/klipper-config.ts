@@ -304,6 +304,13 @@ export const constructKlipperConfigUtils = async (config: PrinterConfiguration) 
 };
 export type KlipperConfigUtils = Awaited<ReturnType<typeof constructKlipperConfigUtils>>;
 
+type VAOCControlPoints = {
+	xcontrolpoint?: number;
+	ycontrolpoint?: number;
+	zcontrolpoint?: number;
+	zoffsetcontrolpoint?: number;
+};
+
 export const constructKlipperConfigExtrasGenerator = (config: PrinterConfiguration, utils: KlipperConfigUtils) => {
 	const _filesToWrite: WritableFiles = [];
 	const _reminders: string[] = [];
@@ -317,22 +324,25 @@ export const constructKlipperConfigExtrasGenerator = (config: PrinterConfigurati
 		getReminders() {
 			return _reminders.slice();
 		},
-		generateSaveVariables() {
+		generateSaveVariables(options?: VAOCControlPoints) {
 			const environment = serverSchema.parse(process.env);
+			const vars: string[] = [`[Variables]`];
+			if (config.toolheads.length > 1) {
+				vars.push(
+					`idex_applied_offset = 1`,
+					`idex_xcontrolpoint = ${options?.xcontrolpoint ?? config.size.x / 2}`,
+					`idex_xoffset = 0.0`,
+					`idex_ycontrolpoint = ${options?.ycontrolpoint ?? 50}`,
+					`idex_yoffset = 0.0`,
+					`idex_zcontrolpoint = ${options?.zcontrolpoint ?? 50}`,
+					`idex_zoffset = 0.0`,
+					`idex_zoffsetcontrolpoint = ${options?.zoffsetcontrolpoint ?? 25}`,
+				);
+			}
 			return [
 				{
 					fileName: 'ratos-variables.cfg',
-					content: [
-						`[Variables]`,
-						`idex_applied_offset = 1`,
-						`idex_xcontrolpoint = 150.0`,
-						`idex_xoffset = 0.0`,
-						`idex_ycontrolpoint = 50.0`,
-						`idex_yoffset = 0.0`,
-						`idex_zcontrolpoint = 50.0`,
-						`idex_zoffset = 0.0`,
-						`idex_zoffsetcontrolpoint = 25.0`,
-					].join('\n'),
+					content: vars.join('\n'),
 					overwrite: false,
 				},
 			].map((f) => {
@@ -936,8 +946,8 @@ export const constructKlipperConfigHelpers = async (
 
 			return utils.formatInlineComments(result).join('\n');
 		},
-		renderSaveVariables() {
-			return extrasGenerator.generateSaveVariables().join('\n');
+		renderSaveVariables(options?: VAOCControlPoints) {
+			return extrasGenerator.generateSaveVariables(options).join('\n');
 		},
 		renderUserMacroVariableOverrides(size?: number) {
 			const result: string[] = [

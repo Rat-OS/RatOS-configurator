@@ -242,7 +242,7 @@ describe('server', async () => {
 			const config = await loadSerializedConfig(path.join(__dirname, 'fixtures', 'another-idex.json'));
 			const filesToWrite = await getFilesToWrite(config);
 			const res: string = filesToWrite.find((f) => f.fileName === 'RatOS.cfg')?.content ?? '';
-			const printerCfg: string = filesToWrite.find((f) => f.fileName === 'printer.cfg')?.content ?? '';
+			const printerCfg: string = filesToWrite.find((f) => f.fileName === 'ratos-variables.cfg')?.content ?? '';
 			const splitRes = res.split('\n');
 			const annotatedLines = splitRes.map((l: string, i: number) => `Line-${i + 1}`.padEnd(10, '-') + `|${l}`);
 			const gcodeBlocks: number[] = [];
@@ -272,6 +272,7 @@ describe('server', async () => {
 					}
 				}
 			});
+			console.log(printerCfg);
 		});
 		describe('can generate hybrid config with toolboard', async () => {
 			let debugLines: string[] = [];
