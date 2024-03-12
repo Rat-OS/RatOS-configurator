@@ -238,6 +238,41 @@ describe('server', async () => {
 				}
 			});
 		});
+		describe('can generate another idex config', async () => {
+			const config = await loadSerializedConfig(path.join(__dirname, 'fixtures', 'another-idex.json'));
+			const filesToWrite = await getFilesToWrite(config);
+			const res: string = filesToWrite.find((f) => f.fileName === 'RatOS.cfg')?.content ?? '';
+			const printerCfg: string = filesToWrite.find((f) => f.fileName === 'printer.cfg')?.content ?? '';
+			const splitRes = res.split('\n');
+			const annotatedLines = splitRes.map((l: string, i: number) => `Line-${i + 1}`.padEnd(10, '-') + `|${l}`);
+			const gcodeBlocks: number[] = [];
+			splitRes.forEach((l, i) => l.includes('gcode:') && gcodeBlocks.push(i));
+			test('produces valid config', async () => {
+				expect(splitRes.length).toBeGreaterThan(0);
+				const noUndefined = splitRes.filter((l: string) => l.includes('undefined')).join('\n');
+				const noNull = splitRes.filter((l: string) => l.includes(':null')).join('\n');
+				const noPromises = splitRes.filter((l: string) => l.includes('[object Promise]')).join('\n');
+				const noObjects = splitRes.filter((l: string) => l.includes('[object Object]')).join('\n');
+				if (noUndefined || noPromises || noObjects) {
+					console.log(annotatedLines.join('\n'));
+				}
+				expect(noUndefined, 'Expected no undefined values in config').to.eq('');
+				expect(noNull, 'Expected no null values in config').to.eq('');
+				expect(noPromises, 'Expected no promises in config').to.eq('');
+				expect(noObjects, 'Expected no objects in config').to.eq('');
+			});
+			test.runIf(gcodeBlocks.length > 0)('correctly indents gcode blocks', async () => {
+				for (const block of gcodeBlocks) {
+					try {
+						expect(splitRes[block + 1].startsWith('\t') || splitRes[block + 1].startsWith('  ')).toBeTruthy();
+					} catch (e) {
+						throw new Error(
+							`Failed to indent gcode block at line ${block + 1}:\n${annotatedLines.slice(block - 4, block + 5).join('\n')}`,
+						);
+					}
+				}
+			});
+		});
 		describe('can generate hybrid config with toolboard', async () => {
 			let debugLines: string[] = [];
 			let generatedLines: string[] = [];
