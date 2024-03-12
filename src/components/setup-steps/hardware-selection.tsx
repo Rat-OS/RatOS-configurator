@@ -11,6 +11,8 @@ import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { deserializePrinterRailDefinition } from '../../utils/serialization';
 import { ToolheadSettings } from './toolhead-settings';
 import { Spinner } from '../common/spinner';
+import { BasePrinterRail, PrinterAxis } from '../../zods/motion';
+import { z } from 'zod';
 
 export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 	const [animate] = useAutoAnimate();
@@ -34,6 +36,22 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 	} = usePrinterConfiguration();
 	const errors: string[] = [];
 	let formattedErrors = parsedPrinterConfiguration.success === false ? parsedPrinterConfiguration.error.format() : null;
+	const railErrors: {
+		[i: string]: z.inferFormattedError<typeof BasePrinterRail>;
+	} = {};
+	partialPrinterConfiguration?.rails?.forEach((rail, ri) => {
+		let railError: string[] = [];
+		if (![PrinterAxis.extruder, PrinterAxis.extruder1].includes(rail.axis)) {
+			if (rail.motorSlot == null) {
+				errors.push(`Motor slot for ${rail.axis.toUpperCase()} is not set`);
+				railError = [`Motor slot for ${rail.axis.toUpperCase()} is not set`];
+			}
+		}
+		railErrors[ri] = {
+			...(formattedErrors?.rails?.[ri] ?? {}),
+			_errors: formattedErrors?.rails?.[ri]._errors?.concat(railError ?? []) ?? railError,
+		};
+	});
 	if (partialPrinterConfiguration != null) {
 		if (parsedPrinterConfiguration.success === false) {
 			parsedPrinterConfiguration.error.flatten().formErrors.forEach((message) => {
@@ -147,15 +165,24 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 								if (defaultRail == null) {
 									throw new Error('No printer default for axis ' + rail.axis);
 								}
+								const errorCount = Object.keys(railErrors[ri]).reduce((acc, key) => {
+									const objKey = key as keyof (typeof railErrors)[number];
+									const keyErrors = railErrors[ri][objKey];
+									if (keyErrors == null) {
+										return acc;
+									}
+									const count = Array.isArray(keyErrors) ? keyErrors.length : keyErrors._errors?.length ?? 0;
+									return acc + count;
+								}, 0);
 								return (
 									<PrinterRailSettings
 										key={rail.axis}
-										errors={formattedErrors?.rails?.[ri] != null ? formattedErrors.rails[ri] : { _errors: [] }}
+										errors={railErrors[ri]}
 										selectedBoard={selectedBoard}
 										printerRail={rail}
 										printerRailDefault={deserializePrinterRailDefinition(defaultRail)}
 										performanceMode={performanceMode}
-										isVisible={advancedSteppers}
+										isVisible={advancedSteppers || railErrors[ri] != null}
 									/>
 								);
 							})}
@@ -167,8 +194,11 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 				left={{ onClick: props.previousScreen }}
 				right={{
 					onClick: props.nextScreen,
-					disabled: !parsedPrinterConfiguration.success,
-					title: parsedPrinterConfiguration.success === false ? 'Invalid printer configuration selected' : undefined,
+					disabled: !parsedPrinterConfiguration.success || errors.length > 0,
+					title:
+						parsedPrinterConfiguration.success === false || errors.length > 0
+							? 'Invalid printer configuration selected'
+							: undefined,
 				}}
 			/>
 		</div>

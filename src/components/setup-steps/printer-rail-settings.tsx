@@ -253,7 +253,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 				? 'Extruder T1'
 				: 'Stepper ' + props.printerRail.axis.toLocaleUpperCase();
 	const motorSlotOptions =
-		board?.motorSlots != null && motorSlot != null && Object.keys(board.motorSlots).length > 0
+		board?.motorSlots != null && Object.keys(board.motorSlots).length > 0
 			? Object.keys(board.motorSlots)
 					.map((ms) => {
 						if (board.motorSlots?.[ms].title == null) {
