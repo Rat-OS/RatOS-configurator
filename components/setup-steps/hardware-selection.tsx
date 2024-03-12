@@ -49,7 +49,7 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 		}
 		railErrors[ri] = {
 			...(formattedErrors?.rails?.[ri] ?? {}),
-			_errors: formattedErrors?.rails?.[ri]._errors?.concat(railError ?? []) ?? railError,
+			_errors: formattedErrors?.rails?.[ri]?._errors?.concat(railError ?? []) ?? railError,
 		};
 	});
 	if (partialPrinterConfiguration != null) {
