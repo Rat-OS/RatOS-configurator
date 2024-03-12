@@ -54,14 +54,11 @@ export const MCUPicker: React.FC<MCUStepScreenProps> = (props) => {
 	};
 
 	const skip = useCallback(() => {
-		if (toolhead && skipSteps) {
-			setSelectedBoard(null);
-			skipSteps?.();
-		}
-	}, [toolhead, skipSteps, setSelectedBoard]);
+		skipSteps?.();
+	}, [skipSteps]);
 
 	let skipButton: StepNavButton | undefined =
-		((toolhead && !isToolboardRequired()) || isBoardDetected) && props.skipSteps
+		((toolhead && !isToolboardRequired()) || isBoardDetected) && skipSteps && skip
 			? {
 					onClick: skip,
 					label: 'Skip',
