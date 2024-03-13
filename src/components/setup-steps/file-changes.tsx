@@ -1,16 +1,16 @@
 import React, { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
-import { SerializedPrinterConfiguration } from '../../zods/printer-configuration';
-import { trpc } from '../../utils/trpc';
+import { SerializedPrinterConfiguration } from '@/zods/printer-configuration';
+import { trpc } from '@/utils/trpc';
 import { useQuery } from '@tanstack/react-query';
-import type { FilesToWriteWithState, FileState } from '../../server/routers/printer';
-import { DiffModal } from './diff-modal';
+import type { FilesToWriteWithState, FileState } from '@/server/routers/printer';
+import { DiffModal } from '@/components/setup-steps/diff-modal';
 import { twJoin } from 'tailwind-merge';
 import { Menu, Transition } from '@headlessui/react';
 import { EllipsisVerticalIcon } from '@heroicons/react/20/solid';
-import { StateCircle } from '../common/state-circle';
-import { Badge } from '../common/badge';
-import { Button, Intents } from '../common/button';
-import { useChangeEffect } from '../../hooks/useChangeEffect';
+import { StateCircle } from '@/components/common/state-circle';
+import { Badge } from '@/components/common/badge';
+import { Button, Intents } from '@/components/common/button';
+import { useChangeEffect } from '@/hooks/useChangeEffect';
 import { CheckIcon } from '@heroicons/react/24/outline';
 
 interface FileChangesProps {

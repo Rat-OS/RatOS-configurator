@@ -1,16 +1,16 @@
 'use client';
 
-import { useWebRTC } from '../_hooks/webrtc';
+import { useWebRTC } from '@/app/_hooks/webrtc';
 import React, { useCallback, useEffect } from 'react';
 import { twJoin, twMerge } from 'tailwind-merge';
-import { initialCameraSettings } from './vaoc-settings-dialog';
-import { useMoonrakerState, usePrinterObjectSubscription } from '../../moonraker/hooks';
-import { Spinner } from '../../components/common/spinner';
-import { useGestures, useSpatialMapping, useUIState, useVideoState } from './hooks';
-import { Toolbars } from './toolbars';
-import { SafetyVisualization } from './safety-visualization';
-import { CrossHair } from './crosshair';
-import { FillVideoFrame, FillViewport } from './framing';
+import { initialCameraSettings } from '@/app/calibration/vaoc-settings-dialog';
+import { useMoonrakerState, usePrinterObjectSubscription } from '@/moonraker/hooks';
+import { Spinner } from '@/components/common/spinner';
+import { useGestures, useSpatialMapping, useUIState, useVideoState } from '@/app/calibration/hooks';
+import { Toolbars } from '@/app/calibration/toolbars';
+import { SafetyVisualization } from '@/app/calibration/safety-visualization';
+import { CrossHair } from '@/app/calibration/crosshair';
+import { FillVideoFrame, FillViewport } from '@/app/calibration/framing';
 import screenfull from 'screenfull';
 
 export default function Page() {

@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useToolheadConfiguration } from '../../hooks/useToolheadConfiguration';
-import { stringToTitleObject } from '../../utils/serialization';
-import { ToolOrAxis, ToolheadConfiguration } from '../../zods/toolhead';
-import { Dropdown, DropdownWithPrinterQuery } from '../forms/dropdown';
-import { Spinner } from '../common/spinner';
+import { useToolheadConfiguration } from '@/hooks/useToolheadConfiguration';
+import { stringToTitleObject } from '@/utils/serialization';
+import { ToolOrAxis, ToolheadConfiguration } from '@/zods/toolhead';
+import { Dropdown, DropdownWithPrinterQuery } from '@/components/forms/dropdown';
+import { Spinner } from '@/components/common/spinner';
 import { twMerge } from 'tailwind-merge';
-import { badgeBackgroundColorStyle, badgeBorderColorStyle, badgeTextColorStyle } from '../common/badge';
-import { WarningMessage } from '../warning-message';
-import { Nozzle } from '../../zods/hardware';
-import { TextInput } from '../forms/text-input';
+import { badgeBackgroundColorStyle, badgeBorderColorStyle, badgeTextColorStyle } from '@/components/common/badge';
+import { WarningMessage } from '@/components/warning-message';
+import { Nozzle } from '@/zods/hardware';
+import { TextInput } from '@/components/forms/text-input';
 import { z } from 'zod';
 
 interface ToolheadSettingsProps {

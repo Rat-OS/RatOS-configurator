@@ -2,9 +2,9 @@
 
 import React from 'react';
 import { twJoin } from 'tailwind-merge';
-import { useMoonraker } from '../moonraker/hooks';
-import { Badge, BadgeProps, badgeTextColorStyle } from './common/badge';
-import { MoonrakerStatus } from '../moonraker/types';
+import { useMoonraker } from '@/moonraker/hooks';
+import { Badge, BadgeProps, badgeTextColorStyle } from '@/components/common/badge';
+import { MoonrakerStatus } from '@/moonraker/types';
 
 interface Props {
 	className?: string;

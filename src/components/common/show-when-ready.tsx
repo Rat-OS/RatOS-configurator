@@ -1,5 +1,5 @@
-import { ErrorMessage } from './error-message';
-import { Spinner } from './spinner';
+import { ErrorMessage } from '@/components/common/error-message';
+import { Spinner } from '@/components/common/spinner';
 import React from 'react';
 
 export const ShowWhenReady: React.FC<

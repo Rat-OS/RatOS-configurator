@@ -1,17 +1,17 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { StepNavButtons } from '../step-nav-buttons';
-import { StepScreenProps } from '../../hooks/useSteps';
-import { DropdownWithPrinterQuery } from '../forms/dropdown';
-import { usePrinterConfiguration } from '../../hooks/usePrinterConfiguration';
-import { ErrorMessage } from '../common/error-message';
-import { Toggle } from '../forms/toggle';
-import { PrinterRailSettings } from './printer-rail-settings';
+import { StepNavButtons } from '@/components/step-nav-buttons';
+import { StepScreenProps } from '@/hooks/useSteps';
+import { DropdownWithPrinterQuery } from '@/components/forms/dropdown';
+import { usePrinterConfiguration } from '@/hooks/usePrinterConfiguration';
+import { ErrorMessage } from '@/components/common/error-message';
+import { Toggle } from '@/components/forms/toggle';
+import { PrinterRailSettings } from '@/components/setup-steps/printer-rail-settings';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
-import { deserializePrinterRailDefinition } from '../../utils/serialization';
-import { ToolheadSettings } from './toolhead-settings';
-import { Spinner } from '../common/spinner';
-import { BasePrinterRail, PrinterAxis } from '../../zods/motion';
+import { deserializePrinterRailDefinition } from '@/utils/serialization';
+import { ToolheadSettings } from '@/components/setup-steps/toolhead-settings';
+import { Spinner } from '@/components/common/spinner';
+import { BasePrinterRail, PrinterAxis } from '@/zods/motion';
 import { z } from 'zod';
 
 export const HardwareSelection: React.FC<StepScreenProps> = (props) => {

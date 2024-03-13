@@ -1,10 +1,10 @@
 import useWebSocket from 'react-use-websocket';
-import { getHost } from '../../helpers/util';
-import { InFlightRequestCallbacks, InFlightRequestTimeouts, MoonrakerResponse } from '../../moonraker/types';
+import { getHost } from '@/helpers/util';
+import { InFlightRequestCallbacks, InFlightRequestTimeouts, MoonrakerResponse } from '@/moonraker/types';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { getLogger } from '../_helpers/logger';
-import { ToolheadHelper } from '../../helpers/toolhead';
-import { useKlippyStateHandler } from '../../hooks/useKlippyStateHandler';
+import { getLogger } from '@/app/_helpers/logger';
+import { ToolheadHelper } from '@/helpers/toolhead';
+import { useKlippyStateHandler } from '@/hooks/useKlippyStateHandler';
 
 const getWsURL = () => {
 	const host = getHost();

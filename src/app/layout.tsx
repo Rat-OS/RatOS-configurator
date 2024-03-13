@@ -1,10 +1,10 @@
-import { hasLastPrinterSettings } from '../server/helpers/printer-settings';
-import { Redirecter } from './_hooks/navigation';
+import { hasLastPrinterSettings } from '@/server/helpers/printer-settings';
+import { Redirecter } from '@/app/_hooks/navigation';
 import { twJoin } from 'tailwind-merge';
-import { inter } from './fonts';
-import './../styles/globals.css';
+import { inter } from '@/app/fonts';
+import '@/styles/globals.css';
 import { headers } from 'next/headers';
-import { scrollClasses } from '../components/common/scroll-container';
+import { scrollClasses } from '@/components/common/scroll-container';
 import { type Metadata } from 'next';
 
 export const metadata: Metadata = {

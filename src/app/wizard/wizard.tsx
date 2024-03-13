@@ -1,13 +1,13 @@
 'use client';
 
-import { KlippyStateBadge } from '../../components/klippy-state-badge';
-import { MoonrakerStateBadge } from '../../components/moonraker-state-badge';
-import { trpc } from '../../helpers/trpc';
-import { ActionsDropdown } from '../../components/common/actions-dropdown';
+import { KlippyStateBadge } from '@/components/klippy-state-badge';
+import { MoonrakerStateBadge } from '@/components/moonraker-state-badge';
+import { trpc } from '@/helpers/trpc';
+import { ActionsDropdown } from '@/components/common/actions-dropdown';
 import React from 'react';
-import { useIsClient } from '../../hooks/isClient';
-import { Spinner } from '../../components/common/spinner';
-import { SetupSteps } from '../../components/setup-steps';
+import { useIsClient } from '@/hooks/isClient';
+import { Spinner } from '@/components/common/spinner';
+import { SetupSteps } from '@/components/setup-steps';
 
 interface WizardProps {
 	isConnectedToWifi?: boolean;

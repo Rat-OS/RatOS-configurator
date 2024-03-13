@@ -1,5 +1,5 @@
 import React from 'react';
-import { badgeBackgroundColorStyle, badgeBorderColorStyle, badgeTextColorStyle } from './badge';
+import { badgeBackgroundColorStyle, badgeBorderColorStyle, badgeTextColorStyle } from '@/components/common/badge';
 import { twJoin, twMerge } from 'tailwind-merge';
 import { VariantProps, cva } from 'class-variance-authority';
 

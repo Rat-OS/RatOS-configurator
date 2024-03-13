@@ -6,8 +6,8 @@ import {
 	ChevronDownIcon,
 	ChevronUpIcon,
 } from '@heroicons/react/24/outline';
-import { useGcodeCommand } from '../_hooks/toolhead';
-import { usePrinterObjectSubscription } from '../../moonraker/hooks';
+import { useGcodeCommand } from '@/app/_hooks/toolhead';
+import { usePrinterObjectSubscription } from '@/moonraker/hooks';
 
 export const initialCameraSettings = {
 	pixelPrMm: 160,

@@ -2,10 +2,10 @@
 import { Fragment, useCallback, useState } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
-import { trpc } from '../../helpers/trpc';
-import { MutationModal } from './mutation-modal';
+import { trpc } from '@/helpers/trpc';
+import { MutationModal } from '@/components/common/mutation-modal';
 import { useRecoilCallback } from 'recoil';
-import { PrinterToolheadState } from '../../recoil/toolhead';
+import { PrinterToolheadState } from '@/recoil/toolhead';
 import { twJoin, twMerge } from 'tailwind-merge';
 
 export const ActionsDropdown = ({ className }: { className?: string }) => {

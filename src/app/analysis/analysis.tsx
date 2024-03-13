@@ -1,16 +1,16 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useRealtimeADXL } from './hooks';
+import { useRealtimeADXL } from '@/app/analysis/hooks';
 
 import { SciChartSurface, XyDataSeries } from 'scichart';
-import { useToolheads } from '../../hooks/useToolheadConfiguration';
+import { useToolheads } from '@/hooks/useToolheadConfiguration';
 import '@tensorflow/tfjs-backend-webgl';
-import { Card } from '../../components/common/card';
-import { useAnalysisCharts } from './charts';
-import Toolbar, { ToolbarButton } from '../../components/common/toolbar';
+import { Card } from '@/components/common/card';
+import { useAnalysisCharts } from '@/app/analysis/charts';
+import Toolbar, { ToolbarButton } from '@/components/common/toolbar';
 import { ArrowTrendingUpIcon, MicrophoneIcon } from '@heroicons/react/24/outline';
-import { useGcodeCommand } from '../_hooks/toolhead';
+import { useGcodeCommand } from '@/app/_hooks/toolhead';
 
 export const Analysis = () => {
 	const [isChartEnabled, setIsChartEnabled] = useState(false);

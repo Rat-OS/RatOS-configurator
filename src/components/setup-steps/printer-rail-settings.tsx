@@ -1,11 +1,11 @@
-import { Dropdown } from '../forms/dropdown';
-import { Board } from '../../zods/boards';
+import { Dropdown } from '@/components/forms/dropdown';
+import { Board } from '@/zods/boards';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Drivers } from '../../data/drivers';
-import { findPreset, Steppers } from '../../data/steppers';
-import { BadgeProps, badgeBackgroundColorStyle, badgeBorderColorStyle } from '../common/badge';
-import { TextInput } from '../forms/text-input';
-import { Banner } from '../common/banner';
+import { Drivers } from '@/data/drivers';
+import { findPreset, Steppers } from '@/data/steppers';
+import { BadgeProps, badgeBackgroundColorStyle, badgeBorderColorStyle } from '@/components/common/badge';
+import { TextInput } from '@/components/forms/text-input';
+import { Banner } from '@/components/common/banner';
 import { BoltIcon, LightBulbIcon } from '@heroicons/react/24/outline';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { FireIcon } from '@heroicons/react/24/solid';
@@ -15,11 +15,11 @@ import {
 	PrinterRailDefinition,
 	getSupportedVoltages,
 	matchesDefaultRail,
-} from '../../zods/motion';
-import { deserializeDriver, serializePrinterRail } from '../../utils/serialization';
-import { PrinterRailState, PrinterRailsState } from '../../recoil/printer';
-import { useToolheads } from '../../hooks/useToolheadConfiguration';
-import { trpc } from '../../utils/trpc';
+} from '@/zods/motion';
+import { deserializeDriver, serializePrinterRail } from '@/utils/serialization';
+import { PrinterRailState, PrinterRailsState } from '@/recoil/printer';
+import { useToolheads } from '@/hooks/useToolheadConfiguration';
+import { trpc } from '@/utils/trpc';
 import { twMerge } from 'tailwind-merge';
 import { z } from 'zod';
 

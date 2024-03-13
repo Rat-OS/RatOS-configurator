@@ -9,14 +9,14 @@
 import { ArrowDownTrayIcon, PlayIcon } from '@heroicons/react/24/solid';
 import React, { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { trpc } from '../../../helpers/trpc';
-import { Button } from '../../common/button';
-import { Modal } from '../../common/modal';
-import { Spinner } from '../../common/spinner';
-import { useMoonraker } from '../../../moonraker/hooks';
-import { Board } from '../../../zods/boards';
-import { ToolheadHelper } from '../../../helpers/toolhead';
-import { ErrorMessage } from '../../common/error-message';
+import { trpc } from '@/helpers/trpc';
+import { Button } from '@/components/common/button';
+import { Modal } from '@/components/common/modal';
+import { Spinner } from '@/components/common/spinner';
+import { useMoonraker } from '@/moonraker/hooks';
+import { Board } from '@/zods/boards';
+import { ToolheadHelper } from '@/helpers/toolhead';
+import { ErrorMessage } from '@/components/common/error-message';
 
 interface SDCardFlashingProps {
 	board: Board;

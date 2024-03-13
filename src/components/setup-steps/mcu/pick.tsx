@@ -1,11 +1,11 @@
 import React, { Fragment, useCallback } from 'react';
-import { CardSelector } from '../../card-selector';
-import { StepNavButton, StepNavButtons } from '../../step-nav-buttons';
-import { MCUStepScreenProps, SelectableBoard } from '../mcu-preparation';
-import { Button } from '../../common/button';
-import { Badge } from '../../common/badge';
-import { BoardWithDetectionStatus } from '../../../zods/boards';
-import { PrinterAxis } from '../../../zods/motion';
+import { CardSelector } from '@/components/card-selector';
+import { StepNavButton, StepNavButtons } from '@/components/step-nav-buttons';
+import { MCUStepScreenProps, SelectableBoard } from '@/components/setup-steps/mcu-preparation';
+import { Button } from '@/components/common/button';
+import { Badge } from '@/components/common/badge';
+import { BoardWithDetectionStatus } from '@/zods/boards';
+import { PrinterAxis } from '@/zods/motion';
 
 export const MCUPicker: React.FC<MCUStepScreenProps> = (props) => {
 	const { toolhead, skipSteps, setSelectedBoard, selectedControlboard, selectedToolboard, selectedPrinter, cards } =

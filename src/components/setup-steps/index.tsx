@@ -1,19 +1,19 @@
 import React, { useMemo } from 'react';
 import { useRecoilValue } from 'recoil';
-import { ToolheadHelper } from '../../helpers/toolhead';
-import { StepScreen, useSteps } from '../../hooks/useSteps';
-import { LoadablePrinterToolheadsState } from '../../recoil/toolhead';
-import { ToolheadConfiguration } from '../../zods/toolhead';
-import { Spinner } from '../common/spinner';
-import { VerticalSteps } from '../common/vertical-steps';
-import { HardwareSelection } from './hardware-selection';
-import { MCUPreparation } from './mcu-preparation';
-import { PrinterSelection } from './printer-selection';
-import { WifiSetup } from './wifi-setup';
-import { WizardComplete } from './wizard-complete';
+import { ToolheadHelper } from '@/helpers/toolhead';
+import { StepScreen, useSteps } from '@/hooks/useSteps';
+import { LoadablePrinterToolheadsState } from '@/recoil/toolhead';
+import { ToolheadConfiguration } from '@/zods/toolhead';
+import { Spinner } from '@/components/common/spinner';
+import { VerticalSteps } from '@/components/common/vertical-steps';
+import { HardwareSelection } from '@/components/setup-steps/hardware-selection';
+import { MCUPreparation } from '@/components/setup-steps/mcu-preparation';
+import { PrinterSelection } from '@/components/setup-steps/printer-selection';
+import { WifiSetup } from '@/components/setup-steps/wifi-setup';
+import { WizardComplete } from '@/components/setup-steps/wizard-complete';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useLocalPathname } from '../../app/_hooks/navigation';
-import { Card } from '../common/card';
+import { useLocalPathname } from '@/app/_hooks/navigation';
+import { Card } from '@/components/common/card';
 
 interface WizardProps {
 	isConnectedToWifi?: boolean;

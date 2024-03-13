@@ -1,5 +1,5 @@
 import { useId } from 'react';
-import { BackgroundBeams } from './background-beams';
+import { BackgroundBeams } from '@/components/common/background-beams';
 
 export function HeroPattern() {
 	return (

@@ -1,8 +1,8 @@
 import { useAutoAnimate } from '@formkit/auto-animate/react';
 import React, { useCallback } from 'react';
 import { twJoin, twMerge } from 'tailwind-merge';
-import { Spinner } from './spinner';
-import { useDebounce } from '../../app/_hooks/debounce';
+import { Spinner } from '@/components/common/spinner';
+import { useDebounce } from '@/app/_hooks/debounce';
 
 type Icon = React.FC<
 	React.SVGProps<SVGSVGElement> & {

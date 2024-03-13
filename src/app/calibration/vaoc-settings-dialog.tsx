@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { TextInput } from '../../components/forms/text-input';
-import { Toggle } from '../../components/forms/toggle';
-import { useMoonrakerState } from '../../moonraker/hooks';
-import { useDebounce } from '../_hooks/debounce';
+import { TextInput } from '@/components/forms/text-input';
+import { Toggle } from '@/components/forms/toggle';
+import { useMoonrakerState } from '@/moonraker/hooks';
+import { useDebounce } from '@/app/_hooks/debounce';
 import { twMerge } from 'tailwind-merge';
 import { XMarkIcon } from '@heroicons/react/24/outline';
-import { ScrollContainer } from '../../components/common/scroll-container';
+import { ScrollContainer } from '@/components/common/scroll-container';
 
 export const initialCameraSettings = {
 	pixelPrMm: 160,

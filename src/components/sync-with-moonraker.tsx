@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useCallback, useEffect } from 'react';
-import { useMoonraker } from '../moonraker/hooks';
+import { useMoonraker } from '@/moonraker/hooks';
 import { ReadItem, RecoilSync } from 'recoil-sync';
 import { AtomEffect, DefaultValue } from 'recoil';
-import { getLogger } from '../app/_helpers/logger';
+import { getLogger } from '@/app/_helpers/logger';
 
 const moonrakerSyncEventEmitter = new EventTarget();
 

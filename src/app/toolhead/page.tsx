@@ -1,7 +1,7 @@
 'use client';
-import { Spinner } from '../../components/common/spinner';
-import { useIsClient } from '../../hooks/isClient';
-import { Toolheads } from './toolheads';
+import { Spinner } from '@/components/common/spinner';
+import { useIsClient } from '@/hooks/isClient';
+import { Toolheads } from '@/app/toolhead/toolheads';
 import { Suspense } from 'react';
 
 const LoadScreen: React.FC = () => {

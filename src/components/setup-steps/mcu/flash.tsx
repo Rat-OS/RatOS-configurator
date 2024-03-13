@@ -1,15 +1,15 @@
 import { CheckCircleIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { Fragment, useCallback, useState } from 'react';
-import { trpc } from '../../../helpers/trpc';
-import { Button } from '../../common/button';
-import { MutationStatus } from '../../common/mutation-status';
-import { InfoMessage } from '../../common/info-message';
-import { Spinner } from '../../common/spinner';
-import { StepNavButton, StepNavButtons } from '../../step-nav-buttons';
-import { WarningMessage } from '../../warning-message';
-import { MCUStepScreenProps } from '../mcu-preparation';
-import { DFUFlash } from './dfu-flash';
-import { SDCardFlashing } from './sd-card-flash';
+import { trpc } from '@/helpers/trpc';
+import { Button } from '@/components/common/button';
+import { MutationStatus } from '@/components/common/mutation-status';
+import { InfoMessage } from '@/components/common/info-message';
+import { Spinner } from '@/components/common/spinner';
+import { StepNavButton, StepNavButtons } from '@/components/step-nav-buttons';
+import { WarningMessage } from '@/components/warning-message';
+import { MCUStepScreenProps } from '@/components/setup-steps/mcu-preparation';
+import { DFUFlash } from '@/components/setup-steps/mcu/dfu-flash';
+import { SDCardFlashing } from '@/components/setup-steps/mcu/sd-card-flash';
 
 export const MCUFlashing = (props: MCUStepScreenProps) => {
 	const [forceReflash, setForceReflash] = useState(false);

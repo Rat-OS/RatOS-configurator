@@ -1,7 +1,7 @@
 import pino from 'pino';
-import { globalPinoOpts } from '../../helpers/logger';
-import { trpcClient } from '../../helpers/trpc';
-import { PinoLogEvent } from '../../zods/util';
+import { globalPinoOpts } from '@/helpers/logger';
+import { trpcClient } from '@/helpers/trpc';
+import { PinoLogEvent } from '@/zods/util';
 import { write } from 'pino-pretty-browser';
 
 const send = async function (level: pino.Level, logEvent: pino.LogEvent) {

@@ -11,17 +11,17 @@ import {
 	BeakerIcon,
 	ArrowDownTrayIcon,
 } from '@heroicons/react/24/outline';
-import { ExposureIcon } from '../../components/common/icons/exposure';
-import { FocusControls } from './focus-controls';
+import { ExposureIcon } from '@/components/common/icons/exposure';
+import { FocusControls } from '@/app/calibration/focus-controls';
 import { PlayIcon, StopIcon } from '@heroicons/react/24/solid';
-import Toolbar, { ToolbarButton, ToolbarButtonWithParent } from '../../components/common/toolbar';
-import { usePrinterObjectSubscription } from '../../moonraker/hooks';
-import { useGcodeCommand } from '../_hooks/toolhead';
-import { useChangeEffect } from '../../hooks/useChangeEffect';
+import Toolbar, { ToolbarButton, ToolbarButtonWithParent } from '@/components/common/toolbar';
+import { usePrinterObjectSubscription } from '@/moonraker/hooks';
+import { useGcodeCommand } from '@/app/_hooks/toolhead';
+import { useChangeEffect } from '@/hooks/useChangeEffect';
 import CountUp from 'react-countup';
-import { VaocSettings, VaocSettingsDialog } from './vaoc-settings-dialog';
-import { StreamSettingsDialog } from './stream-settings-dialog';
-import { EnterFullscreenIcon, ExitFullscreenIcon } from './icons';
+import { VaocSettings, VaocSettingsDialog } from '@/app/calibration/vaoc-settings-dialog';
+import { StreamSettingsDialog } from '@/app/calibration/stream-settings-dialog';
+import { EnterFullscreenIcon, ExitFullscreenIcon } from '@/app/calibration/icons';
 
 type ToolbarsProps = {
 	setIsLockingCoordinates: React.Dispatch<React.SetStateAction<boolean>>;

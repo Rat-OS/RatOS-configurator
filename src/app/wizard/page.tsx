@@ -1,7 +1,7 @@
 import { use } from 'react';
-import { isConnectedToWifi } from '../../server/helpers/wpa-cli';
-import { getWirelessInterface } from '../../server/helpers/iw';
-import { Wizard } from './wizard';
+import { isConnectedToWifi } from '@/server/helpers/wpa-cli';
+import { getWirelessInterface } from '@/server/helpers/iw';
+import { Wizard } from '@/app/wizard/wizard';
 import { headers } from 'next/headers';
 
 // `app/page.tsx` is the UI for the `/` URL

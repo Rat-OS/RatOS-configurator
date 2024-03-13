@@ -1,20 +1,20 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { CameraOption, parseOptions } from './helpers';
+import { CameraOption, parseOptions } from '@/app/calibration/helpers';
 import {
 	useMoonrakerQuery,
 	useMoonrakerState,
 	usePrinterObjectQuery,
 	usePrinterObjectSubscription,
-} from '../../moonraker/hooks';
+} from '@/moonraker/hooks';
 import { merge } from 'ts-deepmerge';
-import { getHost } from '../../helpers/util';
+import { getHost } from '@/helpers/util';
 import { useCallbackRef } from 'use-callback-ref';
-import { MoonrakerDB } from '../../moonraker/types';
-import { useWindowSize } from '../_hooks/resize';
-import { useChangeEffect, useDelayedChangeEffect } from '../../hooks/useChangeEffect';
+import { MoonrakerDB } from '@/moonraker/types';
+import { useWindowSize } from '@/app/_hooks/resize';
+import { useChangeEffect, useDelayedChangeEffect } from '@/hooks/useChangeEffect';
 import { useGesture } from '@use-gesture/react';
-import { useGcodeCommand } from '../_hooks/toolhead';
-import { VaocSettings } from './vaoc-settings-dialog';
+import { useGcodeCommand } from '@/app/_hooks/toolhead';
+import { VaocSettings } from '@/app/calibration/vaoc-settings-dialog';
 import useResizeObserver from '@react-hook/resize-observer';
 import screenfull from 'screenfull';
 

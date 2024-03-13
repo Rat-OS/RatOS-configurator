@@ -1,9 +1,9 @@
 'use client';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
-import { Spinner } from '../../components/common/spinner';
-import { PrinterRailSettings } from '../../components/setup-steps/printer-rail-settings';
-import { usePrinterConfiguration } from '../../hooks/usePrinterConfiguration';
-import { deserializePrinterRailDefinition } from '../../utils/serialization';
+import { Spinner } from '@/components/common/spinner';
+import { PrinterRailSettings } from '@/components/setup-steps/printer-rail-settings';
+import { usePrinterConfiguration } from '@/hooks/usePrinterConfiguration';
+import { deserializePrinterRailDefinition } from '@/utils/serialization';
 
 export const Motion = () => {
 	const [animate] = useAutoAnimate();

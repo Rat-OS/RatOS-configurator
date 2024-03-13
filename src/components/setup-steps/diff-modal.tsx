@@ -3,10 +3,10 @@
 import React, { Fragment, useCallback, useMemo, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { parseDiff, Diff, DiffType, ViewType, HunkData, TokenizeOptions, tokenize, markEdits } from 'react-diff-view';
-import type { FileState } from '../../server/routers/printer';
+import type { FileState } from '@/server/routers/printer';
 import 'react-diff-view/style/index.css';
 import { XMarkIcon } from '@heroicons/react/20/solid';
-import { Button } from '../common/button';
+import { Button } from '@/components/common/button';
 import { twJoin, twMerge } from 'tailwind-merge';
 
 interface ModalProps {

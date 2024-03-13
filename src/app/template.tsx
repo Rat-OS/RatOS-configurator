@@ -11,14 +11,14 @@ import {
 } from '@heroicons/react/24/outline';
 import { Dialog, Transition } from '@headlessui/react';
 import { twJoin, twMerge } from 'tailwind-merge';
-import logoWhite from '../public/logo-white.svg';
+import logoWhite from '@/public/logo-white.svg';
 import Image from 'next/image';
-import { trpc } from '../utils/trpc';
+import { trpc } from '@/utils/trpc';
 import { RecoilRoot } from 'recoil';
-import { SyncWithMoonraker } from '../components/sync-with-moonraker';
+import { SyncWithMoonraker } from '@/components/sync-with-moonraker';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
-import { HeroPattern } from '../components/common/patterns';
-import { SidebarNav } from './sidebar-nav';
+import { HeroPattern } from '@/components/common/patterns';
+import { SidebarNav } from '@/app/sidebar-nav';
 import { motion } from 'framer-motion';
 
 const getCurrentTheme = () => {

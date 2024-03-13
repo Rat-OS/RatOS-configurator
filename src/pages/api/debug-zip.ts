@@ -1,6 +1,6 @@
 import path from 'path';
 import { NextApiRequest, NextApiResponse } from 'next';
-import { serverSchema } from '../../env/schema.mjs';
+import { serverSchema } from '@/env/schema.mjs';
 import { glob } from 'glob';
 import JSZip from 'jszip';
 import { readFile } from 'fs/promises';

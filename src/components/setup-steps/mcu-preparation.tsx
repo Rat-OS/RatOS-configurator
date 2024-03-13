@@ -1,17 +1,17 @@
 import { CpuChipIcon } from '@heroicons/react/24/outline';
 import React, { useCallback, useEffect, useMemo } from 'react';
-import { trpc } from '../../helpers/trpc';
-import { usePrinterConfiguration } from '../../hooks/usePrinterConfiguration';
-import { StepScreen, StepScreenProps, useSteps } from '../../hooks/useSteps';
-import { Board, BoardWithDetectionStatus, Toolboard } from '../../zods/boards';
-import { SelectableCard } from '../card-selector';
-import { QueryStatus } from '../common/query-status';
-import { MCUFlashing } from './mcu/flash';
-import { MCUPicker } from './mcu/pick';
-import { PrinterDefinitionWithResolvedToolheads } from '../../zods/printer';
-import { ToolOrAxis } from '../../zods/toolhead';
-import { ToolheadHelper } from '../../helpers/toolhead';
-import { useToolheadConfiguration } from '../../hooks/useToolheadConfiguration';
+import { trpc } from '@/helpers/trpc';
+import { usePrinterConfiguration } from '@/hooks/usePrinterConfiguration';
+import { StepScreen, StepScreenProps, useSteps } from '@/hooks/useSteps';
+import { Board, BoardWithDetectionStatus, Toolboard } from '@/zods/boards';
+import { SelectableCard } from '@/components/card-selector';
+import { QueryStatus } from '@/components/common/query-status';
+import { MCUFlashing } from '@/components/setup-steps/mcu/flash';
+import { MCUPicker } from '@/components/setup-steps/mcu/pick';
+import { PrinterDefinitionWithResolvedToolheads } from '@/zods/printer';
+import { ToolOrAxis } from '@/zods/toolhead';
+import { ToolheadHelper } from '@/helpers/toolhead';
+import { useToolheadConfiguration } from '@/hooks/useToolheadConfiguration';
 
 export interface SelectableBoard extends SelectableCard {
 	board: BoardWithDetectionStatus;

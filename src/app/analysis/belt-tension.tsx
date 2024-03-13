@@ -16,7 +16,7 @@ import {
 	XyDataSeries,
 } from 'scichart';
 import { useEffect } from 'react';
-import { powerSpectralDensity, welch } from './periodogram';
+import { powerSpectralDensity, welch } from '@/app/analysis/periodogram';
 import EventEmitter from 'events';
 SciChartSurface.UseCommunityLicense();
 

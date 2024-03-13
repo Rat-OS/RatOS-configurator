@@ -1,7 +1,7 @@
 import { cva, VariantProps } from 'class-variance-authority';
 import React from 'react';
 import { twMerge } from 'tailwind-merge';
-import type { Intents } from './button';
+import type { Intents } from '@/components/common/button';
 
 type StateIntents = { [key in Intents]: string };
 

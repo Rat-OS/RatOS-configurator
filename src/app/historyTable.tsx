@@ -10,16 +10,16 @@ import {
 	useReactTable,
 } from '@tanstack/react-table';
 import { useWindowVirtualizer } from '@tanstack/react-virtual';
-import { MoonrakerHistoryJob, MoonrakerHistoryListResponse } from '../moonraker/types';
+import { MoonrakerHistoryJob, MoonrakerHistoryListResponse } from '@/moonraker/types';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { DateTime, Duration, DurationLikeObject } from 'luxon';
 import { twMerge } from 'tailwind-merge';
-import { useMoonraker } from '../moonraker/hooks';
+import { useMoonraker } from '@/moonraker/hooks';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { getHost } from '../helpers/util';
+import { getHost } from '@/helpers/util';
 import { ChevronUpDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 import { ChevronDownIcon } from '@heroicons/react/24/solid';
-import { Spinner } from '../components/common/spinner';
+import { Spinner } from '@/components/common/spinner';
 import CountUp from 'react-countup';
 
 const findThumbnail = (thumbnails: MoonrakerHistoryJob['metadata']['thumbnails'], size: number) => {

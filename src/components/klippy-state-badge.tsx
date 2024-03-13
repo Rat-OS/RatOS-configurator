@@ -2,8 +2,8 @@
 import React from 'react';
 import { useRecoilValue } from 'recoil';
 import { twJoin } from 'tailwind-merge';
-import { KlippyReadyStates, useKlippyStateHandler } from '../hooks/useKlippyStateHandler';
-import { Badge, BadgeProps, badgeTextColorStyle } from './common/badge';
+import { KlippyReadyStates, useKlippyStateHandler } from '@/hooks/useKlippyStateHandler';
+import { Badge, BadgeProps, badgeTextColorStyle } from '@/components/common/badge';
 
 interface Props {
 	className?: string;

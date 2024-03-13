@@ -1,8 +1,8 @@
 'use client';
 import React from 'react';
-import { Spinner } from '../../components/common/spinner';
-import { ToolheadSettings } from '../../components/setup-steps/toolhead-settings';
-import { usePrinterConfiguration } from '../../hooks/usePrinterConfiguration';
+import { Spinner } from '@/components/common/spinner';
+import { ToolheadSettings } from '@/components/setup-steps/toolhead-settings';
+import { usePrinterConfiguration } from '@/hooks/usePrinterConfiguration';
 
 export const Toolheads = () => {
 	'use client';

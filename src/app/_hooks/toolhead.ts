@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useMoonrakerMutation } from '../../moonraker/hooks';
+import { useMoonrakerMutation } from '@/moonraker/hooks';
 
 export const useGcodeCommand = () => {
 	const executeGcode = useMoonrakerMutation('printer.gcode.script');

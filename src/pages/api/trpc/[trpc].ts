@@ -1,5 +1,5 @@
-import { getLogger } from '../../../server/helpers/logger';
-import { appRouter } from '../../../server/routers/index';
+import { getLogger } from '@/server/helpers/logger';
+import { appRouter } from '@/server/routers/index';
 import * as trpcNext from '@trpc/server/adapters/next';
 
 // export type definition of API

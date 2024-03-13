@@ -5,24 +5,24 @@ import {
 	serializePartialPrinterConfiguration,
 	serializePrinterConfiguration,
 	usePrinterConfiguration,
-} from '../../hooks/usePrinterConfiguration';
-import { StepScreen, StepScreenProps, useSteps } from '../../hooks/useSteps';
-import { StepNavButtons } from '../step-nav-buttons';
-import { ErrorMessage } from '../common/error-message';
-import { trpc } from '../../helpers/trpc';
-import { Badge } from '../common/badge';
-import { InfoMessage } from '../common/info-message';
-import { WarningMessage } from '../warning-message';
-import { Button } from '../common/button';
+} from '@/hooks/usePrinterConfiguration';
+import { StepScreen, StepScreenProps, useSteps } from '@/hooks/useSteps';
+import { StepNavButtons } from '@/components/step-nav-buttons';
+import { ErrorMessage } from '@/components/common/error-message';
+import { trpc } from '@/helpers/trpc';
+import { Badge } from '@/components/common/badge';
+import { InfoMessage } from '@/components/common/info-message';
+import { WarningMessage } from '@/components/warning-message';
+import { Button } from '@/components/common/button';
 import { useRecoilCallback } from 'recoil';
-import { xEndstopOptions } from '../../data/endstops';
-import { PrinterConfiguration } from '../../zods/printer-configuration';
-import { PrinterAxis } from '../../zods/motion';
-import { ToolOrAxis } from '../../zods/toolhead';
-import { useToolheadConfiguration } from '../../hooks/useToolheadConfiguration';
-import { Spinner } from '../common/spinner';
+import { xEndstopOptions } from '@/data/endstops';
+import { PrinterConfiguration } from '@/zods/printer-configuration';
+import { PrinterAxis } from '@/zods/motion';
+import { ToolOrAxis } from '@/zods/toolhead';
+import { useToolheadConfiguration } from '@/hooks/useToolheadConfiguration';
+import { Spinner } from '@/components/common/spinner';
 import { useQuery } from '@tanstack/react-query';
-import { FileChanges } from './file-changes';
+import { FileChanges } from '@/components/setup-steps/file-changes';
 import { Disclosure } from '@headlessui/react';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { ChevronRightIcon } from '@heroicons/react/20/solid';

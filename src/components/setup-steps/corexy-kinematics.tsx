@@ -1,7 +1,7 @@
 'use client';
 import React, { useCallback, useState } from 'react';
 import { atom, useSetRecoilState } from 'recoil';
-import { StepScreenProps } from '../../hooks/useSteps';
+import { StepScreenProps } from '@/hooks/useSteps';
 
 type StepComponent = React.FC<{
 	onComplete: () => void;

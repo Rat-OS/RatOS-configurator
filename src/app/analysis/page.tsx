@@ -1,9 +1,9 @@
 'use client';
 import React from 'react';
-import { Analysis } from './analysis';
-import { Spinner } from '../../components/common/spinner';
-import { useIsClient } from '../../hooks/isClient';
-import { BeltTension } from './belt-tension';
+import { Analysis } from '@/app/analysis/analysis';
+import { Spinner } from '@/components/common/spinner';
+import { useIsClient } from '@/hooks/isClient';
+import { BeltTension } from '@/app/analysis/belt-tension';
 
 const LoadScreen: React.FC = () => {
 	return (

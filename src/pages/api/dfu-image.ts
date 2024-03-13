@@ -1,9 +1,9 @@
-import { GenericErrorResponse } from './types';
+import { GenericErrorResponse } from '@/pages/api/types';
 import fs from 'fs';
 import { promisify } from 'util';
 import path from 'path';
 import { NextApiRequest, NextApiResponse } from 'next';
-import { getBoards } from '../../server/routers/mcu';
+import { getBoards } from '@/server/routers/mcu';
 import { fileTypeFromBuffer } from 'file-type';
 
 type DfuImageSuccessResponseData = Buffer;

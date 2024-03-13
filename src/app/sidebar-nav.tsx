@@ -1,14 +1,15 @@
-import { ArrowDownTrayIcon, ArrowLeftOnRectangleIcon, LinkIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftOnRectangleIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { twMerge, twJoin } from 'tailwind-merge';
-import { NavigationItem, useNavigation } from './_hooks/navigation';
+import { NavigationItem, useNavigation } from '@/app/_hooks/navigation';
+import { ArrowTopRightOnSquareIcon, ArrowDownTrayIcon } from '@heroicons/react/20/solid';
 
 const mainsail = '/';
 const externalNav = [
 	{ name: 'Debug Zip', href: '/configure/api/debug-zip', icon: ArrowDownTrayIcon },
-	{ name: 'Donate', href: 'https://github.com/sponsors/miklschmidt', icon: LinkIcon },
-	{ name: 'Documentation', href: 'https://os.ratrig.com/docs/introduction', icon: LinkIcon },
-	{ name: 'Blog', href: 'https://os.ratrig.com/blog', icon: LinkIcon },
+	{ name: 'Donate', href: 'https://github.com/sponsors/miklschmidt', icon: ArrowTopRightOnSquareIcon },
+	{ name: 'Documentation', href: 'https://os.ratrig.com/docs/introduction', icon: ArrowTopRightOnSquareIcon },
+	{ name: 'Blog', href: 'https://os.ratrig.com/blog', icon: ArrowTopRightOnSquareIcon },
 ];
 
 export const SidebarNav = () => {

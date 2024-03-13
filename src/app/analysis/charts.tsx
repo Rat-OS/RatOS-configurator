@@ -22,14 +22,14 @@ import {
 	MountainAnimation,
 	Point,
 } from 'scichart';
-import { ToolheadHelper } from '../../helpers/toolhead';
-import { ChartTheme } from './chart-theme';
-import { PSD, powerSpectralDensity, welch } from './periodogram';
+import { ToolheadHelper } from '@/helpers/toolhead';
+import { ChartTheme } from '@/app/analysis/chart-theme';
+import { PSD, powerSpectralDensity, welch } from '@/app/analysis/periodogram';
 
 import resolveConfig from 'tailwindcss/resolveConfig';
-import tailwindConfig from '../../tailwind.config';
+import tailwindConfig from '@/tailwind.config';
 import { useRef, useEffect, useCallback, useState } from 'react';
-import { useRealtimeADXL } from './hooks';
+import { useRealtimeADXL } from '@/app/analysis/hooks';
 import { useCallbackRef } from 'use-callback-ref';
 const fullConfig = resolveConfig(tailwindConfig);
 
