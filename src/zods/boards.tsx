@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { PrinterAxis, Voltage } from './motion';
 
 // Complete map of all available RatOS pin aliases.
-export const PinMap = z.object({
+export const AllPins = {
 	x_step_pin: z.string().optional(),
 	x_dir_pin: z.string().optional(),
 	x_enable_pin: z.string().optional(),
@@ -84,7 +84,8 @@ export const PinMap = z.object({
 	'4p_toolhead_cooling_tach_pin': z.string().optional(),
 	'4p_controller_board_pin': z.string().optional(),
 	'4p_controller_board_tach_pin': z.string().optional(),
-});
+};
+export const PinMap = z.object(AllPins);
 
 export enum AxisPinPrefix {
 	x = 'x',

@@ -24,6 +24,7 @@ import {
 	pinPrefixToAxis,
 	MotorSlotPins,
 	axisToPinPrefix,
+	AllPins,
 } from '../../zods/boards';
 import { z } from 'zod';
 import path from 'path';
@@ -1049,7 +1050,7 @@ export const constructKlipperConfigHelpers = async (
 				throw new Error(`No pins found for ${board.name}.`);
 			}
 			const motionPins: { [key in PrinterAxis]?: string[] } = {};
-			const aliases = (Object.keys(pins) as Array<keyof typeof pins>)
+			const aliases = (Object.keys(AllPins) as Array<keyof typeof AllPins>)
 				.map((k) => {
 					const pinNameParts = k.split('_');
 					const prefix = pinNameParts[0] === 'dual' ? pinNameParts[0] + '_' + pinNameParts[1] : pinNameParts[0];
