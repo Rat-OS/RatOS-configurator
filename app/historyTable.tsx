@@ -23,14 +23,14 @@ import { Spinner } from '../components/common/spinner';
 import CountUp from 'react-countup';
 
 const findThumbnail = (thumbnails: MoonrakerHistoryJob['metadata']['thumbnails'], size: number) => {
-	const thumbnail = thumbnails.find((t) => t.size >= size);
+	const thumbnail = thumbnails?.find((t) => t.size >= size);
 	if (thumbnail == null) {
 		return null;
 	}
 	return thumbnail;
 };
 
-const thumbUrl = (thumbnail: MoonrakerHistoryJob['metadata']['thumbnails'][0]) => {
+const thumbUrl = (thumbnail: NonNullable<MoonrakerHistoryJob['metadata']['thumbnails']>[0]) => {
 	return `http://${getHost()}/server/files/gcodes/${thumbnail.relative_path}?timestamp=${thumbnail}`;
 };
 

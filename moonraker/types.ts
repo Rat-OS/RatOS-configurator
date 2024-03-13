@@ -290,7 +290,7 @@ type MoonrakerThumbnail = {
 };
 
 type MoonrakerHistoryJobMetadata = {
-	thumbnails: MoonrakerThumbnail[];
+	thumbnails?: MoonrakerThumbnail[];
 	size: number;
 	modified: number;
 	uuid: string;
