@@ -1,0 +1,163 @@
+{
+	"printer": "caramba-idex",
+	"controlboard": "btt-octopus-max-ez",
+	"toolheads": [
+		{
+			"hotend": "rapido",
+			"thermistor": "ATC Semitec 104GT-2",
+			"extruder": "orbiter-2",
+			"xEndstop": "endstop-toolboard",
+			"yEndstop": "endstop",
+			"hotendFan": "2pin-toolboard",
+			"partFan": "4pin-toolboard",
+			"nozzle": {
+				"type": "Regular",
+				"diameter": 0.4
+			},
+			"xAccelerometer": "toolboard",
+			"yAccelerometer": "toolboard",
+			"toolboard": "btt-ebb42-12",
+			"probe": "superpinda",
+			"axis": "x",
+			"description": "The left toolhead",
+			"toolNumber": 0
+		},
+		{
+			"hotend": "rapido",
+			"thermistor": "ATC Semitec 104GT-2",
+			"extruder": "orbiter-2",
+			"xEndstop": "endstop-toolboard",
+			"yEndstop": "endstop",
+			"hotendFan": "2pin-toolboard",
+			"partFan": "4pin-toolboard",
+			"nozzle": {
+				"type": "Regular",
+				"diameter": 0.4
+			},
+			"xAccelerometer": "toolboard",
+			"yAccelerometer": "toolboard",
+			"toolboard": "btt-ebb42-12",
+			"probe": "superpinda",
+			"axis": "dual_carriage",
+			"description": "The right toolhead",
+			"toolNumber": 1
+		}
+	],
+	"size": {
+		"x": 400,
+		"y": 400,
+		"z": 400
+	},
+	"controllerFan": "2pin",
+	"performanceMode": false,
+	"stealthchop": false,
+	"standstillStealth": false,
+	"rails": [
+		{
+			"axis": "x",
+			"axisDescription": "The X axis motor for the left toolhead, located at the rear left of the printer",
+			"driver": "BTT-TMC2209-13",
+			"voltage": 24,
+			"stepper": "LDO-42STH48-2504AC",
+			"motorSlot": "MOTOR1",
+			"current": 1.1,
+			"rotationDistance": 40,
+			"homingSpeed": 50,
+			"microstepping": 64
+		},
+		{
+			"axis": "dual_carriage",
+			"axisDescription": "The X axis motor for the right toolhead, located at the rear right of the printer",
+			"driver": "BTT-TMC2209-13",
+			"voltage": 24,
+			"stepper": "LDO-42STH48-2504AC",
+			"motorSlot": "MOTOR4",
+			"current": 1.1,
+			"rotationDistance": 40,
+			"homingSpeed": 50,
+			"microstepping": 64
+		},
+		{
+			"axis": "y",
+			"axisDescription": "The left Y motor used for cartesian Y control in Hybrid CoreXY, located at the rear left of the printer",
+			"driver": "BTT-TMC2209-13",
+			"voltage": 24,
+			"stepper": "LDO-42STH48-2504AC",
+			"motorSlot": "MOTOR2",
+			"current": 1.1,
+			"rotationDistance": 40,
+			"homingSpeed": 50,
+			"microstepping": 64
+		},
+		{
+			"axis": "y1",
+			"axisDescription": "The right Y motor used for cartesian Y control in Hybrid CoreXY, located at the rear right of the printer",
+			"driver": "BTT-TMC2209-13",
+			"voltage": 24,
+			"stepper": "LDO-42STH48-2504AC",
+			"motorSlot": "MOTOR3",
+			"current": 1.1,
+			"rotationDistance": 40,
+			"homingSpeed": 50,
+			"microstepping": 64
+		},
+		{
+			"axis": "z",
+			"axisDescription": "The left Z motor for the kinematic bed",
+			"driver": "BTT-TMC2209-13",
+			"voltage": 24,
+			"stepper": "LDO-42STH48-2504AC",
+			"motorSlot": "MOTOR5",
+			"current": 1.1,
+			"rotationDistance": 4,
+			"homingSpeed": 10,
+			"microstepping": 64
+		},
+		{
+			"axis": "z1",
+			"axisDescription": "The rear Z motor for the kinematic bed",
+			"driver": "BTT-TMC2209-13",
+			"voltage": 24,
+			"stepper": "LDO-42STH48-2504AC",
+			"motorSlot": "MOTOR6",
+			"current": 1.1,
+			"rotationDistance": 4,
+			"homingSpeed": 10,
+			"microstepping": 64
+		},
+		{
+			"axis": "z2",
+			"axisDescription": "The right Z motor for the kinematic bed",
+			"driver": "BTT-TMC2209-13",
+			"voltage": 24,
+			"stepper": "LDO-42STH48-2504AC",
+			"motorSlot": "MOTOR7",
+			"current": 1.1,
+			"rotationDistance": 4,
+			"homingSpeed": 10,
+			"microstepping": 64
+		},
+		{
+			"axis": "extruder",
+			"axisDescription": "The extruder motor used for pushing filament through the left toolhead (T0)",
+			"driver": "BTT-TMC2209-13",
+			"voltage": 24,
+			"stepper": "LDO-36STH20-1004AHG",
+			"current": 0.707,
+			"rotationDistance": 0,
+			"homingSpeed": 10,
+			"microstepping": 64
+		},
+		{
+			"axis": "extruder1",
+			"axisDescription": "The extruder motor used for pushing filament through the right toolhead (T1)",
+			"driver": "BTT-TMC2209-13",
+			"voltage": 24,
+			"stepper": "LDO-36STH20-1004AHG",
+			"current": 0.707,
+			"rotationDistance": 0,
+			"homingSpeed": 10,
+			"microstepping": 64
+		}
+	]
+}

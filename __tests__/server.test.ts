@@ -272,7 +272,66 @@ describe('server', async () => {
 					}
 				}
 			});
-			console.log(printerCfg);
+		});
+		describe('can resolve pins that are only defined in motorslots and not aliases', async () => {
+			const config = await loadSerializedConfig(path.join(__dirname, 'fixtures', 'idex-undefined-pins.json'));
+			const filesToWrite = await getFilesToWrite(config);
+			const res: string = filesToWrite.find((f) => f.fileName === 'RatOS.cfg')?.content ?? '';
+			const splitRes = res.split('\n');
+			const annotatedLines = splitRes.map((l: string, i: number) => `Line-${i + 1}`.padEnd(10, '-') + `|${l}`);
+			const suspectedMissingPins: string[] = [
+				`y1_step_pin=`,
+				`y1_dir_pin=`,
+				`y1_enable_pin=`,
+				`y1_uart_pin=`,
+				`y1_diag_pin=`,
+				`y1_endstop_pin=`,
+				`dual_carriage_step_pin=`,
+				`dual_carriage_dir_pin=`,
+				`dual_carriage_enable_pin=`,
+				`dual_carriage_uart_pin=`,
+				`dual_carriage_diag_pin=`,
+				`dual_carriage_endstop_pin=`,
+				`dual_carriage_step_pin=`,
+				`dual_carriage_dir_pin=`,
+				`dual_carriage_enable_pin=`,
+				`dual_carriage_uart_pin=`,
+				`dual_carriage_diag_pin=`,
+				`dual_carriage_endstop_pin=`,
+			];
+			test('produces valid config', async () => {
+				expect(splitRes.length).toBeGreaterThan(0);
+				const noUndefined = splitRes.filter((l: string) => l.includes('undefined')).join('\n');
+				const noNull = splitRes.filter((l: string) => l.includes(':null')).join('\n');
+				const noPromises = splitRes.filter((l: string) => l.includes('[object Promise]')).join('\n');
+				const noObjects = splitRes.filter((l: string) => l.includes('[object Object]')).join('\n');
+				if (noUndefined || noPromises || noObjects) {
+					console.log(annotatedLines.join('\n'));
+				}
+				expect(noUndefined, 'Expected no undefined values in config').to.eq('');
+				expect(noNull, 'Expected no null values in config').to.eq('');
+				expect(noPromises, 'Expected no promises in config').to.eq('');
+				expect(noObjects, 'Expected no objects in config').to.eq('');
+			});
+			test('contains undefined motor slot pins', async () => {
+				const errors: string[] = [];
+				suspectedMissingPins.forEach((pin) => {
+					try {
+						expect(
+							splitRes.some((l) => l.includes(`\t` + pin)),
+							`Expected config to contain "${pin}" alias.`,
+						).toBeTruthy();
+					} catch (e) {
+						if (!(e instanceof Error)) {
+							throw e;
+						}
+						errors.push(e.message);
+					}
+				});
+				if (errors.length > 0) {
+					throw new Error('\n' + errors.join('\n'));
+				}
+			});
 		});
 		describe('can generate hybrid config with toolboard', async () => {
 			let debugLines: string[] = [];
