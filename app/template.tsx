@@ -23,7 +23,7 @@ import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 
 const mainsail = '/';
 const externalNav = [
-	{ name: 'Debug Zip', href: '/api/debug-zip', icon: ArrowDownTrayIcon },
+	{ name: 'Debug Zip', href: '/configure/api/debug-zip', icon: ArrowDownTrayIcon },
 	{ name: 'Documentation', href: 'https://os.ratrig.com/docs/introduction', icon: ArrowTopRightOnSquareIcon },
 	{ name: 'Blog', href: 'https://os.ratrig.com/blog', icon: ArrowTopRightOnSquareIcon },
 	{ name: 'Donate', href: 'https://github.com/sponsors/miklschmidt', icon: ArrowTopRightOnSquareIcon },
