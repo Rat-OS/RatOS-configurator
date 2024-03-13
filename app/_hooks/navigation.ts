@@ -1,5 +1,5 @@
 'use client';
-import { SparklesIcon, TvIcon, VideoCameraIcon } from '@heroicons/react/24/outline';
+import { SparklesIcon, TvIcon, VideoCameraIcon } from '@heroicons/react/24/solid';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useCallback } from 'react';
 import type { Route } from 'next';
