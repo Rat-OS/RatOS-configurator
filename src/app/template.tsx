@@ -7,8 +7,9 @@ import {
 	MoonIcon,
 	SunIcon,
 	ArrowLeftOnRectangleIcon,
-	LinkIcon,
-} from '@heroicons/react/24/outline';
+	ArrowDownTrayIcon,
+	ArrowTopRightOnSquareIcon,
+} from '@heroicons/react/20/solid';
 import { Dialog, Disclosure, Transition } from '@headlessui/react';
 import { useNavigation } from './_hooks/navigation';
 import { twJoin, twMerge } from 'tailwind-merge';
@@ -22,9 +23,10 @@ import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 
 const mainsail = '/';
 const externalNav = [
-	{ name: 'Donate', href: 'https://github.com/sponsors/miklschmidt', icon: LinkIcon },
-	{ name: 'Documentation', href: 'https://os.ratrig.com/docs/introduction', icon: LinkIcon },
-	{ name: 'Blog', href: 'https://os.ratrig.com/blog', icon: LinkIcon },
+	{ name: 'Debug Zip', href: '/api/debug-zip', icon: ArrowDownTrayIcon },
+	{ name: 'Documentation', href: 'https://os.ratrig.com/docs/introduction', icon: ArrowTopRightOnSquareIcon },
+	{ name: 'Blog', href: 'https://os.ratrig.com/blog', icon: ArrowTopRightOnSquareIcon },
+	{ name: 'Donate', href: 'https://github.com/sponsors/miklschmidt', icon: ArrowTopRightOnSquareIcon },
 ];
 
 const getCurrentTheme = () => {
@@ -197,7 +199,7 @@ function Template({ children }: { children: React.ReactNode }) {
 											</ul>
 										</li>
 										<li>
-											<div className="text-xs font-semibold leading-6 text-zinc-400">External Links</div>
+											<div className="text-xs font-semibold leading-6 text-zinc-400">Other</div>
 											<ul role="list" className="-mx-2 mt-2 space-y-1">
 												{externalNav.map((extNav) => (
 													<li key={extNav.name}>
