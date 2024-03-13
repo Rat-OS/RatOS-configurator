@@ -139,7 +139,7 @@ ${helper.renderUserStepperSections({
 		limits: (margin) => ({
 			min: 0 - margin.min,
 			max: config.size.y + margin.max,
-			endstop: 0 - margin.min,
+			endstop: config.size.y + margin.max,
 		}),
 	},
 	y1: {
