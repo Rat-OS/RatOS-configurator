@@ -4,10 +4,11 @@ import { UseTRPCQueryResult } from '@trpc/react-query/src/shared/hooks/types';
 import { AppRouter } from '@/server/routers';
 import { ErrorMessage } from '@/components/common/error-message';
 import { Spinner } from '@/components/common/spinner';
-import { useAutoAnimate } from '@formkit/auto-animate/react';
+import { motion } from 'framer-motion';
+import { AnimatedContainer } from '@/components/common/animated-container';
+import { UseQueryResult } from '@tanstack/react-query';
 
-export const QueryStatus = (query: UseTRPCQueryResult<any, TRPCClientErrorLike<AppRouter>>) => {
-	const [parent] = useAutoAnimate();
+export const QueryStatus = (query: UseQueryResult<any, any>) => {
 	let content = null;
 	if (query.isError) {
 		content = (
@@ -23,5 +24,5 @@ export const QueryStatus = (query: UseTRPCQueryResult<any, TRPCClientErrorLike<A
 			</div>
 		);
 	}
-	return <div ref={parent}>{content}</div>;
+	return <AnimatedContainer>{content}</AnimatedContainer>;
 };

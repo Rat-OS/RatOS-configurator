@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { RadioGroup } from '@headlessui/react';
 import { twJoin } from 'tailwind-merge';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
+import { motion } from 'framer-motion';
 
 export interface SelectableCard {
 	id: string | number;
@@ -23,7 +24,6 @@ export const CardSelector = <Selectable extends SelectableCard = SelectableCard>
 ) => {
 	const [selected, setSelected] = useState<Selectable | null>(null);
 	const { onSelect: _onSelect } = props;
-	const [parent] = useAutoAnimate();
 
 	const onSelect = useCallback(
 		(card: Selectable) => {
@@ -44,7 +44,7 @@ export const CardSelector = <Selectable extends SelectableCard = SelectableCard>
 	return (
 		<RadioGroup value={selected} onChange={onSelect}>
 			<RadioGroup.Label className="sr-only">Selector</RadioGroup.Label>
-			<div className="space-y-4" ref={parent}>
+			<motion.div className="space-y-4">
 				{props.cards.map((card, i) => (
 					<RadioGroup.Option
 						key={card.id}
@@ -85,7 +85,7 @@ export const CardSelector = <Selectable extends SelectableCard = SelectableCard>
 						)}
 					</RadioGroup.Option>
 				))}
-			</div>
+			</motion.div>
 		</RadioGroup>
 	);
 };

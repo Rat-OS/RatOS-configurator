@@ -24,9 +24,9 @@ import { Spinner } from '@/components/common/spinner';
 import { useQuery } from '@tanstack/react-query';
 import { FileChanges } from '@/components/setup-steps/file-changes';
 import { Disclosure } from '@headlessui/react';
-import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { ChevronRightIcon } from '@heroicons/react/20/solid';
 import { twJoin } from 'tailwind-merge';
+import { AnimatedContainer } from '@/components/common/animated-container';
 
 const CompletionSteps: StepScreen[] = [
 	{
@@ -78,7 +78,6 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 			},
 		[],
 	);
-	const [animateRef] = useAutoAnimate();
 	if (toolhead == null) {
 		return (
 			<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
@@ -115,7 +114,7 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 						</div>
 						<p className="mt-2 max-w-4xl text-sm">{toolhead.getDescription()}</p>
 					</Disclosure.Button>
-					<div ref={animateRef}>
+					<AnimatedContainer>
 						<Disclosure.Panel className="pt-4">
 							<dl className="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
 								<div className="sm:col-span-1">
@@ -240,7 +239,7 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 								</div>
 							</dl>
 						</Disclosure.Panel>
-					</div>
+					</AnimatedContainer>
 				</>
 			)}
 		</Disclosure>
@@ -329,7 +328,6 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 		}
 	}
 
-	const [animateRef] = useAutoAnimate();
 	const motionErrors = useMemo(() => {
 		if (parsedPrinterConfiguration.success) {
 			return parsedPrinterConfiguration.data.rails
@@ -385,7 +383,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 									</ErrorMessage>
 								</div>
 							)}
-							<div className="mt-4" ref={animateRef}>
+							<AnimatedContainer className="mt-4">
 								<Disclosure as={Fragment}>
 									{({ open }) => (
 										<>
@@ -555,7 +553,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 										</InfoMessage>
 									</div>
 								</dl>
-							</div>
+							</AnimatedContainer>
 						</div>
 					)}
 				</div>

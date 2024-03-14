@@ -12,6 +12,7 @@ import { Badge } from '@/components/common/badge';
 import { Button, Intents } from '@/components/common/button';
 import { useChangeEffect } from '@/hooks/useChangeEffect';
 import { CheckIcon } from '@heroicons/react/24/outline';
+import { QueryStatus } from '@/components/common/query-status';
 
 interface FileChangesProps {
 	serializedConfig: SerializedPrinterConfiguration | null;
@@ -356,6 +357,7 @@ export const FileChanges: React.FC<FileChangesProps> = (props) => {
 					/>
 				);
 			})}
+			<QueryStatus {...filesToWrite} />
 		</ul>
 	);
 };

@@ -3,7 +3,7 @@ import fs, { existsSync, readFileSync } from 'fs';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { TRPCError } from '@trpc/server';
-import { runSudoScript } from '../helpers/run-script';
+import { runSudoScript } from '@/server/helpers/run-script';
 import {
 	AutoFlashableBoard,
 	Board,
@@ -11,21 +11,21 @@ import {
 	BoardWithDetectionStatus,
 	ToolboardWithDetectionStatus,
 	reversePinLookup,
-} from '../../zods/boards';
-import { middleware, publicProcedure, router } from '../trpc';
+} from '@/zods/boards';
+import { middleware, publicProcedure, router } from '@/server/trpc';
 import path from 'path';
 import { glob } from 'glob';
-import { SerializedToolheadConfiguration } from '../../zods/toolhead';
-import { getBoardSerialPath, getBoardChipId } from '../../helpers/board';
+import { SerializedToolheadConfiguration } from '@/zods/toolhead';
+import { getBoardSerialPath, getBoardChipId } from '@/helpers/board';
 import { copyFile, unlink } from 'fs/promises';
-import { serverSchema } from '../../env/schema.mjs';
-import { replaceInFileByLine, getScriptRoot } from '../helpers/file-operations';
-import { ToolheadHelper } from '../../helpers/toolhead';
-import { deserializeToolheadConfiguration } from './printer';
-import { ServerCache } from '../helpers/cache';
-import { PrinterAxis } from '../../zods/motion';
-import { parseBoardPinConfig } from '../helpers/metadata';
-import { getLastPrinterSettings } from '../helpers/printer-settings';
+import { serverSchema } from '@/env/schema.mjs';
+import { replaceInFileByLine, getScriptRoot } from '@/server/helpers/file-operations';
+import { ToolheadHelper } from '@/helpers/toolhead';
+import { deserializeToolheadConfiguration } from '@/server/routers/printer';
+import { ServerCache } from '@/server/helpers/cache';
+import { PrinterAxis } from '@/zods/motion';
+import { parseBoardPinConfig } from '@/server/helpers/metadata';
+import { getLastPrinterSettings } from '@/server/helpers/printer-settings';
 
 const inputSchema = z.object({
 	boardPath: z.string().optional(),

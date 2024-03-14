@@ -22,6 +22,7 @@ import { useToolheads } from '@/hooks/useToolheadConfiguration';
 import { trpc } from '@/utils/trpc';
 import { twMerge } from 'tailwind-merge';
 import { z } from 'zod';
+import { AnimatePresence, motion } from 'framer-motion';
 
 const railArray = z.array(BasePrinterRail);
 
@@ -289,109 +290,119 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 			(props.printerRailDefault.axis.startsWith('x') || props.printerRailDefault.axis.startsWith('y')) && !hasDiagPin;
 		return !hasDiagPin && disabled ? ({ children: 'No diag pin', color: 'red' } satisfies BadgeProps) : undefined;
 	}, [board, motorSlot, props.printerRailDefault.axis]);
-	return props.isVisible ? (
-		<div
-			className={twMerge(
-				'break-inside-avoid-column rounded-md border border-zinc-300 p-4 shadow-lg dark:border-zinc-700',
-				errorCount > 0 && badgeBorderColorStyle({ color: 'red' }),
-				errorCount > 0 && badgeBackgroundColorStyle({ color: 'red' }),
-			)}
-		>
-			<div className="">
-				<h3
+	return (
+		<AnimatePresence>
+			{props.isVisible && (
+				<motion.div
+					key={props.printerRail.axis}
+					exit={{ opacity: 0, scale: 0.9, y: -40 }}
+					initial={{ opacity: 0, scale: 0.9, y: 40 }}
+					animate={{ opacity: 1, scale: 1, y: 0 }}
 					className={twMerge(
-						'text-sm font-bold leading-6 text-zinc-700 dark:text-zinc-300',
-						errorCount > 0 && 'text-red-900/80 dark:text-red-100',
+						'break-inside-avoid-column rounded-md border border-zinc-300 p-4 shadow-lg dark:border-zinc-700',
+						errorCount > 0 && badgeBorderColorStyle({ color: 'red' }),
+						errorCount > 0 && badgeBackgroundColorStyle({ color: 'red' }),
 					)}
 				>
-					{railName}
-				</h3>
-				<p
-					className={twMerge(
-						'text-sm text-zinc-500 dark:text-zinc-400',
-						errorCount > 0 && 'text-red-800/80 dark:text-red-100/60',
-					)}
-				>
-					{props.printerRail.axisDescription}
-				</p>
-			</div>
-			<div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-				{motorSlotOptions && (
-					<div className="col-span-2">
-						<Dropdown
-							label="Motor Slot"
-							options={motorSlotOptions}
-							error={props.errors.motorSlot?._errors.join('\n')}
-							onSelect={(ms) => {
-								setMotorSlot(ms.id);
-							}}
-							value={motorSlot ? motorSlotOptions.find((ms) => ms.id === motorSlot) : undefined}
-							badge={motorSlotBadge}
-						/>
-					</div>
-				)}
-				<div className="col-span-2">
-					<Dropdown
-						label="Driver"
-						options={supportedDrivers}
-						onSelect={setDriver}
-						value={driver}
-						disabled={integratedDriver != null}
-						badge={[
-							integratedDriver != null ? ({ children: 'Integrated', color: 'sky' } satisfies BadgeProps) : undefined,
-							usesToolboard ? ({ children: 'Toolboard', color: 'yellow' } satisfies BadgeProps) : undefined,
-						].filter(Boolean)}
-					/>
-				</div>
-				<div className="col-span-2">
-					<Dropdown label="Stepper" options={steppers} onSelect={setStepper} value={stepper} />
-				</div>
-				<div className="col-span-1">
-					<Dropdown label="Voltage" options={supportedVoltages} onSelect={setVoltage} value={voltage} />
-				</div>
-				<div className="col-span-1">
-					<TextInput
-						type="number"
-						label="Current"
-						value={current}
-						onChange={setCurrent}
-						inputMode="decimal"
-						step="any"
-						min={0}
-						max={driver.maxCurrent}
-					/>
-				</div>
-				{stepper.maxPeakCurrent / 1.41 < current && (
-					<Banner Icon={FireIcon} color="yellow" title="Stepper overcurrent!" className="col-span-2">
-						Your stepper motor is rated for {Math.floor((stepper.maxPeakCurrent * 100) / 1.41) / 100}A RMS, but you are
-						using {current}A.
-					</Banner>
-				)}
-				{matchingPreset != null && (
-					<Banner Icon={LightBulbIcon} color="brand" title="Driver tuning applied!" className="col-span-2">
-						RatOS preset applied automatically.
-					</Banner>
-				)}
-				{matchingPreset?.run_current !== defaultPreset?.run_current &&
-					recommendedPreset &&
-					!isRecommendedPresetCompatible && (
-						<Banner
-							Icon={BoltIcon}
-							color="sky"
-							title="Recommended tuning preset available at different current"
-							className="col-span-2"
+					<div className="">
+						<h3
+							className={twMerge(
+								'text-sm font-bold leading-6 text-zinc-700 dark:text-zinc-300',
+								errorCount > 0 && 'text-red-900/80 dark:text-red-100',
+							)}
 						>
-							RatOS has a recommended preset for your current settings at {recommendedPreset.run_current}A. You can{' '}
-							<span
-								className="cursor-pointer font-bold underline hover:no-underline"
-								onClick={() => setCurrent(recommendedPreset.run_current)}
-							>
-								change the current to {recommendedPreset.run_current}A
-							</span>{' '}
-							to apply the preset automatically.
-						</Banner>
-					)}
-			</div>
-		</div>
-	) : null;
+							{railName}
+						</h3>
+						<p
+							className={twMerge(
+								'text-sm text-zinc-500 dark:text-zinc-400',
+								errorCount > 0 && 'text-red-800/80 dark:text-red-100/60',
+							)}
+						>
+							{props.printerRail.axisDescription}
+						</p>
+					</div>
+					<div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+						{motorSlotOptions && (
+							<div className="col-span-2">
+								<Dropdown
+									label="Motor Slot"
+									options={motorSlotOptions}
+									error={props.errors.motorSlot?._errors.join('\n')}
+									onSelect={(ms) => {
+										setMotorSlot(ms.id);
+									}}
+									value={motorSlot ? motorSlotOptions.find((ms) => ms.id === motorSlot) : undefined}
+									badge={motorSlotBadge}
+								/>
+							</div>
+						)}
+						<div className="col-span-2">
+							<Dropdown
+								label="Driver"
+								options={supportedDrivers}
+								onSelect={setDriver}
+								value={driver}
+								disabled={integratedDriver != null}
+								badge={[
+									integratedDriver != null
+										? ({ children: 'Integrated', color: 'sky' } satisfies BadgeProps)
+										: undefined,
+									usesToolboard ? ({ children: 'Toolboard', color: 'yellow' } satisfies BadgeProps) : undefined,
+								].filter(Boolean)}
+							/>
+						</div>
+						<div className="col-span-2">
+							<Dropdown label="Stepper" options={steppers} onSelect={setStepper} value={stepper} />
+						</div>
+						<div className="col-span-1">
+							<Dropdown label="Voltage" options={supportedVoltages} onSelect={setVoltage} value={voltage} />
+						</div>
+						<div className="col-span-1">
+							<TextInput
+								type="number"
+								label="Current"
+								value={current}
+								onChange={setCurrent}
+								inputMode="decimal"
+								step="any"
+								min={0}
+								max={driver.maxCurrent}
+							/>
+						</div>
+						{stepper.maxPeakCurrent / 1.41 < current && (
+							<Banner Icon={FireIcon} color="yellow" title="Stepper overcurrent!" className="col-span-2">
+								Your stepper motor is rated for {Math.floor((stepper.maxPeakCurrent * 100) / 1.41) / 100}A RMS, but you
+								are using {current}A.
+							</Banner>
+						)}
+						{matchingPreset != null && (
+							<Banner Icon={LightBulbIcon} color="brand" title="Driver tuning applied!" className="col-span-2">
+								RatOS preset applied automatically.
+							</Banner>
+						)}
+						{matchingPreset?.run_current !== defaultPreset?.run_current &&
+							recommendedPreset &&
+							!isRecommendedPresetCompatible && (
+								<Banner
+									Icon={BoltIcon}
+									color="sky"
+									title="Recommended tuning preset available at different current"
+									className="col-span-2"
+								>
+									RatOS has a recommended preset for your current settings at {recommendedPreset.run_current}A. You can{' '}
+									<span
+										className="cursor-pointer font-bold underline hover:no-underline"
+										onClick={() => setCurrent(recommendedPreset.run_current)}
+									>
+										change the current to {recommendedPreset.run_current}A
+									</span>{' '}
+									to apply the preset automatically.
+								</Banner>
+							)}
+					</div>
+				</motion.div>
+			)}
+		</AnimatePresence>
+	);
 };

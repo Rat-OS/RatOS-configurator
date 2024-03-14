@@ -29,6 +29,7 @@ import {
 	StandstillStealthState,
 	StealthchopState,
 } from '@/hooks/usePrinterConfiguration';
+import { AnimatedContainer } from '@/components/common/animated-container';
 
 interface SelectablePrinter<Option extends SelectableOption = SelectableOption>
 	extends SelectableCardWithOptions<Option> {
@@ -129,14 +130,11 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 		[printerQuery.data],
 	);
 
-	const [parent] = useAutoAnimate();
-
 	const errors = printerQuery.error ? [printerQuery.error?.message] : [];
 
 	return (
 		<>
-			<div className="p-8" ref={parent}>
-				{' '}
+			<div className="p-8">
 				<div className="mb-5 border-b border-zinc-200 pb-5 dark:border-zinc-700">
 					<h3 className="text-lg font-medium leading-6 text-zinc-900 dark:text-zinc-100">Select your printer</h3>
 					<p className="mt-2 max-w-4xl text-sm text-zinc-500 dark:text-zinc-400">

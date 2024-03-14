@@ -6,6 +6,7 @@ import { Button } from '@/components/common/button';
 import { Badge } from '@/components/common/badge';
 import { BoardWithDetectionStatus } from '@/zods/boards';
 import { PrinterAxis } from '@/zods/motion';
+import { AnimatedContainer } from '@/components/common/animated-container';
 
 export const MCUPicker: React.FC<MCUStepScreenProps> = (props) => {
 	const { toolhead, skipSteps, setSelectedBoard, selectedControlboard, selectedToolboard, selectedPrinter, cards } =
@@ -92,8 +93,10 @@ export const MCUPicker: React.FC<MCUStepScreenProps> = (props) => {
 						</div>
 					)}
 				</div>
-				{props.children}
-				{content}
+				<AnimatedContainer>
+					{props.children}
+					{content}
+				</AnimatedContainer>
 			</div>
 			<StepNavButtons right={rightButton} left={leftButton} skip={skipButton} />
 		</Fragment>

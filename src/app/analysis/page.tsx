@@ -4,6 +4,7 @@ import { Analysis } from '@/app/analysis/analysis';
 import { Spinner } from '@/components/common/spinner';
 import { useIsClient } from '@/hooks/isClient';
 import { BeltTension } from '@/app/analysis/belt-tension';
+import { NoSSR } from '@/components/common/no-ssr';
 
 const LoadScreen: React.FC = () => {
 	return (
@@ -24,14 +25,14 @@ const LoadScreen: React.FC = () => {
 };
 
 export default function Page() {
-	const isClient = useIsClient();
-	console.log('Weehooo rendering', isClient);
-	return isClient ? (
+	return (
 		<div className="h-full p-4 @container">
 			<React.Suspense fallback={<LoadScreen />}>
-				<Analysis />
-				{/* <BeltTension /> */}
+				<NoSSR>
+					<Analysis />
+					{/* <BeltTension /> */}
+				</NoSSR>
 			</React.Suspense>
 		</div>
-	) : null;
+	);
 }
