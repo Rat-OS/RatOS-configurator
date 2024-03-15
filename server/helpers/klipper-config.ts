@@ -702,7 +702,7 @@ export const constructKlipperConfigHelpers = async (
 				`[printer]`,
 				`max_velocity: ${config.stealthchop ? '135' : limits.velocity}`,
 				`max_accel: ${limits.accel / (config.stealthchop ? 2 : 1)}`,
-				`max_accel_to_decel: ${limits.accel / (config.stealthchop ? 4 : 2)}`,
+				`minimum_cruise_ratio: ${config.stealthchop ? 0.25 : 0.5}`,
 				`max_z_velocity: ${limits.z_velocity}`,
 				`max_z_accel: ${limits.z_accel}`,
 				`square_corner_velocity: ${limits.square_corner_velocity}`,
