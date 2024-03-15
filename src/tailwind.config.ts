@@ -1,7 +1,8 @@
 import defaultTheme from 'tailwindcss/defaultTheme';
 import { Config } from 'tailwindcss/types/config';
 
-const { default: flattenColorPalette } = require('tailwindcss/lib/util/flattenColorPalette');
+import flattenColorPalette from 'tailwindcss/lib/util/flattenColorPalette';
+import { parseColor, formatColor } from 'tailwindcss/lib/util/color';
 
 export default {
 	darkMode: 'class',
@@ -62,30 +63,30 @@ export default {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
-				background: 'hsl(var(--background))',
+				background: 'rgb(var(--zinc-900))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))',
+					DEFAULT: 'rgb(var(--brand-400))',
+					foreground: 'rgb(var(--brand-900))',
 				},
 				secondary: {
-					DEFAULT: 'hsl(var(--secondary))',
-					foreground: 'hsl(var(--secondary-foreground))',
+					DEFAULT: 'rgb(var(--pink-400))',
+					foreground: 'rgb(var(--white))',
 				},
 				destructive: {
-					DEFAULT: 'hsl(var(--destructive))',
-					foreground: 'hsl(var(--destructive-foreground))',
+					DEFAULT: 'rgb(var(--rose-400))',
+					foreground: 'rgb(var(--black))',
 				},
 				muted: {
 					DEFAULT: 'hsl(var(--muted))',
 					foreground: 'hsl(var(--muted-foreground))',
 				},
 				accent: {
-					DEFAULT: 'hsl(var(--accent))',
-					foreground: 'hsl(var(--accent-foreground))',
+					DEFAULT: 'rgb(var(--brand-700))',
+					foreground: 'rgb(var(--white))',
 				},
 				popover: {
-					DEFAULT: 'hsl(var(--popover))',
+					DEFAULT: 'rgb(var(--zinc-900))',
 					foreground: 'hsl(var(--popover-foreground))',
 				},
 				card: {
@@ -122,7 +123,15 @@ export default {
 
 function addVariablesForColors({ addBase, theme }: any) {
 	let allColors = flattenColorPalette(theme('colors'));
-	let newVars = Object.fromEntries(Object.entries(allColors).map(([key, val]) => [`--${key}`, val]));
+	let newVars = Object.fromEntries(
+		Object.entries(allColors).map(([key, val]) => {
+			const parsed = parseColor(val);
+			return [
+				`--${key}`,
+				parsed ? `${parsed.color.join(', ')}${parsed.alpha != null ? `, ${parsed.alpha}` : ''}` : val,
+			];
+		}),
+	);
 
 	addBase({
 		':root': newVars,

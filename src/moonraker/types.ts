@@ -1,5 +1,5 @@
-import { VaocSettings } from '../app/calibration/vaoc-settings-dialog';
-import { CameraOption } from '../app/calibration/helpers';
+import { VaocSettings } from '@/app/calibration/vaoc-settings-dialog';
+import { CameraOption } from '@/app/calibration/helpers';
 
 export type MoonrakerStatus = 'connected' | 'connecting' | 'not-running';
 
@@ -69,7 +69,7 @@ export type PrinterObjectQueries = {
 			position: [number, number, number, number];
 			max_velocity: number;
 			max_accel: number;
-			max_accel_to_decel: number;
+			minimum_cruise_ratio: number;
 			square_corner_velocity: number;
 		},
 		void

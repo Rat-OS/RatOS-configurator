@@ -1,19 +1,19 @@
-import { PrinterConfiguration } from '../../zods/printer-configuration';
-import { sensorlessXTemplate, sensorlessYTemplate } from '../../templates/extras/sensorless-homing';
-import { Limits, PrinterAxis, PrinterRail, matchesDefaultRail } from '../../zods/motion';
-import { findPreset } from '../../data/steppers';
-import { deserializePrinterRailDefinition } from '../../utils/serialization';
+import { PrinterConfiguration } from '@/zods/printer-configuration';
+import { sensorlessXTemplate, sensorlessYTemplate } from '@/templates/extras/sensorless-homing';
+import { Limits, PrinterAxis, PrinterRail, matchesDefaultRail } from '@/zods/motion';
+import { findPreset } from '@/data/steppers';
+import { deserializePrinterRailDefinition } from '@/utils/serialization';
 import {
 	ControlPins,
 	getExtruderRotationDistance,
 	parseBoardPinConfig,
 	PinMapZodFromBoard,
 	ToolboardPins,
-} from './metadata';
-import { PrinterSizeDefinition } from '../../zods/printer';
-import { ToolheadGenerator } from './config-generation/toolhead';
-import { getBoardSerialPath } from '../../helpers/board';
-import { ToolOrAxis } from '../../zods/toolhead';
+} from '@/server/helpers/metadata';
+import { PrinterSizeDefinition } from '@/zods/printer';
+import { ToolheadGenerator } from '@/server/helpers/config-generation/toolhead';
+import { getBoardSerialPath } from '@/helpers/board';
+import { ToolOrAxis } from '@/zods/toolhead';
 import {
 	type Board,
 	MotorSlotKey,
@@ -25,10 +25,10 @@ import {
 	MotorSlotPins,
 	axisToPinPrefix,
 	AllPins,
-} from '../../zods/boards';
+} from '@/zods/boards';
 import { z } from 'zod';
 import path from 'path';
-import { serverSchema } from '../../env/schema.mjs';
+import { serverSchema } from '@/env/schema.mjs';
 
 type WritableFiles = { fileName: string; content: string; overwrite: boolean; order?: number }[];
 type ExcludeStepperParameters<T extends string> = (T extends
