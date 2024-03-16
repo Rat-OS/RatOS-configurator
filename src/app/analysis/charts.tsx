@@ -1,5 +1,6 @@
 'use client';
 import { tensor1d, concat, slice1d } from '@tensorflow/tfjs-core';
+import '@tensorflow/tfjs-backend-webgl';
 import {
 	XyDataSeries,
 	SciChartSurface,

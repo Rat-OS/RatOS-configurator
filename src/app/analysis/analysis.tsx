@@ -3,7 +3,6 @@
 import { useState } from 'react';
 
 import { useToolheads } from '@/hooks/useToolheadConfiguration';
-import '@tensorflow/tfjs-backend-webgl';
 import { Card } from '@/components/common/card';
 import { useAnalysisCharts } from '@/app/analysis/charts';
 import { MicrophoneIcon } from '@heroicons/react/20/solid';

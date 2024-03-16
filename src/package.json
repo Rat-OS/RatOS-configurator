@@ -76,7 +76,7 @@
 		"read-package-up": "^11.0.0",
 		"recoil": "^0.7.7",
 		"recoil-sync": "^0.2.0",
-		"scichart": ">=3.3.570",
+		"scichart": "^3.3.570",
 		"screenfull": "^6.0.2",
 		"superjson": "^2.2.1",
 		"tailwind-merge": "^1.14.0",
