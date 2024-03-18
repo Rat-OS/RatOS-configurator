@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { serverSchema } from '../env/schema.mjs';
-import { PrinterRailDefinition, Stepper } from './motion';
+import { serverSchema } from '@/env/schema.mjs';
+import { PrinterRailDefinition, Stepper } from '@/zods/motion';
 
 export const thermistors = [
 	'EPCOS 100K B57560G104F',

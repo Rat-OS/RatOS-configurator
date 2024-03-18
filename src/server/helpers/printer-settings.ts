@@ -1,8 +1,8 @@
 import { existsSync } from 'fs';
-import { serverSchema } from '../../env/schema.mjs';
-import { loadSerializedConfig, readSerializedConfig } from '../routers/printer';
+import { serverSchema } from '@/env/schema.mjs';
+import { loadSerializedConfig, readSerializedConfig } from '@/server/routers/printer';
 import path from 'path';
-import { PrinterConfiguration, SerializedPrinterConfiguration } from '../../zods/printer-configuration';
+import { PrinterConfiguration, SerializedPrinterConfiguration } from '@/zods/printer-configuration';
 import { writeFile } from 'fs/promises';
 const environment = serverSchema.parse(process.env);
 

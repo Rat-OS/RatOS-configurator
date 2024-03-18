@@ -1,5 +1,5 @@
-import { getHost } from '../helpers/util';
-import { MoonrakerDBItemResponse } from './types';
+import { getHost } from '@/helpers/util';
+import { MoonrakerDBItemResponse } from '@/moonraker/types';
 
 interface Migration {
 	version: number;

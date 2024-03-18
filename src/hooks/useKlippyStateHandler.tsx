@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { atom, useSetRecoilState } from 'recoil';
-import { useMoonraker } from '../moonraker/hooks';
+import { useMoonraker } from '@/moonraker/hooks';
 
 export type KlippyReadyStates = 'ready' | 'error' | 'shutdown' | 'startup' | 'unknown';
 

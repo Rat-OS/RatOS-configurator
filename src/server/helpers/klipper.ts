@@ -1,4 +1,4 @@
-import { MoonrakerPrinterState, parseMoonrakerHTTPResponse } from '../../zods/moonraker';
+import { MoonrakerPrinterState, parseMoonrakerHTTPResponse } from '@/zods/moonraker';
 
 export const klipperRestart = async (force = false) => {
 	const printerState = (

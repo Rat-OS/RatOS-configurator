@@ -1,12 +1,12 @@
-import { serializeToolheadConfiguration } from '../utils/serialization';
-import { PrinterAxis } from '../zods/motion';
+import { serializeToolheadConfiguration } from '@/utils/serialization';
+import { PrinterAxis } from '@/zods/motion';
 import {
 	PartialToolheadConfiguration,
 	SerializedToolheadConfiguration,
 	ToolheadConfiguration,
 	ToolNumber,
-} from '../zods/toolhead';
-import { getDefaultNozzle } from '../data/nozzles';
+} from '@/zods/toolhead';
+import { getDefaultNozzle } from '@/data/nozzles';
 import deepEqual from 'deep-equal';
 
 type ToolheadSuffix = `t${ToolNumber}`;

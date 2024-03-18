@@ -1,5 +1,5 @@
 import * as z from 'zod';
-import type { Board, Toolboard } from './boards';
+import type { Board, Toolboard } from '@/zods/boards';
 export enum StepperVoltage {
 	'24V' = 24,
 	'36V' = 36,

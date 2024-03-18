@@ -1,7 +1,7 @@
 import NodeCache from 'node-cache';
-import { BoardWithDetectionStatus } from '../../zods/boards';
-import { CFGDirectories } from '../routers/printer';
-import { Extruder } from '../../zods/hardware';
+import { BoardWithDetectionStatus } from '@/zods/boards';
+import { CFGDirectories } from '@/server/routers/printer';
+import { Extruder } from '@/zods/hardware';
 import { ZodType, z } from 'zod';
 
 type ServerCacheValue = {

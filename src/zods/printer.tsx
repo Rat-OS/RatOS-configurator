@@ -1,10 +1,10 @@
 import { z } from 'zod';
-import { serverSchema } from '../env/schema.mjs';
+import { serverSchema } from '@/env/schema.mjs';
 import path from 'path';
-import { SerializedPrinterRailDefinition } from './motion';
-import { SerializedToolheadConfiguration, ToolheadConfiguration } from './toolhead';
-import { Fan } from './hardware';
-import { BoardID } from './boards';
+import { SerializedPrinterRailDefinition } from '@/zods/motion';
+import { SerializedToolheadConfiguration, ToolheadConfiguration } from '@/zods/toolhead';
+import { Fan } from '@/zods/hardware';
+import { BoardID } from '@/zods/boards';
 
 let startsWithServerValidation = '';
 if (process.env.RATOS_CONFIGURATION_PATH) {

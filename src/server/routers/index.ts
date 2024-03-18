@@ -1,19 +1,19 @@
 // src/server/router/index.ts
 import { statSync } from 'fs';
 
-import { wifiRouter } from './wifi';
-import { mcuRouter } from './mcu';
+import { wifiRouter } from '@/server/routers/wifi';
+import { mcuRouter } from '@/server/routers/mcu';
 import { promisify } from 'util';
 import { exec } from 'child_process';
-import { getWirelessInterface } from '../helpers/iw';
-import { klippyExtensionsRouter } from './klippy-extensions';
-import { moonrakerExtensionsRouter } from './moonraker-extensions';
-import { printerRouter } from './printer';
-import { publicProcedure, router } from '../trpc';
-import { ServerCache } from '../helpers/cache';
+import { getWirelessInterface } from '@/server/helpers/iw';
+import { klippyExtensionsRouter } from '@/server/routers/klippy-extensions';
+import { moonrakerExtensionsRouter } from '@/server/routers/moonraker-extensions';
+import { printerRouter } from '@/server/routers/printer';
+import { publicProcedure, router } from '@/server/trpc';
+import { ServerCache } from '@/server/helpers/cache';
 import { z } from 'zod';
-import { getLogger } from '../helpers/logger';
-import { PinoLogEvent } from '../../zods/util';
+import { getLogger } from '@/server/helpers/logger';
+import { PinoLogEvent } from '@/zods/util';
 
 export const appRouter = router({
 	clientLog: publicProcedure

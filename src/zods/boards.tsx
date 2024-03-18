@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { PrinterAxis, Voltage } from './motion';
+import { PrinterAxis, Voltage } from '@/zods/motion';
 
 // Complete map of all available RatOS pin aliases.
 export const AllPins = {

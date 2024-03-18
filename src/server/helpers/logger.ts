@@ -1,6 +1,6 @@
 import pino from 'pino';
-import { serverSchema } from '../../env/schema.mjs';
-import { globalPinoOpts } from '../../helpers/logger';
+import { serverSchema } from '@/env/schema.mjs';
+import { globalPinoOpts } from '@/helpers/logger';
 
 let logger: pino.Logger | null = null;
 export const getLogger = () => {

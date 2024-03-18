@@ -185,6 +185,9 @@ dependencies:
   scichart:
     specifier: ^3.3.570
     version: 3.3.570
+  scichart-react:
+    specifier: ^0.1.8
+    version: 0.1.8(react@18.2.0)(scichart@3.3.570)
   screenfull:
     specifier: ^6.0.2
     version: 6.0.2
@@ -7278,6 +7281,16 @@ packages:
       ajv: 8.12.0
       ajv-formats: 2.1.1(ajv@8.12.0)
       ajv-keywords: 5.1.0(ajv@8.12.0)
+    dev: false
+
+  /scichart-react@0.1.8(react@18.2.0)(scichart@3.3.570):
+    resolution: {integrity: sha512-hLgUj1Gu/9mvp1ivtrNU2+bqPrYqwK8qmr7qJClYWx1Qa2p2qFTDMjrSwK/AeWYfK7ucdSt4oAeCGhlVoRnsVw==}
+    peerDependencies:
+      react: '>=16.8.0'
+      scichart: '>=3.2.516'
+    dependencies:
+      react: 18.2.0
+      scichart: 3.3.570
     dev: false
 
   /scichart@3.3.570:

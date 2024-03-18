@@ -1,17 +1,17 @@
 import * as commander from 'commander';
-import type { AppRouter } from '../server/routers/index.js';
+import type { AppRouter } from '@/server/routers/index.js';
 import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
-import { getBaseUrl } from '../utils/trpc.js';
+import { getBaseUrl } from '@/utils/trpc.js';
 import { realpath, stat, readFile } from 'fs/promises';
 import path from 'path';
 import React from 'react';
 import { Box, Text, render } from 'ink';
-import { Container } from './components/container.jsx';
-import { APIResult, Status } from './components/status.jsx';
-import { Table } from './components/table.jsx';
+import { Container } from '@/cli/components/container.jsx';
+import { APIResult, Status } from '@/cli/components/status.jsx';
+import { Table } from '@/cli/components/table.jsx';
 import { readPackageUp } from 'read-package-up';
 import { $ } from 'zx';
-import { serverSchema } from '../env/schema.mjs';
+import { serverSchema } from '@/env/schema.mjs';
 import dotenv from 'dotenv';
 import { existsSync } from 'fs';
 

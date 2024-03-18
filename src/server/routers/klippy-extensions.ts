@@ -1,11 +1,11 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'fs';
-import { getLogger } from '../helpers/logger';
-import { publicProcedure, router } from '../trpc';
+import { getLogger } from '@/server/helpers/logger';
+import { publicProcedure, router } from '@/server/trpc';
 import path from 'path';
-import { serverSchema } from '../../env/schema.mjs';
-import { symlinkExtensions, unlinkExtension } from '../helpers/extensions';
+import { serverSchema } from '@/env/schema.mjs';
+import { symlinkExtensions, unlinkExtension } from '@/server/helpers/extensions';
 
 const klippyExtension = z.object({
 	fileName: z.string(),

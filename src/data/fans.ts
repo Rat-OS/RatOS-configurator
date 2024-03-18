@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import { Fan } from '../zods/hardware';
-import { PrinterAxis } from '../zods/motion';
-import type { PartialPrinterConfiguration } from '../zods/printer-configuration';
-import type { PartialToolheadConfiguration } from '../zods/toolhead';
+import { Fan } from '@/zods/hardware';
+import { PrinterAxis } from '@/zods/motion';
+import type { PartialPrinterConfiguration } from '@/zods/printer-configuration';
+import type { PartialToolheadConfiguration } from '@/zods/toolhead';
 
 export const partFanOptions = (
 	config?: PartialPrinterConfiguration | null,

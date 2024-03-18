@@ -2,7 +2,7 @@ import { existsSync } from 'fs';
 import { symlink, appendFile, unlink } from 'fs/promises';
 import path from 'path';
 import { z } from 'zod';
-import { replaceInFileByLine, searchFileByLine } from './file-operations';
+import { replaceInFileByLine, searchFileByLine } from '@/server/helpers/file-operations';
 import { TRPCError } from '@trpc/server';
 
 const extension = z.object({

@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { UseMutationOptions, UseQueryOptions, useMutation, useQuery } from '@tanstack/react-query';
 import useWebSocket from 'react-use-websocket';
-import { migrateToLatest } from './migrations';
+import { migrateToLatest } from '@/moonraker/migrations';
 import type {
 	InFlightRequestCallbacks,
 	InFlightRequestTimeouts,
@@ -25,8 +25,8 @@ import type {
 	PrinterObjectKeys,
 	PrinterObjectsMoonrakerQueryParams,
 	PrinterObjectResult,
-} from './types';
-import { getHost } from '../helpers/util';
+} from '@/moonraker/types';
+import { getHost } from '@/helpers/util';
 import { merge } from 'ts-deepmerge';
 import deepEqual from 'deep-equal';
 import { e } from 'vitest/dist/reporters-rzC174PQ';

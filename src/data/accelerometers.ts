@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { Accelerometer } from '../zods/hardware';
-import { PartialPrinterConfiguration } from '../zods/printer-configuration';
-import { PartialToolheadConfiguration } from '../zods/toolhead';
+import { Accelerometer } from '@/zods/hardware';
+import { PartialPrinterConfiguration } from '@/zods/printer-configuration';
+import { PartialToolheadConfiguration } from '@/zods/toolhead';
 
 export const xAccelerometerOptions = (
 	config?: z.infer<typeof PartialPrinterConfiguration> | null,

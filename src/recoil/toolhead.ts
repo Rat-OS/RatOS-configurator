@@ -2,18 +2,18 @@ import { atomFamily, DefaultValue, selector, selectorFamily, noWait, waitForAll 
 import { ReadAtomInterface, syncEffect } from 'recoil-sync';
 import { z } from 'zod';
 import { getRefineCheckerForZodSchema } from 'zod-refine';
-import { trpcClient } from '../helpers/trpc';
-import { BoardPath, Toolboard } from '../zods/boards';
-import { PrinterAxis } from '../zods/motion';
+import { trpcClient } from '@/helpers/trpc';
+import { BoardPath, Toolboard } from '@/zods/boards';
+import { PrinterAxis } from '@/zods/motion';
 import {
 	BaseToolheadConfiguration,
 	SerializedToolheadConfiguration,
 	ToolheadConfiguration,
 	ToolNumber,
-} from '../zods/toolhead';
-import { PrinterState } from './printer';
-import { moonrakerWriteEffect } from '../components/sync-with-moonraker';
-import { getLogger } from '../app/_helpers/logger';
+} from '@/zods/toolhead';
+import { PrinterState } from '@/recoil/printer';
+import { moonrakerWriteEffect } from '@/components/sync-with-moonraker';
+import { getLogger } from '@/app/_helpers/logger';
 
 export const isAxisValidForTool = (axis: PrinterAxis, tool: ToolNumber) => {
 	if (axis === PrinterAxis.dual_carriage && tool === 1) {

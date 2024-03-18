@@ -5,22 +5,22 @@ import {
 	getFilesToWrite,
 	compareSettings,
 	deserializePrinterConfiguration,
-} from '../server/routers/printer';
+} from '@/server/routers/printer';
 import { describe, expect, test } from 'vitest';
-import { extractToolheadFromPrinterConfiguration, serializePartialToolheadConfiguration } from '../utils/serialization';
+import { extractToolheadFromPrinterConfiguration, serializePartialToolheadConfiguration } from '@/utils/serialization';
 import path from 'path';
-import { replaceLinesStartingWith, stripCommentLines, stripIncludes } from '../server/helpers/metadata';
-import { compileFirmware } from '../server/routers/mcu';
-import { ToolheadHelper } from '../helpers/toolhead';
-import { getBoardChipId } from '../helpers/board';
-import { constructKlipperConfigUtils } from '../server/helpers/klipper-config';
-import { sensorlessXTemplate, sensorlessYTemplate } from '../templates/extras/sensorless-homing';
+import { replaceLinesStartingWith, stripCommentLines, stripIncludes } from '@/server/helpers/metadata';
+import { compileFirmware } from '@/server/routers/mcu';
+import { ToolheadHelper } from '@/helpers/toolhead';
+import { getBoardChipId } from '@/helpers/board';
+import { constructKlipperConfigUtils } from '@/server/helpers/klipper-config';
+import { sensorlessXTemplate, sensorlessYTemplate } from '@/templates/extras/sensorless-homing';
 import { readFile } from 'fs/promises';
-import { SerializedPrinterConfiguration } from '../zods/printer-configuration';
-import { PrinterDefinition } from '../zods/printer';
-import { Accelerometer } from '../zods/hardware';
+import { SerializedPrinterConfiguration } from '@/zods/printer-configuration';
+import { PrinterDefinition } from '@/zods/printer';
+import { Accelerometer } from '@/zods/hardware';
 import { z } from 'zod';
-import { serializePrinterConfiguration } from '../hooks/usePrinterConfiguration';
+import { serializePrinterConfiguration } from '@/hooks/usePrinterConfiguration';
 import { glob } from 'glob';
 
 const serializedConfigFromDefaults = (printer: PrinterDefinition): SerializedPrinterConfiguration => {

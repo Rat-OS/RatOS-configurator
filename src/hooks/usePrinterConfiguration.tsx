@@ -2,13 +2,13 @@
 
 import { atom, selector, useRecoilValue, useRecoilState, waitForAll, noWait } from 'recoil';
 import { z } from 'zod';
-import { Fan } from '../zods/hardware';
+import { Fan } from '@/zods/hardware';
 import {
 	PartialPrinterConfiguration,
 	PrinterConfiguration,
 	SerializedPartialPrinterConfiguration,
 	SerializedPrinterConfiguration,
-} from '../zods/printer-configuration';
+} from '@/zods/printer-configuration';
 import { syncEffect } from 'recoil-sync';
 import { getRefineCheckerForZodSchema } from 'zod-refine';
 import { useMemo } from 'react';
@@ -16,17 +16,17 @@ import {
 	serializePartialToolheadConfiguration,
 	serializePrinterRail,
 	serializeToolheadConfiguration,
-} from '../utils/serialization';
+} from '@/utils/serialization';
 import {
 	ControlboardState,
 	LoadablePrinterRailsState,
 	PrinterRailsState,
 	PrinterSizeState,
 	PrinterState,
-} from '../recoil/printer';
-import { PrinterToolheadsState } from '../recoil/toolhead';
-import { defaultControllerFan } from '../data/fans';
-import { moonrakerWriteEffect } from '../components/sync-with-moonraker';
+} from '@/recoil/printer';
+import { PrinterToolheadsState } from '@/recoil/toolhead';
+import { defaultControllerFan } from '@/data/fans';
+import { moonrakerWriteEffect } from '@/components/sync-with-moonraker';
 
 export const PerformanceModeState = atom<boolean | null | undefined>({
 	key: 'PerformanceMode',

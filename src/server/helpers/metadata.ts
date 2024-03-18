@@ -4,7 +4,7 @@ import path from 'path';
 import { createInterface } from 'readline';
 import { promisify } from 'util';
 import { z, ZodType } from 'zod';
-import { serverSchema } from '../../env/schema.mjs';
+import { serverSchema } from '@/env/schema.mjs';
 import {
 	Board,
 	ControlBoardPinMap,
@@ -12,11 +12,11 @@ import {
 	PinMap,
 	Toolboard,
 	ToolboardPinMap,
-} from '../../zods/boards';
-import { Extruder } from '../../zods/hardware';
-import { getScriptRoot } from './file-operations';
-import { getLogger } from './logger';
-import { MetadataCache, cacheAsyncMetadataFn, cacheMetadataFn } from './cache';
+} from '@/zods/boards';
+import { Extruder } from '@/zods/hardware';
+import { getScriptRoot } from '@/server/helpers/file-operations';
+import { getLogger } from '@/server/helpers/logger';
+import { MetadataCache, cacheAsyncMetadataFn, cacheMetadataFn } from '@/server/helpers/cache';
 
 export const parseMetadata = async <T extends ZodType>(cfgFile: string, zod: T): Promise<z.infer<T> | null> => {
 	if (cfgFile.trim() === '') return null;

@@ -1,56 +1,56 @@
 import { z } from 'zod';
-import { getLogger } from '../helpers/logger';
+import { getLogger } from '@/server/helpers/logger';
 
-import { extractIncludes, parseMetadata } from '../helpers/metadata';
-import { Hotend, Extruder, Probe, thermistors, Endstop, Fan, Accelerometer } from '../../zods/hardware';
+import { extractIncludes, parseMetadata } from '@/server/helpers/metadata';
+import { Hotend, Extruder, Probe, thermistors, Endstop, Fan, Accelerometer } from '@/zods/hardware';
 import { constants, existsSync, readFileSync } from 'fs';
-import { PrinterDefinition, PrinterDefinitionWithResolvedToolheads } from '../../zods/printer';
+import { PrinterDefinition, PrinterDefinitionWithResolvedToolheads } from '@/zods/printer';
 import {
 	PartialPrinterConfiguration,
 	PrinterConfiguration,
 	SerializedPartialPrinterConfiguration,
 	SerializedPrinterConfiguration,
-} from '../../zods/printer-configuration';
+} from '@/zods/printer-configuration';
 import {
 	PartialToolheadConfiguration,
 	SerializedPartialToolheadConfiguration,
 	SerializedToolheadConfiguration,
 	ToolheadConfiguration,
 	ToolOrAxis,
-} from '../../zods/toolhead';
-import { xEndstopOptions, yEndstopOptions } from '../../data/endstops';
+} from '@/zods/toolhead';
+import { xEndstopOptions, yEndstopOptions } from '@/data/endstops';
 import {
 	constructKlipperConfigExtrasGenerator,
 	constructKlipperConfigHelpers,
 	constructKlipperConfigUtils,
-} from '../helpers/klipper-config';
-import { serverSchema } from '../../env/schema.mjs';
-import { controllerFanOptions, hotendFanOptions, partFanOptions } from '../../data/fans';
-import { getBoards, getToolboards } from './mcu';
-import { xAccelerometerOptions, yAccelerometerOptions } from '../../data/accelerometers';
+} from '@/server/helpers/klipper-config';
+import { serverSchema } from '@/env/schema.mjs';
+import { controllerFanOptions, hotendFanOptions, partFanOptions } from '@/data/fans';
+import { getBoards, getToolboards } from '@/server/routers/mcu';
+import { xAccelerometerOptions, yAccelerometerOptions } from '@/data/accelerometers';
 import { glob } from 'glob';
 import path from 'path';
-import { publicProcedure, router } from '../trpc';
+import { publicProcedure, router } from '@/server/trpc';
 import {
 	deserializePrinterRail,
 	extractToolheadFromPrinterConfiguration,
 	extractToolheadsFromPrinterConfiguration,
 	stringToTitleObject,
-} from '../../utils/serialization';
-import { serializePrinterConfiguration } from '../../hooks/usePrinterConfiguration';
-import { BoardWithDetectionStatus } from '../../zods/boards';
+} from '@/utils/serialization';
+import { serializePrinterConfiguration } from '@/hooks/usePrinterConfiguration';
+import { BoardWithDetectionStatus } from '@/zods/boards';
 import { QueryLike, RouterLike } from '@trpc/react-query/shared';
 import { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
-import { ToolheadHelper } from '../../helpers/toolhead';
-import { getLastPrinterSettings, hasLastPrinterSettings, savePrinterSettings } from '../helpers/printer-settings';
-import { PrinterAxis } from '../../zods/motion';
-import { ServerCache, cacheAsyncDirectoryFn } from '../helpers/cache';
-import { klipperRestart } from '../helpers/klipper';
+import { ToolheadHelper } from '@/helpers/toolhead';
+import { getLastPrinterSettings, hasLastPrinterSettings, savePrinterSettings } from '@/server/helpers/printer-settings';
+import { PrinterAxis } from '@/zods/motion';
+import { ServerCache, cacheAsyncDirectoryFn } from '@/server/helpers/cache';
+import { klipperRestart } from '@/server/helpers/klipper';
 import { access, copyFile, readFile, unlink, writeFile } from 'fs/promises';
 import { exec } from 'child_process';
 import objectHash from 'object-hash';
-import { getDefaultNozzle } from '../../data/nozzles';
-import { extractLinesFromFile, searchFileByLine } from '../helpers/file-operations';
+import { getDefaultNozzle } from '@/data/nozzles';
+import { extractLinesFromFile, searchFileByLine } from '@/server/helpers/file-operations';
 
 function isNodeError(error: any): error is NodeJS.ErrnoException {
 	return error instanceof Error;

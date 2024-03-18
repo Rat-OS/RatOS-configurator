@@ -1,5 +1,5 @@
 import type { z } from 'zod';
-import { Drivers } from '../data/drivers';
+import { Drivers } from '@/data/drivers';
 import {
 	BasePrinterRail,
 	Driver,
@@ -9,17 +9,17 @@ import {
 	SerializedPrinterRailDefinition,
 	Stepper,
 	PrinterAxis,
-} from '../zods/motion';
-import { Steppers } from '../data/steppers';
+} from '@/zods/motion';
+import { Steppers } from '@/data/steppers';
 import {
 	ToolheadConfiguration,
 	SerializedToolheadConfiguration,
 	PartialToolheadConfiguration,
 	SerializedPartialToolheadConfiguration,
 	ToolOrAxis,
-} from '../zods/toolhead';
-import { PartialPrinterConfiguration } from '../zods/printer-configuration';
-import { ToolheadHelper } from '../helpers/toolhead';
+} from '@/zods/toolhead';
+import { PartialPrinterConfiguration } from '@/zods/printer-configuration';
+import { ToolheadHelper } from '@/helpers/toolhead';
 
 export const deserializeDriver = (driverId: z.input<typeof Driver.shape.id>): z.infer<typeof Driver> | null => {
 	return Drivers.find((d) => d.id === driverId) ?? null;

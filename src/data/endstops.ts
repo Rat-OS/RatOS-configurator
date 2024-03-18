@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import { Endstop } from '../zods/hardware';
-import { PrinterAxis } from '../zods/motion';
-import type { SerializedPartialPrinterConfiguration } from '../zods/printer-configuration';
-import type { SerializedPartialToolheadConfiguration } from '../zods/toolhead';
+import { Endstop } from '@/zods/hardware';
+import { PrinterAxis } from '@/zods/motion';
+import type { SerializedPartialPrinterConfiguration } from '@/zods/printer-configuration';
+import type { SerializedPartialToolheadConfiguration } from '@/zods/toolhead';
 
 export const xEndstopOptions = (
 	config?: SerializedPartialPrinterConfiguration | null,

@@ -77,6 +77,7 @@
 		"recoil": "^0.7.7",
 		"recoil-sync": "^0.2.0",
 		"scichart": "^3.3.570",
+		"scichart-react": "^0.1.8",
 		"screenfull": "^6.0.2",
 		"superjson": "^2.2.1",
 		"tailwind-merge": "^1.14.0",

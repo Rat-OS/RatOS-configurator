@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { Drivers } from './drivers';
-import { Stepper, StepperVoltage } from '../zods/motion';
+import { Drivers } from '@/data/drivers';
+import { Stepper, StepperVoltage } from '@/zods/motion';
 
 export const findPreset = (
 	stepper: (typeof Steppers)[number],

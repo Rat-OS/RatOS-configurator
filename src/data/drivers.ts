@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Driver } from '../zods/motion';
+import { Driver } from '@/zods/motion';
 
 export const Drivers = z.array(Driver).parse([
 	{

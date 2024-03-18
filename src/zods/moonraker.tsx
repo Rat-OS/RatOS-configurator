@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { getLogger } from '../server/helpers/logger';
+import { getLogger } from '@/server/helpers/logger';
 
 export const MoonrakerBaseResult = z.object({
 	eventtime: z.number(),
