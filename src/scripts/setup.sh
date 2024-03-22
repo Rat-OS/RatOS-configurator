@@ -53,34 +53,6 @@ __EOF
     sudo systemctl daemon-reload
 }
 
-install_logrotation() {
-    LOGROTATE_FILE="/etc/logrotate.d/ratos-configurator"
-    LOGFILE="/home/${USER}/printer_data/logs/ratos-configurator.log"
-    report_status "Installing RatOS Configurator log rotation script..."
-    sudo /bin/sh -c "cat > ${LOGROTATE_FILE}" << __EOF
-#### RatOS-configurator
-####
-#### Written by Mikkel Schmidt <mikkel.schmidt@gmail.com>
-#### Copyright 2022
-#### https://github.com/Rat-OS/RatOS-Configurator
-####
-#### This File is distributed under GPLv3
-####
-
-
-${LOGFILE} {
-    rotate 3
-    missingok
-    notifempty
-    copy
-    daily
-    dateext
-    dateformat .%Y-%m-%d
-    maxsize 10M
-}
-__EOF
-    sudo chmod 644 ${LOGROTATE_FILE}
-}
 
 # Force script to exit if an error occurs
 set -e
