@@ -180,15 +180,18 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 									if (defaultRail == null) {
 										throw new Error('No printer default for axis ' + rail.axis);
 									}
-									const errorCount = Object.keys(railErrors[ri]).reduce((acc, key) => {
-										const objKey = key as keyof (typeof railErrors)[number];
-										const keyErrors = railErrors[ri][objKey];
-										if (keyErrors == null) {
-											return acc;
-										}
-										const count = Array.isArray(keyErrors) ? keyErrors.length : keyErrors._errors?.length ?? 0;
-										return acc + count;
-									}, 0);
+									const errorCount =
+										railErrors[ri] == null
+											? 0
+											: Object.keys(railErrors[ri]).reduce((acc, key) => {
+													const objKey = key as keyof (typeof railErrors)[number];
+													const keyErrors = railErrors[ri][objKey];
+													if (keyErrors == null) {
+														return acc;
+													}
+													const count = Array.isArray(keyErrors) ? keyErrors.length : keyErrors._errors?.length ?? 0;
+													return acc + count;
+												}, 0);
 									return (
 										<PrinterRailSettings
 											key={rail.axis}

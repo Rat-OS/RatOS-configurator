@@ -1,7 +1,25 @@
-import { signal as tfSignal, Tensor1D, sum, pow, div, mean, sub, tidy } from '@tensorflow/tfjs-core';
+import {
+	signal as tfSignal,
+	Tensor1D,
+	sum,
+	pow,
+	div,
+	mean,
+	sub,
+	tidy,
+	add,
+	real,
+	imag,
+	mul,
+	range,
+	Tensor,
+	Rank,
+} from '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-backend-webgl';
+import { NumberRange } from 'scichart';
+import { f } from 'vitest/dist/reporters-rzC174PQ';
 
-export type PSD = { frequencies: number[]; estimates: number[] };
+export type PSD = { frequencies: number[]; estimates: number[]; powerRange: NumberRange };
 
 /**
  * Returns the ceil of the log2 of the absolute value of the passed number
@@ -21,6 +39,8 @@ export function nextpow2(num: number): number {
 	return Math.ceil(Math.log2(Math.abs(num)));
 }
 
+export const detrendSignal = (signal: Tensor1D) => tidy(() => sub<Tensor1D>(signal, mean(signal, 0, true)));
+
 const WINDOW_T_SEC = 0.5;
 const MAX_FREQ = 200;
 
@@ -32,19 +52,19 @@ const MAX_FREQ = 200;
  * @function
  * @name periodogram
  * @param {number[]} signal - The signal.
- * @param {number} sample_rate - sample rate in Hz
+ * @param {number} sampleRate - sample rate in Hz
  * @param {Object} [options]
  * @param {number} [options.fftSize=1 << nextpow2(sample_rate * WINDOW_T_SEC - 1)] - Size of the fft to be used. Should be a power of 2.
  * @returns {Object} Object with keys 'estimates' (the psd estimates) and 'frequencies' (the corresponding frequencies in Hz)
  */
 export async function powerSpectralDensity(
 	signal: Tensor1D,
-	sample_rate: number,
-	options?: { fftSize?: number; _scaling?: string },
+	sampleRate: number,
+	options?: { fftSize?: number; _scaling?: string; isDetrended?: boolean },
 ): Promise<PSD> {
 	let { fftSize, _scaling } = Object.assign(
 		{
-			fftSize: 1 << nextpow2(sample_rate * WINDOW_T_SEC - 1),
+			fftSize: 1 << nextpow2(sampleRate * WINDOW_T_SEC - 1),
 			_scaling: 'psd',
 		},
 		options,
@@ -56,32 +76,15 @@ export async function powerSpectralDensity(
 
 	let scaling_factor: number = _scaling === 'none' ? 1 : 2;
 	const win = tfSignal.hannWindow(fftSize);
-	let klipScale = (await tidy(() => div(div(1.0, sum(pow(win, 2))), sample_rate)).array()) as number;
+	let klipScale = (await tidy(() => div(div(1.0, sum(pow(win, 2))), sampleRate)).array()) as number;
 
-	const avged = sub<Tensor1D>(signal, mean(signal, 0, true));
+	const detrended = options?.isDetrended ? signal : detrendSignal(signal);
 	// console.log('stft options', sample_rate, signal.size, fftSize);
-	let f = tfSignal.stft(avged, fftSize, Math.floor(fftSize / 2), fftSize, tfSignal.hannWindow);
-	// Complex array [real, imag, real, imag, etc.]
-	// let x = add(pow(real(f), 2), pow(imag(f), 2));
-	// x = mul(x, klipScale);
-	// const size = x.size / 2 - 2;
-	// // const sliced = slice(x, [1, 0], [size]);
-	// const res = mul(x, 2);
-	// const frequencyLength =
-	// const psd = (await mean(res, -1).array()) as number[];
-	// console.log(psd.length);
-	// console.log(psd[0]);
-	// psd[0] /= 2;
-	// psd[psd.length - 1] /= 2;
-	// const frequencies = (await mul(range(0, psd.length, 1), 2 * (sample_rate / fftSize)).array()) as number[];
-	// console.timeEnd('done');
-	// return {
-	// 	estimates: psd,
-	// 	frequencies: frequencies,
-	// };
+	let f = tfSignal.stft(detrended, fftSize, Math.floor(fftSize / 2), fftSize, tfSignal.hannWindow);
+
 	let x = (await f.array()) as number[][];
 	f.dispose();
-	avged.dispose();
+	detrended.dispose();
 	win.dispose();
 
 	return welch(
@@ -89,21 +92,27 @@ export async function powerSpectralDensity(
 			// Get the power of each FFT bin value
 			let powers: number[] = [];
 			let frequencies: number[] = [];
-
+			let maxPower = 0;
+			let minPower = 0;
 			for (var i = 0; i < series.length - 1; i += 2) {
-				const frequency = (i === 0 ? 0 : i / 2) * (sample_rate / fftSize);
+				const frequency = (i === 0 ? 0 : i / 2) * (sampleRate / fftSize);
 				if (frequency > MAX_FREQ) {
 					continue;
 				}
-				const nextFrequency = ((i + 2) / 2) * (sample_rate / fftSize);
-				// magnitude is sqrt(real^2 + imag^2)
-				let magnitude: number = Math.sqrt(series[i] ** 2 + series[i + 1] ** 2);
+				const nextFrequency = ((i + 2) / 2) * (sampleRate / fftSize);
 				// apply scaling
-				let power: number = magnitude ** 2;
+				// magnitude is sqrt(real^2 + imag^2), power is magnitude^2
+				let power: number = series[i] ** 2 + series[i + 1] ** 2;
 				power *= klipScale;
 				// Don't scale DC or Nyquist by 2
 				if (_scaling == 'psd' && i > 0 && nextFrequency < MAX_FREQ) {
 					power *= scaling_factor;
+				}
+				if (power > maxPower) {
+					maxPower = power;
+				}
+				if (power < minPower) {
+					minPower = power;
 				}
 				powers.push(power);
 				frequencies.push(frequency);
@@ -112,11 +121,13 @@ export async function powerSpectralDensity(
 			return {
 				estimates: powers,
 				frequencies: frequencies,
+				powerRange: new NumberRange(minPower, maxPower),
 			};
 		}),
 	);
 }
 
+// Keep this async so that we can potentially move it to the GPU
 export const welch = async (PSDs: PSD[]): Promise<PSD> => {
 	if (PSDs.length == 0) throw new Error('Unable to calculate any PSD estimates');
 	if (PSDs.length == 1) {
@@ -132,12 +143,48 @@ export const welch = async (PSDs: PSD[]): Promise<PSD> => {
 			avg[i] += PSDs[p].estimates[i];
 		}
 	}
+	let maxPower = 0;
+	let minPower = 0;
 	for (let i = 0; i < num_estimates; i++) {
 		avg[i] = avg[i] / PSDs.length;
+		if (avg[i] > maxPower) {
+			maxPower = avg[i];
+		}
+		if (avg[i] < minPower) {
+			minPower = avg[i];
+		}
 	}
 
 	return {
 		estimates: avg,
 		frequencies: PSDs[0].frequencies,
+		powerRange: new NumberRange(minPower, maxPower),
+	};
+};
+
+export const sumPSDs = (PSDs: PSD[]): PSD => {
+	let num_estimates = PSDs[0].estimates.length;
+	let sum = new Array(num_estimates).fill(0);
+	for (let p = 0; p < PSDs.length; p++) {
+		for (let i = 0; i < num_estimates; i++) {
+			sum[i] += PSDs[p].estimates[i];
+		}
+	}
+	const { minPower, maxPower } = PSDs.reduce(
+		(acc, psd) => {
+			if (psd.powerRange.min < acc.minPower) {
+				acc.minPower = psd.powerRange.min;
+			}
+			if (psd.powerRange.max > acc.maxPower) {
+				acc.maxPower = psd.powerRange.max;
+			}
+			return acc;
+		},
+		{ minPower: 0, maxPower: 0 },
+	);
+	return {
+		estimates: sum,
+		frequencies: PSDs[0].frequencies,
+		powerRange: new NumberRange(minPower, maxPower),
 	};
 };

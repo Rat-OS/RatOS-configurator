@@ -410,7 +410,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 													<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Printer</dt>
 													<dd className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:mt-2">
 														{parsedPrinterConfiguration.data.printer != null
-															? `${parsedPrinterConfiguration.data.printer.manufacturer} ${parsedPrinterConfiguration.data.printer.name} ${parsedPrinterConfiguration.data.size}`
+															? `${parsedPrinterConfiguration.data.printer.manufacturer} ${parsedPrinterConfiguration.data.printer.name} ${Object.keys(parsedPrinterConfiguration.data.printer.sizes).length > 1 ? parsedPrinterConfiguration.data.size.x : ''}`
 															: 'None selected'}
 													</dd>
 												</div>

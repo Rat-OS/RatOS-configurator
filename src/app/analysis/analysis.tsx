@@ -1,10 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { useToolheads } from '@/hooks/useToolheadConfiguration';
 import { Card } from '@/components/common/card';
-import { useAnalysisCharts } from '@/app/analysis/charts';
+import {
+	PSDChartMinimumYVisibleRange,
+	PSD_CHART_AXIS_AMPLITUDE_ID,
+	useADXLSignalChart,
+	usePSDChart,
+} from '@/app/analysis/charts';
 import { MicrophoneIcon } from '@heroicons/react/20/solid';
 import { useGcodeCommand } from '@/app/_hooks/toolhead';
 import {
@@ -18,54 +23,146 @@ import {
 import { twJoin } from 'tailwind-merge';
 import { DotFilledIcon, MixIcon } from '@radix-ui/react-icons';
 import { Spinner } from '@/components/common/spinner';
+import { SciChartReact } from 'scichart-react';
+import {
+	useADXLFifoTensor,
+	useAccumulatedPSD,
+	useBufferedADXLSignal,
+	useBufferedPSD,
+	useDynamicAxisRange,
+	useRealtimeADXL,
+	useTicker,
+} from '@/app/analysis/hooks';
+import { MountainAnimation, SciChartSurface, easing } from 'scichart';
+import { detrendSignal } from '@/app/analysis/periodogram';
+
+SciChartSurface.configure({
+	wasmUrl: '/configure/scichart2d.wasm',
+	dataUrl: '/configure/scichart2d.data',
+});
 
 export const Analysis = () => {
 	const [isChartEnabled, setIsChartEnabled] = useState(false);
 	const toolheads = useToolheads();
-	const charts = useAnalysisCharts(toolheads[0], isChartEnabled);
+	const psdChart = usePSDChart();
+	const xSignalChart = useADXLSignalChart('x');
+	const ySignalChart = useADXLSignalChart('y');
+	const zSignalChart = useADXLSignalChart('z');
+
+	const xSignalYAxis = xSignalChart.data.current?.yAxis ?? null;
+	const ySignalYAxis = ySignalChart.data.current?.yAxis ?? null;
+	const zSignalYAxis = zSignalChart.data.current?.yAxis ?? null;
+	const updateSignalChartRange = useDynamicAxisRange([xSignalYAxis, ySignalYAxis, zSignalYAxis]);
+
+	const psdYAxis = psdChart.surface.current?.yAxes.getById(PSD_CHART_AXIS_AMPLITUDE_ID) ?? null;
+	const updatePsdChartRange = useDynamicAxisRange(psdYAxis, PSDChartMinimumYVisibleRange);
+
+	const fifo = useADXLFifoTensor();
+	const timeSinceLastPsd = useRef<number>(new Date().getTime());
+	const psds = useAccumulatedPSD((res) => {
+		const surface = psdChart.surface.current;
+		if (surface == null) {
+			return;
+		}
+		const elapsed = new Date().getTime() - timeSinceLastPsd.current;
+		timeSinceLastPsd.current = new Date().getTime();
+		const animationDS = psdChart.data.current?.animationSeries;
+		if (animationDS == null) {
+			throw new Error('No animation data series');
+		}
+		animationDS.x.clear();
+		animationDS.y.clear();
+		animationDS.z.clear();
+		animationDS.total.clear();
+		animationDS.x.appendRange(res.x.frequencies, res.x.estimates);
+		animationDS.y.appendRange(res.y.frequencies, res.y.estimates);
+		animationDS.z.appendRange(res.z.frequencies, res.z.estimates);
+		animationDS.total.appendRange(res.total.frequencies, res.total.estimates);
+		surface.renderableSeries
+			.getById('x')
+			.runAnimation(new MountainAnimation({ duration: elapsed, ease: easing.inOutCirc, dataSeries: animationDS.x }));
+		surface.renderableSeries
+			.getById('y')
+			.runAnimation(new MountainAnimation({ duration: elapsed, ease: easing.inOutCirc, dataSeries: animationDS.y }));
+		surface.renderableSeries
+			.getById('z')
+			.runAnimation(new MountainAnimation({ duration: elapsed, ease: easing.inOutCirc, dataSeries: animationDS.z }));
+		surface.renderableSeries
+			.getById('total')
+			.runAnimation(
+				new MountainAnimation({ duration: elapsed, ease: easing.inOutCirc, dataSeries: animationDS.total }),
+			);
+		updatePsdChartRange(res.total.powerRange);
+	});
+	const updatePsd = useBufferedPSD(fifo.sampleRate, psds.onData);
+	const updateSignals = useBufferedADXLSignal(fifo, async (time, x, y, z) => {
+		// Center the signals by subtracting the mean
+		const dX = detrendSignal(x);
+		const dY = detrendSignal(y);
+		const dZ = detrendSignal(z);
+		x.dispose();
+		y.dispose();
+		z.dispose();
+		Promise.all([time.array(), dX.array(), dY.array(), dZ.array()]).then(([timeData, xData, yData, zData]) => {
+			xSignalChart.data.current?.signalData.appendRange(timeData, xData);
+			ySignalChart.data.current?.signalData.appendRange(timeData, yData);
+			zSignalChart.data.current?.signalData.appendRange(timeData, zData);
+			xSignalChart.data.current?.historyData.appendRange(timeData, xData);
+			ySignalChart.data.current?.historyData.appendRange(timeData, yData);
+			zSignalChart.data.current?.historyData.appendRange(timeData, zData);
+		});
+		updateSignalChartRange();
+		updatePsd(time, dX, dY, dZ, true);
+	});
+	useTicker(updateSignals);
+
+	useRealtimeADXL({
+		sensor: toolheads[0].getYAccelerometerName(),
+		enabled: isChartEnabled,
+		onDataUpdate: fifo.onData,
+	});
+
 	const [isRecording, setIsRecording] = useState(false);
 	const [isMacroRunning, setIsMacroRunning] = useState(false);
 	const G = useGcodeCommand();
 
 	const recordShaperGraph = async (axis: 'x' | 'y') => {
-		if (charts.startAccumulation == null || charts.stopAccumulation == null) return;
 		setIsChartEnabled(true);
 		await G`
 		MAYBE_HOME
 		M400
 		`;
-		await charts.startAccumulation();
+		await psds.startAccumulation();
 		setIsRecording(true);
 		await G`
 			GENERATE_RESONANCES AXIS=${axis.toUpperCase()}
 			M400
 		`;
-		const psd = await charts.stopAccumulation();
+		const psd = await psds.stopAccumulation();
 		setIsRecording(false);
 		setIsChartEnabled(false);
 	};
 
 	const recordBeltGraph = async () => {
-		if (charts.startAccumulation == null || charts.stopAccumulation == null) return;
 		setIsChartEnabled(true);
 		await G`
 		MAYBE_HOME
 		M400
 		`;
-		await charts.startAccumulation();
+		await psds.startAccumulation();
 		setIsRecording(true);
 		await G`
 			GENERATE_RESONANCES AXIS=1,1
 			M400
 		`;
-		const upperpsd = await charts.stopAccumulation();
-		await charts.startAccumulation();
+		const upperpsd = await psds.stopAccumulation();
+		await psds.startAccumulation();
 		setIsRecording(true);
 		await G`
 			GENERATE_RESONANCES AXIS=1,-1
 			M400
 		`;
-		const lowerpsd = await charts.stopAccumulation();
+		const lowerpsd = await psds.stopAccumulation();
 		setIsRecording(false);
 		setIsChartEnabled(false);
 	};
@@ -79,7 +176,7 @@ export const Analysis = () => {
 		};
 
 	const MacroIcon = isRecording ? (
-		<DotFilledIcon className="h-4 w-4 text-red-400" />
+		<DotFilledIcon className="h-4 w-4 scale-150 text-red-400" />
 	) : isMacroRunning ? (
 		<Spinner noMargin={true} className="h-4 w-4" />
 	) : (
@@ -136,17 +233,17 @@ export const Analysis = () => {
 			</Menubar>
 			<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
 				<Card className="flex max-h-32 overflow-hidden sm:max-h-72 sm:min-h-72">
-					<div className="flex-1 rounded-lg" id="adxlX" ref={charts.xRef} style={{ marginLeft: -300 }} />
+					<SciChartReact {...xSignalChart.forwardProps} className="flex-1 rounded-lg" />
 				</Card>
 				<Card className="flex max-h-32 overflow-hidden sm:max-h-72 sm:min-h-72">
-					<div className="flex-1 rounded-lg" id="adxlY" ref={charts.yRef} style={{ marginLeft: -300 }} />
+					<SciChartReact {...ySignalChart.forwardProps} className="flex-1 rounded-lg" />
 				</Card>
 				<Card className="flex max-h-32 overflow-hidden sm:max-h-72 sm:min-h-72">
-					<div className="flex-1 rounded-lg" id="adxlZ" ref={charts.zRef} style={{ marginLeft: -300 }} />
+					<SciChartReact {...zSignalChart.forwardProps} className="flex-1 rounded-lg" />
 				</Card>
 			</div>
-			<Card className="flex flex-1">
-				<div id="psd" ref={charts.psdRef} className="flex-1" />
+			<Card className="flex flex-1 overflow-hidden">
+				<SciChartReact {...psdChart.forwardProps} className="flex-1" />
 			</Card>
 		</div>
 	);

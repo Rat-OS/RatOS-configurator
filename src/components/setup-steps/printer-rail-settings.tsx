@@ -31,7 +31,7 @@ interface PrinterRailSettingsProps {
 	printerRail: Zod.infer<typeof BasePrinterRail>;
 	printerRailDefault: Zod.infer<typeof PrinterRailDefinition>;
 	performanceMode?: boolean | null;
-	errors: z.inferFormattedError<typeof BasePrinterRail>;
+	errors?: z.inferFormattedError<typeof BasePrinterRail>;
 	/**
 	 * This component should always be rendered to ensure the settings are updated when
 	 * switching performance mode, even if it isn't visible.
@@ -77,15 +77,18 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 		},
 		{ enabled: !!board },
 	);
-	const errorCount = Object.keys(props.errors).reduce((acc, key) => {
-		const objKey = key as keyof typeof props.errors;
-		const keyErrors = props.errors[objKey];
-		if (keyErrors == null) {
-			return acc;
-		}
-		const count = Array.isArray(keyErrors) ? keyErrors.length : keyErrors._errors.length;
-		return acc + count;
-	}, 0);
+	const errorCount =
+		props.errors == null
+			? 0
+			: Object.keys(props.errors).reduce((acc, key) => {
+					const objKey = key as keyof typeof props.errors;
+					const keyErrors = props.errors?.[objKey];
+					if (keyErrors == null) {
+						return acc;
+					}
+					const count = Array.isArray(keyErrors) ? keyErrors.length : keyErrors._errors.length;
+					return acc + count;
+				}, 0);
 
 	const isSlotInUse = useCallback(
 		(slot: string | undefined) => {
@@ -328,7 +331,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 								<Dropdown
 									label="Motor Slot"
 									options={motorSlotOptions}
-									error={props.errors.motorSlot?._errors.join('\n')}
+									error={props.errors?.motorSlot?._errors.join('\n')}
 									onSelect={(ms) => {
 										setMotorSlot(ms.id);
 									}}

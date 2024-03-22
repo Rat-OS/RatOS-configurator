@@ -1,5 +1,6 @@
 import { csv, array } from '@tensorflow/tfjs-data';
 import { Tensor1D, mean, slice1d, split, sub, tensor1d, tensor2d, unstack } from '@tensorflow/tfjs-core';
+import '@tensorflow/tfjs-backend-webgl';
 import {
 	EWatermarkPosition,
 	EllipsePointMarker,

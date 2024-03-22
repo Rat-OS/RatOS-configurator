@@ -26,6 +26,7 @@ import { ServerCache } from '@/server/helpers/cache';
 import { PrinterAxis } from '@/zods/motion';
 import { parseBoardPinConfig } from '@/server/helpers/metadata';
 import { getLastPrinterSettings } from '@/server/helpers/printer-settings';
+import { queryPrinterState } from '@/server/helpers/klipper';
 
 const inputSchema = z.object({
 	boardPath: z.string().optional(),
@@ -265,6 +266,13 @@ export const mcuRouter = router({
 				throw new TRPCError({
 					code: 'PRECONDITION_FAILED',
 					message: `Environment variable KLIPPER_DIR is missing`,
+				});
+			}
+			const printerState = await queryPrinterState();
+			if (!['error', 'complete', 'canceled', 'standby'].includes(printerState)) {
+				throw new TRPCError({
+					code: 'PRECONDITION_FAILED',
+					message: `Printer is busy, board cannot be queried at this time without interrupting operations. Klipper print state reported as "${printerState}".`,
 				});
 			}
 
