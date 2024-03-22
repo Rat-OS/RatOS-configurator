@@ -130,6 +130,10 @@ ${helper.renderUserStepperSections({
 			max: config.size.z,
 		},
 	},
+	z1: {
+		directionInverted: true,
+		rotationComment: '4 for TR8*4 lead screws',
+	},
 	extruder: {
 		directionInverted: true,
 		additionalLines: [
