@@ -105,7 +105,7 @@ ${helper.renderUserMacroVariableOverrides()}
 
 ${helper.renderUserStepperSections({
 	x: {
-		directionInverted: false,
+		directionInverted: true,
 		rotationComment: '40 for 20 tooth 2GT pulleys, 32 for 16 tooth 2GT pulleys',
 		limits: (margin) => ({
 			min: 0 - margin.min,
@@ -114,7 +114,7 @@ ${helper.renderUserStepperSections({
 		}),
 	},
 	y: {
-		directionInverted: false,
+		directionInverted: true,
 		rotationComment: '40 for 20 tooth 2GT pulleys, 32 for 16 tooth 2GT pulleys',
 		limits: (margin) => ({
 			min: 0 - margin.min,

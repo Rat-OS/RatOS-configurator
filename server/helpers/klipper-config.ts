@@ -494,6 +494,7 @@ export const constructKlipperConfigHelpers = async (
 				`dir_pin: ${utils.getRailPinValue(rail.axis, '_dir_pin')}`,
 				`enable_pin: !${utils.getRailPinValue(rail.axis, '_enable_pin')}`,
 				`microsteps: ${rail.microstepping}`,
+				`full_steps_per_rotation: ${rail.stepper.fullStepsPerRotation}`,
 			);
 			if (rail.axis === PrinterAxis.extruder || rail.axis === PrinterAxis.extruder1) {
 				const toolhead = utils.getToolhead(rail.axis);
