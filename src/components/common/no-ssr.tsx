@@ -2,7 +2,6 @@
 import { useIsClient } from '@/hooks/isClient';
 import dynamic from 'next/dynamic';
 import React from 'react';
-import { Spinner } from '@/components/common/spinner';
 import { FullLoadScreen } from '@/components/common/full-load-screen';
 export const NoSSR = (props: React.PropsWithChildren) => {
 	const isClient = useIsClient();

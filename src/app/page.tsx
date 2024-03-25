@@ -125,10 +125,10 @@ export default function Page() {
 								<div
 									className={twMerge(
 										'flex-none rounded-full bg-green-400/10 p-1 text-zinc-400',
-										klippyState.data?.klippy_state === 'error' && 'text-red-400',
-										klippyState.data?.klippy_state === 'startup' && 'text-amber-400',
-										klippyState.data?.klippy_state === 'ready' && 'text-green-400',
-										klippyState.data?.klippy_state === 'shutdown' && 'text-red-400',
+										klippyState.data?.klippy_state === 'error' && 'bg-red-400/10 text-red-400',
+										klippyState.data?.klippy_state === 'startup' && 'bg-amber-400/10 text-amber-400',
+										klippyState.data?.klippy_state === 'ready' && 'bg-green-400/10 text-green-400',
+										klippyState.data?.klippy_state === 'shutdown' && 'bg-red-400/10 text-red-400',
 									)}
 								>
 									<div className="h-2 w-2 rounded-full bg-current" />

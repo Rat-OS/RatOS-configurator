@@ -18,8 +18,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 	// Stupid hack to make this a dynamic component. Too much Next.js magic.
 	headers().get('x-configurator');
 	return (
-		<html className={twJoin('dark h-full', scrollClasses, inter.variable, inter.className)} suppressHydrationWarning>
-			<body className="h-full bg-zinc-100 antialiased dark:bg-[rgb(18,18,20)]">
+		<html
+			className={twJoin('dark h-full overflow-y-scroll', scrollClasses, inter.variable, inter.className)}
+			suppressHydrationWarning
+		>
+			<body className="h-full bg-zinc-100 antialiased dark:bg-zinc-900">
 				<Redirecter hasLastPrinterSettings={hasLastPrinterSettings()}>{children}</Redirecter>
 			</body>
 		</html>

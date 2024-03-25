@@ -239,7 +239,7 @@ devDependencies:
     specifier: ^3.4.2
     version: 3.4.2
   '@types/node':
-    specifier: 18.x.x
+    specifier: 18.19.4
     version: 18.19.4
   '@types/object-hash':
     specifier: ^3.0.6
@@ -275,7 +275,7 @@ devDependencies:
     specifier: ^4.6.0
     version: 4.6.0(eslint@8.56.0)
   eslint-plugin-unused-imports:
-    specifier: '3'
+    specifier: ^3.0.0
     version: 3.0.0(@typescript-eslint/eslint-plugin@7.0.2)(eslint@8.56.0)
   jest-environment-jsdom:
     specifier: ^29.5.0
@@ -3117,7 +3117,7 @@ packages:
       postcss: ^8.1.0
     dependencies:
       browserslist: 4.21.5
-      caniuse-lite: 1.0.30001534
+      caniuse-lite: 1.0.30001600
       fraction.js: 4.2.0
       normalize-range: 0.1.2
       picocolors: 1.0.0
@@ -3228,7 +3228,7 @@ packages:
     engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
     hasBin: true
     dependencies:
-      caniuse-lite: 1.0.30001534
+      caniuse-lite: 1.0.30001600
       electron-to-chromium: 1.4.284
       node-releases: 2.0.9
       update-browserslist-db: 1.0.10(browserslist@4.21.5)
@@ -3282,8 +3282,8 @@ packages:
     engines: {node: '>=6'}
     dev: true
 
-  /caniuse-lite@1.0.30001534:
-    resolution: {integrity: sha512-vlPVrhsCS7XaSh2VvWluIQEzVhefrUQcEsQWSS5A5V+dM07uv1qHeQzAOTGIMy9i3e9bH15+muvI/UHojVgS/Q==}
+  /caniuse-lite@1.0.30001600:
+    resolution: {integrity: sha512-+2S9/2JFhYmYaDpZvo0lKkfvuKIglrx68MwOBqMGHhQsNkLjB5xtc/TGoEPs+MxjSyN/72qer2g97nzR641mOQ==}
 
   /chai@4.3.10:
     resolution: {integrity: sha512-0UXG04VuVbruMUYbJ6JctvH0YnC/4q3/AkT18q4NaITo91CUm0liMS9VqzT9vZhVQ/1eqPanMWjBM+Juhfb/9g==}
@@ -5857,7 +5857,7 @@ packages:
       '@next/env': 13.5.6
       '@swc/helpers': 0.5.2
       busboy: 1.6.0
-      caniuse-lite: 1.0.30001534
+      caniuse-lite: 1.0.30001600
       postcss: 8.4.31
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)

@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useToolheads } from '@/hooks/useToolheadConfiguration';
 import { Card } from '@/components/common/card';
@@ -12,14 +12,6 @@ import {
 } from '@/app/analysis/charts';
 import { MicrophoneIcon } from '@heroicons/react/20/solid';
 import { useGcodeCommand } from '@/app/_hooks/toolhead';
-import {
-	Menubar,
-	MenubarContent,
-	MenubarItem,
-	MenubarMenu,
-	MenubarSeparator,
-	MenubarTrigger,
-} from '@/components/ui/menubar';
 import { twJoin } from 'tailwind-merge';
 import { DotFilledIcon, MixIcon } from '@radix-ui/react-icons';
 import { Spinner } from '@/components/common/spinner';
@@ -35,6 +27,8 @@ import {
 } from '@/app/analysis/hooks';
 import { MountainAnimation, SciChartSurface, easing } from 'scichart';
 import { detrendSignal } from '@/app/analysis/periodogram';
+import { useTopMenu } from '@/app/topmenu';
+import { FullLoadScreen } from '@/components/common/full-load-screen';
 
 SciChartSurface.configure({
 	wasmUrl: '/configure/scichart2d.wasm',
@@ -59,6 +53,14 @@ export const Analysis = () => {
 
 	const fifo = useADXLFifoTensor();
 	const timeSinceLastPsd = useRef<number>(new Date().getTime());
+
+	useEffect(() => {
+		if (isChartEnabled) {
+			// Reset time since last PSD calculation
+			timeSinceLastPsd.current = new Date().getTime();
+		}
+	}, [isChartEnabled]);
+
 	const psds = useAccumulatedPSD((res) => {
 		const surface = psdChart.surface.current;
 		if (surface == null) {
@@ -126,28 +128,31 @@ export const Analysis = () => {
 	const [isMacroRunning, setIsMacroRunning] = useState(false);
 	const G = useGcodeCommand();
 
-	const recordShaperGraph = async (axis: 'x' | 'y') => {
-		setIsChartEnabled(true);
-		await G`
-		MAYBE_HOME
-		M400
-		`;
-		await psds.startAccumulation();
-		setIsRecording(true);
-		await G`
-			GENERATE_RESONANCES AXIS=${axis.toUpperCase()}
-			M400
-		`;
-		const psd = await psds.stopAccumulation();
-		setIsRecording(false);
-		setIsChartEnabled(false);
-	};
+	const recordShaperGraph = useCallback(
+		async (axis: 'x' | 'y') => {
+			setIsChartEnabled(true);
+			await G`
+				MAYBE_HOME
+				M400
+			`;
+			await psds.startAccumulation();
+			setIsRecording(true);
+			await G`
+				GENERATE_RESONANCES AXIS=${axis.toUpperCase()}
+				M400
+			`;
+			const psd = await psds.stopAccumulation();
+			setIsRecording(false);
+			setIsChartEnabled(false);
+		},
+		[G, psds],
+	);
 
-	const recordBeltGraph = async () => {
+	const recordBeltGraph = useCallback(async () => {
 		setIsChartEnabled(true);
 		await G`
-		MAYBE_HOME
-		M400
+			MAYBE_HOME
+			M400
 		`;
 		await psds.startAccumulation();
 		setIsRecording(true);
@@ -165,85 +170,134 @@ export const Analysis = () => {
 		const lowerpsd = await psds.stopAccumulation();
 		setIsRecording(false);
 		setIsChartEnabled(false);
-	};
+	}, [G, psds]);
 
-	const runMacro =
+	const runMacro = useCallback(
 		<T extends (...args: Parameters<T>) => Promise<any>>(macro: T, ...args: Parameters<T>) =>
-		async () => {
-			setIsMacroRunning(true);
-			await macro(...args);
-			setIsMacroRunning(false);
-		};
+			async () => {
+				setIsMacroRunning(true);
+				await macro(...args);
+				setIsMacroRunning(false);
+			},
+		[],
+	);
 
-	const MacroIcon = isRecording ? (
-		<DotFilledIcon className="h-4 w-4 scale-150 text-red-400" />
-	) : isMacroRunning ? (
-		<Spinner noMargin={true} className="h-4 w-4" />
-	) : (
-		<MixIcon className="h-4 w-4" />
+	const MacroIcon = useMemo(
+		() =>
+			isRecording ? (
+				<DotFilledIcon className="h-4 w-4 scale-150 text-red-400" />
+			) : isMacroRunning ? (
+				<Spinner noMargin={true} className="h-4 w-4" />
+			) : (
+				<MixIcon className="h-4 w-4" />
+			),
+		[isMacroRunning, isRecording],
+	);
+
+	useTopMenu(
+		'analysis',
+		useCallback(
+			(Menu) => (
+				<>
+					<Menu.MenubarMenu>
+						<Menu.MenubarTrigger className="flex-nowrap space-x-2 whitespace-nowrap text-nowrap">
+							<MicrophoneIcon className={twJoin('h-4 w-4', isChartEnabled && 'text-brand-400')} /> <span>Stream</span>
+						</Menu.MenubarTrigger>
+						<Menu.MenubarContent onCloseAutoFocus={(e) => e.preventDefault()}>
+							<Menu.MenubarItem
+								disabled={isChartEnabled}
+								onClick={async () => {
+									setIsChartEnabled(true);
+								}}
+							>
+								Start
+							</Menu.MenubarItem>
+							<Menu.MenubarItem
+								disabled={!isChartEnabled}
+								onClick={async () => {
+									setIsChartEnabled(false);
+								}}
+							>
+								Stop
+							</Menu.MenubarItem>
+							<Menu.MenubarSeparator />
+							<Menu.MenubarItem disabled={!isRecording}>Stop recording</Menu.MenubarItem>
+						</Menu.MenubarContent>
+					</Menu.MenubarMenu>
+					<Menu.MenubarMenu>
+						<Menu.MenubarTrigger className="flex-nowrap space-x-2 whitespace-nowrap text-nowrap">
+							{MacroIcon} <span>Macros</span>
+						</Menu.MenubarTrigger>
+						<Menu.MenubarContent onCloseAutoFocus={(e) => e.preventDefault()}>
+							<Menu.MenubarItem disabled={isRecording} onSelect={runMacro(recordBeltGraph)}>
+								CoreXY Belt Tension
+							</Menu.MenubarItem>
+							<Menu.MenubarItem disabled={isRecording} onSelect={runMacro(recordShaperGraph, 'x')}>
+								X Shaper Graph
+							</Menu.MenubarItem>
+							<Menu.MenubarItem disabled={isRecording} onSelect={runMacro(recordShaperGraph, 'y')}>
+								Y Shaper Graph
+							</Menu.MenubarItem>
+							<Menu.MenubarSeparator />
+							<Menu.MenubarItem disabled={!isRecording}>Abort</Menu.MenubarItem>
+						</Menu.MenubarContent>
+					</Menu.MenubarMenu>
+				</>
+			),
+			[MacroIcon, isChartEnabled, isRecording, recordBeltGraph, recordShaperGraph, runMacro],
+		),
 	);
 
 	return (
-		<div className="flex max-h-full min-h-full flex-col space-y-4">
+		<div className="flex max-h-full min-h-full flex-col space-y-4 @container">
 			{/* <Toolbar buttons={toolbarButtons} /> */}
-			<Menubar>
-				<MenubarMenu>
-					<MenubarTrigger className="flex-nowrap space-x-2 whitespace-nowrap text-nowrap">
-						<MicrophoneIcon className={twJoin('h-4 w-4', isChartEnabled && 'text-brand-400')} /> <span>Stream</span>
-					</MenubarTrigger>
-					<MenubarContent onCloseAutoFocus={(e) => e.preventDefault()}>
-						<MenubarItem
-							disabled={isChartEnabled}
-							onClick={async () => {
-								setIsChartEnabled(true);
-							}}
-						>
-							Start
-						</MenubarItem>
-						<MenubarItem
-							disabled={!isChartEnabled}
-							onClick={async () => {
-								setIsChartEnabled(false);
-							}}
-						>
-							Stop
-						</MenubarItem>
-						<MenubarSeparator />
-						<MenubarItem disabled={!isRecording}>Stop recording</MenubarItem>
-					</MenubarContent>
-				</MenubarMenu>
-				<MenubarMenu>
-					<MenubarTrigger className="flex-nowrap space-x-2 whitespace-nowrap text-nowrap">
-						{MacroIcon} <span>Macros</span>
-					</MenubarTrigger>
-					<MenubarContent onCloseAutoFocus={(e) => e.preventDefault()}>
-						<MenubarItem disabled={isRecording} onSelect={runMacro(recordBeltGraph)}>
-							CoreXY Belt Tension
-						</MenubarItem>
-						<MenubarItem disabled={isRecording} onSelect={runMacro(recordShaperGraph, 'x')}>
-							X Shaper Graph
-						</MenubarItem>
-						<MenubarItem disabled={isRecording} onSelect={runMacro(recordShaperGraph, 'y')}>
-							Y Shaper Graph
-						</MenubarItem>
-						<MenubarSeparator />
-						<MenubarItem disabled={!isRecording}>Abort</MenubarItem>
-					</MenubarContent>
-				</MenubarMenu>
-			</Menubar>
-			<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-				<Card className="flex max-h-32 overflow-hidden sm:max-h-72 sm:min-h-72">
-					<SciChartReact {...xSignalChart.forwardProps} className="flex-1 rounded-lg" />
+			<div className="grid grid-cols-1 gap-4 @screen-lg:grid-cols-3">
+				<Card className="flex max-h-32 min-h-32 overflow-hidden @screen-lg:max-h-72 @screen-lg:min-h-72">
+					<h3 className="text-md absolute left-0 right-0 top-0 flex items-center space-x-2 p-4 font-semibold">
+						<div className={twJoin('flex-none rounded-full bg-yellow-400/10 p-1 text-yellow-400')}>
+							<div className="h-2 w-2 rounded-full bg-current" />
+						</div>
+						<span className="text-zinc-100">X Signal</span>
+					</h3>
+					<SciChartReact
+						{...xSignalChart.forwardProps}
+						className="flex-1 rounded-lg"
+						fallback={<FullLoadScreen className="ml-[150px] bg-zinc-900" />}
+					/>
 				</Card>
-				<Card className="flex max-h-32 overflow-hidden sm:max-h-72 sm:min-h-72">
-					<SciChartReact {...ySignalChart.forwardProps} className="flex-1 rounded-lg" />
+				<Card className="flex max-h-32 min-h-32 overflow-hidden @screen-lg:max-h-72 @screen-lg:min-h-72">
+					<h3 className="text-md absolute left-0 right-0 top-0 flex items-center space-x-2 p-4 font-semibold">
+						<div className={twJoin('flex-none rounded-full bg-sky-400/10 p-1 text-sky-400')}>
+							<div className="h-2 w-2 rounded-full bg-current" />
+						</div>
+						<span className="text-zinc-100">Y Signal</span>
+					</h3>
+					<SciChartReact
+						{...ySignalChart.forwardProps}
+						className="flex-1 rounded-lg"
+						fallback={<FullLoadScreen className="ml-[150px] bg-zinc-900" />}
+					/>
 				</Card>
-				<Card className="flex max-h-32 overflow-hidden sm:max-h-72 sm:min-h-72">
-					<SciChartReact {...zSignalChart.forwardProps} className="flex-1 rounded-lg" />
+				<Card className="flex max-h-32 min-h-32 overflow-hidden @screen-lg:max-h-72 @screen-lg:min-h-72">
+					<h3 className="text-md absolute left-0 right-0 top-0 flex items-center space-x-2 p-4 font-semibold">
+						<div className={twJoin('flex-none rounded-full bg-rose-400/10 p-1 text-rose-400')}>
+							<div className="h-2 w-2 rounded-full bg-current" />
+						</div>
+						<span className="text-zinc-100">Z Signal</span>
+					</h3>
+					<SciChartReact
+						{...zSignalChart.forwardProps}
+						className="flex-1 rounded-lg"
+						fallback={<FullLoadScreen className="ml-[150px] bg-zinc-900" />}
+					/>
 				</Card>
 			</div>
 			<Card className="flex flex-1 overflow-hidden">
-				<SciChartReact {...psdChart.forwardProps} className="flex-1" />
+				<SciChartReact
+					{...psdChart.forwardProps}
+					className="flex-1"
+					fallback={<FullLoadScreen className="ml-[150px] bg-zinc-900" />}
+				/>
 			</Card>
 		</div>
 	);

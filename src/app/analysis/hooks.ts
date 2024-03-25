@@ -40,6 +40,7 @@ import {
 	KlipperADXL345SubscriptionData,
 	ToolheadHelperClass,
 	KlipperADXL345SubscriptionResponse,
+	ADXL345SensorName,
 } from '@/app/analysis/types';
 import { ADXL_STREAM_BUFFER_SIZE } from '@/app/analysis/charts';
 import { TChartComponentProps } from 'scichart-react/types';
@@ -61,7 +62,7 @@ let REQ_ID = 0;
 export interface RealtimeADXLOptions {
 	onDataUpdate?: (status: KlipperADXL345SubscriptionData) => void;
 	enabled?: boolean;
-	sensor: ReturnType<ToolheadHelperClass['getXAccelerometerName'] & ToolheadHelperClass['getYAccelerometerName']>;
+	sensor: ADXL345SensorName;
 }
 
 export const useRealtimeADXL = (options: RealtimeADXLOptions) => {
@@ -82,7 +83,7 @@ export const useRealtimeADXL = (options: RealtimeADXLOptions) => {
 				return true;
 			},
 			onMessage: (message) => {
-				if (options?.onDataUpdate && isSubscribed) {
+				if (options?.onDataUpdate && isSubscribedRef.current) {
 					try {
 						const parsed = JSON.parse(message.data) as MoonrakerResponse;
 						if (parsed.params != null && 'data' in parsed.params) {
@@ -155,6 +156,20 @@ export const useRealtimeADXL = (options: RealtimeADXLOptions) => {
 			delete inFlightRequests.current[lastJsonMessage.id];
 		}
 	}, [lastJsonMessage]);
+
+	useEffect(() => {
+		// cleanup
+		return () => {
+			isSubscribedRef.current = false;
+			for (const reqId in inFlightRequestTimeouts.current) {
+				// eslint-disable-next-line react-hooks/exhaustive-deps
+				delete inFlightRequestTimeouts.current[reqId];
+				// eslint-disable-next-line react-hooks/exhaustive-deps
+				delete inFlightRequests.current[reqId];
+			}
+		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
 	return {
 		isSubscribed,
@@ -251,6 +266,12 @@ export const useADXLFifoTensor = (fifoCapacity: number = 8192) => {
 		},
 		[fifoCapacity, take],
 	);
+	useEffect(() => {
+		return () => {
+			buffer.current?.dispose();
+			buffer.current = null;
+		};
+	}, []);
 	return {
 		onData: onData,
 		take: take,
@@ -264,71 +285,12 @@ export const isXySeries = (series: any): series is XyDataSeries => {
 	return series.type === EDataSeriesType.Xy;
 };
 
-export const appendRangeToDS = async (
-	x: number[],
-	y: number[],
-	surface: SciChartSurface | null,
-	dsId: string,
-	clear: boolean = false,
-	animate?: (ds: XyDataSeries) => SeriesAnimation,
-) => {
-	if (surface == null) {
-		console.log('no surface');
-		return null;
-	}
-	const series =
-		surface.renderableSeries.getById(dsId) ??
-		surface.renderableSeries.asArray().find((s) => {
-			if (s.type == ESeriesType.StackedMountainCollection) {
-				return (
-					(s as StackedMountainCollection).asArray().find((s) => {
-						return s.dataSeries.id === dsId || s.id === dsId;
-					}) != null
-				);
-			}
-			return s.dataSeries.id === dsId;
-		});
-	if (series == null) {
-		throw new Error(`Series "${dsId}" doesn't exist`);
-	}
-	if (series.type == ESeriesType.StackedMountainCollection) {
-		const stacked = series as StackedMountainCollection;
-		const ds = stacked.asArray().find((s) => s.dataSeries.id === dsId || s.id === dsId);
-		if (ds == null) {
-			throw new Error(`DataSeries "${dsId}" doesn't exist`);
-		}
-		if (!isXySeries(ds.dataSeries)) {
-			throw new Error(`DataSeries on "${dsId}" is not of type Xy`);
-		}
-		if (clear) {
-			ds.dataSeries.clear();
-		}
-		ds.dataSeries.appendRange(x, y);
-		if (animate) {
-			console.log('Queing animation');
-			stacked.enqueueAnimation(animate(ds.dataSeries));
-		}
-		return;
-	}
-	const ds = series.dataSeries;
-	if (!isXySeries(ds)) {
-		throw new Error(`DataSeries on "${dsId}" is not of type Xy`);
-	}
-	if (clear) {
-		ds.clear();
-	}
-	ds.appendRange(x, y);
-	if (animate) {
-		series.runAnimation(animate(ds));
-	}
-};
-
 export const useBufferedADXLSignal = (
 	fifoTensor: ReturnType<typeof useADXLFifoTensor>,
 	/**
 	 * NOTE: Make absolutely sure to dispose of the tensors passed to this function
 	 */
-	updateFn: (time: Tensor1D, x: Tensor1D, y: Tensor1D, z: Tensor1D) => void,
+	updateFn: null | ((time: Tensor1D, x: Tensor1D, y: Tensor1D, z: Tensor1D) => void),
 ) => {
 	const lastUpdate = useRef<number>(new Date().getTime());
 	const update = useRef(updateFn);
@@ -347,7 +309,7 @@ export const useBufferedADXLSignal = (
 			return;
 		}
 		const [time, x, y, z] = split<Tensor2D>(data, 4, 1);
-		update.current(
+		update.current?.(
 			reshape(time, [time.shape[0]]),
 			reshape(x, [x.shape[0]]),
 			reshape(y, [y.shape[0]]),
@@ -364,7 +326,7 @@ export const useBufferedADXLSignal = (
 
 export const useBufferedPSD = (
 	sampleRate: MutableRefObject<number>,
-	updateFn: (x: PSD, y: PSD, z: PSD, total: PSD) => void,
+	updateFn: null | ((x: PSD, y: PSD, z: PSD, total: PSD) => void),
 ) => {
 	const xref = useRef<Tensor1D>(tensor1d([]));
 	const yref = useRef<Tensor1D>(tensor1d([]));
@@ -409,7 +371,7 @@ export const useBufferedPSD = (
 				yData.dispose();
 				zData.dispose();
 				totalData.dispose();
-				update.current(xpsd, ypsd, zpsd, totalpsd);
+				update.current?.(xpsd, ypsd, zpsd, totalpsd);
 			}
 		},
 		[sampleRate],

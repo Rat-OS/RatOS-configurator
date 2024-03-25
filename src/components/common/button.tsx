@@ -22,7 +22,7 @@ const buttonStyle = cva(
 				success:
 					'text-green-100 bg-green-500 hover:bg-green-600 border-transparent focus:ring-offset-2 focus:ring-green-600 dark:focus:ring-offset-zinc-900',
 				indeterminate:
-					'border-zinc-300 bg-zinc-100 hover:bg-zinc-200 text-black dark:text-zinc-300 dark:bg-zinc-900 dark:border-zinc-700 dark:hover:bg-zinc-800 dark:hover:border-zinc-600 focus:ring-offset-2 focus:ring-green-600 dark:focus:ring-offset-zinc-900',
+					'border-zinc-300 bg-zinc-100 hover:bg-zinc-200 text-black dark:text-zinc-300 dark:bg-zinc-800 dark:border-zinc-600 dark:hover:bg-zinc-700 dark:hover:text-zinc-100 dark:hover:border-zinc-500 focus:ring-offset-2 focus:ring-green-600 dark:focus:ring-offset-zinc-900',
 				plain:
 					'border-transparent shadow-none bg-transparent text-zinc-700 dark:text-zinc-300 hover:underline hover:text-zinc-800 dark:hover:text-zinc-200 focus:ring-offset-2 focus:ring-zinc-900 dark:focus:ring-offset-zinc-100',
 			},
@@ -69,8 +69,10 @@ export type Intents = NonNullable<Required<VariantProps<typeof buttonStyle>>['in
 interface ButtonProps extends React.PropsWithChildren<VariantProps<typeof buttonStyle>> {
 	onClick?: () => void;
 	className?: string;
+	target?: string;
 	href?: Route;
 	title?: string;
+	rel?: string;
 	dropdownItems?: {
 		onClick: () => void;
 		title: string;
@@ -81,7 +83,14 @@ export const Button: React.FC<ButtonProps> = (props) => {
 	const buttonClasses = twMerge(buttonStyle({ intent: props.intent, disabled: props.disabled }), props.className);
 	if (props.href) {
 		return (
-			<Link href={props.href} className={buttonClasses} onClick={props.onClick} title={props.title}>
+			<Link
+				href={props.href}
+				className={buttonClasses}
+				target={props.target}
+				onClick={props.onClick}
+				title={props.title}
+				rel={props.rel}
+			>
 				{props.children}
 			</Link>
 		);
