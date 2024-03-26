@@ -8,13 +8,10 @@ import { useKlippyStateHandler } from '@/hooks/useKlippyStateHandler';
 import {
 	AxisBase2D,
 	EDataSeriesType,
-	ESeriesType,
 	EWatermarkPosition,
 	ISciChart2DDefinition,
 	NumberRange,
 	SciChartSurface,
-	SeriesAnimation,
-	StackedMountainCollection,
 	TSciChart,
 	Thickness,
 	XyDataSeries,
@@ -35,16 +32,18 @@ import {
 	tidy,
 } from '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-backend-webgl';
-import { PSD, powerSpectralDensity, sumPSDs, welch } from '@/app/analysis/periodogram';
-import {
-	KlipperADXL345SubscriptionData,
-	ToolheadHelperClass,
-	KlipperADXL345SubscriptionResponse,
-	ADXL345SensorName,
-} from '@/app/analysis/types';
+import { powerSpectralDensity, sumPSDs, welch } from '@/app/analysis/periodogram';
 import { ADXL_STREAM_BUFFER_SIZE } from '@/app/analysis/charts';
 import { TChartComponentProps } from 'scichart-react/types';
 import { ChartTheme } from '@/app/analysis/chart-theme';
+import {
+	ADXL345SensorName,
+	AccumulatedPSD,
+	KlipperADXL345SubscriptionData,
+	PSD,
+	klipperADXL345SubscriptionDataSchema,
+	klipperADXL345SubscriptionResponseSchema,
+} from '@/zods/analysis';
 
 const getWsURL = () => {
 	const host = getHost();
@@ -87,7 +86,7 @@ export const useRealtimeADXL = (options: RealtimeADXLOptions) => {
 					try {
 						const parsed = JSON.parse(message.data) as MoonrakerResponse;
 						if (parsed.params != null && 'data' in parsed.params) {
-							const res = parsed.params as KlipperADXL345SubscriptionData;
+							const res = klipperADXL345SubscriptionDataSchema.parse(parsed.params);
 							options.onDataUpdate?.(res);
 						}
 					} catch (e) {
@@ -135,7 +134,7 @@ export const useRealtimeADXL = (options: RealtimeADXLOptions) => {
 		if (readyState === 1 && kippyState === 'ready' && !isSubscribedRef.current) {
 			subscribe()
 				.then((res) => {
-					const result = res as KlipperADXL345SubscriptionResponse;
+					const result = klipperADXL345SubscriptionResponseSchema.parse(res);
 					getLogger().info('Subscribed to ADXL345', result);
 					setIsSubscribed(true);
 				})
@@ -377,14 +376,6 @@ export const useBufferedPSD = (
 		[sampleRate],
 	);
 	return onData;
-};
-
-type AccumulatedPSD = {
-	x: PSD;
-	y: PSD;
-	z: PSD;
-	total: PSD;
-	source: { x: PSD[]; y: PSD[]; z: PSD[]; total: PSD[] };
 };
 
 export const useAccumulatedPSD = (updateFn?: (result: AccumulatedPSD) => void) => {

@@ -17,9 +17,7 @@ import {
 } from '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-backend-webgl';
 import { NumberRange } from 'scichart';
-import { f } from 'vitest/dist/reporters-rzC174PQ';
-
-export type PSD = { frequencies: number[]; estimates: number[]; powerRange: NumberRange };
+import { PSD } from '@/zods/analysis';
 
 /**
  * Returns the ceil of the log2 of the absolute value of the passed number
