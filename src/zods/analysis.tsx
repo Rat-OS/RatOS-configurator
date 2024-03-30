@@ -58,33 +58,59 @@ export const macroSequenceIDSchema = z.string().brand('MacroSequenceID');
 
 export const macroRecordingIdSchema = z.string().brand('MacroRecordingID');
 
-export const macroRecordingSettingsSchema = z.object({
-	capturePSD: z.boolean(),
-	accelerometer: aDXL345SensorNameSchema,
-});
+export const macroRecordingRunIdSchema = z.string().brand('MacroRecordingRunID');
+
+export const macroRecordingSettingsSchema = z
+	.object({
+		capturePSD: z.boolean().default(false),
+		accelerometer: aDXL345SensorNameSchema.optional(),
+		color: z.string().optional(),
+	})
+	.superRefine((val, ctx) => {
+		if (val.capturePSD && val.accelerometer == null) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				message: 'Required when recording resonance data',
+				path: ['accelerometer'],
+			});
+		}
+		return val;
+	});
 
 export const macroRecordingSchema = z.object({
-	macroRecordingId: macroRecordingIdSchema,
+	id: macroRecordingIdSchema,
+	macroRecordingRunId: macroRecordingRunIdSchema,
 	macroId: macroIDSchema,
 	sequenceId: macroSequenceIDSchema,
-	startTime: z.number(),
-	endTime: z.number(),
+	startTimeStamp: z.number(),
+	endTimeStamp: z.number(),
+	accelerometer: aDXL345SensorNameSchema,
+	recordingHardwareName: z.string(),
 	psd: accumulatedPSDSchema,
-	name: z.string().optional(),
+	name: z.string(),
 });
 
 export const macroSequenceSchema = z.object({
 	id: macroSequenceIDSchema,
 	name: z.string(),
 	recording: macroRecordingSettingsSchema.nullable(),
-	gcode: z.string(),
+	gcode: z.string().min(2),
 });
 
 export const macroSchema = z.object({
 	id: macroIDSchema,
 	name: z.string(),
 	description: z.string(),
+	createdAtTimeStamp: z.number(),
+	updatedAtTimeStamp: z.number().nullable(),
+	recordingCount: z.record(macroSequenceIDSchema, z.number()),
 	sequences: z.array(macroSequenceSchema),
+});
+
+export const createMacroSchema = macroSchema.omit({
+	recordingCount: true,
+	createdAtTimeStamp: true,
+	updatedAtTimeStamp: true,
 });
 
 // inferred types:

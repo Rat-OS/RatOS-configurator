@@ -8,3 +8,12 @@ type TWShade<T extends keyof typeof fullConfig.theme.colors> = {
 }[T];
 export type TWShadeableColorName = TWShade<keyof typeof fullConfig.theme.colors>;
 export const twColors = fullConfig.theme.colors;
+export const isShadableColor = (color: string): color is TWShadeableColorName => {
+	const twColor = twColors[color as keyof typeof twColors];
+	return twColor != null && typeof twColor !== 'string' && !('DEFAULT' in twColor);
+};
+export const shadableTWColors = Object.fromEntries(
+	Object.keys(twColors)
+		.filter(isShadableColor)
+		.map((c) => [c, twColors[c]]),
+) as { [color in TWShadeableColorName]: (typeof twColors)[TWShadeableColorName] };

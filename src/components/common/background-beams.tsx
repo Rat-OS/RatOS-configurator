@@ -110,10 +110,10 @@ export const BackgroundBeams = React.memo(({ className }: { className?: string }
 								delay: Math.random() * 10,
 							}}
 						>
-							<stop stopColor="rgb(var(--brand-400))" stopOpacity="0"></stop>
-							<stop stopColor="rgb(var(--brand-400))"></stop>
-							<stop offset="32.5%" stopColor="rgb(var(--amber-400))"></stop>
-							<stop offset="100%" stopColor="rgb(var(--yellow-200))" stopOpacity="0"></stop>
+							<stop stopColor="hsl(var(--brand-400))" stopOpacity="0"></stop>
+							<stop stopColor="hsl(var(--brand-400))"></stop>
+							<stop offset="32.5%" stopColor="hsl(var(--amber-400))"></stop>
+							<stop offset="100%" stopColor="hsl(var(--yellow-200))" stopOpacity="0"></stop>
 						</motion.linearGradient>
 					))}
 
@@ -125,9 +125,9 @@ export const BackgroundBeams = React.memo(({ className }: { className?: string }
 						gradientUnits="userSpaceOnUse"
 						gradientTransform="translate(352 34) rotate(90) scale(555 1560.62)"
 					>
-						<stop offset="0.0666667" stopColor="rgb(var(--brand-400))"></stop>
-						<stop offset="0.243243" stopColor="rgb(var(--brand-400))"></stop>
-						<stop offset="0.43594" stopColor="rgb(var(--brand-400))" stopOpacity="0"></stop>
+						<stop offset="0.0666667" stopColor="hsl(var(--brand-400))"></stop>
+						<stop offset="0.243243" stopColor="hsl(var(--brand-400))"></stop>
+						<stop offset="0.43594" stopColor="hsl(var(--brand-400))" stopOpacity="0"></stop>
 					</radialGradient>
 				</defs>
 			</svg>

@@ -199,10 +199,10 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 												The current configuration assumes the X endstop is connected to your controlboard, do you want
 												to use an endstop connected to the toolboard instead?
 												<div className="mt-4 flex justify-end space-x-2">
-													<Button onClick={setToolboardEndstop} intent="warning">
+													<Button onClick={setToolboardEndstop} variant="warning">
 														Yes, use the toolboard connection
 													</Button>
-													<Button onClick={() => setIgnoreEndstopWarning(true)} intent="plain">
+													<Button onClick={() => setIgnoreEndstopWarning(true)} variant="plain">
 														No, use the controlboard connection
 													</Button>
 												</div>

@@ -96,7 +96,7 @@ export const TopMenu: React.FC<TopMenuProps> = ({ sidebarOpen, setSidebarOpen, m
 				'fixed inset-0 z-50 flex h-14 items-center justify-between gap-12 transition lg:left-72 lg:z-30',
 				'border-b border-zinc-900/10 backdrop-blur-sm dark:border-white/10 dark:backdrop-blur lg:left-72',
 				!sidebarOpen && 'backdrop-blur-sm dark:backdrop-blur lg:left-72',
-				sidebarOpen ? 'bg-zinc-900' : 'bg-zinc-900/80 dark:bg-zinc-900/50',
+				sidebarOpen ? 'bg-background' : 'bg-background/80 dark:bg-background/50',
 			)}
 		>
 			<div className="mx-auto flex-1">
@@ -129,7 +129,7 @@ export const TopMenu: React.FC<TopMenuProps> = ({ sidebarOpen, setSidebarOpen, m
 					<div className="hidden items-center justify-between space-x-2 lg:flex">
 						<Button
 							href="https://os.ratrig.com/docs/introduction"
-							intent="indeterminate"
+							variant="indeterminate"
 							target="_blank"
 							rel="noreferrer"
 						>
@@ -138,7 +138,7 @@ export const TopMenu: React.FC<TopMenuProps> = ({ sidebarOpen, setSidebarOpen, m
 						</Button>
 						<Button
 							href="https://github.com/sponsors/miklschmidt"
-							intent="indeterminate"
+							variant="indeterminate"
 							target="_blank"
 							rel="noreferrer"
 						>

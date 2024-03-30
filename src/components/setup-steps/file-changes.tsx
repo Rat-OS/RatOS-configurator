@@ -178,7 +178,7 @@ const ChangedFile: React.FC<ChangedFileProps> = (props) => {
 									a.action(file.fileName);
 									setIsDiffModalOpen(false);
 								}}
-								intent={a.intent}
+								variant={a.intent}
 								key={a.title}
 							>
 								{a.title}
@@ -241,7 +241,7 @@ const ChangedFile: React.FC<ChangedFileProps> = (props) => {
 			<div className="flex flex-none items-center gap-x-4">
 				<div className="flex flex-none items-center">
 					{needsExplicitAction ? (
-						<Button intent="info" onClick={() => showDiffModal(file)}>
+						<Button variant="info" onClick={() => showDiffModal(file)}>
 							Review changes
 						</Button>
 					) : (

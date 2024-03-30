@@ -27,7 +27,7 @@ export const StepNavButtons: React.FC<StepNavButtonsProps> = (props) => {
 	const left = props.left.onClick ? (
 		<div className="flex flex-1 justify-start">
 			<Button
-				intent="indeterminate"
+				variant="indeterminate"
 				disabled={props.left.disabled}
 				onClick={!props.left.isLoading ? props.left.onClick : undefined}
 				title={props.left.title}
@@ -49,7 +49,7 @@ export const StepNavButtons: React.FC<StepNavButtonsProps> = (props) => {
 		<div className="flex flex-1 justify-end space-x-4">
 			{props.skip && (
 				<Button
-					intent="indeterminate"
+					variant="indeterminate"
 					onClick={props.skip.onClick}
 					disabled={props.skip.disabled}
 					title={props.skip.title}
@@ -59,7 +59,7 @@ export const StepNavButtons: React.FC<StepNavButtonsProps> = (props) => {
 				</Button>
 			)}
 			<Button
-				intent="primary"
+				variant="primary"
 				disabled={props.right.disabled}
 				onClick={!props.right.isLoading ? props.right.onClick : undefined}
 				title={props.right.title}

@@ -162,7 +162,7 @@ export const DiffModal: React.FC<ModalProps> = (props) => {
 							</div>
 							<div className="flex-end flex flex-row items-center justify-end space-x-2 border-t border-zinc-200 px-4 pt-4 dark:border-zinc-700 sm:px-6 sm:pt-6">
 								{props.buttons ?? null}
-								<Button intent="plain" onClick={close}>
+								<Button variant="plain" onClick={close}>
 									Close
 								</Button>
 							</div>

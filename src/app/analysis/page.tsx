@@ -2,8 +2,6 @@
 import React from 'react';
 import { Analysis } from '@/app/analysis/analysis';
 import { Spinner } from '@/components/common/spinner';
-import { useIsClient } from '@/hooks/isClient';
-import { BeltTension } from '@/app/analysis/belt-tension';
 import { NoSSR } from '@/components/common/no-ssr';
 import { FullLoadScreen } from '@/components/common/full-load-screen';
 

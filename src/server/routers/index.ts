@@ -14,6 +14,7 @@ import { ServerCache } from '@/server/helpers/cache';
 import { z } from 'zod';
 import { getLogger } from '@/server/helpers/logger';
 import { PinoLogEvent } from '@/zods/util';
+import { analysisRouter } from '@/server/routers/analysis';
 
 export const appRouter = router({
 	clientLog: publicProcedure
@@ -82,6 +83,7 @@ export const appRouter = router({
 	wifi: wifiRouter,
 	'klippy-extensions': klippyExtensionsRouter,
 	'moonraker-extensions': moonrakerExtensionsRouter,
+	analysis: analysisRouter,
 });
 
 // export type definition of API

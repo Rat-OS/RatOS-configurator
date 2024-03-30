@@ -1,120 +1,102 @@
 import { serverSchema } from '@/env/schema.mjs';
 import { publicProcedure, router } from '@/server/trpc';
 import {
-	Macro,
-	MacroRecording,
 	macroIDSchema,
 	macroRecordingIdSchema,
 	macroRecordingSchema,
 	macroSchema,
 	macroSequenceIDSchema,
 } from '@/zods/analysis';
-import { createReadStream, createWriteStream } from 'fs';
-import ndjson from 'ndjson';
 import path from 'path';
 import { z } from 'zod';
+import { initObjectStorage } from '@/server/helpers/ndjson';
+import { getLogger } from '@/server/helpers/logger';
+
+const environment = serverSchema.parse(process.env);
+const dataDir = path.join(environment.RATOS_DATA_DIR, 'analysis');
+const recordingsDataDir = path.join(environment.RATOS_DATA_DIR, 'analysis', 'recordings');
+const macroStorage = initObjectStorage(path.join(dataDir, 'macros.ndjson'), macroSchema);
 
 export const analysisRouter = router({
-	saveMacro: publicProcedure.input(macroSchema).mutation(async ({ input }) => {
-		const environment = serverSchema.parse(process.env);
-		const writeStream = createWriteStream(path.join(environment.RATOS_DATA_DIR, 'anlysis', 'macros.ndjson'), {
-			flags: 'a+',
-			encoding: 'utf-8',
-		});
-		var serialize = ndjson.stringify();
-		serialize.pipe(writeStream);
-		serialize.write(input);
-		serialize.end();
+	createMacro: publicProcedure
+		.input(macroSchema.omit({ recordingCount: true, createdAtTimeStamp: true, updatedAtTimeStamp: true }))
+		.mutation(async ({ input }) => {
+			await macroStorage.upsert({
+				...input,
+				recordingCount: {}, // recordingCount is always initialized as an empty object
+				createdAtTimeStamp: Date.now(),
+				updatedAtTimeStamp: null,
+			});
 
+			return {
+				result: 'success',
+			};
+		}),
+	deleteMacro: publicProcedure.input(macroIDSchema).mutation(async ({ input }) => {
+		const macro = await macroStorage.findById(input);
+		if (macro == null) {
+			throw new Error(`Can't delete macro: macro with id ${input} not found`);
+		}
+		const file = path.join(recordingsDataDir, `${input}.ndjson`);
+		const recordingStorage = initObjectStorage(file, macroRecordingSchema);
+		await recordingStorage.destroyStorage();
+		getLogger().info(`Deleted recordings for macro "${macro.name}" (${macro.id})`);
+		await macroStorage.remove(input);
+		getLogger().info(`Deleted macro "${macro.name}" (${macro.id})`);
 		return {
 			result: 'success',
 		};
 	}),
 	getMacros: publicProcedure
 		.input(z.object({ cursor: z.number().default(0), limit: z.number().default(50) }))
-		.output(z.object({ macros: z.array(macroSchema), cursor: z.number().default(0), hasNextPage: z.boolean() }))
-		.mutation(async ({ input }) => {
-			const environment = serverSchema.parse(process.env);
-			const file = path.join(environment.RATOS_DATA_DIR, 'anlysis', 'macros.ndjson');
-			const stream = createReadStream(file, { encoding: 'utf-8', start: input.cursor });
-			const availableBytes = stream.readableLength;
-
-			const macros: Macro[] = [];
-
-			stream.pipe(ndjson.parse()).on('data', function (obj) {
-				macros.push(macroSchema.parse(obj));
-				if (macros.length >= input.limit) {
-					stream.destroy();
-				}
-			});
-			return {
-				macros,
-				cursor: stream.bytesRead,
-				hasNextPage: stream.bytesRead < availableBytes,
-			};
+		.query(async ({ input }) => {
+			return await macroStorage.getAll(input.cursor, input.limit);
 		}),
 	saveRecording: publicProcedure.input(z.object({ recording: macroRecordingSchema })).mutation(async ({ input }) => {
-		const environment = serverSchema.parse(process.env);
-		const writeStream = createWriteStream(
-			path.join(environment.RATOS_DATA_DIR, 'analysis', 'recordings', `${input.recording.macroId}.ndjson`),
+		const macro = await macroStorage.findById(input.recording.macroId);
+		if (macro == null) {
+			throw new Error(`Can't save recording: macro with id ${input.recording.macroId} not found`);
+		}
+		if (!macro.sequences.some((s) => s.id === input.recording.sequenceId)) {
+			throw new Error(
+				`Can't save recording: sequence with id ${input.recording.sequenceId} not found in "${macro.name}" macro`,
+			);
+		}
+		const file = path.join(recordingsDataDir, `${input.recording.macroId}.ndjson`);
+		const recordingStorage = initObjectStorage(file, macroRecordingSchema);
+		const recording = await recordingStorage.upsert(input.recording);
+		await macroStorage.update(
 			{
-				flags: 'a+',
-				encoding: 'utf-8',
+				recordingCount: { [input.recording.sequenceId]: (macro.recordingCount[input.recording.sequenceId] ?? 0) + 1 },
+				updatedAtTimeStamp: Date.now(),
 			},
+			input.recording.macroId,
 		);
-		var serialize = ndjson.stringify();
-		serialize.pipe(writeStream);
-		serialize.write(input);
-		serialize.end();
+		return recording;
 	}),
 	getRecordings: publicProcedure
 		.input(
 			z.object({
-				macroId: macroIDSchema.optional(),
+				macroId: macroIDSchema,
 				sequenceId: macroSequenceIDSchema.optional(),
 				limit: z.number().default(50),
 				cursor: z.number().default(0),
 			}),
 		)
 		.output(
-			z.object({ recordings: z.array(macroRecordingSchema), cursor: z.number().default(0), hasNextPage: z.boolean() }),
+			z.object({ result: z.array(macroRecordingSchema), cursor: z.number().default(0), hasNextPage: z.boolean() }),
 		)
-		.mutation(async ({ input }) => {
-			const environment = serverSchema.parse(process.env);
-			const file = path.join(environment.RATOS_DATA_DIR, 'analysis', 'recordings', `${input.macroId}.ndjson`);
-			const stream = createReadStream(file, { encoding: 'utf-8' });
-			const availableBytes = stream.readableLength;
-			const recordings: MacroRecording[] = [];
-
-			stream.pipe(ndjson.parse()).on('data', function (obj) {
-				recordings.push(macroRecordingSchema.parse(obj));
-				if (recordings.length >= input.limit) {
-					stream.destroy();
-				}
-			});
-			return {
-				recordings,
-				cursor: stream.bytesRead,
-				hasNextPage: stream.bytesRead < availableBytes,
-			};
+		.query(async ({ input }) => {
+			const file = path.join(recordingsDataDir, `${input.macroId}.ndjson`);
+			const recordingStorage = initObjectStorage(file, macroRecordingSchema);
+			return await recordingStorage.getAll(input.cursor, input.limit);
 		}),
 	getRecording: publicProcedure
 		.input(z.object({ macroId: macroIDSchema, recordingId: macroRecordingIdSchema }))
-		.output(macroSchema.nullable())
-		.mutation(async ({ input }) => {
-			const environment = serverSchema.parse(process.env);
-			const file = path.join(environment.RATOS_DATA_DIR, 'analysis', 'recordings', `${input.macroId}.ndjson`);
-			const stream = createReadStream(file, { encoding: 'utf-8' });
-			const availableBytes = stream.readableLength;
-			let recording: MacroRecording | null = null;
-
-			stream.pipe(ndjson.parse()).on('data', function (obj) {
-				const incoming = macroRecordingSchema.safeParse(obj);
-				if (incoming.success && incoming.data.macroRecordingId === input.recordingId) {
-					recording = incoming.data;
-					stream.destroy();
-				}
-			});
-			return recording;
+		.output(macroRecordingSchema.nullable())
+		.query(async ({ input }) => {
+			const file = path.join(recordingsDataDir, `${input.macroId}.ndjson`);
+			const recordingStorage = initObjectStorage(file, macroRecordingSchema);
+			return await recordingStorage.find((r) => r.id === input.recordingId);
 		}),
 });

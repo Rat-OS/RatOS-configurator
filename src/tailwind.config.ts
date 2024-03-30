@@ -3,6 +3,7 @@ import { Config } from 'tailwindcss/types/config';
 
 import flattenColorPalette from 'tailwindcss/lib/util/flattenColorPalette';
 import { parseColor, formatColor } from 'tailwindcss/lib/util/color';
+import convert from 'color-convert';
 
 export default {
 	darkMode: 'class',
@@ -64,30 +65,30 @@ export default {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
-				background: 'rgb(var(--zinc-900))',
+				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: 'rgb(var(--brand-400))',
-					foreground: 'rgb(var(--brand-900))',
+					DEFAULT: 'hsl(var(--brand-400))',
+					foreground: 'hsl(var(--brand-900))',
 				},
 				secondary: {
-					DEFAULT: 'rgb(var(--pink-400))',
-					foreground: 'rgb(var(--white))',
+					DEFAULT: 'hsl(var(--secondary))',
+					foreground: 'hsl(var(--white))',
 				},
 				destructive: {
-					DEFAULT: 'rgb(var(--rose-400))',
-					foreground: 'rgb(var(--black))',
+					DEFAULT: 'hsl(var(--red-400))',
+					foreground: 'hsl(var(--black))',
 				},
 				muted: {
 					DEFAULT: 'hsl(var(--muted))',
 					foreground: 'hsl(var(--muted-foreground))',
 				},
 				accent: {
-					DEFAULT: 'rgb(var(--brand-700))',
-					foreground: 'rgb(var(--white))',
+					DEFAULT: 'hsl(var(--accent))',
+					foreground: 'hsl(var(--white))',
 				},
 				popover: {
-					DEFAULT: 'rgb(var(--zinc-900))',
+					DEFAULT: 'hsl(var(--popover))',
 					foreground: 'hsl(var(--popover-foreground))',
 				},
 				card: {
@@ -126,11 +127,8 @@ function addVariablesForColors({ addBase, theme }: any) {
 	let allColors = flattenColorPalette(theme('colors'));
 	let newVars = Object.fromEntries(
 		Object.entries(allColors).map(([key, val]) => {
-			const parsed = parseColor(val);
-			return [
-				`--${key}`,
-				parsed ? `${parsed.color.join(', ')}${parsed.alpha != null ? `, ${parsed.alpha}` : ''}` : val,
-			];
+			const parsed = convert.hex.hsl(val);
+			return [`--${key}`, val.startsWith('#') ? `${parsed[0]} ${parsed[1]}% ${parsed[2]}%` : val];
 		}),
 	);
 

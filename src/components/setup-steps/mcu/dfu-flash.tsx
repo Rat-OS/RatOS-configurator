@@ -54,7 +54,7 @@ export const DFUFlash: React.FC<DFUFlashProps> = (props) => {
 			{}
 			<p className="mt-4 text-zinc-500 dark:text-zinc-400">Status: {detectionText}</p>
 			{jumperReminder}
-			<Button intent="primary" disabled={!dfuDetected || isFlashing} onClick={startFlash}>
+			<Button variant="primary" disabled={!dfuDetected || isFlashing} onClick={startFlash}>
 				{flashButtonTitle}
 			</Button>
 			<h4 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">DFU Boot Instructions</h4>

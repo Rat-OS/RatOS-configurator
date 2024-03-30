@@ -22,7 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 			className={twJoin('dark h-full overflow-y-scroll', scrollClasses, inter.variable, inter.className)}
 			suppressHydrationWarning
 		>
-			<body className="h-full bg-zinc-100 antialiased dark:bg-zinc-900">
+			<body className="h-full bg-zinc-100 antialiased dark:bg-background" style={{ marginRight: '0 !important' }}>
 				<Redirecter hasLastPrinterSettings={hasLastPrinterSettings()}>{children}</Redirecter>
 			</body>
 		</html>

@@ -30,6 +30,8 @@ import { detrendSignal } from '@/app/analysis/periodogram';
 import { useTopMenu } from '@/app/topmenu';
 import { FullLoadScreen } from '@/components/common/full-load-screen';
 import { RealtimeAnalysisChart, useRealtimeAnalysisChart } from '@/app/analysis/realtime-analysis-chart';
+import { PuzzlePieceIcon } from '@heroicons/react/24/outline';
+import Link from 'next/link';
 
 SciChartSurface.configure({
 	wasmUrl: '/configure/scichart2d.wasm',
@@ -75,6 +77,7 @@ export const Analysis = () => {
 			GENERATE_RESONANCES AXIS=1,1
 			M400
 		`;
+		setIsRecording(false);
 		const upperpsd = await realtimeAnalysis.psds.stopAccumulation();
 		await realtimeAnalysis.psds.startAccumulation();
 		setIsRecording(true);
@@ -104,7 +107,7 @@ export const Analysis = () => {
 			) : isMacroRunning ? (
 				<Spinner noMargin={true} className="h-4 w-4" />
 			) : (
-				<MixIcon className="h-4 w-4" />
+				<PuzzlePieceIcon className="h-4 w-4" />
 			),
 		[isMacroRunning, isRecording],
 	);
@@ -153,6 +156,10 @@ export const Analysis = () => {
 							</Menu.MenubarItem>
 							<Menu.MenubarItem disabled={isRecording} onSelect={runMacro(recordShaperGraph, 'y')}>
 								Y Shaper Graph
+							</Menu.MenubarItem>
+							<Menu.MenubarSeparator />
+							<Menu.MenubarItem disabled={isRecording} asChild={true}>
+								<Link href="/analysis/macros">View all macros</Link>
 							</Menu.MenubarItem>
 							<Menu.MenubarSeparator />
 							<Menu.MenubarItem disabled={!isRecording}>Abort</Menu.MenubarItem>
