@@ -76,15 +76,9 @@ export const CreateMacro = () => {
 		resolver: zodResolver(createMacroSchema),
 	});
 	const saveMacro = trpc.analysis.createMacro.useMutation();
-	const submit = form.handleSubmit(
-		(data) => {
-			console.log('success', data);
-			saveMacro.mutate(data);
-		},
-		(errors) => {
-			console.log('fail', errors);
-		},
-	);
+	const submit = form.handleSubmit((data) => {
+		saveMacro.mutate(data);
+	});
 	const sequences = useFieldArray({
 		control: form.control,
 		name: 'sequences',
@@ -94,15 +88,15 @@ export const CreateMacro = () => {
 			<div className="flex flex-col">
 				<Form {...form}>
 					<header className="sticky top-0 z-10 flex items-center gap-1 border-b border-zinc-100/10 bg-zinc-700/25 px-4 py-4 backdrop-blur-sm">
-						<div>
+						<div className="flex-1">
 							<FormField
 								control={form.control}
 								name="name"
 								render={({ field }) => (
 									<FormItem className="flex flex-row items-center justify-between">
-										<FormControl>
+										<FormControl className="flex flex-1">
 											<Input
-												className="h-auto border-none p-0 text-xl font-medium"
+												className="flex h-auto flex-1 border-none p-0 text-xl font-medium"
 												type="text"
 												placeholder="Enter macro name..."
 												{...field}
@@ -117,10 +111,10 @@ export const CreateMacro = () => {
 								name="description"
 								render={({ field }) => (
 									<FormItem className="flex flex-row items-center justify-between">
-										<FormControl>
+										<FormControl className="flex flex-1">
 											<Input
 												placeholder="Enter a description..."
-												className="font-regular h-auto border-none p-0 text-base text-muted-foreground"
+												className="font-regular flex h-auto flex-1 border-none p-0 text-base text-muted-foreground"
 												{...field}
 											/>
 										</FormControl>

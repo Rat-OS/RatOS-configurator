@@ -22,7 +22,7 @@ export function DataTableColumnHeader<TData, TValue>({
 	className,
 }: DataTableColumnHeaderProps<TData, TValue>) {
 	if (!column.getCanSort()) {
-		return <div className={twJoin(className)}>{title}</div>;
+		return <div className={twJoin('px-3 py-1 text-xs', className)}>{title}</div>;
 	}
 
 	return (

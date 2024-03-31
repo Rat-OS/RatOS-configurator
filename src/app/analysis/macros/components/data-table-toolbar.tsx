@@ -16,9 +16,7 @@ interface DataTableToolbarProps<TData> {
 	setGlobalFilter: (value: string) => void;
 }
 
-export const hasColumnCapabilities = (
-	column: ColumnDef<any, any>,
-): column is ColumnDef<any, any> & ColumnCapabilities => {
+export const hasColumnCapabilities = (column: object): column is ColumnCapabilities => {
 	return 'getFacetedOptions' in column;
 };
 
@@ -32,23 +30,24 @@ export type ColumnCapabilities = {
 
 export function DataTableToolbar<TData>({ table, globalFilter, setGlobalFilter }: DataTableToolbarProps<TData>) {
 	const isFiltered = table.getState().columnFilters.length > 0;
-	const facets = useMemo(
-		() =>
-			table
-				.getAllColumns()
-				.map((column) => {
-					const uniqueVals = column.getFacetedUniqueValues();
-					if (column.getCanFilter() && hasColumnCapabilities(column) && uniqueVals.size > 0) {
-						return {
-							column,
-							options: (column as ColumnCapabilities).getFacetedOptions?.() ?? [],
-						};
-					}
-					return null;
-				})
-				.filter(Boolean),
-		[table],
-	);
+	const facets = table
+		.getAllColumns()
+		.map((column) => {
+			try {
+				const uniqueVals = column.getFacetedUniqueValues();
+				const columnDef = column.columnDef;
+				if (column.getCanFilter() && hasColumnCapabilities(columnDef) && uniqueVals.size > 0) {
+					return {
+						column,
+						options: columnDef.getFacetedOptions?.() ?? [],
+					};
+				}
+			} catch (e) {
+				return null;
+			}
+			return null;
+		})
+		.filter(Boolean);
 
 	return (
 		<div className="flex items-center justify-between">
@@ -68,7 +67,7 @@ export function DataTableToolbar<TData>({ table, globalFilter, setGlobalFilter }
 					/>
 				))}
 				{isFiltered && (
-					<Button variant="ghost" onClick={() => table.resetColumnFilters()} className="h-8 px-2 lg:px-3">
+					<Button variant="outline" onClick={() => table.resetColumnFilters()} className="h-8 px-2 lg:px-3">
 						Reset
 						<Cross2Icon className="ml-2 h-4 w-4" />
 					</Button>

@@ -255,7 +255,9 @@ export const initObjectStorage = <
 	};
 	const destroyStorage = async () => {
 		await storage.destroyStorage();
+		const total = (await statsStorage.findById(file))?.total ?? 0;
 		await statsStorage.remove((stat) => stat.id === file);
+		return total;
 	};
 	return {
 		getAll,

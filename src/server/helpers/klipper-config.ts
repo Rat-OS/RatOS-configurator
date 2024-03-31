@@ -329,7 +329,6 @@ export const constructKlipperConfigExtrasGenerator = (config: PrinterConfigurati
 			const environment = serverSchema.parse(process.env);
 			const vars: string[] = [`[Variables]`];
 			const isIdex = utils.getToolheads().some((th) => th.getMotionAxis() === PrinterAxis.dual_carriage);
-			console.log(isIdex);
 			if (isIdex) {
 				vars.push(
 					`idex_applied_offset = 1`,
@@ -950,7 +949,6 @@ export const constructKlipperConfigHelpers = async (
 			return utils.formatInlineComments(result).join('\n');
 		},
 		renderSaveVariables(options?: VAOCControlPoints) {
-			console.trace('rendering with options', options);
 			return extrasGenerator.generateSaveVariables(options).join('\n');
 		},
 		renderUserMacroVariableOverrides(size?: number) {

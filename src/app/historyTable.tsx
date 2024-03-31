@@ -284,7 +284,7 @@ export const HistoryTable = () => {
 			ref={tableRef}
 		>
 			<thead
-				className="border-b border-white/10 bg-[rgb(18,18,20)] text-sm leading-6 text-white"
+				className="border-b border-white/10 bg-background text-sm leading-6 text-white"
 				style={{
 					display: 'grid',
 					position: 'sticky',

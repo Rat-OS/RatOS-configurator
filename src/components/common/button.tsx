@@ -9,7 +9,7 @@ import { Route } from 'next';
 import { Slot } from '@radix-ui/react-slot';
 
 const buttonStyle = cva(
-	'inline-flex gap-2 items-center border font-semibold rounded-md shadow-sm focus:outline-none focus:ring-2 capitalize relative',
+	'inline-flex gap-2 items-center justify-center border font-semibold rounded-md shadow-sm focus:outline-none focus:ring-2 capitalize relative',
 	{
 		variants: {
 			variant: {

@@ -21,16 +21,12 @@ export const analysisRouter = router({
 	createMacro: publicProcedure
 		.input(macroSchema.omit({ recordingCount: true, createdAtTimeStamp: true, updatedAtTimeStamp: true }))
 		.mutation(async ({ input }) => {
-			await macroStorage.upsert({
+			return await macroStorage.upsert({
 				...input,
 				recordingCount: {}, // recordingCount is always initialized as an empty object
 				createdAtTimeStamp: Date.now(),
 				updatedAtTimeStamp: null,
 			});
-
-			return {
-				result: 'success',
-			};
 		}),
 	deleteMacro: publicProcedure.input(macroIDSchema).mutation(async ({ input }) => {
 		const macro = await macroStorage.findById(input);
@@ -39,12 +35,14 @@ export const analysisRouter = router({
 		}
 		const file = path.join(recordingsDataDir, `${input}.ndjson`);
 		const recordingStorage = initObjectStorage(file, macroRecordingSchema);
-		await recordingStorage.destroyStorage();
+		const totalRecordingsRemoved = await recordingStorage.destroyStorage();
 		getLogger().info(`Deleted recordings for macro "${macro.name}" (${macro.id})`);
-		await macroStorage.remove(input);
+		const macrosRemoved = await macroStorage.remove(input);
 		getLogger().info(`Deleted macro "${macro.name}" (${macro.id})`);
 		return {
 			result: 'success',
+			totalRecordingsRemoved,
+			macrosRemoved,
 		};
 	}),
 	getMacros: publicProcedure

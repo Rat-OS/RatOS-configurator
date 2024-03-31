@@ -1,4 +1,3 @@
-'use client';
 import React from 'react';
 import { NoSSR } from '@/components/common/no-ssr';
 import { FullLoadScreen } from '@/components/common/full-load-screen';

@@ -24,31 +24,27 @@ export const replaceInFileByLine = async (
 		input: fileStream,
 		crlfDelay: Infinity,
 	});
-	let success = 0;
+	let linesChanged = 0;
 	let lineNumber = -1;
 	try {
 		for await (const line of rl) {
 			lineNumber++;
+			let newLine: string | null = line;
 			if (searchOrReplacer instanceof Function) {
-				writeStream.write(searchOrReplacer(line, lineNumber) + EOL);
-				success++;
-				continue;
-			}
-			if (replace === null) {
+				newLine = searchOrReplacer(line, lineNumber);
+			} else if (replace === null) {
 				if (searchOrReplacer instanceof RegExp ? line.match(searchOrReplacer) : line.includes(searchOrReplacer)) {
-					success++;
-					continue;
+					newLine = null;
 				}
-				writeStream.write(line + EOL);
-				continue;
-			}
-			if (replace == null) {
+			} else if (replace == null) {
 				getLogger().warn(`replaceInFileByLine (${filePath}): replacer wasn't provided, writing line as is`);
-				writeStream.write(line + EOL);
-				success++;
-				continue;
+			} else {
+				newLine = line.replace(searchOrReplacer, replace);
 			}
-			writeStream.write(line.replace(searchOrReplacer, replace) + EOL);
+			writeStream.write(newLine + EOL);
+			if (newLine !== line) {
+				linesChanged++;
+			}
 		}
 	} catch (e) {
 		getLogger().error(
@@ -76,11 +72,11 @@ export const replaceInFileByLine = async (
 			});
 		});
 	}
-	if (success > 0) {
+	if (linesChanged > 0) {
 		await copyFile(filePath + '.tmp', filePath);
 	}
 	await unlink(filePath + '.tmp');
-	return success;
+	return linesChanged;
 };
 
 export const searchFileByLine = async (filePath: string, search: string | RegExp): Promise<number | false> => {

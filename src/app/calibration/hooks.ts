@@ -17,6 +17,7 @@ import { useGcodeCommand } from '@/app/_hooks/toolhead';
 import { VaocSettings } from '@/app/calibration/vaoc-settings-dialog';
 import useResizeObserver from '@react-hook/resize-observer';
 import screenfull from 'screenfull';
+import { getLogger } from '@/app/_helpers/logger';
 
 const getCameraUrl = () => {
 	const host = getHost();
@@ -410,7 +411,7 @@ export const useStreamSettings = ({
 				const intVal = typeof value === 'boolean' ? (value ? 1 : 0) : value;
 				const res = await fetch(`${url}/option?${key}=${intVal.toString()}`);
 				if (res.ok && isInitialLoading === false) {
-					console.log(
+					getLogger().info(
 						'saving',
 						key,
 						value,
