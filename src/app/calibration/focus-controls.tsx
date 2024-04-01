@@ -106,7 +106,7 @@ export const FocusControls: React.FC<CameraSettingsProps> = (props) => {
 								'flex cursor-default items-center justify-center space-x-2 whitespace-nowrap bg-brand-500 px-5 py-3 text-sm font-medium text-zinc-900',
 							)}
 						>
-							<span className="inline">Z {live_position?.z.toFixed(2) ?? '??'}</span>
+							<span className="inline">Z {live_position?.z?.toFixed(2) ?? '??'}</span>
 						</span>
 					</div>
 				</li>
