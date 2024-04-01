@@ -42,6 +42,10 @@ import { TWShadeableColorName, twColors } from '@/app/_helpers/colors';
 export const ADXL_STREAM_BUFFER_SIZE = 128;
 const historyCount = 200;
 
+SciChartSurface.configure({
+	wasmUrl: '/configure/scichart2d.wasm',
+	dataUrl: '/configure/scichart2d.data',
+});
 SciChartSurface.UseCommunityLicense();
 const theme = new ChartTheme();
 
@@ -185,7 +189,7 @@ export const useADXLSignalChart = (axis: ADXLAxes) => {
 
 export const PSD_CHART_AXIS_AMPLITUDE_ID = 'amplitude';
 export const PSDChartMinimumYVisibleRange = new NumberRange(0, 1500);
-export const PSDChartDefinition: ISciChart2DDefinition = {
+export const PSDChardNoSeriesDefinition: ISciChart2DDefinition = {
 	surface: {
 		theme: theme,
 		padding: Thickness.fromNumber(0),
@@ -239,6 +243,9 @@ export const PSDChartDefinition: ISciChart2DDefinition = {
 			},
 		},
 	],
+};
+export const PSDChartDefinition: ISciChart2DDefinition = {
+	...PSDChardNoSeriesDefinition,
 	series: [
 		{
 			type: ESeriesType.MountainSeries,
@@ -321,7 +328,7 @@ export const PSDChartDefinition: ISciChart2DDefinition = {
 };
 
 // Override the standard tooltip displayed by CursorModifier
-const psdRolloverTooltipTemplate: TRolloverTooltipSvgTemplate = (id, seriesInfo, rolloverTooltip) => {
+export const psdRolloverTooltipTemplate: TRolloverTooltipSvgTemplate = (id, seriesInfo, rolloverTooltip) => {
 	let valuesBlock = '';
 	const tooltipProps = rolloverTooltip.tooltipProps;
 	const tooltipTitle = tooltipProps.tooltipTitle,
@@ -459,8 +466,6 @@ export const usePSDChart = () => {
 			});
 		});
 
-		// Here is where we add rollover tooltip behaviour
-		//
 		surface.chartModifiers.add(
 			new RolloverModifier({
 				// Defines if rollover vertical line is shown
@@ -468,6 +473,7 @@ export const usePSDChart = () => {
 				// Shows the default tooltip
 				showTooltip: true,
 				hitTestRadius: 10,
+				yAxisId: PSD_CHART_AXIS_AMPLITUDE_ID,
 				// Optional: Overrides the content of the tooltip
 				tooltipDataTemplate: getTooltipDataTemplate,
 			}),
@@ -482,6 +488,7 @@ export const usePSDChart = () => {
 				showYLine: true,
 				// Shows the default tooltip
 				showTooltip: false,
+				yAxisId: PSD_CHART_AXIS_AMPLITUDE_ID,
 				axisLabelFill: twColors.zinc[900],
 				axisLabelStroke: twColors.zinc[100],
 			}),

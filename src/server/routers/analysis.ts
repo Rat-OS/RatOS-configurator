@@ -1,6 +1,7 @@
 import { serverSchema } from '@/env/schema.mjs';
 import { publicProcedure, router } from '@/server/trpc';
 import {
+	createMacroSchema,
 	macroIDSchema,
 	macroRecordingIdSchema,
 	macroRecordingSchema,
@@ -11,6 +12,7 @@ import path from 'path';
 import { z } from 'zod';
 import { initObjectStorage } from '@/server/helpers/ndjson';
 import { getLogger } from '@/server/helpers/logger';
+import { m } from 'framer-motion';
 
 const environment = serverSchema.parse(process.env);
 const dataDir = path.join(environment.RATOS_DATA_DIR, 'analysis');
@@ -18,16 +20,28 @@ const recordingsDataDir = path.join(environment.RATOS_DATA_DIR, 'analysis', 'rec
 const macroStorage = initObjectStorage(path.join(dataDir, 'macros.ndjson'), macroSchema);
 
 export const analysisRouter = router({
-	createMacro: publicProcedure
-		.input(macroSchema.omit({ recordingCount: true, createdAtTimeStamp: true, updatedAtTimeStamp: true }))
-		.mutation(async ({ input }) => {
-			return await macroStorage.upsert({
+	createMacro: publicProcedure.input(createMacroSchema).mutation(async ({ input }) => {
+		return await macroStorage.upsert({
+			...input,
+			recordingCount: {}, // recordingCount is always initialized as an empty object
+			createdAtTimeStamp: Date.now(),
+			updatedAtTimeStamp: null,
+		});
+	}),
+	updateMacro: publicProcedure.input(createMacroSchema).mutation(async ({ input }) => {
+		const file = path.join(recordingsDataDir, `${input}.ndjson`);
+		const recordingStorage = initObjectStorage(file, macroRecordingSchema);
+		const totalRecordingsRemoved = await recordingStorage.destroyStorage();
+		getLogger().info(`Deleted recordings for macro "${input.name}" (${input.id})`);
+		return await macroStorage.update(
+			{
 				...input,
 				recordingCount: {}, // recordingCount is always initialized as an empty object
-				createdAtTimeStamp: Date.now(),
-				updatedAtTimeStamp: null,
-			});
-		}),
+				updatedAtTimeStamp: Date.now(),
+			},
+			input.id,
+		);
+	}),
 	deleteMacro: publicProcedure.input(macroIDSchema).mutation(async ({ input }) => {
 		const macro = await macroStorage.findById(input);
 		if (macro == null) {
@@ -44,6 +58,13 @@ export const analysisRouter = router({
 			totalRecordingsRemoved,
 			macrosRemoved,
 		};
+	}),
+	findMacro: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
+		const macro = await macroStorage.findById(input.id);
+		if (macro == null) {
+			throw new Error(`Macro with id ${input.id} not found`);
+		}
+		return macro;
 	}),
 	getMacros: publicProcedure
 		.input(z.object({ cursor: z.number().default(0), limit: z.number().default(50) }))

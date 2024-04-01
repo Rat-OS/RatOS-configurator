@@ -75,6 +75,7 @@
 	}
 	html body[data-scroll-locked] {
 		margin-right: 0 !important;
+		overflow: initial !important;
 	}
 }
 

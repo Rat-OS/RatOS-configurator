@@ -25,6 +25,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/common/button';
 import { MenuBarProvider, TopMenu, useMenuBarProvider } from '@/app/topmenu';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { Toaster } from '@/components/ui/sonner';
 
 const getCurrentTheme = () => {
 	if (typeof window !== 'undefined') {
@@ -152,6 +153,7 @@ function Template({ children }: { children: React.ReactNode }) {
 								{/* Top menu */}
 								<TopMenu setSidebarOpen={setSidebarOpen} sidebarOpen={sidebarOpen} {...menu.topMenuProps} />
 							</div>
+							<Toaster />
 						</MenuBarProvider>
 					</TooltipProvider>
 				</SyncWithMoonraker>

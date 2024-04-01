@@ -44,6 +44,8 @@ import {
 	klipperADXL345SubscriptionDataSchema,
 	klipperADXL345SubscriptionResponseSchema,
 } from '@/zods/analysis';
+import { twJoin } from 'tailwind-merge';
+import { FullLoadScreen } from '@/components/common/full-load-screen';
 
 const getWsURL = () => {
 	const host = getHost();
@@ -100,7 +102,7 @@ export const useRealtimeADXL = (options: RealtimeADXLOptions) => {
 		},
 	);
 
-	const subscribe = useCallback(async <R = unknown>() => {
+	const subscribe = useCallback(async <R = unknown,>() => {
 		const id = ++REQ_ID;
 		return new Promise<R>((resolve, reject) => {
 			inFlightRequests.current[id] = (err, result) => {
@@ -176,7 +178,7 @@ export const useRealtimeADXL = (options: RealtimeADXLOptions) => {
 };
 
 const theme = new ChartTheme();
-export const useChart = <T>(
+export const useChart = <T,>(
 	definition: ISciChart2DDefinition | null,
 	initializer?: (surface: SciChartSurface) => T,
 	indent = true,
@@ -223,6 +225,8 @@ export const useChart = <T>(
 				style: {
 					marginLeft: indent ? -300 : 0,
 				},
+
+				fallback: <FullLoadScreen className={twJoin(indent && 'ml-[150px]', 'bg-zinc-900')} />,
 			} satisfies TChartComponentProps,
 			surface,
 			isInitialized,

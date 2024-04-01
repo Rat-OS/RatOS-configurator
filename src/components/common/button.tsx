@@ -6,18 +6,27 @@ import { VariantProps, cva } from 'class-variance-authority';
 import { Menu, Transition } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
 import { Route } from 'next';
-import { Slot } from '@radix-ui/react-slot';
 
-const buttonStyle = cva(
-	'inline-flex gap-2 items-center justify-center border font-semibold rounded-md shadow-sm focus:outline-none focus:ring-2 capitalize relative',
+export const buttonVariants = cva(
+	'inline-flex gap-2 items-center justify-center border font-semibold rounded-md shadow-sm focus:outline-none focus:ring-2 capitalize relative active:scale-95 transition-all',
 	{
 		variants: {
 			variant: {
-				danger:
-					'text-red-50 bg-red-500 hover:bg-red-600 border-transparent focus:ring-offset-2 focus:ring-red-600 dark:focus:ring-offset-zinc-900',
+				danger: twJoin(
+					'text-red-50 bg-red-500/70 hover:bg-red-600 border-transparent focus:ring-offset-2 focus:ring-red-600 dark:focus:ring-offset-zinc-900',
+
+					'shadow-[0px_0px_0px_1px_rgba(9,9,11,0.07),0px_2px_2px_0px_rgba(9,9,11,0.05)] dark:shadow-[0px_0px_0px_1px_rgba(255,255,255,0.05)]',
+					'dark:before:-inset-px dark:before:rounded-lg',
+					'dark:before:pointer-events-none dark:before:absolute dark:before:shadow-[0px_2px_8px_0px_hsl(var(--red-900)),_0px_1px_0px_0px_hsl(var(--red-400)_/_50%)_inset]',
+				),
 				warning:
 					'text-white bg-yellow-500 hover:bg-yellow-600 border-transparent focus:ring-offset-2 focus:ring-yellow-600 dark:focus:ring-offset-zinc-900',
-				info: 'text-blue-50 bg-blue-500 hover:bg-blue-600 border-transparent focus:ring-offset-2 focus:ring-blue-600 dark:focus:ring-offset-zinc-900',
+				info: twJoin(
+					'text-blue-50 bg-sky-400/70 hover:bg-sky-600 border-transparent focus:ring-offset-2 focus:ring-sky-600 dark:focus:ring-offset-zinc-900',
+					'shadow-[0px_0px_0px_1px_rgba(9,9,11,0.07),0px_2px_2px_0px_rgba(9,9,11,0.05)] dark:shadow-[0px_0px_0px_1px_rgba(255,255,255,0.05)]',
+					'dark:before:-inset-px dark:before:rounded-lg',
+					'dark:before:pointer-events-none dark:before:absolute dark:before:shadow-[0px_2px_8px_0px_hsl(var(--sky-900)),_0px_1px_0px_0px_hsl(var(--sky-400)_/_50%)_inset]',
+				),
 				primary: twJoin(
 					'text-white bg-brand-400/50 hover:bg-brand-700 border-transparent focus:ring-offset-2 focus:ring-brand-600 dark:focus:ring-offset-zinc-900',
 					'shadow-[0px_0px_0px_1px_rgba(9,9,11,0.07),0px_2px_2px_0px_rgba(9,9,11,0.05)] dark:shadow-[0px_0px_0px_1px_rgba(255,255,255,0.05)]',
@@ -38,13 +47,15 @@ const buttonStyle = cva(
 					'border-transparent shadow-none bg-transparent text-zinc-700 dark:text-zinc-300 hover:underline hover:text-zinc-800 dark:hover:text-zinc-200 focus:ring-offset-2 focus:ring-zinc-900 dark:focus:ring-offset-zinc-100',
 			},
 			disabled: {
-				true: 'opacity-60 cursor-not-allowed',
+				true: 'opacity-60 cursor-not-allowed pointer-events-none',
 			},
 			size: {
 				sm: 'px-3 py-1 text-xs',
 				lg: 'px-6 py-3 text-lg',
 				default: 'px-4 py-2 text-sm',
 				icon: 'h-9 w-9',
+				'icon-sm': 'h-6 w-6',
+				'icon-xs': 'h-4 w-4',
 			},
 		},
 		compoundVariants: [
@@ -82,10 +93,10 @@ const buttonStyle = cva(
 	},
 );
 
-export type Intents = NonNullable<Required<VariantProps<typeof buttonStyle>>['variant']>;
+export type Intents = NonNullable<Required<VariantProps<typeof buttonVariants>>['variant']>;
 
 interface ButtonProps
-	extends React.PropsWithChildren<VariantProps<typeof buttonStyle> & React.ButtonHTMLAttributes<HTMLButtonElement>> {
+	extends React.PropsWithChildren<VariantProps<typeof buttonVariants> & React.ButtonHTMLAttributes<HTMLButtonElement>> {
 	onClick?: () => void;
 	className?: string;
 	target?: string;
@@ -114,7 +125,7 @@ export const Button = forwardRef<HTMLButtonElement & HTMLAnchorElement, ButtonPr
 		children,
 		...forwardProps
 	} = props;
-	const buttonClasses = twMerge(buttonStyle({ variant: variant, disabled: disabled, size: size }), className);
+	const buttonClasses = twMerge(buttonVariants({ variant: variant, disabled: disabled, size: size }), className);
 	if (href) {
 		return (
 			<Link ref={ref} href={href} className={buttonClasses} target={target} onClick={onClick} title={title} rel={rel}>

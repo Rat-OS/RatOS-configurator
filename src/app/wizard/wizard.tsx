@@ -18,13 +18,7 @@ export const Wizard: React.FC<WizardProps> = (props) => {
 	const { data: version } = trpc.version.useQuery(undefined, { keepPreviousData: true, refetchOnMount: false });
 	const { data: ip } = trpc.ipAddress.useQuery(undefined, { keepPreviousData: true, refetchOnMount: false });
 	return (
-		<React.Suspense
-			fallback={
-				<div className="mb-4 flex h-96 items-center justify-center">
-					<Spinner />
-				</div>
-			}
-		>
+		<>
 			{/* Page header */}
 			<div className="mx-auto max-w-3xl px-4 md:flex md:items-center md:justify-between md:space-x-4 lg:max-w-7xl">
 				<div className="flex items-center">
@@ -47,6 +41,6 @@ export const Wizard: React.FC<WizardProps> = (props) => {
 			</div>
 			{/* Page body */}
 			<SetupSteps {...props} />
-		</React.Suspense>
+		</>
 	);
 };

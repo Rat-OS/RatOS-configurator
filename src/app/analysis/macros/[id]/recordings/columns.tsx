@@ -96,8 +96,4 @@ export const columns: (ColumnDef<MacroRecording> & ColumnCapabilities)[] = [
 			];
 		},
 	},
-	{
-		id: 'actions',
-		cell: ({ row }) => <DataTableRowActions row={row} />,
-	},
 ];

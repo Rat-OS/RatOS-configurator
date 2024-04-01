@@ -193,7 +193,7 @@ export const initObjectStorage = <
 				true,
 			),
 		);
-		return result;
+		return { updateCount: result, result: await storage.findById(id) };
 	};
 	const upsert = async (obj: Input) => {
 		const result = await storage.upsert(obj);

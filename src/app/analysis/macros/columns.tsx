@@ -5,7 +5,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Checkbox } from '@/components/ui/checkbox';
 
 import { DataTableColumnHeader } from '@/app/analysis/macros/components/data-table-column-header';
-import { DataTableRowActions } from '@/app/analysis/macros/components/data-table-row-actions';
+import { DataTableRowActions } from '@/app/analysis/macros/macro-row-actions';
 import { Macro } from '@/zods/analysis';
 import { Badge, BadgeProps } from '@/components/common/badge';
 import { DotFilledIcon, DotIcon } from '@radix-ui/react-icons';

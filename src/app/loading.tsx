@@ -1,7 +1,6 @@
 import { Card } from '@/components/common/card';
 import { Skeleton } from '@/components/ui/skeleton';
 export default function Loading() {
-	// Or a custom loading skeleton component
 	return (
 		<div className="mx-auto flex h-full items-center justify-center">
 			<Card className="min-w-96 max-w-7xl p-4">

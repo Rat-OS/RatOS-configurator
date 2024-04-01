@@ -13,10 +13,8 @@ export default function Page() {
 	const connected = use(isConnectedToWifi());
 	const wifiInterface = use(getWirelessInterface());
 	return (
-		<React.Suspense fallback={<FullLoadScreen />}>
-			<NoSSR>
-				<Wizard isConnectedToWifi={connected} hasWifiInterface={wifiInterface != null && wifiInterface.trim() != ''} />
-			</NoSSR>
-		</React.Suspense>
+		<NoSSR>
+			<Wizard isConnectedToWifi={connected} hasWifiInterface={wifiInterface != null && wifiInterface.trim() != ''} />
+		</NoSSR>
 	);
 }

@@ -1,5 +1,5 @@
-import { Button } from '@/components/common/button';
+import { Button, buttonVariants } from '@/components/common/button';
 
 Button.displayName = 'Button';
 
-export { Button };
+export { Button, buttonVariants };
