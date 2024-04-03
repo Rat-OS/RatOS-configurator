@@ -89,19 +89,20 @@ const macroRecordingMutationOptions: Parameters<typeof trpc.analysis.saveRecordi
 			error,
 			variables: { ...variables, psd: 'removed from log..' },
 		});
-		toast.error('Failed to save recording', {
-			description: `An error occurred while saving the recording "${variables.recording.name}"`,
-		});
-	},
-	onSuccess(data, variables, context) {
-		toast.success('Recording saved', { description: `Recording "${variables.recording.name}" saved successfully` });
 	},
 };
 
 export const Analysis = () => {
 	const router = useRouter();
 	const [adxl, setAdxl] = useState<MacroRecordingSettings['accelerometer']>(undefined);
-	const realtimeAnalysis = useRealtimeAnalysisChart(adxl);
+	const {
+		isChartEnabled,
+		setIsChartEnabled,
+		chartProps,
+		psds,
+		currentAccelerometer,
+		currentAccelerometerHardwareName,
+	} = useRealtimeAnalysisChart(adxl);
 	const [macros] = trpc.analysis.getMacros.useSuspenseQuery({ limit: 10 });
 	const { mutateAsync: mutateRecordingAsync } = trpc.analysis.saveRecording.useMutation(macroRecordingMutationOptions);
 
@@ -109,61 +110,14 @@ export const Analysis = () => {
 	const [isMacroRunning, setIsMacroRunning] = useState(false);
 	const G = useGcodeCommand();
 
-	const { frequency, setFrequency, axis, setAxis } = useOscillator(
-		G,
-		realtimeAnalysis.isChartEnabled && !isMacroRunning,
-	);
-
-	const recordShaperGraph = useCallback(
-		async (axis: 'x' | 'y') => {
-			realtimeAnalysis.setIsChartEnabled(true);
-			await G`
-				MAYBE_HOME
-				M400
-			`;
-			await realtimeAnalysis.psds.startAccumulation();
-			setIsRecording(true);
-			await G`
-				GENERATE_RESONANCES AXIS=${axis.toUpperCase()}
-				M400
-			`;
-			const psd = await realtimeAnalysis.psds.stopAccumulation();
-			setIsRecording(false);
-			realtimeAnalysis.setIsChartEnabled(false);
-		},
-		[G, realtimeAnalysis],
-	);
-
-	const recordBeltGraph = useCallback(async () => {
-		realtimeAnalysis.setIsChartEnabled(true);
-		await G`
-			MAYBE_HOME
-			M400
-		`;
-		await realtimeAnalysis.psds.startAccumulation();
-		setIsRecording(true);
-		await G`
-			GENERATE_RESONANCES AXIS=1,1
-			M400
-		`;
-		setIsRecording(false);
-		const upperpsd = await realtimeAnalysis.psds.stopAccumulation();
-		await realtimeAnalysis.psds.startAccumulation();
-		setIsRecording(true);
-		await G`
-			GENERATE_RESONANCES AXIS=1,-1
-			M400
-		`;
-		const lowerpsd = await realtimeAnalysis.psds.stopAccumulation();
-		setIsRecording(false);
-		realtimeAnalysis.setIsChartEnabled(false);
-	}, [G, realtimeAnalysis]);
+	const { frequency, setFrequency, axis, setAxis } = useOscillator(G, isChartEnabled && !isMacroRunning);
 
 	const runMacro = useCallback(
 		<T extends (...args: Parameters<T>) => Promise<any>>(macro: T, ...args: Parameters<T>) =>
 			async () => {
 				setFrequency(0);
 				setIsMacroRunning(true);
+				setIsChartEnabled(true);
 				try {
 					await macro(...args);
 				} catch (e) {
@@ -176,10 +130,13 @@ export const Analysis = () => {
 									? e
 									: 'An unknown error occurred while running the macro',
 					});
+				} finally {
+					setIsMacroRunning(false);
+					setIsRecording(false);
+					setIsChartEnabled(false);
 				}
-				setIsMacroRunning(false);
 			},
-		[setFrequency],
+		[setFrequency, setIsChartEnabled],
 	);
 
 	const MacroIcon = useMemo(
@@ -194,13 +151,9 @@ export const Analysis = () => {
 		[isMacroRunning, isRecording],
 	);
 
-	const { isChartEnabled, setIsChartEnabled, psds, currentAccelerometer, currentAccelerometerHardwareName } =
-		realtimeAnalysis;
-
 	const buildMacro = useCallback(
 		(macro: Macro) =>
 			runMacro(async () => {
-				setIsChartEnabled(true);
 				const macroRunId = uuid.v4();
 				const mutations: Promise<any>[] = [];
 				const sequences = macro.sequences.map((sequence) => async () => {
@@ -208,13 +161,15 @@ export const Analysis = () => {
 					setAdxl(sequence.recording?.accelerometer);
 					if (sequence.recording?.capturePSD) {
 						await psds.startAccumulation();
+						setIsRecording(true);
 					}
 					await G`
-					${sequence.gcode}
-					M400
-				`;
+						${sequence.gcode}
+						M400
+					`;
 					if (sequence.recording?.capturePSD) {
 						const psd = await psds.stopAccumulation();
+						setIsRecording(false);
 						mutations.push(
 							mutateRecordingAsync({
 								recording: {
@@ -234,7 +189,6 @@ export const Analysis = () => {
 					}
 				});
 				await sequences.reduce((p, f) => p.then(f), Promise.resolve());
-				setIsChartEnabled(false);
 				const macroRunToast = toast.loading('Saving recordings...', {
 					description: 'Please wait for recordings to be saved.',
 				});
@@ -255,16 +209,7 @@ export const Analysis = () => {
 					});
 				}
 			}),
-		[
-			G,
-			mutateRecordingAsync,
-			psds,
-			currentAccelerometer,
-			currentAccelerometerHardwareName,
-			router,
-			runMacro,
-			setIsChartEnabled,
-		],
+		[G, mutateRecordingAsync, psds, currentAccelerometer, currentAccelerometerHardwareName, router, runMacro],
 	);
 
 	useTopMenu(
@@ -407,5 +352,5 @@ export const Analysis = () => {
 		),
 	);
 
-	return <RealtimeAnalysisChart {...realtimeAnalysis.chartProps} />;
+	return <RealtimeAnalysisChart {...chartProps} />;
 };

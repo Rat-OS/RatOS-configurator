@@ -436,7 +436,7 @@ export const useAccumulatedPSD = (updateFn?: (result: AccumulatedPSD) => void) =
 			}
 			psds.current.x.push(newX);
 			psds.current.y.push(newY);
-			psds.current.z.push(newY);
+			psds.current.z.push(newZ);
 			psds.current.total.push(newTotal);
 			const [x, y, z, total] = await Promise.all([
 				welch(psds.current.x),
