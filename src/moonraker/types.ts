@@ -1,6 +1,5 @@
 import { VaocSettings } from '@/app/calibration/vaoc-settings-dialog';
 import { CameraOption } from '@/app/calibration/helpers';
-import { Macro, MacroID } from '@/app/analysis/types';
 
 export type MoonrakerStatus = 'connected' | 'connecting' | 'not-running';
 
@@ -12,12 +11,22 @@ export interface InFlightRequestTimeouts {
 	[id: number]: number;
 }
 
-export interface MoonrakerResponse {
+export type MoonrakerResponseSuccess = {
 	method: string;
 	params: unknown[];
 	result?: unknown;
 	id: number;
-}
+};
+
+export type MoonrakerResponseError = {
+	error: {
+		code: number;
+		message: string;
+	};
+	id: number;
+};
+
+export type MoonrakerResponse = MoonrakerResponseSuccess | MoonrakerResponseError;
 export type MoonrakerDBItemResponse<Data = unknown> = {
 	key: string;
 	namespace: string;
@@ -28,9 +37,6 @@ export type MoonrakerDB = {
 	RatOS: {
 		'camera-settings': VaocSettings;
 		'camera-stream-settings': { [key: string]: CameraOption };
-		resonanceMacros: {
-			[id: MacroID]: Macro;
-		};
 		__recoil: unknown;
 	};
 	mainsail: {

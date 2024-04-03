@@ -76,7 +76,6 @@ export const MacroChartPreview: React.FC<MacroChartPreviewProps> = ({ sequences 
 
 	const setupChart = useCallback(
 		(surface: SciChartSurface) => {
-			let tooltipDataTemplate = getTooltipDataTemplate;
 			if (sequenceData.length === 2) {
 				const randMul1 = Math.random() * 50 + 184;
 				const randAdd1 = Math.random() * 400 + 900;
@@ -86,6 +85,8 @@ export const MacroChartPreview: React.FC<MacroChartPreviewProps> = ({ sequences 
 				const step2 = 4 + Math.random() * 3;
 				const rs = new FastBandRenderableSeries(surface.webAssemblyContext2D, {
 					dataSeries: new XyyDataSeries(surface.webAssemblyContext2D, {
+						containsNaN: false,
+						isSorted: true,
 						xValues: Array(130)
 							.fill(0)
 							.map((_, i) => (200 / 130) * i),
@@ -113,14 +114,15 @@ export const MacroChartPreview: React.FC<MacroChartPreviewProps> = ({ sequences 
 				});
 				rs.rolloverModifierProps.tooltipColor = sequenceData[0].color ?? 'zinc';
 				rs.rolloverModifierProps.tooltipTemplate = psdRolloverTooltipTemplate;
+				rs.rolloverModifierProps.tooltipDataTemplate = getBandTooltipDataTemplate;
 				rs.rolloverModifierProps.tooltipTitle = sequenceData[0].name + ' Power';
 				rs.rolloverModifierProps1.tooltipColor = sequenceData[1].color ?? 'zinc';
 				rs.rolloverModifierProps1.tooltipTemplate = psdRolloverTooltipTemplate;
+				rs.rolloverModifierProps1.tooltipDataTemplate = getBandTooltipDataTemplate;
 				rs.rolloverModifierProps1.tooltipTitle = sequenceData[1].name + ' Power';
 				rs.animation = new WaveAnimation({
 					duration: 500,
 				});
-				tooltipDataTemplate = getBandTooltipDataTemplate;
 				surface.renderableSeries.add(rs);
 			} else {
 				sequenceData.forEach((seq) => {
@@ -129,6 +131,8 @@ export const MacroChartPreview: React.FC<MacroChartPreviewProps> = ({ sequences 
 					const step1 = 4 + Math.random() * 3;
 					const rs = new FastLineRenderableSeries(surface.webAssemblyContext2D, {
 						dataSeries: new XyDataSeries(surface.webAssemblyContext2D, {
+							containsNaN: false,
+							isSorted: true,
 							xValues: Array(130)
 								.fill(0)
 								.map((_, i) => (200 / 130) * i),
@@ -146,6 +150,7 @@ export const MacroChartPreview: React.FC<MacroChartPreviewProps> = ({ sequences 
 					});
 					rs.rolloverModifierProps.tooltipColor = seq.color ?? 'zinc';
 					rs.rolloverModifierProps.tooltipTemplate = psdRolloverTooltipTemplate;
+					rs.rolloverModifierProps.tooltipDataTemplate = getTooltipDataTemplate;
 					rs.rolloverModifierProps.tooltipTitle = seq.name + ' Power';
 					rs.animation = new WaveAnimation({
 						duration: 500,
@@ -162,7 +167,6 @@ export const MacroChartPreview: React.FC<MacroChartPreviewProps> = ({ sequences 
 					showTooltip: true,
 					yAxisId: PSD_CHART_AXIS_AMPLITUDE_ID,
 					// Optional: Overrides the content of the tooltip
-					tooltipDataTemplate: tooltipDataTemplate,
 				}),
 			);
 
@@ -184,9 +188,7 @@ export const MacroChartPreview: React.FC<MacroChartPreviewProps> = ({ sequences 
 		[sequenceData],
 	);
 
-	const chart = useChart(PSDChardNoSeriesDefinition, (surface) => {
-		setupChart(surface);
-	});
+	const chart = useChart(PSDChardNoSeriesDefinition, setupChart);
 
 	useEffect(() => {
 		if (sequenceData.length != 0 && deepEqual(sequenceData, prevSequenceData.current) === false) {

@@ -24,15 +24,30 @@ import {
 import { MountainAnimation, NumberRange, SciChartSurface, easing } from 'scichart';
 import { detrendSignal } from '@/app/analysis/periodogram';
 import { FullLoadScreen } from '@/components/common/full-load-screen';
+import { MacroRecordingSettings } from '@/zods/analysis';
+import { useRecoilValue } from 'recoil';
+import { ControlboardState } from '@/recoil/printer';
 
 SciChartSurface.configure({
 	wasmUrl: '/configure/scichart2d.wasm',
 	dataUrl: '/configure/scichart2d.data',
 });
 
-export const useRealtimeAnalysisChart = () => {
+export const useRealtimeAnalysisChart = (accelerometer?: MacroRecordingSettings['accelerometer']) => {
 	const [isChartEnabled, setIsChartEnabled] = useState(false);
 	const toolheads = useToolheads();
+	const controlBoard = useRecoilValue(ControlboardState);
+	const adxl = accelerometer ?? toolheads[0].getYAccelerometerName();
+	const adxlHardwareName =
+		(adxl === 'controlboard'
+			? controlBoard?.name
+			: adxl === 'toolboard_t0'
+				? toolheads[0].getToolboard()?.name
+				: adxl === 'toolboard_t1'
+					? toolheads[1].getToolboard()?.name
+					: adxl === 'rpi'
+						? 'Raspberry Pi'
+						: 'N/A') ?? 'N/A';
 	const psdChart = usePSDChart();
 	const xSignalChart = useADXLSignalChart('x');
 	const ySignalChart = useADXLSignalChart('y');
@@ -114,7 +129,7 @@ export const useRealtimeAnalysisChart = () => {
 	useTicker(updateSignals);
 
 	useRealtimeADXL({
-		sensor: toolheads[0].getYAccelerometerName(),
+		sensor: adxl,
 		enabled: isChartEnabled,
 		onDataUpdate: fifo.onData,
 	});
@@ -123,6 +138,8 @@ export const useRealtimeAnalysisChart = () => {
 			isChartEnabled,
 			setIsChartEnabled,
 			psds,
+			currentAccelerometer: adxl,
+			currentAccelerometerHardwareName: adxlHardwareName,
 			chartProps: {
 				xSignalChart,
 				ySignalChart,
@@ -130,7 +147,7 @@ export const useRealtimeAnalysisChart = () => {
 				psdChart,
 			},
 		}),
-		[isChartEnabled, psds, xSignalChart, ySignalChart, zSignalChart, psdChart],
+		[isChartEnabled, psds, adxl, adxlHardwareName, xSignalChart, ySignalChart, zSignalChart, psdChart],
 	);
 };
 

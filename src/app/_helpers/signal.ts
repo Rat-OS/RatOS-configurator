@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 /**
  * Usage:
@@ -28,7 +28,7 @@ export type SignalReturn = SignalUnsubscriber & void;
 
 export function useNewSignal<T = void>(): Signal<T> {
 	const subscribers = useRef(new Set<SignalListener<T>>());
-	return (eventOrListener: any): any => {
+	return useCallback((eventOrListener: any): any => {
 		if (typeof eventOrListener === 'function') {
 			subscribers.current.add(eventOrListener);
 			return () => {
@@ -37,7 +37,7 @@ export function useNewSignal<T = void>(): Signal<T> {
 		} else {
 			subscribers.current.forEach((listener) => listener(eventOrListener));
 		}
-	};
+	}, []);
 }
 
 export function useSignal<T = void>(signal: Signal<T>, listener: SignalListener<T>): void {

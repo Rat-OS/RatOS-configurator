@@ -53,7 +53,7 @@ export function DataTableToolbar<TData>({ table, globalFilter, setGlobalFilter }
 		<div className="flex items-center justify-between">
 			<div className="flex flex-1 items-center space-x-2">
 				<Input
-					placeholder="Filter tasks..."
+					placeholder="Filter items..."
 					value={globalFilter ?? ''}
 					onChange={(event) => setGlobalFilter(event.target.value)}
 					className="h-8 w-[150px] lg:w-[250px]"

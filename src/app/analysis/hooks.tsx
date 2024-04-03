@@ -1,7 +1,12 @@
 'use client';
 import useWebSocket from 'react-use-websocket';
 import { getHost } from '@/helpers/util';
-import { InFlightRequestCallbacks, InFlightRequestTimeouts, MoonrakerResponse } from '@/moonraker/types';
+import {
+	InFlightRequestCallbacks,
+	InFlightRequestTimeouts,
+	MoonrakerResponse,
+	MoonrakerResponseSuccess,
+} from '@/moonraker/types';
 import { MutableRefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getLogger } from '@/app/_helpers/logger';
 import { useKlippyStateHandler } from '@/hooks/useKlippyStateHandler';
@@ -66,6 +71,10 @@ export interface RealtimeADXLOptions {
 	sensor: ADXL345SensorName;
 }
 
+const isSuccessResponse = (res: MoonrakerResponse): res is MoonrakerResponseSuccess => {
+	return !('error' in res);
+};
+
 export const useRealtimeADXL = (options: RealtimeADXLOptions) => {
 	const [wsUrl, setWsUrl] = useState(getWsURL());
 	const inFlightRequests = useRef<InFlightRequestCallbacks>({});
@@ -87,9 +96,11 @@ export const useRealtimeADXL = (options: RealtimeADXLOptions) => {
 				if (options?.onDataUpdate && isSubscribedRef.current) {
 					try {
 						const parsed = JSON.parse(message.data) as MoonrakerResponse;
-						if (parsed.params != null && 'data' in parsed.params) {
+						if (isSuccessResponse(parsed) && parsed.params != null && 'data' in parsed.params) {
 							const res = klipperADXL345SubscriptionDataSchema.parse(parsed.params);
 							options.onDataUpdate?.(res);
+						} else if (!isSuccessResponse(parsed)) {
+							getLogger().error('Error in response from klipper socket', parsed);
 						}
 					} catch (e) {
 						console.warn('OnMessage: Failed to parse message', e, message.data);
@@ -152,7 +163,11 @@ export const useRealtimeADXL = (options: RealtimeADXLOptions) => {
 	useEffect(() => {
 		if (lastJsonMessage?.id && inFlightRequests.current[lastJsonMessage.id]) {
 			window.clearTimeout(inFlightRequestTimeouts.current[lastJsonMessage.id]);
-			inFlightRequests.current[lastJsonMessage.id](null, lastJsonMessage.result);
+			if (isSuccessResponse(lastJsonMessage)) {
+				inFlightRequests.current[lastJsonMessage.id](null, lastJsonMessage.result);
+			} else {
+				inFlightRequests.current[lastJsonMessage.id](new Error(lastJsonMessage.error.message), null);
+			}
 			delete inFlightRequestTimeouts.current[lastJsonMessage.id];
 			delete inFlightRequests.current[lastJsonMessage.id];
 		}
@@ -436,12 +451,15 @@ export const useAccumulatedPSD = (updateFn?: (result: AccumulatedPSD) => void) =
 		[isAccumulating],
 	);
 
-	return {
-		startAccumulation: start,
-		stopAccumulation: stop,
-		onData: onData,
-		isAccumulating,
-	};
+	return useMemo(
+		() => ({
+			startAccumulation: start,
+			stopAccumulation: stop,
+			onData: onData,
+			isAccumulating,
+		}),
+		[isAccumulating, onData, start, stop],
+	);
 };
 
 export function useTicker(tickOrTargetFps: () => Promise<void>, tick?: undefined): void;
@@ -512,7 +530,7 @@ export function useDynamicAxisRange(
 ) {
 	const maxRef = useRef<NumberRange | null>(axis ? maximumRangeUnion(axis) : null);
 	const lastUpdate = useRef<number>(new Date().getTime());
-	const lastGrow = useRef<number>(new Date().getTime());
+	const lastChange = useRef<number>(new Date().getTime());
 
 	const update = useCallback(
 		(dataRange: NumberRange = minimum) => {
@@ -524,7 +542,7 @@ export function useDynamicAxisRange(
 				maxRef.current = visibleRangeUnion(axis);
 			}
 			const sinceLastUpdate = new Date().getTime() - lastUpdate.current;
-			const sinceLastGrow = new Date().getTime() - lastGrow.current;
+			const sinceLastChange = new Date().getTime() - lastChange.current;
 			lastUpdate.current = new Date().getTime();
 			let max = maximumRangeUnion(axis);
 			if (dataRange) {
@@ -556,10 +574,10 @@ export function useDynamicAxisRange(
 						easing.inOutCirc,
 					);
 				});
-				lastGrow.current = new Date().getTime();
+				lastChange.current = new Date().getTime();
 				return;
 			}
-			if (sinceLastGrow > sinceLastUpdate * 3) {
+			if (sinceLastChange > sinceLastUpdate * 3) {
 				if (max.max < maxRef.current.max) {
 					newMax = maxRef.current.max - (maxRef.current.max - max.max);
 				}
@@ -580,6 +598,7 @@ export function useDynamicAxisRange(
 							easing.inOutCirc,
 						);
 					});
+					lastChange.current = new Date().getTime();
 					return;
 				}
 			}

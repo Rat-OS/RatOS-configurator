@@ -5,14 +5,12 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Checkbox } from '@/components/ui/checkbox';
 
 import { DataTableColumnHeader } from '@/app/analysis/macros/components/data-table-column-header';
-import { DataTableRowActions } from '@/app/analysis/macros/components/data-table-row-actions';
-import { Macro, MacroRecording } from '@/zods/analysis';
+import { MacroRecording } from '@/zods/analysis';
 import { Badge, BadgeProps } from '@/components/common/badge';
-import { DotFilledIcon, DotIcon } from '@radix-ui/react-icons';
 import { ArrowDownOnSquareIcon, CpuChipIcon, ServerIcon } from '@heroicons/react/24/outline';
 import React from 'react';
 import { ColumnCapabilities } from '@/app/analysis/macros/components/data-table-toolbar';
-import luxon from 'luxon';
+import * as luxon from 'luxon';
 
 export const columns: (ColumnDef<MacroRecording> & ColumnCapabilities)[] = [
 	{

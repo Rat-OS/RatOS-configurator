@@ -8,6 +8,8 @@ import Image from 'next/image';
 import logoWhite from '@/public/logo-white.svg';
 import { Signal, useNewSignal, useSignal } from '@/app/_helpers/signal';
 import * as Menu from '@/components/ui/menubar';
+import Link from 'next/link';
+import { CircleHelp } from 'lucide-react';
 
 type MenuId = Nominal<string, 'MenuId'>;
 type MenuEntryRenderer = (menu: typeof Menu) => React.ReactNode;
@@ -86,9 +88,21 @@ export const TopMenu: React.FC<TopMenuProps> = ({ sidebarOpen, setSidebarOpen, m
 	useSignal(
 		menusChanged,
 		useCallback(() => {
-			console.log('Menus changed', menus.current.values());
 			setMenu(Array.from(menus.current.values()));
 		}, [menus]),
+	);
+	const mobileMenuButton = (
+		<button
+			onClick={() => setSidebarOpen(true)}
+			className="inline-flex items-center justify-center rounded-md p-2 text-zinc-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-zinc-800"
+		>
+			<span className="sr-only">Open main menu</span>
+			{sidebarOpen ? (
+				<XMarkIcon className={twJoin('block', 'h-5 w-5')} aria-hidden="true" />
+			) : (
+				<Bars3Icon className={twJoin('block', 'h-5 w-5')} aria-hidden="true" />
+			)}
+		</button>
 	);
 	return (
 		<motion.div
@@ -105,47 +119,38 @@ export const TopMenu: React.FC<TopMenuProps> = ({ sidebarOpen, setSidebarOpen, m
 						<div className="flex h-16 shrink-0 items-center">
 							<Image width={160} height={40} className="h-8 w-auto" src={logoWhite} alt="Workflow" />
 						</div>
-						{/* Mobile menu button */}
-						<button
-							onClick={() => setSidebarOpen(true)}
-							className="inline-flex items-center justify-center rounded-md p-2 text-zinc-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-zinc-800"
-						>
-							<span className="sr-only">Open main menu</span>
-							{sidebarOpen ? (
-								<XMarkIcon className="block h-6 w-6" aria-hidden="true" />
-							) : (
-								<Bars3Icon className="block h-6 w-6" aria-hidden="true" />
-							)}
-						</button>
+						{menus.current.size === 0 && mobileMenuButton}
 					</div>
-					{menu.length > 0 && (
-						<Menu.Menubar>
-							{menu.map(({ id, render }) => (
+					<Menu.Menubar className="lg:flex-1">
+						{menus.current.size > 0 &&
+							Array.from(menus.current.values()).map(({ id, render }) => (
 								<React.Fragment key={id}>{render(Menu)}</React.Fragment>
 							))}
-						</Menu.Menubar>
-					)}
-					<div className="hidden lg:flex" />
-					<div className="hidden items-center justify-between space-x-2 lg:flex">
-						<Button
-							href="https://os.ratrig.com/docs/introduction"
-							variant="indeterminate"
-							target="_blank"
-							rel="noreferrer"
-						>
-							<BookOpenIcon className="h-4 w-4" />
-							<span>Docs</span>
-						</Button>
-						<Button
-							href="https://github.com/sponsors/miklschmidt"
-							variant="indeterminate"
-							target="_blank"
-							rel="noreferrer"
-						>
-							<HeartIcon className="h-4 w-4" />
-							<span>Donate</span>
-						</Button>
-					</div>
+						<Menu.MenubarSeparator className="flex-1 bg-transparent" />
+						<Menu.MenubarMenu>
+							<Menu.MenubarTrigger className="flex-nowrap space-x-2 whitespace-nowrap text-nowrap">
+								<CircleHelp className="size-4" /> <span className="hidden lg:inline">Help</span>
+							</Menu.MenubarTrigger>
+							<Menu.MenubarContent onCloseAutoFocus={(e) => e.preventDefault()}>
+								<Menu.MenubarItem asChild={true}>
+									<Link href="https://os.ratrig.com/docs/introduction" target="_blank" rel="noreferrer">
+										Docs
+									</Link>
+								</Menu.MenubarItem>
+								<Menu.MenubarItem asChild={true}>
+									<Link href="https://github.com/sponsors/miklschmidt" target="_blank" rel="noreferrer">
+										Donate
+									</Link>
+								</Menu.MenubarItem>
+							</Menu.MenubarContent>
+						</Menu.MenubarMenu>
+
+						<Menu.MenubarMenu>
+							<Menu.MenubarTrigger asChild={true} className="flex-nowrap whitespace-nowrap text-nowrap lg:hidden">
+								{mobileMenuButton}
+							</Menu.MenubarTrigger>
+						</Menu.MenubarMenu>
+					</Menu.Menubar>
 				</div>
 			</div>
 		</motion.div>

@@ -102,9 +102,6 @@ export const analysisRouter = router({
 				cursor: z.number().default(0),
 			}),
 		)
-		.output(
-			z.object({ result: z.array(macroRecordingSchema), cursor: z.number().default(0), hasNextPage: z.boolean() }),
-		)
 		.query(async ({ input }) => {
 			const file = path.join(recordingsDataDir, `${input.macroId}.ndjson`);
 			const recordingStorage = initObjectStorage(file, macroRecordingSchema);

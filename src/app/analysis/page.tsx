@@ -3,35 +3,15 @@ import React from 'react';
 import { Analysis } from '@/app/analysis/analysis';
 import { Spinner } from '@/components/common/spinner';
 import { NoSSR } from '@/components/common/no-ssr';
-import { FullLoadScreen } from '@/components/common/full-load-screen';
-
-const LoadScreen: React.FC = () => {
-	return (
-		<div className="p-8">
-			<div className="mb-5 border-b border-zinc-200 pb-5 dark:border-zinc-700">
-				<h3 className="text-lg font-medium leading-6 text-zinc-900 dark:text-zinc-100">
-					Loading printer configuration...
-				</h3>
-				<p className="mt-2 max-w-4xl text-sm text-zinc-500 dark:text-zinc-400">
-					Please wait while RatOS loads your printer configuration
-				</p>
-			</div>
-			<div className="mt-4 flex h-48 items-center justify-center">
-				<Spinner />
-			</div>
-		</div>
-	);
-};
+import Loading from '@/app/analysis/loading';
 
 export default function Page() {
 	return (
-		<div className="h-full p-4 @container">
-			<React.Suspense fallback={<FullLoadScreen />}>
-				<NoSSR>
-					<Analysis />
-					{/* <BeltTension /> */}
-				</NoSSR>
-			</React.Suspense>
-		</div>
+		<NoSSR fallback={<Loading />}>
+			<div className="h-full p-4 @container">
+				<Analysis />
+				{/* <BeltTension /> */}
+			</div>
+		</NoSSR>
 	);
 }

@@ -25,6 +25,7 @@ import type {
 	PrinterObjectKeys,
 	PrinterObjectsMoonrakerQueryParams,
 	PrinterObjectResult,
+	MoonrakerResponseSuccess,
 } from '@/moonraker/types';
 import { getHost } from '@/helpers/util';
 import { merge } from 'ts-deepmerge';
@@ -60,25 +61,31 @@ export const useMoonraker = (options?: MoonrakerHookOptions) => {
 		setWsUrl(getWsURL());
 	}, []);
 
-	const containsSubscriptionUpdate = useCallback((jsonMessage: MoonrakerResponse) => {
-		if (jsonMessage.method === 'notify_status_update' && jsonMessage.params != null) {
-			const res = jsonMessage.params[0] as MoonrakerStatusUpdate;
-			if (res != null) {
-				for (const sub of localSubscriptions.current) {
-					const objects = subscriptions[sub];
-					if (objects != null) {
-						for (const key in objects) {
-							if (res[key as PrinterObjectKeys] != null) {
-								return true;
+	const containsSubscriptionUpdate = useCallback(
+		(jsonMessage: MoonrakerResponse): jsonMessage is MoonrakerResponseSuccess => {
+			if ('error' in jsonMessage) {
+				return false;
+			}
+			if (jsonMessage.method === 'notify_status_update' && jsonMessage.params != null) {
+				const res = jsonMessage.params[0] as MoonrakerStatusUpdate;
+				if (res != null) {
+					for (const sub of localSubscriptions.current) {
+						const objects = subscriptions[sub];
+						if (objects != null) {
+							for (const key in objects) {
+								if (res[key as PrinterObjectKeys] != null) {
+									return true;
+								}
 							}
 						}
 					}
 				}
+				return false;
 			}
 			return false;
-		}
-		return false;
-	}, []);
+		},
+		[],
+	);
 
 	const { lastJsonMessage, sendJsonMessage, readyState } = useWebSocket<MoonrakerResponse>(wsUrl, {
 		filter: (message) => {
@@ -90,7 +97,11 @@ export const useMoonraker = (options?: MoonrakerHookOptions) => {
 				if (inFlightRequests.current[parsed.id] != null) {
 					return true;
 				}
-				if (options?.passThroughUpdateMethods?.length && options.passThroughUpdateMethods.includes(parsed.method)) {
+				if (
+					options?.passThroughUpdateMethods?.length &&
+					'method' in parsed &&
+					options.passThroughUpdateMethods.includes(parsed.method)
+				) {
 					return true;
 				}
 				return false;
@@ -259,7 +270,11 @@ export const useMoonraker = (options?: MoonrakerHookOptions) => {
 	useEffect(() => {
 		if (lastJsonMessage?.id && inFlightRequests.current[lastJsonMessage.id]) {
 			window.clearTimeout(inFlightRequestTimeouts.current[lastJsonMessage.id]);
-			inFlightRequests.current[lastJsonMessage.id](null, lastJsonMessage.result);
+			if ('error' in lastJsonMessage) {
+				inFlightRequests.current[lastJsonMessage.id](new Error(lastJsonMessage.error.message), null);
+			} else {
+				inFlightRequests.current[lastJsonMessage.id](null, lastJsonMessage.result);
+			}
 			delete inFlightRequestTimeouts.current[lastJsonMessage.id];
 			delete inFlightRequests.current[lastJsonMessage.id];
 		}

@@ -3,6 +3,7 @@
     "tailwindCSS.experimental.classRegex": [
         ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
         ["cx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"],
+        ["cn\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"],
         ["twMerge\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"],
         ["twJoin\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
     ],
@@ -28,5 +29,6 @@
 	},
 	"emmet.showExpandedAbbreviation": "never",
 	"emmet.showAbbreviationSuggestions": false,
-	"editor.insertSpaces": false
+	"editor.insertSpaces": false,
+	"tailwindCSS.experimental.configFile": null
 }
