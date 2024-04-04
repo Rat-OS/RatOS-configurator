@@ -1,4 +1,5 @@
-import { macroSequenceSchema } from '@/zods/analysis';
+'use client';
+import { macroRecordingSchema, macroSequenceSchema } from '@/zods/analysis';
 import {
 	PSDChardNoSeriesDefinition,
 	PSD_CHART_AXIS_AMPLITUDE_ID,
@@ -10,6 +11,7 @@ import { z } from 'zod';
 import React, { useCallback, useEffect, useRef } from 'react';
 import {
 	CursorModifier,
+	EDataSeriesType,
 	FastBandRenderableSeries,
 	FastLineRenderableSeries,
 	NumberRange,
@@ -19,6 +21,7 @@ import {
 	WaveAnimation,
 	XyDataSeries,
 	XyyDataSeries,
+	XyySeriesInfo,
 } from 'scichart';
 import { shadableTWColors } from '@/app/_helpers/colors';
 import { SciChartReact } from 'scichart-react';
@@ -29,8 +32,9 @@ SciChartSurface.configure({
 	dataUrl: '/configure/scichart2d.data',
 });
 
-interface MacroChartPreviewProps {
-	sequences: z.input<typeof macroSequenceSchema>[];
+interface MacroRunChartProps {
+	recordings: z.infer<typeof macroRecordingSchema>[];
+	sequences: z.infer<typeof macroSequenceSchema>[];
 }
 
 const getBandTooltipDataTemplate = (
@@ -45,6 +49,12 @@ const getBandTooltipDataTemplate = (
 	lines.push(
 		`<tspan class="opacity-70 font-medium">${seriesInfo.formattedYValue} @ ${seriesInfo.formattedXValue}</tspan>`,
 	);
+	if (seriesInfo.dataSeriesType === EDataSeriesType.Xyy) {
+		const xyyInfo = seriesInfo as XyySeriesInfo;
+		lines.push(
+			`<tspan class="opacity-70 font-medium">${xyyInfo.formattedY1Value} @ ${xyyInfo.formattedXValue}</tspan>`,
+		);
+	}
 	return lines;
 };
 const getTooltipDataTemplate = (
@@ -62,14 +72,15 @@ const getTooltipDataTemplate = (
 	return lines;
 };
 
-export const MacroChartPreview: React.FC<MacroChartPreviewProps> = ({ sequences }) => {
-	const sequenceData = sequences
-		.map((seq) => {
-			return seq.recording?.capturePSD
+export const MacroRunChart: React.FC<MacroRunChartProps> = ({ recordings, sequences }) => {
+	const sequenceData = recordings
+		.map((rec) => {
+			const sequence = sequences.find((seq) => seq.id === rec.sequenceId);
+			return sequence?.recording
 				? {
-						accel: seq.recording.accelerometer,
-						color: seq.recording.color,
-						name: seq.name,
+						color: sequence?.recording?.color,
+						name: rec.name,
+						psd: rec.psd.total,
 					}
 				: null;
 		})
@@ -78,40 +89,24 @@ export const MacroChartPreview: React.FC<MacroChartPreviewProps> = ({ sequences 
 
 	const setupChart = useCallback(
 		(surface: SciChartSurface) => {
+			let bandSeries = false;
 			if (sequenceData.length === 2) {
-				const randMul1 = 10 * Math.random() * 50 + 184;
-				const randAdd1 = 10 * Math.random() * 400 + 900;
-				const randMul2 = 10 * Math.random() * 50 + 184;
-				const randAdd2 = 10 * Math.random() * 400 + 900;
-				const step1 = 2 + Math.random() * 3;
-				const step2 = 2 + Math.random() * 3;
+				bandSeries = true;
+				for (let i = 0; i < sequenceData[0].psd.frequencies.length; i++) {
+					if (Math.abs(sequenceData[0].psd.frequencies[i] - sequenceData[1].psd.frequencies[i]) > 1) {
+						bandSeries = false;
+					}
+				}
+			}
+
+			if (bandSeries) {
 				const rs = new FastBandRenderableSeries(surface.webAssemblyContext2D, {
 					dataSeries: new XyyDataSeries(surface.webAssemblyContext2D, {
 						containsNaN: false,
 						isSorted: true,
-						xValues: Array(130)
-							.fill(0)
-							.map((_, i) => (200 / 130) * i),
-						yValues: Array(130)
-							.fill(0)
-							.map((_, i) =>
-								Math.max(
-									0,
-									(i < 50 && i > 25) || i > 70
-										? (140 - i) * 5 * (Math.cos(i / step1) * randMul1 + randAdd1)
-										: i * 30 * (Math.sin(i / step1) * randMul1 + randAdd1),
-								),
-							),
-						y1Values: Array(130)
-							.fill(0)
-							.map((_, i) =>
-								Math.max(
-									0,
-									(i < 50 && i > 25) || i > 70
-										? (140 - i) * 5 * (Math.cos(i / step2) * randMul2 + randAdd2)
-										: i * 10 * (Math.sin(i / step2) * randMul2 * 3 + randAdd2),
-								),
-							),
+						xValues: sequenceData[0].psd.frequencies,
+						yValues: sequenceData[0].psd.estimates,
+						y1Values: sequenceData[1].psd.estimates,
 					}),
 					fill: shadableTWColors[(sequenceData[1].color ?? 'sky') as keyof typeof shadableTWColors][600] + 22,
 					fillY1: shadableTWColors[(sequenceData[0].color ?? 'rose') as keyof typeof shadableTWColors][600] + 22,
@@ -130,26 +125,12 @@ export const MacroChartPreview: React.FC<MacroChartPreviewProps> = ({ sequences 
 				surface.renderableSeries.add(rs);
 			} else {
 				sequenceData.forEach((seq) => {
-					const randMul1 = 1000 * Math.random() * 50 + 184;
-					const randAdd1 = 1000 * Math.random() * 400 + 900;
-					const step1 = 2 + Math.random() * 3;
 					const rs = new FastLineRenderableSeries(surface.webAssemblyContext2D, {
 						dataSeries: new XyDataSeries(surface.webAssemblyContext2D, {
 							containsNaN: false,
 							isSorted: true,
-							xValues: Array(130)
-								.fill(0)
-								.map((_, i) => (200 / 130) * i),
-							yValues: Array(130)
-								.fill(0)
-								.map((_, i) =>
-									Math.max(
-										0,
-										(i < 50 && i > 25) || i > 70
-											? (140 - i) * 5 * (Math.cos(i / step1) * randMul1 + randAdd1)
-											: i * 30 * (Math.sin(i / step1) * randMul1 + randAdd1),
-									),
-								),
+							xValues: seq.psd.frequencies,
+							yValues: seq.psd.estimates,
 						}),
 						stroke: shadableTWColors[(seq.color ?? 'brand') as keyof typeof shadableTWColors][400],
 						strokeThickness: 3,
@@ -166,13 +147,10 @@ export const MacroChartPreview: React.FC<MacroChartPreviewProps> = ({ sequences 
 
 			const yAxis = surface.yAxes.getById(PSD_CHART_AXIS_AMPLITUDE_ID);
 			if (yAxis) {
-				let range = new NumberRange(0, 0);
-				surface.renderableSeries.asArray().forEach((rs) => {
-					const series = rs as FastLineRenderableSeries | FastBandRenderableSeries;
-					range = range.union(series.getYRange(series.getXRange(), false));
-				});
-				range = range.growBy(new NumberRange(0.0, 0.1));
-				yAxis.visibleRange = range;
+				yAxis.visibleRange = new NumberRange(
+					Math.min(...sequenceData.map((seq) => seq.psd.powerRange.min)),
+					Math.max(...sequenceData.map((seq) => seq.psd.powerRange.max)),
+				).growBy(new NumberRange(0.0, 0.1));
 			}
 
 			surface.chartModifiers.add(
@@ -221,5 +199,5 @@ export const MacroChartPreview: React.FC<MacroChartPreviewProps> = ({ sequences 
 		}
 	}, [chart.surface, sequenceData, setupChart]);
 
-	return <SciChartReact {...chart.forwardProps} className="flex-1"></SciChartReact>;
+	return <SciChartReact {...chart.forwardProps} className="flex-1 bg-zinc-900/50"></SciChartReact>;
 };

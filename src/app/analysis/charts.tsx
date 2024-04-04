@@ -32,12 +32,15 @@ import {
 	EVerticalAnchorPoint,
 	ECoordinateMode,
 	EExecuteOn,
+	CursorTooltipSvgAnnotation,
+	EDataSeriesType,
+	XyySeriesInfo,
 } from 'scichart';
 import { useChart } from '@/app/analysis/hooks';
 import { ChartTheme } from '@/app/analysis/chart-theme';
 
 import { inter } from '@/app/fonts';
-import { TWShadeableColorName, twColors } from '@/app/_helpers/colors';
+import { TWShadeableColorName, shadableTWColors, twColors } from '@/app/_helpers/colors';
 import { useCallback } from 'react';
 
 export const ADXL_STREAM_BUFFER_SIZE = 128;
@@ -332,6 +335,60 @@ export const PSDChartDefinition: ISciChart2DDefinition = {
 			},
 		},
 	],
+};
+
+// Override the standard tooltip displayed by CursorModifier
+export const getPSDTooltipLegendTemplate = (seriesInfos: SeriesInfo[], svgAnnotation: CursorTooltipSvgAnnotation) => {
+	let outputSvgString = '';
+
+	// Foreach series there will be a seriesInfo supplied by SciChart. This contains info about the series under the house
+	const padding = 16;
+	let y = padding * 2;
+	const valuesWithLabels: string[] = [];
+	seriesInfos.forEach((seriesInfo, index) => {
+		let separator = ':';
+		let textColor = seriesInfo.renderableSeries.rolloverModifierProps.tooltipColor as TWShadeableColorName;
+		valuesWithLabels.push(
+			`${seriesInfo.renderableSeries.rolloverModifierProps.tooltipTitle}${separator} ${(seriesInfo.yValue / 1000).toFixed(2)} g^2/Hz @ ${seriesInfo.formattedXValue}`,
+		);
+		outputSvgString += `<text x="${padding}" y="${y}" class="text-sm text-medium font-sans" fill="${shadableTWColors[textColor][400]}">
+		<tspan class="font-bold">${seriesInfo.renderableSeries.rolloverModifierProps.tooltipTitle}</tspan>${separator} ${(seriesInfo.yValue / 1000).toFixed(2)} g<tspan y="${y - 4}" class="sup">2</tspan><tspan y=${y}>/Hz</tspan>@ ${seriesInfo.formattedXValue}
+		</text>`;
+		y += 20;
+		if (seriesInfo.dataSeriesType === EDataSeriesType.Xyy) {
+			const si = seriesInfo as XyySeriesInfo;
+			let textColor = seriesInfo.renderableSeries.rolloverModifierProps1.tooltipColor as TWShadeableColorName;
+			valuesWithLabels.push(
+				`${si.renderableSeries.rolloverModifierProps1.tooltipTitle}${separator} ${(si.y1Value / 1000).toFixed(2)} g^2/Hz @ ${si.formattedXValue}`,
+			);
+			outputSvgString += `<text x="${padding}" y="${y}" class="text-sm text-medium font-sans" fill="${shadableTWColors[textColor][400]}">
+				<tspan class="font-bold">${si.renderableSeries.rolloverModifierProps1.tooltipTitle}</tspan>${separator} ${(si.y1Value / 1000).toFixed(2)} g<tspan y="${y - 4}" class="sup">2</tspan><tspan y=${y}>/Hz</tspan> @ ${si.formattedXValue}
+			</text>`;
+			y += 20;
+
+			outputSvgString += `<text x="${padding}" y="${y}" class="text-sm text-medium font-sans" fill="${shadableTWColors['zinc'][400]}">
+				<tspan class="font-bold">Amplitude Difference</tspan>${separator} ${Math.abs((si.y1Value - si.yValue) / 1000).toFixed(2)} g<tspan y="${y - 4}" class="sup">2</tspan><tspan y=${y}>/Hz</tspan>
+			</text>`;
+			y += 20;
+		}
+	});
+	const width =
+		seriesInfos.length === 0
+			? 0
+			: padding +
+				calcTooltipWidth(
+					valuesWithLabels.reduce(function (prev, cur) {
+						return cur.length > prev ? cur.length : prev;
+					}, 0),
+				) *
+					1.7;
+	// tooltip height
+	const height = seriesInfos.length === 0 ? 0 : y;
+
+	return `<svg width="${width}" height="${height}">
+				<rect rx="8" ry="8" width="100%" height="100%" class="stroke-zinc-400/10 fill-zinc-900/70 stroke-1" />
+                ${outputSvgString}
+            </svg>`;
 };
 
 // Override the standard tooltip displayed by CursorModifier

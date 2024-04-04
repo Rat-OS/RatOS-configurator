@@ -1,8 +1,8 @@
 import React from 'react';
 import { NoSSR } from '@/components/common/no-ssr';
-import { FullLoadScreen } from '@/components/common/full-load-screen';
 import AnalysisMacrosTable from '@/app/analysis/macros/macros';
 import { Metadata } from 'next';
+import Loading from '@/app/analysis/macros/loading';
 
 export const metadata: Metadata = {
 	title: 'Macros',
@@ -12,11 +12,9 @@ export const metadata: Metadata = {
 export default function Page() {
 	return (
 		<div className="h-full @container">
-			<React.Suspense fallback={<FullLoadScreen />}>
-				<NoSSR>
-					<AnalysisMacrosTable />
-				</NoSSR>
-			</React.Suspense>
+			<NoSSR fallback={<Loading />}>
+				<AnalysisMacrosTable />
+			</NoSSR>
 		</div>
 	);
 }

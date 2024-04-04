@@ -1,8 +1,6 @@
-import { Button } from '@/components/common/button';
 import { XMarkIcon, Bars3Icon, BookOpenIcon } from '@heroicons/react/24/outline';
-import { HeartIcon } from '@radix-ui/react-icons';
 import { motion } from 'framer-motion';
-import React, { PropsWithChildren, createContext, useCallback, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { twJoin } from 'tailwind-merge';
 import Image from 'next/image';
 import logoWhite from '@/public/logo-white.svg';

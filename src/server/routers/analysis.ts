@@ -1,10 +1,13 @@
 import { serverSchema } from '@/env/schema.mjs';
 import { publicProcedure, router } from '@/server/trpc';
 import {
+	accumulatedPSDSchema,
 	createMacroSchema,
 	macroIDSchema,
 	macroRecordingIdSchema,
+	macroRecordingRunIdSchema,
 	macroRecordingSchema,
+	macroRecordingSchemaWithoutSourcePSDs,
 	macroSchema,
 	macroSequenceIDSchema,
 } from '@/zods/analysis';
@@ -98,14 +101,27 @@ export const analysisRouter = router({
 			z.object({
 				macroId: macroIDSchema,
 				sequenceId: macroSequenceIDSchema.optional(),
+				includeSource: z.boolean().default(false),
 				limit: z.number().default(50),
 				cursor: z.number().default(0),
 			}),
 		)
 		.query(async ({ input }) => {
 			const file = path.join(recordingsDataDir, `${input.macroId}.ndjson`);
-			const recordingStorage = initObjectStorage(file, macroRecordingSchema);
-			return await recordingStorage.getAll(input.cursor, input.limit);
+			const recordingStorage = initObjectStorage(
+				file,
+				input.includeSource ? macroRecordingSchema : macroRecordingSchemaWithoutSourcePSDs, // effectively filters out the source PSDs
+			);
+			const recordings = await recordingStorage.getAll(input.cursor, input.limit);
+			if (input.sequenceId) {
+				const macro = await macroStorage.findById(input.macroId);
+				if (macro == null) {
+					throw new Error(`Macro with id ${input.macroId} not found`);
+				}
+				recordings.result = recordings.result.filter((r) => r.sequenceId === input.sequenceId);
+				recordings.total = macro.recordingCount[input.sequenceId] ?? 0;
+			}
+			return recordings;
 		}),
 	getRecording: publicProcedure
 		.input(z.object({ macroId: macroIDSchema, recordingId: macroRecordingIdSchema }))
@@ -114,5 +130,12 @@ export const analysisRouter = router({
 			const file = path.join(recordingsDataDir, `${input.macroId}.ndjson`);
 			const recordingStorage = initObjectStorage(file, macroRecordingSchema);
 			return await recordingStorage.find((r) => r.id === input.recordingId);
+		}),
+	getRunRecordings: publicProcedure
+		.input(z.object({ runId: macroRecordingRunIdSchema, macroId: macroIDSchema }))
+		.query(async ({ input }) => {
+			const file = path.join(recordingsDataDir, `${input.macroId}.ndjson`);
+			const recordingStorage = initObjectStorage(file, macroRecordingSchema);
+			return await recordingStorage.findAll((r) => r.macroRecordingRunId === input.runId);
 		}),
 });

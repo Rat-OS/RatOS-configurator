@@ -9,7 +9,7 @@ export function HeroPattern() {
 				{/* <div className="absolute inset-0 [mask-image:radial-gradient(farthest-side_at_top,white_60%,transparent)]">
 					<BackgroundBeams />
 				</div> */}
-				<div className="dark:bg-grid-small-brand-400/[0.3] bg-grid-small-black/[0.2] relative flex h-full w-full items-center justify-center [mask-image:radial-gradient(farthest-side_at_top,white,transparent)]">
+				<div className="relative flex h-full w-full items-center justify-center bg-grid-small-black/[0.2] [mask-image:radial-gradient(farthest-side_at_top,white,transparent)] dark:bg-grid-small-brand-400/[0.3]">
 					{/* Radial gradient for the container to give a faded look */}
 					<div className="pointer-events-none absolute inset-0 flex items-center justify-center [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]"></div>
 				</div>

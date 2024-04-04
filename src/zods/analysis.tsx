@@ -90,6 +90,10 @@ export const macroRecordingSchema = z.object({
 	name: z.string(),
 });
 
+export const macroRecordingSchemaWithoutSourcePSDs = macroRecordingSchema.extend({
+	psd: accumulatedPSDSchema.omit({ source: true }),
+});
+
 export const macroSequenceSchema = z.object({
 	id: macroSequenceIDSchema,
 	name: z.string(),
@@ -131,6 +135,8 @@ export type MacroID = z.infer<typeof macroIDSchema>;
 export type MacroRecordingSettings = z.infer<typeof macroRecordingSettingsSchema>;
 
 export type MacroRecording = z.infer<typeof macroRecordingSchema>;
+
+export type MacroRecordingWithoutSourcePSDs = z.infer<typeof macroRecordingSchemaWithoutSourcePSDs>;
 
 export type MacroSequence = z.infer<typeof macroSequenceSchema>;
 

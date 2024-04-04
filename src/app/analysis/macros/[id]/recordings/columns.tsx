@@ -5,14 +5,16 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Checkbox } from '@/components/ui/checkbox';
 
 import { DataTableColumnHeader } from '@/app/analysis/macros/components/data-table-column-header';
-import { MacroRecording } from '@/zods/analysis';
+import { MacroRecordingWithoutSourcePSDs } from '@/zods/analysis';
 import { Badge, BadgeProps } from '@/components/common/badge';
 import { ArrowDownOnSquareIcon, CpuChipIcon, ServerIcon } from '@heroicons/react/24/outline';
 import React from 'react';
 import { ColumnCapabilities } from '@/app/analysis/macros/components/data-table-toolbar';
 import * as luxon from 'luxon';
+import { MacroRecordingDataTableRowActions } from '@/app/analysis/macros/[id]/recordings/recording-row-actions';
+luxon.Settings.defaultLocale = 'en-GB';
 
-export const columns: (ColumnDef<MacroRecording> & ColumnCapabilities)[] = [
+export const columns: (ColumnDef<MacroRecordingWithoutSourcePSDs> & ColumnCapabilities)[] = [
 	{
 		id: 'select',
 		header: ({ table }) => (
@@ -33,7 +35,12 @@ export const columns: (ColumnDef<MacroRecording> & ColumnCapabilities)[] = [
 		enableHiding: false,
 	},
 	{
+		accessorKey: 'macroRecordingRunId',
+		enableGrouping: true,
+	},
+	{
 		id: 'date',
+		accessorKey: 'startTimeStamp',
 		header: ({ column }) => <DataTableColumnHeader column={column} title="Date" />,
 		cell: ({ row }) => {
 			const start = luxon.DateTime.fromMillis(row.original.startTimeStamp);
@@ -53,10 +60,13 @@ export const columns: (ColumnDef<MacroRecording> & ColumnCapabilities)[] = [
 				</div>
 			);
 		},
+		enableSorting: true,
+		sortingFn: (a, b) => a.original.startTimeStamp - b.original.startTimeStamp,
+		sortDescFirst: true,
 	},
 	{
 		accessorKey: 'name',
-		header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Recording" />,
 		cell: ({ row }) => {
 			let labels: { label: string; color: BadgeProps['color']; icon: React.ComponentType }[] = [];
 			switch (row.original.accelerometer) {
@@ -93,5 +103,10 @@ export const columns: (ColumnDef<MacroRecording> & ColumnCapabilities)[] = [
 				{ label: 'Tool Board T1', value: 'toolboard_t1', icon: ArrowDownOnSquareIcon },
 			];
 		},
+	},
+	{
+		id: 'actions',
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Actions" />,
+		cell: ({ row }) => <MacroRecordingDataTableRowActions row={row} />,
 	},
 ];

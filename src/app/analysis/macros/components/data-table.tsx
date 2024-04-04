@@ -4,6 +4,7 @@ import * as React from 'react';
 import {
 	ColumnDef,
 	ColumnFiltersState,
+	GroupingState,
 	SortingState,
 	VisibilityState,
 	flexRender,
@@ -11,6 +12,7 @@ import {
 	getFacetedRowModel,
 	getFacetedUniqueValues,
 	getFilteredRowModel,
+	getGroupedRowModel,
 	getPaginationRowModel,
 	getSortedRowModel,
 	useReactTable,
@@ -23,15 +25,25 @@ import { ColumnCapabilities, DataTableToolbar } from '@/app/analysis/macros/comp
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[] & ColumnCapabilities;
+	initialColumnVisibility?: VisibilityState;
+	initialGrouping?: GroupingState;
+	initialSorting?: SortingState;
 	data: TData[];
 }
 
-export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>({
+	columns,
+	data,
+	initialColumnVisibility,
+	initialGrouping,
+	initialSorting,
+}: DataTableProps<TData, TValue>) {
 	const [rowSelection, setRowSelection] = React.useState({});
 	const [globalFilter, setGlobalFilter] = React.useState('');
-	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(initialColumnVisibility ?? {});
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-	const [sorting, setSorting] = React.useState<SortingState>([]);
+	const [grouping, setGrouping] = React.useState<GroupingState>(initialGrouping ?? []);
+	const [sorting, setSorting] = React.useState<SortingState>(initialSorting ?? []);
 
 	const table = useReactTable({
 		data,
@@ -41,6 +53,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
 			columnVisibility,
 			rowSelection,
 			columnFilters,
+			grouping,
 			globalFilter: globalFilter,
 		},
 		enableRowSelection: true,
@@ -48,10 +61,12 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
 		onSortingChange: setSorting,
 		onColumnFiltersChange: setColumnFilters,
 		onColumnVisibilityChange: setColumnVisibility,
+		onGroupingChange: setGrouping,
 		getCoreRowModel: getCoreRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
 		getPaginationRowModel: getPaginationRowModel(),
 		getSortedRowModel: getSortedRowModel(),
+		getGroupedRowModel: getGroupedRowModel(),
 		getFacetedRowModel: getFacetedRowModel(),
 		getFacetedUniqueValues: getFacetedUniqueValues(),
 	});

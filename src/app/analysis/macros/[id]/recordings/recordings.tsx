@@ -20,12 +20,18 @@ export default function MacroRecordings({ id }: { id: string }) {
 				<div>
 					<h2 className="text-xl font-semibold leading-none tracking-tight">Recordings for {macro.name}</h2>
 					<p className="text-base font-medium text-muted-foreground">
-						You have recorded {macroRecordingsQuery.total} run(s) so far.
+						You have recorded {macroRecordingsQuery.total} sequence(s) so far.
 					</p>
 				</div>
 				<div className="flex items-center space-x-2">Nothing here</div>
 			</div>
-			<DataTable data={macroRecordingsQuery.result ?? []} columns={columns} />
+			<DataTable
+				data={macroRecordingsQuery.result ?? []}
+				columns={columns}
+				initialGrouping={['macroRecordingRunId']}
+				initialColumnVisibility={{}}
+				initialSorting={[{ desc: true, id: 'date' }]}
+			/>
 		</div>
 	);
 }

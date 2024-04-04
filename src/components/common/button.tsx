@@ -1,5 +1,5 @@
 'use client';
-import Link from 'next/link';
+import Link, { LinkProps } from 'next/link';
 import { twJoin, twMerge } from 'tailwind-merge';
 import React, { Fragment, forwardRef } from 'react';
 import { VariantProps, cva } from 'class-variance-authority';
@@ -95,13 +95,13 @@ export const buttonVariants = cva(
 
 export type Intents = NonNullable<Required<VariantProps<typeof buttonVariants>>['variant']>;
 
-interface ButtonProps
+interface ButtonProps<T extends string>
 	extends React.PropsWithChildren<VariantProps<typeof buttonVariants> & React.ButtonHTMLAttributes<HTMLButtonElement>> {
 	onClick?: () => void;
 	className?: string;
 	target?: string;
 	asChild?: boolean;
-	href?: Route;
+	href?: Route<T> | URL;
 	title?: string;
 	rel?: string;
 	dropdownItems?: {
@@ -110,7 +110,10 @@ interface ButtonProps
 	}[];
 }
 
-export const Button = forwardRef<HTMLButtonElement & HTMLAnchorElement, ButtonProps>(function Button(props, ref) {
+export const Button = forwardRef(function Button<T extends string>(
+	props: ButtonProps<T>,
+	ref: React.ForwardedRef<HTMLButtonElement & HTMLAnchorElement>,
+) {
 	const {
 		variant,
 		disabled,
@@ -128,7 +131,15 @@ export const Button = forwardRef<HTMLButtonElement & HTMLAnchorElement, ButtonPr
 	const buttonClasses = twMerge(buttonVariants({ variant: variant, disabled: disabled, size: size }), className);
 	if (href) {
 		return (
-			<Link ref={ref} href={href} className={buttonClasses} target={target} onClick={onClick} title={title} rel={rel}>
+			<Link<T>
+				href={href}
+				ref={ref}
+				className={buttonClasses}
+				target={target}
+				onClick={onClick}
+				title={title}
+				rel={rel}
+			>
 				{children}
 			</Link>
 		);

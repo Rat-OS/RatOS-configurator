@@ -1,3 +1,18 @@
+/**
+ * @file ndjson.ts
+ * @description
+ * This file contains helper functions for reading, writing, and transforming newline delimited JSON files.
+ * The functions in this file are used to create object storage with common CRUD operations.
+ * The object storage is used to store and manage data in a file using newline delimited JSON format.
+ * The object storage can be initialized with a Zod schema to validate the objects in the storage.
+ * The object storage provides common operations such as getAll, find, findById, insert, update, upsert, transform, replace, and remove.
+ * The object storage also provides a destroyStorage operation to delete the storage file.
+ *
+ * @author Mikkel Schmidt <mikkel.schmidt@gmail.com>
+ * @license MIT
+ * @copyright 2024
+ */
+
 import { createReadStream, createWriteStream, existsSync, fstat, mkdirSync, writeFileSync } from 'fs';
 import ndjson from 'ndjson';
 import { replaceInFileByLine } from '@/server/helpers/file-operations';
@@ -20,6 +35,16 @@ const statsSchema = z.object({
 	version: z.number().default(0),
 });
 
+/**
+ * Initializes a base object storage using newline delimited json with common CRUD operations.
+ *
+ * @template T - The Zod schema type.
+ * @template Input - The inferred input type for the schema.
+ * @template Output - The inferred output type of schema.parse().
+ * @param {string} file - The file path for the object storage.
+ * @param {T} schema - The schema for the objects in the storage.
+ * @returns {Object} - An object with CRUD operations for the object storage.
+ */
 const _baseObjectStorage = <
 	T extends typeof requiredBaseSchema,
 	Input extends z.input<T> = z.input<T>,
@@ -32,15 +57,55 @@ const _baseObjectStorage = <
 		mkdirSync(path.dirname(file), { recursive: true });
 		writeFileSync(file, '');
 	}
+
+	/**
+	 * Retrieves all objects from the database.
+	 *
+	 * @param start - The starting index of the objects to retrieve. Defaults to 0.
+	 * @param limit - The maximum number of objects to retrieve. Defaults to Infinity.
+	 * @returns A promise that resolves to an array of objects.
+	 */
 	const getAll = async (start: number = 0, limit: number = Infinity) => {
 		return await readObjects(file, schema, start, limit);
 	};
-	const find = async (search: (input: Input) => boolean) => {
+
+	/**
+	 * Finds the first object in the file that matches the given search criteria.
+	 *
+	 * @param search - A function that takes an input object and returns a boolean indicating whether it matches the search criteria.
+	 * @returns A promise that resolves to the matching object, or null if no match is found.
+	 */
+	const find = async (search: (input: Output) => boolean) => {
 		return await findObject(file, schema, search);
 	};
+
+	/**
+	 * Finds all objects in the file that match the given search criteria.
+	 *
+	 * @param search - A function that takes an input object and returns a boolean indicating whether it matches the search criteria.
+	 * @param limit - The maximum number of objects to find.
+	 * @returns A promise that resolves to the matching objects.
+	 */
+	const findAll = async (search: (input: Output) => boolean, limit: number = Infinity) => {
+		return await findAllObjects(file, schema, search, limit);
+	};
+
+	/**
+	 * Finds an object in the file by its ID.
+	 * @param id - The ID of the object to find.
+	 * @returns A promise that resolves to the found object, or null if not found.
+	 */
 	const findById = async (id: Input['id'] | Input) => {
 		return await findObject(file, schema, (input) => input.id === (typeof id === 'object' ? id.id : id));
 	};
+
+	/**
+	 * Inserts a new object into the database.
+	 *
+	 * @param obj - The object to be inserted.
+	 * @returns A promise that resolves to the inserted object.
+	 * @throws An error if an object with the same id already exists.
+	 */
 	const insert = async (obj: Input) => {
 		const existing = await findById(obj);
 		if (existing) {
@@ -49,6 +114,15 @@ const _baseObjectStorage = <
 		const result = await saveObject(file, schema, obj);
 		return result;
 	};
+
+	/**
+	 * Updates an object in the file with the specified ID.
+	 *
+	 * @param obj - The partial object containing the properties to update.
+	 * @param id - The ID of the object to update.
+	 * @returns The number of objects updated.
+	 * @throws Error if no object with the specified ID is found.
+	 */
 	const update = async (obj: Partial<Input>, id: Input['id']) => {
 		const result = await replaceObjects(file, schema, (input) =>
 			input.id === id ? schema.parse({ ...input, ...obj }) : input,
@@ -58,6 +132,13 @@ const _baseObjectStorage = <
 		}
 		return result;
 	};
+
+	/**
+	 * Upserts an object into a file, either by updating an existing object with the same id or inserting a new object.
+	 * @param obj - The object to upsert.
+	 * @param merge - Optional. If true, the properties of the existing object will be merged with the new object.
+	 * @returns An object containing the update count and the upserted result.
+	 */
 	const upsert = async (obj: Input, merge: boolean = false) => {
 		let maybeMergedResult: Output = schema.parse(obj) as Output;
 		const results = await replaceObjects<T, Output | Input, Input>(file, schema, (input) => {
@@ -75,17 +156,44 @@ const _baseObjectStorage = <
 		}
 		return { updateCount: results, result: maybeMergedResult };
 	};
+
+	/**
+	 * Transforms the input objects using the provided transform function.
+	 *
+	 * @param transform - The transform function to apply to the input objects.
+	 * @returns A promise that resolves to the transformed objects.
+	 */
 	const transform = async <R extends typeof requiredBaseSchema>(transform: (input: Input) => z.output<R>) => {
 		return await transformObjects(file, schema, transform);
 	};
+
+	/**
+	 * Replaces objects in a file using the provided replace function.
+	 *
+	 * @param replace - The replace function to be applied to each object.
+	 * @returns A promise that resolves to the result of the replace operation.
+	 */
 	const replace = async (replace: (input: Input) => Output) => {
 		return await replaceObjects<T, Output, Input>(file, schema, replace);
 	};
+
+	/**
+	 * Deletes objects from a file based on a search condition.
+	 *
+	 * @param search - A function that takes an input object and returns a boolean indicating whether the object should be deleted.
+	 * @returns A promise that resolves to the result of replacing the objects in the file.
+	 */
 	const del = async (search: (input: Input) => boolean) => {
 		return await replaceObjects<T, Output, Input>(file, schema, (input) =>
 			search(input) ? null : (schema.parse(input) as Output),
 		);
 	};
+
+	/**
+	 * Deletes the object storage file if it exists.
+	 *
+	 * @returns A promise that resolves when the file is deleted, or rejects with an error if deletion fails.
+	 */
 	const destroyStorage = async () => {
 		if (existsSync(file)) {
 			await new Promise<void>((resolve, reject) => {
@@ -105,6 +213,7 @@ const _baseObjectStorage = <
 	return {
 		getAll,
 		find,
+		findAll,
 		findById,
 		insert,
 		update,
@@ -133,6 +242,12 @@ const logStatError = async <T extends () => Promise<any | null>, E extends boole
 	return null as E extends false ? Awaited<ReturnType<T>> : Awaited<ReturnType<T> | null>;
 };
 
+/**
+ * Initializes an object storage with common CRUD operations.
+ * @param {string} file - The file path for the object storage.
+ * @param {T} schema - The required base Zod schema for the object storage.
+ * @returns {Object} - An object with CRUD operations for the object storage.
+ */
 export const initObjectStorage = <
 	T extends typeof requiredBaseSchema,
 	Input extends z.input<T>,
@@ -142,7 +257,15 @@ export const initObjectStorage = <
 	schema: T,
 ) => {
 	const statsStorage = _baseObjectStorage(statsFile, statsSchema);
-	const storage = _baseObjectStorage<T, Input>(file, schema);
+	const storage = _baseObjectStorage<T, Input, Output>(file, schema);
+
+	/**
+	 * Retrieves all items from storage within the specified range.
+	 *
+	 * @param start - The starting index of the items to retrieve. Defaults to 0.
+	 * @param limit - The maximum number of items to retrieve. Defaults to Infinity.
+	 * @returns An object containing the retrieved items and the total count of items in storage.
+	 */
 	const getAll = async (start: number = 0, limit: number = Infinity) => {
 		const result = await storage.getAll(start, limit);
 		const stats = await logStatError(() =>
@@ -153,7 +276,14 @@ export const initObjectStorage = <
 			total: stats.result.total,
 		};
 	};
-	const find = async (search: (input: Input) => boolean) => {
+
+	/**
+	 * Finds the first item in the storage that match the given search criteria.
+	 *
+	 * @param search - A function that takes an input and returns a boolean indicating whether the input matches the search criteria.
+	 * @returns A promise that resolves to the items found in the storage.
+	 */
+	const find = async (search: (input: Output) => boolean) => {
 		const result = await storage.find(search);
 		await logStatError(
 			() => statsStorage.upsert({ id: file, lastAccessedTimeStamp: new Date().getTime() }, true),
@@ -161,6 +291,13 @@ export const initObjectStorage = <
 		);
 		return result;
 	};
+
+	/**
+	 * Finds a record by its ID.
+	 *
+	 * @param id - The ID of the record to find.
+	 * @returns A Promise that resolves to the found record.
+	 */
 	const findById = async (id: Input['id'] | Input) => {
 		const result = await storage.findById(id);
 		await logStatError(
@@ -169,6 +306,28 @@ export const initObjectStorage = <
 		);
 		return result;
 	};
+
+	/**
+	 * Finds all items in the storage that match the given search criteria.
+	 *
+	 * @param search - A function that takes an input and returns a boolean indicating whether the input matches the search criteria.
+	 * @param limit - The maximum number of items to find.
+	 * @returns A promise that resolves to the items found in the storage.
+	 */
+	const findAll = async (search: (input: Output) => boolean, limit: number = Infinity) => {
+		const result = await storage.findAll(search, limit);
+		await logStatError(
+			() => statsStorage.upsert({ id: file, lastAccessedTimeStamp: new Date().getTime() }, true),
+			true,
+		);
+		return result;
+	};
+
+	/**
+	 * Inserts an object into storage and updates the corresponding statistics.
+	 * @param obj - The object to be inserted.
+	 * @returns A promise that resolves to the result of the insertion.
+	 */
 	const insert = async (obj: Input) => {
 		const result = await storage.insert(obj);
 		await logStatError(async () => {
@@ -185,6 +344,14 @@ export const initObjectStorage = <
 		});
 		return result;
 	};
+
+	/**
+	 * Updates an object in the storage with the specified ID.
+	 *
+	 * @param obj - The partial object containing the updated values.
+	 * @param id - The ID of the object to update.
+	 * @returns An object containing the update count and the updated result.
+	 */
 	const update = async (obj: Partial<Input>, id: Input['id']) => {
 		const result = await storage.update(obj, id);
 		await logStatError(() =>
@@ -195,6 +362,12 @@ export const initObjectStorage = <
 		);
 		return { updateCount: result, result: await storage.findById(id) };
 	};
+
+	/**
+	 * Upserts an object into storage and updates the corresponding statistics.
+	 * @param obj - The object to upsert.
+	 * @returns A promise that resolves to the result of the upsert operation.
+	 */
 	const upsert = async (obj: Input) => {
 		const result = await storage.upsert(obj);
 		await logStatError(async () => {
@@ -211,6 +384,14 @@ export const initObjectStorage = <
 		});
 		return result;
 	};
+
+	/**
+	 * Transforms the each entry in the database using the provided transform function and stores the result in the storage.
+	 * Also updates the statistics for the transformed data.
+	 * @param transform - The transform function to apply to the input data.
+	 * @param version - The version of the transformed data (optional).
+	 * @returns The transformed result.
+	 */
 	const transform = async <R extends typeof requiredBaseSchema>(
 		transform: (input: Input) => z.output<R>,
 		version?: number,
@@ -230,6 +411,13 @@ export const initObjectStorage = <
 		});
 		return result;
 	};
+
+	/**
+	 * Replaces the input data using the provided replace function.
+	 *
+	 * @param replace - The function used to replace the input data.
+	 * @returns A Promise that resolves to the result of the replacement.
+	 */
 	const replace = async (replace: (input: Input) => Output) => {
 		const result = await storage.replace(replace);
 		await logStatError(() =>
@@ -240,6 +428,12 @@ export const initObjectStorage = <
 		);
 		return result;
 	};
+
+	/**
+	 * Deletes an item from storage based on its ID.
+	 * @param id The ID of the item to be deleted.
+	 * @returns The number of items deleted.
+	 */
 	const del = async (id: Input['id']) => {
 		const result = await storage.remove((input) => input.id === id);
 		await logStatError(async () => {
@@ -253,6 +447,11 @@ export const initObjectStorage = <
 		});
 		return result;
 	};
+
+	/**
+	 * Destroys the storage and removes the corresponding stats entry.
+	 * @returns The total number of destroyed items.
+	 */
 	const destroyStorage = async () => {
 		await storage.destroyStorage();
 		const total = (await statsStorage.findById(file))?.total ?? 0;
@@ -262,6 +461,7 @@ export const initObjectStorage = <
 	return {
 		getAll,
 		find,
+		findAll,
 		findById,
 		insert,
 		update,
@@ -273,6 +473,21 @@ export const initObjectStorage = <
 	};
 };
 
+/**
+ * Reads objects from a file and parses them using a given schema.
+ *
+ * @template T - The type of the schema.
+ * @template Output - The output type after parsing the objects.
+ * @param {string} file - The path to the file to read.
+ * @param {T} schema - The schema to use for parsing the objects.
+ * @param {number} [start=0] - The starting position in the file to read from.
+ * @param {number} [limit=Infinity] - The maximum number of objects to read.
+ * @returns {Promise<{
+ *   result: Output[];
+ *   cursor: number;
+ *   hasNextPage: boolean;
+ * }>} - The result of reading and parsing the objects.
+ */
 export const readObjects = async <T extends z.ZodSchema, Output = z.output<T>>(
 	file: string,
 	schema: T,
@@ -317,6 +532,14 @@ export const readObjects = async <T extends z.ZodSchema, Output = z.output<T>>(
 	};
 };
 
+/**
+ * Finds an object in a file using a specified schema and search function.
+ *
+ * @param file - The path to the file.
+ * @param schema - The schema to validate the objects in the file.
+ * @param search - The search function to determine if an object matches the search criteria.
+ * @returns A promise that resolves to the found object or `null` if no object is found.
+ */
 export const findObject = async <T extends z.ZodSchema, Output = z.output<T>, Input = z.input<T>>(
 	file: string,
 	schema: T,
@@ -349,6 +572,58 @@ export const findObject = async <T extends z.ZodSchema, Output = z.output<T>, In
 	return result;
 };
 
+/**
+ * Finds all objects in a file using a specified schema and search function.
+ *
+ * @param file - The path to the file.
+ * @param schema - The schema to validate the objects in the file.
+ * @param search - The search function to determine if an object matches the search criteria.
+ * @param limit - The maximum number of objects to find.
+ * @returns A promise that resolves to the found object or `null` if no object is found.
+ */
+export const findAllObjects = async <T extends z.ZodSchema, Output = z.output<T>, Input = z.input<T>>(
+	file: string,
+	schema: T,
+	search: (input: Output) => boolean,
+	limit: number = Infinity,
+): Promise<Output[]> => {
+	if (!existsSync(file)) {
+		return [];
+	}
+	const stream = createReadStream(file, { encoding: 'utf-8' });
+
+	let result: Output[] = [];
+	await new Promise((resolve, reject) => {
+		stream.pipe(ndjson.parse()).on('data', function (obj) {
+			try {
+				const parsed = schema.parse(obj) as Output;
+				if (search(parsed)) {
+					result.push(parsed);
+				}
+				if (result.length >= limit) {
+					stream.destroy();
+				}
+			} catch (e) {
+				if (e instanceof z.ZodError) {
+					getLogger().warn(e, `findObject: Error parsing object from file ${file}`);
+				}
+				throw e;
+			}
+		});
+		stream.on('close', resolve);
+		stream.on('error', reject);
+	});
+	return result;
+};
+
+/**
+ * Saves an object to a file in NDJSON format.
+ *
+ * @param file - The path of the file to save the object to.
+ * @param schema - The Zod schema used to validate the object.
+ * @param obj - The object to be saved.
+ * @returns The validated object after saving.
+ */
 export const saveObject = async <T extends z.ZodSchema, Output = z.output<T>, Input = z.input<T>>(
 	file: string,
 	schema: T,
@@ -372,6 +647,15 @@ export const saveObject = async <T extends z.ZodSchema, Output = z.output<T>, In
 	return validated as Output;
 };
 
+/**
+ * Transforms objects in a file based on a given schema and transformation function.
+ *
+ * @param file - The path to the file containing the objects.
+ * @param schema - The schema used to validate and parse the objects.
+ * @param transform - The transformation function to apply to each object.
+ * @returns A Promise that resolves to the transformed objects.
+ * @throws An error if the file does not exist or if there is an error parsing the objects.
+ */
 export const transformObjects = async <
 	T extends z.ZodSchema,
 	R extends z.ZodSchema,
@@ -402,6 +686,15 @@ export const transformObjects = async <
 	});
 };
 
+/**
+ * Replaces objects in a file based on a given schema and replacement function.
+ *
+ * @param file - The path to the file.
+ * @param schema - The schema to validate the objects in the file.
+ * @param replace - The replacement function that takes an input object and returns the replacement object.
+ * @returns A promise that resolves to the results of the replacement operation.
+ * @throws An error if the file does not exist or if there is an error parsing the objects in the file.
+ */
 export const replaceObjects = async <T extends z.ZodSchema, Output = z.output<T>, Input = z.input<T>>(
 	file: string,
 	schema: T,

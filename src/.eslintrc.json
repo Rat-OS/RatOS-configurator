@@ -13,7 +13,8 @@
 				"no-duplicate-imports": 1,
 				"@limegrass/import-alias/import-alias": ["error", { "aliasConfigPath": "./src/tsconfig.json"}],
 				// "unused-imports/no-unused-imports": "error",
-				"prettier/prettier": ["warn", { "endOfLine": "auto" }]
+				"prettier/prettier": ["warn", { "endOfLine": "auto" }],
+				"react/display-name": "off"
 			}
 		}
 	],
