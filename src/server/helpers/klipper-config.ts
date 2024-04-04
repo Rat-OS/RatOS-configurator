@@ -495,6 +495,7 @@ export const constructKlipperConfigHelpers = async (
 				`dir_pin: ${utils.getRailPinValue(rail.axis, '_dir_pin')}`,
 				`enable_pin: !${utils.getRailPinValue(rail.axis, '_enable_pin')}`,
 				`microsteps: ${rail.microstepping}`,
+				`full_steps_per_rotation: ${rail.stepper.fullStepsPerRotation}`,
 			);
 			if (rail.axis === PrinterAxis.extruder || rail.axis === PrinterAxis.extruder1) {
 				const toolhead = utils.getToolhead(rail.axis);
@@ -996,12 +997,12 @@ export const constructKlipperConfigHelpers = async (
 					result.push(`cycle_time:  0.00004`);
 					break;
 				case '4pin-dedicated':
-					utils.requireControlboardPin('4p_fan_part_cooling_tach_pin');
+					utils.requireControlboardPin('4p_controller_board_pin');
 					result.push(`# 4-pin fan connected to a dedicated 4-pin fan header on the controller board`);
-					result.push(`pin: ${utils.getControlboardPins()['4p_fan_part_cooling_tach_pin']}`);
+					result.push(`pin: ${utils.getControlboardPins()['4p_controller_board_pin']}`);
 					result.push(`cycle_time:  0.00004`);
-					if (utils.getControlboardPins()['4p_fan_part_cooling_tach_pin'] != null) {
-						result.push(`tachometer_pin: ^${utils.getControlboardPins()['4p_fan_part_cooling_tach_pin']}`);
+					if (utils.getControlboardPins()['4p_controller_board_tach_pin'] != null) {
+						result.push(`tachometer_pin: ^${utils.getControlboardPins()['4p_controller_board_tach_pin']}`);
 						result.push(`tachometer_poll_interval: 0.0005`);
 					}
 					break;

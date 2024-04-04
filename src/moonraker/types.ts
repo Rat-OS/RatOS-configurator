@@ -86,7 +86,7 @@ export type PrinterObjectQueries = {
 	>;
 	motion_report: MoonrakerMethod<
 		{
-			live_position: [number, number, number, number];
+			live_position?: [number, number, number, number];
 			live_velocity: number;
 			live_extruder_velocity: number;
 		},

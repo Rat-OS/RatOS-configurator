@@ -56,11 +56,45 @@ install_hooks()
 	fi
 }
 
+
+install_logrotation() {
+    LOGROTATE_FILE="/etc/logrotate.d/ratos-configurator"
+    LOGFILE="/home/${USER}/printer_data/logs/ratos-configurator.log"
+    report_status "Installing RatOS Configurator log rotation script..."
+    sudo /bin/sh -c "cat > ${LOGROTATE_FILE}" << __EOF
+#### RatOS-configurator
+####
+#### Written by Mikkel Schmidt <mikkel.schmidt@gmail.com>
+#### Copyright 2022
+#### https://github.com/Rat-OS/RatOS-Configurator
+####
+#### This File is distributed under GPLv3
+####
+
+
+${LOGFILE} {
+    rotate 3
+    missingok
+    notifempty
+    copy
+    daily
+    dateext
+    dateformat .%Y-%m-%d
+    maxsize 10M
+}
+__EOF
+    sudo chmod 644 ${LOGROTATE_FILE}
+}
+
 patch_log_rotation() {
-	if grep -q "/printer_data/logs/configurator.log" /etc/logrotate.d/ratos-configurator; then
-		report_status "Patching log rotation"
-		sudo sed -i 's|rotate 4|rotate 3|g' /etc/logrotate.d/ratos-configurator
-		sudo sed -i 's|/printer_data/logs/configurator.log"|/printer_data/logs/ratos-configurator.log"|g' /etc/logrotate.d/ratos-configurator
+	if [ -e /etc/logrotate.d/ratos-configurator ]; then
+		if grep -q "/printer_data/logs/configurator.log" /etc/logrotate.d/ratos-configurator; then
+			report_status "Patching log rotation"
+			sudo sed -i 's|rotate 4|rotate 3|g' /etc/logrotate.d/ratos-configurator
+			sudo sed -i 's|/printer_data/logs/configurator.log"|/printer_data/logs/ratos-configurator.log"|g' /etc/logrotate.d/ratos-configurator
+		fi
+	else
+		install_logrotation
 	fi
 }
 
