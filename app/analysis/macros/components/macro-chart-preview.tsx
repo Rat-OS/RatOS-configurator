@@ -7,7 +7,7 @@ import {
 } from '@/app/analysis/charts';
 import { useChart } from '@/app/analysis/hooks';
 import { z } from 'zod';
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
 	CursorModifier,
 	FastBandRenderableSeries,
@@ -30,7 +30,7 @@ SciChartSurface.configure({
 });
 
 interface MacroChartPreviewProps {
-	sequences: z.input<typeof macroSequenceSchema>[];
+	sequences?: z.input<typeof macroSequenceSchema>[];
 }
 
 const getBandTooltipDataTemplate = (
@@ -63,17 +63,21 @@ const getTooltipDataTemplate = (
 };
 
 export const MacroChartPreview: React.FC<MacroChartPreviewProps> = ({ sequences }) => {
-	const sequenceData = sequences
-		.map((seq) => {
-			return seq.recording?.capturePSD
-				? {
-						accel: seq.recording.accelerometer,
-						color: seq.recording.color,
-						name: seq.name,
-					}
-				: null;
-		})
-		.filter(Boolean);
+	const sequenceData = useMemo(
+		() =>
+			sequences
+				?.map((seq) => {
+					return seq.recording?.capturePSD
+						? {
+								accel: seq.recording.accelerometer,
+								color: seq.recording.color,
+								name: seq.name,
+							}
+						: null;
+				})
+				.filter(Boolean) ?? [],
+		[sequences],
+	);
 	const prevSequenceData = useRef(sequenceData);
 
 	const setupChart = useCallback(

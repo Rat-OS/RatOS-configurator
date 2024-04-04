@@ -36,8 +36,8 @@ declare namespace __next_route_internal_types__ {
     | `/`
     | `/analysis/macros/new`
     | `/analysis`
-    | `/calibration`
     | `/motion`
+    | `/calibration`
     | `/toolhead`
     | `/wizard`
     | `/analysis/macros`
