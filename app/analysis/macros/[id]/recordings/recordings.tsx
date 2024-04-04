@@ -29,7 +29,7 @@ export default function MacroRecordings({ id }: { id: string }) {
 				data={macroRecordingsQuery.result ?? []}
 				columns={columns}
 				initialGrouping={['macroRecordingRunId']}
-				initialColumnVisibility={{}}
+				initialColumnVisibility={{ macroRecordingRunId: false }}
 				initialSorting={[{ desc: true, id: 'date' }]}
 			/>
 		</div>

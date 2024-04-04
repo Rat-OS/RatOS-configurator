@@ -1,8 +1,8 @@
 {
   "/_not-found": "app/_not-found.js",
   "/page": "app/page.js",
-  "/analysis/macros/[id]/recordings/[runId]/page": "app/analysis/macros/[id]/recordings/[runId]/page.js",
   "/analysis/macros/[id]/edit/page": "app/analysis/macros/[id]/edit/page.js",
+  "/analysis/macros/[id]/recordings/[runId]/page": "app/analysis/macros/[id]/recordings/[runId]/page.js",
   "/analysis/macros/[id]/recordings/page": "app/analysis/macros/[id]/recordings/page.js",
   "/analysis/macros/new/page": "app/analysis/macros/new/page.js",
   "/analysis/page": "app/analysis/page.js",
