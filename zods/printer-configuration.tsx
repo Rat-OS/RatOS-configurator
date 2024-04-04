@@ -1,14 +1,14 @@
-import { Board, BoardID } from './boards';
-import { Fan } from './hardware';
-import { PrinterDefinition, PrinterSizeDefinition } from './printer';
-import { PrinterAxis, PrinterRail, SerializedPrinterRail } from './motion';
+import { Board, BoardID } from '@/zods/boards';
+import { Fan } from '@/zods/hardware';
+import { PrinterDefinition, PrinterSizeDefinition } from '@/zods/printer';
+import { PrinterAxis, PrinterRail, SerializedPrinterRail } from '@/zods/motion';
 import {
 	PartialToolheadConfiguration,
 	SerializedPartialToolheadConfiguration,
 	SerializedToolheadConfiguration,
 	ToolheadConfiguration,
-} from './toolhead';
-import { ToolheadHelper } from '../helpers/toolhead';
+} from '@/zods/toolhead';
+import { ToolheadHelper } from '@/helpers/toolhead';
 import { z } from 'zod';
 
 export const PrinterSize = z.union([PrinterSizeDefinition, z.number(), z.string()]).nullable().optional();

@@ -1,4 +1,4 @@
-import { ToolheadConfiguration } from '../../../zods/toolhead';
+import { ToolheadConfiguration } from '@/zods/toolhead';
 import {
 	parseBoardPinConfig,
 	PinMapZodFromBoard,
@@ -9,13 +9,13 @@ import {
 	stripIncludes,
 	replaceLinesStartingWith,
 	stripDriverSections,
-} from '../metadata';
-import { ToolheadHelper } from '../../../helpers/toolhead';
-import { getBoardSerialPath } from '../../../helpers/board';
-import { PrinterAxis } from '../../../zods/motion';
-import { PrinterConfiguration } from '../../../zods/printer-configuration';
-import type { RenderPinsFn } from '../klipper-config';
-import { getLogger } from '../logger';
+} from '@/server/helpers/metadata';
+import { ToolheadHelper } from '@/helpers/toolhead';
+import { getBoardSerialPath } from '@/helpers/board';
+import { PrinterAxis } from '@/zods/motion';
+import { PrinterConfiguration } from '@/zods/printer-configuration';
+import type { RenderPinsFn } from '@/server/helpers/klipper-config';
+import { getLogger } from '@/server/helpers/logger';
 
 export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelper<IsToolboard> {
 	private toolboardPins: PinMapZodFromBoard<IsToolboard, false> | null;

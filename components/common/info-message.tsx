@@ -1,6 +1,6 @@
 import { InformationCircleIcon } from '@heroicons/react/24/solid';
 import React from 'react';
-import { Banner } from './banner';
+import { Banner } from '@/components/common/banner';
 
 export type InfoMessageProps = React.PropsWithChildren<{
 	title?: string;

@@ -3,13 +3,13 @@ import {
 	deserializeToolheadConfiguration,
 	getPrinters,
 	parseDirectory,
-} from '../server/routers/printer';
-import { Extruder, Hotend, Probe } from '../zods/hardware';
-import { getBoards } from '../server/routers/mcu';
+} from '@/server/routers/printer';
+import { Extruder, Hotend, Probe } from '@/zods/hardware';
+import { getBoards } from '@/server/routers/mcu';
 import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
-import { serverSchema } from '../env/schema.mjs';
+import { serverSchema } from '@/env/schema.mjs';
 const environment = serverSchema.parse(process.env);
 import { describe, expect, test } from 'vitest';
 import {
@@ -17,14 +17,14 @@ import {
 	PrinterConfiguration,
 	SerializedPartialPrinterConfiguration,
 	SerializedPrinterConfiguration,
-} from '../zods/printer-configuration';
-import { xEndstopOptions, yEndstopOptions } from '../data/endstops';
-import { serializePartialPrinterConfiguration, serializePrinterConfiguration } from '../hooks/usePrinterConfiguration';
-import { deserializePrinterRail } from '../utils/serialization';
-import { parseBoardPinConfig } from '../server/helpers/metadata';
-import { getBoardChipId } from '../helpers/board';
-import { ToolheadConfiguration } from '../zods/toolhead';
-import { ServerCache } from '../server/helpers/cache';
+} from '@/zods/printer-configuration';
+import { xEndstopOptions, yEndstopOptions } from '@/data/endstops';
+import { serializePartialPrinterConfiguration, serializePrinterConfiguration } from '@/hooks/usePrinterConfiguration';
+import { deserializePrinterRail } from '@/utils/serialization';
+import { parseBoardPinConfig } from '@/server/helpers/metadata';
+import { getBoardChipId } from '@/helpers/board';
+import { ToolheadConfiguration } from '@/zods/toolhead';
+import { ServerCache } from '@/server/helpers/cache';
 import { glob } from 'glob';
 import { readFile } from 'fs/promises';
 

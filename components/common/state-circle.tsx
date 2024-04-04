@@ -1,9 +1,11 @@
 import { cva, VariantProps } from 'class-variance-authority';
 import React from 'react';
 import { twMerge } from 'tailwind-merge';
-import type { Intents } from './button';
+import type { Intents } from '@/components/common/button';
 
-type StateIntents = { [key in Intents]: string };
+type IntentNoOutline = Exclude<Intents, 'outline'>;
+
+type StateIntents = { [key in IntentNoOutline]: string };
 
 export const StateCircleVariants = cva('flex-none rounded-full p-1 relative flex', {
 	variants: {

@@ -1,10 +1,11 @@
 import React from 'react';
-import { Slider } from '../../components/forms/slider';
-import { useMoonrakerState } from '../../moonraker/hooks';
-import { useStreamSettings } from './hooks';
+import { Slider } from '@/components/forms/slider';
+import { useMoonrakerState } from '@/moonraker/hooks';
+import { useStreamSettings } from '@/app/calibration/hooks';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { twJoin } from 'tailwind-merge';
-import { ScrollContainer } from '../../components/common/scroll-container';
+import { ScrollContainer } from '@/components/common/scroll-container';
+import { motion } from 'framer-motion';
 
 type StreamSettingsDialogProps = {
 	url: string;
@@ -38,7 +39,7 @@ export const StreamSettingsDialog: React.FC<StreamSettingsDialogProps> = (props)
 				props.className,
 			)}
 		>
-			<div ref={animate}>
+			<motion.div ref={animate}>
 				{isExposureVisible &&
 					options
 						.filter(
@@ -101,7 +102,7 @@ export const StreamSettingsDialog: React.FC<StreamSettingsDialogProps> = (props)
 							/>
 						</div>
 					))}
-			</div>
+			</motion.div>
 		</ScrollContainer>
 	);
 };

@@ -1,11 +1,11 @@
 /* eslint-disable @next/next/no-img-element */
 import React, { useCallback, useState } from 'react';
-import { ToolheadHelper } from '../../../helpers/toolhead';
-import { trpc } from '../../../helpers/trpc';
-import { Board } from '../../../zods/boards';
-import { Button } from '../../common/button';
-import { ErrorMessage } from '../../common/error-message';
-import { InfoMessage } from '../../common/info-message';
+import { ToolheadHelper } from '@/helpers/toolhead';
+import { trpc } from '@/helpers/trpc';
+import { Board } from '@/zods/boards';
+import { Button } from '@/components/common/button';
+import { ErrorMessage } from '@/components/common/error-message';
+import { InfoMessage } from '@/components/common/info-message';
 
 interface DFUFlashProps {
 	board: Board;
@@ -54,7 +54,7 @@ export const DFUFlash: React.FC<DFUFlashProps> = (props) => {
 			{}
 			<p className="mt-4 text-zinc-500 dark:text-zinc-400">Status: {detectionText}</p>
 			{jumperReminder}
-			<Button intent="primary" disabled={!dfuDetected || isFlashing} onClick={startFlash}>
+			<Button variant="primary" disabled={!dfuDetected || isFlashing} onClick={startFlash}>
 				{flashButtonTitle}
 			</Button>
 			<h4 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">DFU Boot Instructions</h4>

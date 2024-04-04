@@ -2,10 +2,10 @@ import React, { Fragment, useCallback, useEffect, useState } from 'react';
 import { Listbox, Transition } from '@headlessui/react';
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
 import { twJoin, twMerge } from 'tailwind-merge';
-import { Badge, BadgeProps } from '../common/badge';
-import { DropdownQuery, DropdownQueryInput, DropdownQueryKeys, DropdownQueryOutput, trpc } from '../../utils/trpc';
-import { Spinner } from '../common/spinner';
-import { useSerializedPrinterConfiguration } from '../../hooks/usePrinterConfiguration';
+import { Badge, BadgeProps } from '@/components/common/badge';
+import { DropdownQuery, DropdownQueryInput, DropdownQueryKeys, DropdownQueryOutput, trpc } from '@/utils/trpc';
+import { Spinner } from '@/components/common/spinner';
+import { useSerializedPrinterConfiguration } from '@/hooks/usePrinterConfiguration';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
 
 type Option = {

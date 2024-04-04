@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { UseMutationOptions, UseQueryOptions, useMutation, useQuery } from '@tanstack/react-query';
 import useWebSocket from 'react-use-websocket';
-import { migrateToLatest } from './migrations';
+import { migrateToLatest } from '@/moonraker/migrations';
 import type {
 	InFlightRequestCallbacks,
 	InFlightRequestTimeouts,
@@ -25,8 +25,9 @@ import type {
 	PrinterObjectKeys,
 	PrinterObjectsMoonrakerQueryParams,
 	PrinterObjectResult,
-} from './types';
-import { getHost } from '../helpers/util';
+	MoonrakerResponseSuccess,
+} from '@/moonraker/types';
+import { getHost } from '@/helpers/util';
 import { merge } from 'ts-deepmerge';
 import deepEqual from 'deep-equal';
 import { e } from 'vitest/dist/reporters-rzC174PQ';
@@ -47,6 +48,7 @@ type MoonrakerStatusUpdate = { [key in PrinterObjectKeys]: PrinterObjectResult<P
 
 interface MoonrakerHookOptions {
 	onStatusUpdate?: (status: MoonrakerStatusUpdate) => void;
+	passThroughUpdateMethods?: string[];
 }
 
 export const useMoonraker = (options?: MoonrakerHookOptions) => {
@@ -59,25 +61,31 @@ export const useMoonraker = (options?: MoonrakerHookOptions) => {
 		setWsUrl(getWsURL());
 	}, []);
 
-	const containsSubscriptionUpdate = useCallback((jsonMessage: MoonrakerResponse) => {
-		if (jsonMessage.method === 'notify_status_update' && jsonMessage.params != null) {
-			const res = jsonMessage.params[0] as MoonrakerStatusUpdate;
-			if (res != null) {
-				for (const sub of localSubscriptions.current) {
-					const objects = subscriptions[sub];
-					if (objects != null) {
-						for (const key in objects) {
-							if (res[key as PrinterObjectKeys] != null) {
-								return true;
+	const containsSubscriptionUpdate = useCallback(
+		(jsonMessage: MoonrakerResponse): jsonMessage is MoonrakerResponseSuccess => {
+			if ('error' in jsonMessage) {
+				return false;
+			}
+			if (jsonMessage.method === 'notify_status_update' && jsonMessage.params != null) {
+				const res = jsonMessage.params[0] as MoonrakerStatusUpdate;
+				if (res != null) {
+					for (const sub of localSubscriptions.current) {
+						const objects = subscriptions[sub];
+						if (objects != null) {
+							for (const key in objects) {
+								if (res[key as PrinterObjectKeys] != null) {
+									return true;
+								}
 							}
 						}
 					}
 				}
+				return false;
 			}
 			return false;
-		}
-		return false;
-	}, []);
+		},
+		[],
+	);
 
 	const { lastJsonMessage, sendJsonMessage, readyState } = useWebSocket<MoonrakerResponse>(wsUrl, {
 		filter: (message) => {
@@ -87,6 +95,13 @@ export const useMoonraker = (options?: MoonrakerHookOptions) => {
 			try {
 				const parsed = JSON.parse(message.data) as MoonrakerResponse;
 				if (inFlightRequests.current[parsed.id] != null) {
+					return true;
+				}
+				if (
+					options?.passThroughUpdateMethods?.length &&
+					'method' in parsed &&
+					options.passThroughUpdateMethods.includes(parsed.method)
+				) {
 					return true;
 				}
 				return false;
@@ -152,8 +167,8 @@ export const useMoonraker = (options?: MoonrakerHookOptions) => {
 				};
 				let timeout = 10 * 1000;
 				if (method === 'printer.gcode.script') {
-					// Allow 60 seconds for gcode macros.
-					timeout = 60 * 1000;
+					// Allow 10 minutes for gcode macros.
+					timeout = 10 * 60 * 1000;
 				}
 				inFlightRequestTimeouts.current[id] = window.setTimeout(() => {
 					inFlightRequests.current[id]?.(new Error('Request timed out'), null);
@@ -255,7 +270,11 @@ export const useMoonraker = (options?: MoonrakerHookOptions) => {
 	useEffect(() => {
 		if (lastJsonMessage?.id && inFlightRequests.current[lastJsonMessage.id]) {
 			window.clearTimeout(inFlightRequestTimeouts.current[lastJsonMessage.id]);
-			inFlightRequests.current[lastJsonMessage.id](null, lastJsonMessage.result);
+			if ('error' in lastJsonMessage) {
+				inFlightRequests.current[lastJsonMessage.id](new Error(lastJsonMessage.error.message), null);
+			} else {
+				inFlightRequests.current[lastJsonMessage.id](null, lastJsonMessage.result);
+			}
 			delete inFlightRequestTimeouts.current[lastJsonMessage.id];
 			delete inFlightRequests.current[lastJsonMessage.id];
 		}

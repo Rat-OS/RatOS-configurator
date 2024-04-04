@@ -15,7 +15,9 @@ export default defineNextConfig({
 	distDir: 'build',
 	cleanDistDir: true,
 	basePath: '/configure',
-	
+	eslint: {
+		dirs: ["pages", "app", "server", "recoil", "data", "helpers", "hooks", "moonraker", "__tests__", "cli", "components", "templates", "utils", "zods"],
+	},
 	publicRuntimeConfig: {
 		// Will be available on both server and client
 		basePath: '/configure',
@@ -24,4 +26,5 @@ export default defineNextConfig({
 		instrumentationHook: true,
 		typedRoutes: true,
 	},
+	productionBrowserSourceMaps: true,
 });

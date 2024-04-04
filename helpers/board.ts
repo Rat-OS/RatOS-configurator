@@ -1,5 +1,5 @@
-import { Board } from '../zods/boards';
-import { ToolheadHelper } from './toolhead';
+import { Board } from '@/zods/boards';
+import { ToolheadHelper } from '@/helpers/toolhead';
 
 export const getBoardSerialPath = (board: Board, toolhead?: ToolheadHelper<any> | null): string => {
 	if (board.isHost && 'serialPath' in board && board.serialPath != null) {

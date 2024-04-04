@@ -1,6 +1,6 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { getWirelessInterface } from './iw';
+import { getWirelessInterface } from '@/server/helpers/iw';
 
 export const isConnectedToWifi = async () => {
 	if (process.env.NODE_ENV === 'development') {

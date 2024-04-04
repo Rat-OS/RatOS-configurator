@@ -1,6 +1,6 @@
 import { twJoin } from 'tailwind-merge';
-import { FillViewport } from './framing';
-import { CrossHairStateProps, useCrossHairState } from './hooks';
+import { FillViewport } from '@/app/calibration/framing';
+import { CrossHairStateProps, useCrossHairState } from '@/app/calibration/hooks';
 
 export const CrossHair: React.FC<CrossHairStateProps & { isConnected: boolean }> = (props) => {
 	const {

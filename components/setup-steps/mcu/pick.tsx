@@ -1,11 +1,12 @@
 import React, { Fragment, useCallback } from 'react';
-import { CardSelector } from '../../card-selector';
-import { StepNavButton, StepNavButtons } from '../../step-nav-buttons';
-import { MCUStepScreenProps, SelectableBoard } from '../mcu-preparation';
-import { Button } from '../../common/button';
-import { Badge } from '../../common/badge';
-import { BoardWithDetectionStatus } from '../../../zods/boards';
-import { PrinterAxis } from '../../../zods/motion';
+import { CardSelector } from '@/components/card-selector';
+import { StepNavButton, StepNavButtons } from '@/components/step-nav-buttons';
+import { MCUStepScreenProps, SelectableBoard } from '@/components/setup-steps/mcu-preparation';
+import { Button } from '@/components/common/button';
+import { Badge } from '@/components/common/badge';
+import { BoardWithDetectionStatus } from '@/zods/boards';
+import { PrinterAxis } from '@/zods/motion';
+import { AnimatedContainer } from '@/components/common/animated-container';
 
 export const MCUPicker: React.FC<MCUStepScreenProps> = (props) => {
 	const { toolhead, skipSteps, setSelectedBoard, selectedControlboard, selectedToolboard, selectedPrinter, cards } =
@@ -86,14 +87,16 @@ export const MCUPicker: React.FC<MCUStepScreenProps> = (props) => {
 					</div>
 					{toolhead && toolhead.getMotionAxis() === PrinterAxis.x && selectedToolboard != null && (
 						<div>
-							<Button onClick={() => setSelectedBoard(null)} intent="danger">
+							<Button onClick={() => setSelectedBoard(null)} variant="danger">
 								Clear selection
 							</Button>
 						</div>
 					)}
 				</div>
-				{props.children}
-				{content}
+				<AnimatedContainer>
+					{props.children}
+					{content}
+				</AnimatedContainer>
 			</div>
 			<StepNavButtons right={rightButton} left={leftButton} skip={skipButton} />
 		</Fragment>

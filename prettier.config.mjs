@@ -7,7 +7,7 @@ const config = {
 	trailingComma: 'all',
 	printWidth: 120,
 	plugins: [twplugin],
-	tailwindConfig: './tailwind.config.js',
+	tailwindConfig: './tailwind.config.ts',
 };
 
 export default config;

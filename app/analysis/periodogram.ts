@@ -1,0 +1,188 @@
+import {
+	signal as tfSignal,
+	Tensor1D,
+	sum,
+	pow,
+	div,
+	mean,
+	sub,
+	tidy,
+	add,
+	real,
+	imag,
+	mul,
+	range,
+	Tensor,
+	Rank,
+} from '@tensorflow/tfjs-core';
+import '@tensorflow/tfjs-backend-webgl';
+import { NumberRange } from 'scichart';
+import { PSD } from '@/zods/analysis';
+
+/**
+ * Returns the ceil of the log2 of the absolute value of the passed number
+ * @memberof module:bcijs
+ * @function
+ * @name nextpow2
+ * @param {number} num
+ * @returns {number} The ceil of the log2 of the absolute value of the passed number
+ * @example
+ * nextpow2(8); // 3
+ * nextpow2(9); // 4
+ * nextpow2(16); // 4
+ * nextpow2(30); // 5
+ * nextpow2(0); // -Infinity
+ */
+export function nextpow2(num: number): number {
+	return Math.ceil(Math.log2(Math.abs(num)));
+}
+
+export const detrendSignal = (signal: Tensor1D) => tidy(() => sub<Tensor1D>(signal, mean(signal, 0, true)));
+
+const WINDOW_T_SEC = 0.5;
+const MAX_FREQ = 200;
+
+/**
+ * Estimates the power spectral density of a real-valued input signal using the periodogram method and a hann window.
+ * Output units are based on that of the input signal, of the form X^2/Hz, where X is the units of the input signal.
+ *
+ * @memberof module:bcijs
+ * @function
+ * @name periodogram
+ * @param {number[]} signal - The signal.
+ * @param {number} sampleRate - sample rate in Hz
+ * @param {Object} [options]
+ * @param {number} [options.fftSize=1 << nextpow2(sample_rate * WINDOW_T_SEC - 1)] - Size of the fft to be used. Should be a power of 2.
+ * @returns {Object} Object with keys 'estimates' (the psd estimates) and 'frequencies' (the corresponding frequencies in Hz)
+ */
+export async function powerSpectralDensity(
+	signal: Tensor1D,
+	sampleRate: number,
+	options?: { fftSize?: number; _scaling?: string; isDetrended?: boolean },
+): Promise<PSD> {
+	let { fftSize, _scaling } = Object.assign(
+		{
+			fftSize: 1 << nextpow2(sampleRate * WINDOW_T_SEC - 1),
+			_scaling: 'psd',
+		},
+		options,
+	);
+	// Validate _scaling
+	if (_scaling != 'psd' && _scaling != 'none') {
+		throw new Error('Unknown scaling');
+	}
+
+	let scaling_factor: number = _scaling === 'none' ? 1 : 2;
+	const win = tfSignal.hannWindow(fftSize);
+	let klipScale = (await tidy(() => div(div(1.0, sum(pow(win, 2))), sampleRate)).array()) as number;
+
+	const detrended = options?.isDetrended ? signal : detrendSignal(signal);
+	// console.log('stft options', sample_rate, signal.size, fftSize);
+	let f = tfSignal.stft(detrended, fftSize, Math.floor(fftSize / 2), fftSize, tfSignal.hannWindow);
+
+	let x = (await f.array()) as number[][];
+	f.dispose();
+	detrended.dispose();
+	win.dispose();
+
+	return welch(
+		x.map((series) => {
+			// Get the power of each FFT bin value
+			let powers: number[] = [];
+			let frequencies: number[] = [];
+			let maxPower = 0;
+			let minPower = 0;
+			for (var i = 0; i < series.length - 1; i += 2) {
+				const frequency = (i === 0 ? 0 : i / 2) * (sampleRate / fftSize);
+				if (frequency > MAX_FREQ) {
+					continue;
+				}
+				const nextFrequency = ((i + 2) / 2) * (sampleRate / fftSize);
+				// apply scaling
+				// magnitude is sqrt(real^2 + imag^2), power is magnitude^2
+				let power: number = series[i] ** 2 + series[i + 1] ** 2;
+				power *= klipScale;
+				// Don't scale DC or Nyquist by 2
+				if (_scaling == 'psd' && i > 0 && nextFrequency < MAX_FREQ) {
+					power *= scaling_factor;
+				}
+				if (power > maxPower) {
+					maxPower = power;
+				}
+				if (power < minPower) {
+					minPower = power;
+				}
+				powers.push(power);
+				frequencies.push(frequency);
+			}
+
+			return {
+				estimates: powers,
+				frequencies: frequencies,
+				powerRange: new NumberRange(minPower, maxPower),
+			};
+		}),
+	);
+}
+
+// Keep this async so that we can potentially move it to the GPU
+export const welch = async (PSDs: PSD[]): Promise<PSD> => {
+	if (PSDs.length == 0) throw new Error('Unable to calculate any PSD estimates');
+	if (PSDs.length == 1) {
+		console.warn('Not enough data to compute more than one segment, returning single modified periodogram.');
+		return PSDs[0];
+	}
+
+	// Compute average PSD
+	let num_estimates = PSDs[0].estimates.length;
+	let avg = new Array(num_estimates).fill(0);
+	for (let p = 0; p < PSDs.length; p++) {
+		for (let i = 0; i < num_estimates; i++) {
+			avg[i] += PSDs[p].estimates[i];
+		}
+	}
+	let maxPower = 0;
+	let minPower = 0;
+	for (let i = 0; i < num_estimates; i++) {
+		avg[i] = avg[i] / PSDs.length;
+		if (avg[i] > maxPower) {
+			maxPower = avg[i];
+		}
+		if (avg[i] < minPower) {
+			minPower = avg[i];
+		}
+	}
+
+	return {
+		estimates: avg,
+		frequencies: PSDs[0].frequencies,
+		powerRange: new NumberRange(minPower, maxPower),
+	};
+};
+
+export const sumPSDs = (PSDs: PSD[]): PSD => {
+	let num_estimates = PSDs[0].estimates.length;
+	let sum = new Array(num_estimates).fill(0);
+	for (let p = 0; p < PSDs.length; p++) {
+		for (let i = 0; i < num_estimates; i++) {
+			sum[i] += PSDs[p].estimates[i];
+		}
+	}
+	const { minPower, maxPower } = PSDs.reduce(
+		(acc, psd) => {
+			if (psd.powerRange.min < acc.minPower) {
+				acc.minPower = psd.powerRange.min;
+			}
+			if (psd.powerRange.max > acc.maxPower) {
+				acc.maxPower = psd.powerRange.max;
+			}
+			return acc;
+		},
+		{ minPower: 0, maxPower: 0 },
+	);
+	return {
+		estimates: sum,
+		frequencies: PSDs[0].frequencies,
+		powerRange: new NumberRange(minPower, maxPower),
+	};
+};

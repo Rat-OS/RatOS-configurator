@@ -2,8 +2,8 @@
 import React from 'react';
 import { useRecoilValue } from 'recoil';
 import { twJoin } from 'tailwind-merge';
-import { KlippyReadyStates, KlippyStatusState, useKlippyStateHandler } from '../hooks/useKlippyStateHandler';
-import { Badge, BadgeProps, badgeTextColorStyle } from './common/badge';
+import { KlippyReadyStates, useKlippyStateHandler } from '@/hooks/useKlippyStateHandler';
+import { Badge, BadgeProps, badgeTextColorStyle } from '@/components/common/badge';
 
 interface Props {
 	className?: string;
@@ -27,8 +27,7 @@ const klipperStateToText = (klippyState: KlippyReadyStates) => {
 };
 
 export const KlippyStateBadge: React.FC<Props> = (props) => {
-	useKlippyStateHandler();
-	const klippyState = useRecoilValue(KlippyStatusState);
+	const klippyState = useKlippyStateHandler();
 	let color: BadgeProps['color'] = 'orange';
 	switch (klippyState) {
 		case 'error':
@@ -53,7 +52,7 @@ export const KlippyStateBadge: React.FC<Props> = (props) => {
 
 	return (
 		<Badge color={color} title={klipperStateToText(klippyState)}>
-			<svg className={twJoin(badgeTextColorStyle({ color }), 'mr-1.5 h-2 w-2')} fill="currentColor" viewBox="0 0 8 8">
+			<svg className={twJoin(badgeTextColorStyle({ color }), 'h-2 w-2')} fill="currentColor" viewBox="0 0 8 8">
 				<circle cx={4} cy={4} r={3} />
 			</svg>
 			Klipper

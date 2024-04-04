@@ -1,13 +1,14 @@
-import { serializeToolheadConfiguration } from '../utils/serialization';
-import { PrinterAxis } from '../zods/motion';
+import { serializeToolheadConfiguration } from '@/utils/serialization';
+import { PrinterAxis } from '@/zods/motion';
 import {
 	PartialToolheadConfiguration,
 	SerializedToolheadConfiguration,
 	ToolheadConfiguration,
 	ToolNumber,
-} from '../zods/toolhead';
-import { getDefaultNozzle } from '../data/nozzles';
+} from '@/zods/toolhead';
+import { getDefaultNozzle } from '@/data/nozzles';
 import deepEqual from 'deep-equal';
+import { ADXL345SensorName } from '@/zods/analysis';
 
 type ToolheadSuffix = `t${ToolNumber}`;
 type ToolheadCommand = `T${ToolNumber}`;
@@ -91,7 +92,7 @@ export class ToolheadHelper<IsToolboard extends boolean> {
 	public getYAccelerometer() {
 		return this.config.yAccelerometer;
 	}
-	public getXAccelerometerName() {
+	public getXAccelerometerName(): ADXL345SensorName {
 		switch (this.getXAccelerometer()?.id) {
 			case 'controlboard':
 				return 'controlboard';
@@ -105,7 +106,7 @@ export class ToolheadHelper<IsToolboard extends boolean> {
 				return 'controlboard';
 		}
 	}
-	public getYAccelerometerName() {
+	public getYAccelerometerName(): ADXL345SensorName {
 		switch (this.getYAccelerometer()?.id) {
 			case 'controlboard':
 				return 'controlboard';

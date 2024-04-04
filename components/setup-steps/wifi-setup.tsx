@@ -1,17 +1,17 @@
 'use client';
 import React, { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
-import { CardSelector, SelectableCard } from '../card-selector';
-import { Spinner } from '../common/spinner';
-import { ErrorMessage } from '../common/error-message';
+import { CardSelector, SelectableCard } from '@/components/card-selector';
+import { Spinner } from '@/components/common/spinner';
+import { ErrorMessage } from '@/components/common/error-message';
 import { WifiIcon } from '@heroicons/react/24/solid';
-import { TextInput } from '../forms/text-input';
-import { StepNavButton, StepNavButtons } from '../step-nav-buttons';
-import type { Network } from '../../server/helpers/iw';
-import { Modal } from '../common/modal';
-import { parseSignal } from '../../helpers/wifi';
-import { StepScreenProps } from '../../hooks/useSteps';
-import { trpc } from '../../helpers/trpc';
-import { hostnameInput, joinInput } from '../../helpers/validators/wifi';
+import { TextInput } from '@/components/forms/text-input';
+import { StepNavButton, StepNavButtons } from '@/components/step-nav-buttons';
+import type { Network } from '@/server/helpers/iw';
+import { Modal } from '@/components/common/modal';
+import { parseSignal } from '@/helpers/wifi';
+import { StepScreenProps } from '@/hooks/useSteps';
+import { trpc } from '@/helpers/trpc';
+import { hostnameInput, joinInput } from '@/helpers/validators/wifi';
 
 interface APList {
 	[id: string]: Network;

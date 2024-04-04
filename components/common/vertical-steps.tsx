@@ -1,7 +1,7 @@
 import { CheckIcon } from '@heroicons/react/24/solid';
 import React from 'react';
 import { twJoin, twMerge } from 'tailwind-merge';
-import { StepScreen, StepScreenProps } from '../../hooks/useSteps';
+import { StepScreen, StepScreenProps } from '@/hooks/useSteps';
 
 interface StepProps {
 	steps: StepScreen[];

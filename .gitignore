@@ -24,3 +24,6 @@ build/cache/*
 
 # vscode (should use parent dir folder)
 .vscode
+
+# SciChart data
+public/scichart*

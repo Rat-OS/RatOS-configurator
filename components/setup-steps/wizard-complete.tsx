@@ -5,28 +5,28 @@ import {
 	serializePartialPrinterConfiguration,
 	serializePrinterConfiguration,
 	usePrinterConfiguration,
-} from '../../hooks/usePrinterConfiguration';
-import { StepScreen, StepScreenProps, useSteps } from '../../hooks/useSteps';
-import { StepNavButtons } from '../step-nav-buttons';
-import { ErrorMessage } from '../common/error-message';
-import { trpc } from '../../helpers/trpc';
-import { Badge } from '../common/badge';
-import { InfoMessage } from '../common/info-message';
-import { WarningMessage } from '../warning-message';
-import { Button } from '../common/button';
+} from '@/hooks/usePrinterConfiguration';
+import { StepScreen, StepScreenProps, useSteps } from '@/hooks/useSteps';
+import { StepNavButtons } from '@/components/step-nav-buttons';
+import { ErrorMessage } from '@/components/common/error-message';
+import { trpc } from '@/helpers/trpc';
+import { Badge } from '@/components/common/badge';
+import { InfoMessage } from '@/components/common/info-message';
+import { WarningMessage } from '@/components/warning-message';
+import { Button } from '@/components/common/button';
 import { useRecoilCallback } from 'recoil';
-import { xEndstopOptions } from '../../data/endstops';
-import { PrinterConfiguration } from '../../zods/printer-configuration';
-import { PrinterAxis } from '../../zods/motion';
-import { ToolOrAxis } from '../../zods/toolhead';
-import { useToolheadConfiguration } from '../../hooks/useToolheadConfiguration';
-import { Spinner } from '../common/spinner';
+import { xEndstopOptions } from '@/data/endstops';
+import { PrinterConfiguration } from '@/zods/printer-configuration';
+import { PrinterAxis } from '@/zods/motion';
+import { ToolOrAxis } from '@/zods/toolhead';
+import { useToolheadConfiguration } from '@/hooks/useToolheadConfiguration';
+import { Spinner } from '@/components/common/spinner';
 import { useQuery } from '@tanstack/react-query';
-import { FileChanges } from './file-changes';
+import { FileChanges } from '@/components/setup-steps/file-changes';
 import { Disclosure } from '@headlessui/react';
-import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { ChevronRightIcon } from '@heroicons/react/20/solid';
 import { twJoin } from 'tailwind-merge';
+import { AnimatedContainer } from '@/components/common/animated-container';
 
 const CompletionSteps: StepScreen[] = [
 	{
@@ -78,7 +78,6 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 			},
 		[],
 	);
-	const [animateRef] = useAutoAnimate();
 	if (toolhead == null) {
 		return (
 			<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
@@ -115,7 +114,7 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 						</div>
 						<p className="mt-2 max-w-4xl text-sm">{toolhead.getDescription()}</p>
 					</Disclosure.Button>
-					<div ref={animateRef}>
+					<AnimatedContainer>
 						<Disclosure.Panel className="pt-4">
 							<dl className="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
 								<div className="sm:col-span-1">
@@ -200,10 +199,10 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 												The current configuration assumes the X endstop is connected to your controlboard, do you want
 												to use an endstop connected to the toolboard instead?
 												<div className="mt-4 flex justify-end space-x-2">
-													<Button onClick={setToolboardEndstop} intent="warning">
+													<Button onClick={setToolboardEndstop} variant="warning">
 														Yes, use the toolboard connection
 													</Button>
-													<Button onClick={() => setIgnoreEndstopWarning(true)} intent="plain">
+													<Button onClick={() => setIgnoreEndstopWarning(true)} variant="plain">
 														No, use the controlboard connection
 													</Button>
 												</div>
@@ -240,7 +239,7 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 								</div>
 							</dl>
 						</Disclosure.Panel>
-					</div>
+					</AnimatedContainer>
 				</>
 			)}
 		</Disclosure>
@@ -329,7 +328,6 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 		}
 	}
 
-	const [animateRef] = useAutoAnimate();
 	const motionErrors = useMemo(() => {
 		if (parsedPrinterConfiguration.success) {
 			return parsedPrinterConfiguration.data.rails
@@ -385,7 +383,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 									</ErrorMessage>
 								</div>
 							)}
-							<div className="mt-4" ref={animateRef}>
+							<AnimatedContainer className="mt-4">
 								<Disclosure as={Fragment}>
 									{({ open }) => (
 										<>
@@ -412,7 +410,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 													<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Printer</dt>
 													<dd className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:mt-2">
 														{parsedPrinterConfiguration.data.printer != null
-															? `${parsedPrinterConfiguration.data.printer.manufacturer} ${parsedPrinterConfiguration.data.printer.name} ${parsedPrinterConfiguration.data.size}`
+															? `${parsedPrinterConfiguration.data.printer.manufacturer} ${parsedPrinterConfiguration.data.printer.name} ${Object.keys(parsedPrinterConfiguration.data.printer.sizes).length > 1 ? parsedPrinterConfiguration.data.size.x : ''}`
 															: 'None selected'}
 													</dd>
 												</div>
@@ -555,7 +553,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 										</InfoMessage>
 									</div>
 								</dl>
-							</div>
+							</AnimatedContainer>
 						</div>
 					)}
 				</div>

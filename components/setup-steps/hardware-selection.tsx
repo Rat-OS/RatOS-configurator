@@ -1,22 +1,21 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { StepNavButtons } from '../step-nav-buttons';
-import { StepScreenProps } from '../../hooks/useSteps';
-import { DropdownWithPrinterQuery } from '../forms/dropdown';
-import { usePrinterConfiguration } from '../../hooks/usePrinterConfiguration';
-import { ErrorMessage } from '../common/error-message';
-import { Toggle } from '../forms/toggle';
-import { PrinterRailSettings } from './printer-rail-settings';
-import { useAutoAnimate } from '@formkit/auto-animate/react';
-import { deserializePrinterRailDefinition } from '../../utils/serialization';
-import { ToolheadSettings } from './toolhead-settings';
-import { Spinner } from '../common/spinner';
-import { BasePrinterRail, PrinterAxis } from '../../zods/motion';
+import { StepNavButtons } from '@/components/step-nav-buttons';
+import { StepScreenProps } from '@/hooks/useSteps';
+import { DropdownWithPrinterQuery } from '@/components/forms/dropdown';
+import { usePrinterConfiguration } from '@/hooks/usePrinterConfiguration';
+import { ErrorMessage } from '@/components/common/error-message';
+import { Toggle } from '@/components/forms/toggle';
+import { PrinterRailSettings } from '@/components/setup-steps/printer-rail-settings';
+import { deserializePrinterRailDefinition } from '@/utils/serialization';
+import { ToolheadSettings } from '@/components/setup-steps/toolhead-settings';
+import { Spinner } from '@/components/common/spinner';
+import { BasePrinterRail, PrinterAxis } from '@/zods/motion';
 import { z } from 'zod';
+import { AnimatePresence, LayoutGroup, motion } from 'framer-motion';
+import { AnimatedContainer } from '@/components/common/animated-container';
 
 export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
-	const [animate] = useAutoAnimate();
-	const [railAnimate] = useAutoAnimate();
 	const [advancedSteppers, setAdvancedSteppers] = useState(false);
 	const {
 		selectedControllerFan,
@@ -77,27 +76,42 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 						If your hardware isn't listed, pick the one closest to it and override as necessary in printer.cfg later
 					</p>
 				</div>
-				<div>
-					<div ref={animate}>
-						{errors.length > 0 && (
-							<ErrorMessage className="mb-4">
+				<AnimatedContainer>
+					{errors.length > 0 && (
+						<ErrorMessage className="mb-4">
+							<AnimatePresence>
 								{errors.map((e) => (
-									<div className="mt-2" key={e}>
+									<motion.div
+										className="mt-2"
+										key={e}
+										exit={{ opacity: 0, scale: 0.9, y: -40 }}
+										initial={{ opacity: 0, scale: 0.9, y: 40 }}
+										animate={{ opacity: 1, scale: 1, y: 0 }}
+									>
 										{e}
-									</div>
+									</motion.div>
 								))}
-							</ErrorMessage>
-						)}
-					</div>
-					<div className="space-y-4">
-						{serializedPrinterConfiguration?.toolheads?.map((th, i) =>
-							th == null || th.axis == null ? null : (
-								<React.Suspense fallback={<Spinner />} key={i}>
-									<ToolheadSettings toolOrAxis={th.axis} />
-								</React.Suspense>
-							),
-						)}
-					</div>
+							</AnimatePresence>
+						</ErrorMessage>
+					)}
+					<AnimatedContainer className="space-y-4">
+						<AnimatePresence>
+							{serializedPrinterConfiguration?.toolheads?.map((th, i) =>
+								th == null || th.axis == null ? null : (
+									<motion.div
+										key={i}
+										exit={{ opacity: 0, scale: 0.9, y: -40 }}
+										initial={{ opacity: 0, scale: 0.9, y: 40 }}
+										animate={{ opacity: 1, scale: 1, y: 0 }}
+									>
+										<React.Suspense fallback={<Spinner />}>
+											<ToolheadSettings toolOrAxis={th.axis} />
+										</React.Suspense>
+									</motion.div>
+								),
+							)}
+						</AnimatePresence>
+					</AnimatedContainer>
 					<div className="mt-4 border-t border-zinc-100 pt-8 dark:border-zinc-700">
 						<div className="flex">
 							<h3 className="flex-1 text-base font-medium leading-7 text-zinc-900 dark:text-zinc-100">Electronics</h3>
@@ -156,37 +170,42 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 							/>
 						</div>
 					</div>
-				</div>
+				</AnimatedContainer>
 				<div>
 					{selectedPrinter && (
-						<div className="grid gap-4 py-4 sm:grid-cols-2" ref={railAnimate}>
-							{selectedPrinterRails.map((rail, ri) => {
-								const defaultRail = selectedPrinter.defaults.rails.find((r) => r.axis === rail.axis);
-								if (defaultRail == null) {
-									throw new Error('No printer default for axis ' + rail.axis);
-								}
-								const errorCount = Object.keys(railErrors[ri]).reduce((acc, key) => {
-									const objKey = key as keyof (typeof railErrors)[number];
-									const keyErrors = railErrors[ri][objKey];
-									if (keyErrors == null) {
-										return acc;
+						<LayoutGroup id="rails">
+							<AnimatedContainer className="grid gap-4 py-4 sm:grid-cols-2">
+								{selectedPrinterRails.map((rail, ri) => {
+									const defaultRail = selectedPrinter.defaults.rails.find((r) => r.axis === rail.axis);
+									if (defaultRail == null) {
+										throw new Error('No printer default for axis ' + rail.axis);
 									}
-									const count = Array.isArray(keyErrors) ? keyErrors.length : keyErrors._errors?.length ?? 0;
-									return acc + count;
-								}, 0);
-								return (
-									<PrinterRailSettings
-										key={rail.axis}
-										errors={railErrors[ri]}
-										selectedBoard={selectedBoard}
-										printerRail={rail}
-										printerRailDefault={deserializePrinterRailDefinition(defaultRail)}
-										performanceMode={performanceMode}
-										isVisible={advancedSteppers || railErrors[ri] != null}
-									/>
-								);
-							})}
-						</div>
+									const errorCount =
+										railErrors[ri] == null
+											? 0
+											: Object.keys(railErrors[ri]).reduce((acc, key) => {
+													const objKey = key as keyof (typeof railErrors)[number];
+													const keyErrors = railErrors[ri][objKey];
+													if (keyErrors == null) {
+														return acc;
+													}
+													const count = Array.isArray(keyErrors) ? keyErrors.length : keyErrors._errors?.length ?? 0;
+													return acc + count;
+												}, 0);
+									return (
+										<PrinterRailSettings
+											key={rail.axis}
+											errors={railErrors[ri]}
+											selectedBoard={selectedBoard}
+											printerRail={rail}
+											printerRailDefault={deserializePrinterRailDefinition(defaultRail)}
+											performanceMode={performanceMode}
+											isVisible={advancedSteppers || errorCount > 0}
+										/>
+									);
+								})}
+							</AnimatedContainer>
+						</LayoutGroup>
 					)}
 				</div>
 			</div>

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useDebounce } from '../../app/_hooks/debounce';
+import { useDebounce } from '@/app/_hooks/debounce';
 
 type SliderProps = {
 	min: number;

@@ -1,18 +1,40 @@
 // src/server/router/index.ts
 import { statSync } from 'fs';
 
-import { wifiRouter } from './wifi';
-import { mcuRouter } from './mcu';
+import { wifiRouter } from '@/server/routers/wifi';
+import { mcuRouter } from '@/server/routers/mcu';
 import { promisify } from 'util';
 import { exec } from 'child_process';
-import { getWirelessInterface } from '../helpers/iw';
-import { klippyExtensionsRouter } from './klippy-extensions';
-import { moonrakerExtensionsRouter } from './moonraker-extensions';
-import { printerRouter } from './printer';
-import { publicProcedure, router } from '../trpc';
-import { ServerCache } from '../helpers/cache';
+import { getWirelessInterface } from '@/server/helpers/iw';
+import { klippyExtensionsRouter } from '@/server/routers/klippy-extensions';
+import { moonrakerExtensionsRouter } from '@/server/routers/moonraker-extensions';
+import { printerRouter } from '@/server/routers/printer';
+import { publicProcedure, router } from '@/server/trpc';
+import { ServerCache } from '@/server/helpers/cache';
+import { z } from 'zod';
+import { getLogger } from '@/server/helpers/logger';
+import { PinoLogEvent } from '@/zods/util';
+import { analysisRouter } from '@/server/routers/analysis';
 
 export const appRouter = router({
+	clientLog: publicProcedure
+		.input(
+			z.object({
+				level: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']),
+				logEvent: PinoLogEvent,
+			}),
+		)
+		.mutation(async ({ input }) => {
+			let frontendLogger = getLogger().child({ source: 'frontend' }, { level: input.level });
+			for (const binding of input.logEvent.bindings) {
+				frontendLogger = frontendLogger.child(binding);
+			}
+			frontendLogger[input.logEvent.level.label](
+				input.logEvent.messages[0],
+				input.logEvent.messages[1],
+				...input.logEvent.messages.slice(2),
+			);
+		}),
 	version: publicProcedure.query(async () => {
 		return (await promisify(exec)('git describe --tags --always', {
 			cwd: process.env.RATOS_CONFIGURATION_PATH,
@@ -61,6 +83,7 @@ export const appRouter = router({
 	wifi: wifiRouter,
 	'klippy-extensions': klippyExtensionsRouter,
 	'moonraker-extensions': moonrakerExtensionsRouter,
+	analysis: analysisRouter,
 });
 
 // export type definition of API

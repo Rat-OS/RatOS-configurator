@@ -3,10 +3,10 @@
 import React, { Fragment, useCallback, useMemo, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { parseDiff, Diff, DiffType, ViewType, HunkData, TokenizeOptions, tokenize, markEdits } from 'react-diff-view';
-import type { FileState } from '../../server/routers/printer';
+import type { FileState } from '@/server/routers/printer';
 import 'react-diff-view/style/index.css';
 import { XMarkIcon } from '@heroicons/react/20/solid';
-import { Button } from '../common/button';
+import { Button } from '@/components/common/button';
 import { twJoin, twMerge } from 'tailwind-merge';
 
 interface ModalProps {
@@ -162,7 +162,7 @@ export const DiffModal: React.FC<ModalProps> = (props) => {
 							</div>
 							<div className="flex-end flex flex-row items-center justify-end space-x-2 border-t border-zinc-200 px-4 pt-4 dark:border-zinc-700 sm:px-6 sm:pt-6">
 								{props.buttons ?? null}
-								<Button intent="plain" onClick={close}>
+								<Button variant="plain" onClick={close}>
 									Close
 								</Button>
 							</div>

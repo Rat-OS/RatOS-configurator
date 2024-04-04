@@ -1,6 +1,6 @@
-import { KlipperConfigUtils } from '../../server/helpers/klipper-config';
-import { PrinterAxis } from '../../zods/motion';
-import { PrinterConfiguration } from '../../zods/printer-configuration';
+import { KlipperConfigUtils } from '@/server/helpers/klipper-config';
+import { PrinterAxis } from '@/zods/motion';
+import { PrinterConfiguration } from '@/zods/printer-configuration';
 export const sensorlessXTemplate = (config: PrinterConfiguration, utils: KlipperConfigUtils) => `
 # Sensorless homing.
 #

@@ -1,8 +1,8 @@
 'use client';
 import { PlayIcon, ForwardIcon } from '@heroicons/react/24/outline';
 import React from 'react';
-import { Button } from './common/button';
-import { Spinner } from './common/spinner';
+import { Button } from '@/components/common/button';
+import { Spinner } from '@/components/common/spinner';
 
 export interface StepNavButton {
 	label?: string;
@@ -27,7 +27,7 @@ export const StepNavButtons: React.FC<StepNavButtonsProps> = (props) => {
 	const left = props.left.onClick ? (
 		<div className="flex flex-1 justify-start">
 			<Button
-				intent="indeterminate"
+				variant="indeterminate"
 				disabled={props.left.disabled}
 				onClick={!props.left.isLoading ? props.left.onClick : undefined}
 				title={props.left.title}
@@ -49,7 +49,7 @@ export const StepNavButtons: React.FC<StepNavButtonsProps> = (props) => {
 		<div className="flex flex-1 justify-end space-x-4">
 			{props.skip && (
 				<Button
-					intent="indeterminate"
+					variant="indeterminate"
 					onClick={props.skip.onClick}
 					disabled={props.skip.disabled}
 					title={props.skip.title}
@@ -59,7 +59,7 @@ export const StepNavButtons: React.FC<StepNavButtonsProps> = (props) => {
 				</Button>
 			)}
 			<Button
-				intent="primary"
+				variant="primary"
 				disabled={props.right.disabled}
 				onClick={!props.right.isLoading ? props.right.onClick : undefined}
 				title={props.right.title}
@@ -74,8 +74,7 @@ export const StepNavButtons: React.FC<StepNavButtonsProps> = (props) => {
 	return (
 		<div className="px-8 pb-5">
 			<nav
-				className="flex items-center justify-between border-t border-zinc-200 
-		bg-white py-3 dark:border-zinc-700 dark:bg-zinc-900"
+				className="flex items-center justify-between border-t border-zinc-200 py-3 dark:border-zinc-700"
 				aria-label="Pagination"
 			>
 				{left}

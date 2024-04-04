@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { RadioGroup } from '@headlessui/react';
 import { twJoin, twMerge } from 'tailwind-merge';
-import { badgeBackgroundColorStyle, badgeBorderColorStyle, badgeTextColorStyle } from './common/badge';
+import { badgeBackgroundColorStyle, badgeBorderColorStyle, badgeTextColorStyle } from '@/components/common/badge';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
 
 export interface SelectableOption {
@@ -116,7 +116,7 @@ export const CardSelectorWithOptions = <
 								{card.options != null && (
 									<RadioGroup
 										value={selected?.id === card.id ? selectedOption : null}
-										onChange={(option) => onSelectOption(card, option)}
+										onChange={(option: Option) => onSelectOption(card, option)}
 										className="mt-2"
 									>
 										<RadioGroup.Label className="sr-only"> Choose a memory option </RadioGroup.Label>

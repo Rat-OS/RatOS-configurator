@@ -1,18 +1,19 @@
 import React, { useMemo } from 'react';
 import { useRecoilValue } from 'recoil';
-import { ToolheadHelper } from '../../helpers/toolhead';
-import { StepScreen, useSteps } from '../../hooks/useSteps';
-import { LoadablePrinterToolheadsState } from '../../recoil/toolhead';
-import { ToolheadConfiguration } from '../../zods/toolhead';
-import { Spinner } from '../common/spinner';
-import { VerticalSteps } from '../common/vertical-steps';
-import { HardwareSelection } from './hardware-selection';
-import { MCUPreparation } from './mcu-preparation';
-import { PrinterSelection } from './printer-selection';
-import { WifiSetup } from './wifi-setup';
-import { WizardComplete } from './wizard-complete';
+import { ToolheadHelper } from '@/helpers/toolhead';
+import { StepScreen, useSteps } from '@/hooks/useSteps';
+import { LoadablePrinterToolheadsState } from '@/recoil/toolhead';
+import { ToolheadConfiguration } from '@/zods/toolhead';
+import { Spinner } from '@/components/common/spinner';
+import { VerticalSteps } from '@/components/common/vertical-steps';
+import { HardwareSelection } from '@/components/setup-steps/hardware-selection';
+import { MCUPreparation } from '@/components/setup-steps/mcu-preparation';
+import { PrinterSelection } from '@/components/setup-steps/printer-selection';
+import { WifiSetup } from '@/components/setup-steps/wifi-setup';
+import { WizardComplete } from '@/components/setup-steps/wizard-complete';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useLocalPathname } from '../../app/_hooks/navigation';
+import { useLocalPathname } from '@/app/_hooks/navigation';
+import { Card } from '@/components/common/card';
 
 interface WizardProps {
 	isConnectedToWifi?: boolean;
@@ -135,16 +136,16 @@ export const SetupSteps: React.FC<WizardProps> = (props) => {
 	const isReady = uriStep == null || uriStep === currentStepIndex;
 
 	return (
-		<div className="mx-auto mt-8 grid max-w-3xl grid-cols-1 gap-6 sm:px-6 lg:max-w-7xl lg:grid-flow-col-dense lg:grid-cols-3">
+		<div className="mx-auto mt-8 grid max-w-3xl grid-cols-1 gap-4 px-4 lg:max-w-7xl lg:grid-flow-col-dense lg:grid-cols-3">
 			<div className="lg:col-span-2 lg:col-start-1">
-				<div className="relative rounded-lg bg-white shadow dark:bg-zinc-900">
+				<Card>
 					<React.Suspense fallback={<LoadScreen />}>
 						{isReady ? currentStep.renderScreen(screenProps) : <LoadScreen />}
 					</React.Suspense>
-				</div>
+				</Card>
 			</div>
 			<div className="space-y-6 lg:col-span-1 lg:col-start-3">
-				<div className="overflow-hidden rounded-lg bg-white p-8 shadow dark:bg-zinc-900">
+				<Card className="p-8">
 					<div className="mb-5 border-b border-zinc-200 pb-5 dark:border-zinc-800">
 						<h3 className="text-lg font-medium leading-6 text-zinc-900 dark:text-zinc-100">Setup Progress</h3>
 					</div>
@@ -154,7 +155,7 @@ export const SetupSteps: React.FC<WizardProps> = (props) => {
 						currentStepIndex={currentStepIndex}
 						setCurrentStepIndex={setCurrentStepIndex}
 					/>
-				</div>
+				</Card>
 			</div>
 		</div>
 	);

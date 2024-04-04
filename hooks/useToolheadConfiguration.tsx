@@ -1,13 +1,13 @@
-import { ToolheadHelper } from '../helpers/toolhead';
-import { deserializeStepper } from '../utils/serialization';
+import { ToolheadHelper } from '@/helpers/toolhead';
+import { deserializeStepper } from '@/utils/serialization';
 import { useRecoilCallback, useRecoilValue } from 'recoil';
 import { useMemo, useRef, useState } from 'react';
-import { PrinterRailState } from '../recoil/printer';
-import { PrinterAxis } from '../zods/motion';
-import { LoadablePrinterToolheadsState, PrinterToolheadState, PrinterToolheadsState } from '../recoil/toolhead';
-import { BaseToolheadConfiguration, ToolheadConfiguration, ToolNumber, ToolOrAxis } from '../zods/toolhead';
-import { defaultXEndstop } from '../data/endstops';
-import { hotendFanOptions, partFanOptions } from '../data/fans';
+import { PrinterRailState } from '@/recoil/printer';
+import { PrinterAxis } from '@/zods/motion';
+import { LoadablePrinterToolheadsState, PrinterToolheadState, PrinterToolheadsState } from '@/recoil/toolhead';
+import { BaseToolheadConfiguration, ToolheadConfiguration, ToolNumber, ToolOrAxis } from '@/zods/toolhead';
+import { defaultXEndstop } from '@/data/endstops';
+import { hotendFanOptions, partFanOptions } from '@/data/fans';
 
 export const useToolhead = (toolOrAxis: ToolOrAxis | PrinterAxis | undefined) => {
 	const toolheadConfigs = useRecoilValue(PrinterToolheadsState);

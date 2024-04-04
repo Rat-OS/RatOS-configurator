@@ -1,9 +1,9 @@
 'use client';
 import { TRPCClientErrorLike } from '@trpc/client';
 import { UseMutationResult } from '@tanstack/react-query';
-import { AppRouter } from '../../server/routers';
-import { ErrorMessage } from './error-message';
-import { Spinner } from './spinner';
+import { AppRouter } from '@/server/routers';
+import { ErrorMessage } from '@/components/common/error-message';
+import { Spinner } from '@/components/common/spinner';
 
 export const MutationStatus = (mutation: UseMutationResult<any, TRPCClientErrorLike<AppRouter>, any, any>) => {
 	if (mutation.isError) {

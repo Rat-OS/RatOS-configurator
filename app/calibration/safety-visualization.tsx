@@ -1,5 +1,5 @@
 import { twJoin } from 'tailwind-merge';
-import { useGestures } from './hooks';
+import { useGestures } from '@/app/calibration/hooks';
 
 export const SafetyVisualization: React.FC<{ gestureState: ReturnType<typeof useGestures> }> = ({ gestureState }) => (
 	<>

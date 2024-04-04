@@ -1,5 +1,5 @@
-import { VaocSettings } from '../app/calibration/vaoc-settings-dialog';
-import { CameraOption } from '../app/calibration/helpers';
+import { VaocSettings } from '@/app/calibration/vaoc-settings-dialog';
+import { CameraOption } from '@/app/calibration/helpers';
 
 export type MoonrakerStatus = 'connected' | 'connecting' | 'not-running';
 
@@ -11,12 +11,22 @@ export interface InFlightRequestTimeouts {
 	[id: number]: number;
 }
 
-export interface MoonrakerResponse {
+export type MoonrakerResponseSuccess = {
 	method: string;
 	params: unknown[];
 	result?: unknown;
 	id: number;
-}
+};
+
+export type MoonrakerResponseError = {
+	error: {
+		code: number;
+		message: string;
+	};
+	id: number;
+};
+
+export type MoonrakerResponse = MoonrakerResponseSuccess | MoonrakerResponseError;
 export type MoonrakerDBItemResponse<Data = unknown> = {
 	key: string;
 	namespace: string;
@@ -69,7 +79,7 @@ export type PrinterObjectQueries = {
 			position: [number, number, number, number];
 			max_velocity: number;
 			max_accel: number;
-			max_accel_to_decel: number;
+			minimum_cruise_ratio: number;
 			square_corner_velocity: number;
 		},
 		void

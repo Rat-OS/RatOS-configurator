@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import { BoardID, Toolboard } from './boards';
-import { Hotend, Thermistor, Extruder, Probe, Endstop, Fan, Accelerometer, Nozzle } from './hardware';
-import { PrinterAxis } from './motion';
-import { getDefaultNozzle } from '../data/nozzles';
+import { BoardID, Toolboard } from '@/zods/boards';
+import { Hotend, Thermistor, Extruder, Probe, Endstop, Fan, Accelerometer, Nozzle } from '@/zods/hardware';
+import { PrinterAxis } from '@/zods/motion';
+import { getDefaultNozzle } from '@/data/nozzles';
 
 export const BaseToolheadConfiguration = z
 	.object({

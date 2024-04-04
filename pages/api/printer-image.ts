@@ -1,10 +1,10 @@
-import { GenericErrorResponse } from './types';
+import { GenericErrorResponse } from '@/pages/api/types';
 import fs from 'fs';
 import { promisify } from 'util';
 import path from 'path';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { fileTypeFromBuffer } from 'file-type';
-import { getPrinters } from '../../server/routers/printer';
+import { getPrinters } from '@/server/routers/printer';
 
 type PrinterImageSuccessResponseData = Buffer;
 

@@ -2,11 +2,11 @@
 'use client';
 
 import { twMerge } from 'tailwind-merge';
-import { Badge } from '../components/common/badge';
-import { useMainsailQuery } from '../hooks/useMainsail';
-import { trpc } from '../utils/trpc';
-import { HistoryTable } from './historyTable';
-import { useMoonrakerQuery, usePrinterObjectQuery } from '../moonraker/hooks';
+import { Badge } from '@/components/common/badge';
+import { useMainsailQuery } from '@/hooks/useMainsail';
+import { trpc } from '@/utils/trpc';
+import { HistoryTable } from '@/app/historyTable';
+import { useMoonrakerQuery, usePrinterObjectQuery } from '@/moonraker/hooks';
 import { useMemo } from 'react';
 import { Duration, DurationLikeObject } from 'luxon';
 import CountUp from 'react-countup';
@@ -118,17 +118,17 @@ export default function Page() {
 				</div>
 
 				{/* Heading */}
-				<div className="bg-zinc-700/15">
+				<div className="bg-zinc-700/15 backdrop-blur-sm">
 					<div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-x-8 gap-y-4 px-4 py-4 @screen-sm:flex-row @screen-sm:items-center @screen-sm:px-6 @screen-lg:px-8">
 						<div>
 							<div className="flex items-center gap-x-3">
 								<div
 									className={twMerge(
 										'flex-none rounded-full bg-green-400/10 p-1 text-zinc-400',
-										klippyState.data?.klippy_state === 'error' && 'text-red-400',
-										klippyState.data?.klippy_state === 'startup' && 'text-amber-400',
-										klippyState.data?.klippy_state === 'ready' && 'text-green-400',
-										klippyState.data?.klippy_state === 'shutdown' && 'text-red-400',
+										klippyState.data?.klippy_state === 'error' && 'bg-red-400/10 text-red-400',
+										klippyState.data?.klippy_state === 'startup' && 'bg-amber-400/10 text-amber-400',
+										klippyState.data?.klippy_state === 'ready' && 'bg-green-400/10 text-green-400',
+										klippyState.data?.klippy_state === 'shutdown' && 'bg-red-400/10 text-red-400',
 									)}
 								>
 									<div className="h-2 w-2 rounded-full bg-current" />
@@ -164,7 +164,7 @@ export default function Page() {
 				</div>
 
 				{/* Stats */}
-				<div className="border-t border-white/5 bg-zinc-700/10">
+				<div className="border-t border-white/5 bg-zinc-700/10 backdrop-blur-sm">
 					<div className="mx-auto grid max-w-7xl grid-cols-1 @screen-sm:grid-cols-2 @screen-lg:grid-cols-4">
 						{stats.map((stat, statIdx) => (
 							<div

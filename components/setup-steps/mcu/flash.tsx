@@ -1,15 +1,15 @@
 import { CheckCircleIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { Fragment, useCallback, useState } from 'react';
-import { trpc } from '../../../helpers/trpc';
-import { Button } from '../../common/button';
-import { MutationStatus } from '../../common/mutation-status';
-import { InfoMessage } from '../../common/info-message';
-import { Spinner } from '../../common/spinner';
-import { StepNavButton, StepNavButtons } from '../../step-nav-buttons';
-import { WarningMessage } from '../../warning-message';
-import { MCUStepScreenProps } from '../mcu-preparation';
-import { DFUFlash } from './dfu-flash';
-import { SDCardFlashing } from './sd-card-flash';
+import { trpc } from '@/helpers/trpc';
+import { Button } from '@/components/common/button';
+import { MutationStatus } from '@/components/common/mutation-status';
+import { InfoMessage } from '@/components/common/info-message';
+import { Spinner } from '@/components/common/spinner';
+import { StepNavButton, StepNavButtons } from '@/components/step-nav-buttons';
+import { WarningMessage } from '@/components/warning-message';
+import { MCUStepScreenProps } from '@/components/setup-steps/mcu-preparation';
+import { DFUFlash } from '@/components/setup-steps/mcu/dfu-flash';
+import { SDCardFlashing } from '@/components/setup-steps/mcu/sd-card-flash';
 
 export const MCUFlashing = (props: MCUStepScreenProps) => {
 	const [forceReflash, setForceReflash] = useState(false);
@@ -80,7 +80,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 					check your board and try flashing it again.
 				</p>
 				<p>
-					<Button intent="indeterminate" onClick={reflash}>
+					<Button variant="indeterminate" onClick={reflash}>
 						<span>Flash again</span> <ArrowPathIcon className="inline h-5 w-5" />
 					</Button>
 				</p>
@@ -118,7 +118,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 				{versionMismatch}
 				<p>
 					Proceed to the next step or{' '}
-					<Button intent="indeterminate" onClick={reflash}>
+					<Button variant="indeterminate" onClick={reflash}>
 						<span>Flash again</span> <ArrowPathIcon className="inline h-5 w-5" />
 					</Button>
 				</p>
@@ -131,7 +131,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 		const unidentifiedPathStrategyEnabled = unidentifiedBoards.data?.length;
 		const dfu = (
 			<Button
-				intent="indeterminate"
+				variant="indeterminate"
 				onClick={() => setFlashStrategy('dfu')}
 				disabled={!dfuStrategyEnabled}
 				className="justify-center"
@@ -142,7 +142,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 		);
 		const sdCard = (
 			<Button
-				intent="indeterminate"
+				variant="indeterminate"
 				onClick={() => setFlashStrategy('sdcard')}
 				disabled={!sdCardStrategyEnabled}
 				className="justify-center"
@@ -153,7 +153,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 		);
 		const path = (
 			<Button
-				intent="indeterminate"
+				variant="indeterminate"
 				onClick={onFlashViaPath}
 				disabled={!pathStrategyEnabled}
 				className="justify-center"
@@ -164,7 +164,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 		);
 		const unidentifiedPath = (
 			<Button
-				intent="indeterminate"
+				variant="indeterminate"
 				className="justify-center"
 				disabled={!unidentifiedPathStrategyEnabled}
 				title={unidentifiedPathStrategyEnabled ? undefined : 'No unidentified boards detected.'}
