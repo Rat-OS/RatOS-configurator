@@ -39,13 +39,13 @@ export const useKlippyStateHandler = () => {
 	}, [query, queryKlippyState]);
 
 	useEffect(() => {
-		if (lastMessage?.method === 'notify_klippy_ready') {
+		if ('method' in lastMessage && lastMessage?.method === 'notify_klippy_ready') {
 			setKlippyReadyState('ready');
 		}
-		if (lastMessage?.method === 'notify_klippy_shutdown') {
+		if ('method' in lastMessage && lastMessage?.method === 'notify_klippy_shutdown') {
 			setKlippyReadyState('shutdown');
 		}
-		if (lastMessage?.method === 'notify_klippy_disconnected') {
+		if ('method' in lastMessage && lastMessage?.method === 'notify_klippy_disconnected') {
 			setKlippyReadyState('unknown');
 			queryKlippyState();
 		}

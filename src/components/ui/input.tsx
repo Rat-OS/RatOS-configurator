@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { cn } from '@/helpers/utils';
+import { cn, setDisplayName } from '@/helpers/utils';
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
 
@@ -19,6 +19,6 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(({ className, type,
 		/>
 	);
 });
-Input.displayName = 'Input';
+setDisplayName(Input, 'Input');
 
 export { Input };

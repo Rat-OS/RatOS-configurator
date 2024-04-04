@@ -3,7 +3,7 @@
 import * as React from 'react';
 import * as SwitchPrimitives from '@radix-ui/react-switch';
 
-import { cn } from '@/helpers/utils';
+import { cn, setDisplayName } from '@/helpers/utils';
 
 const Switch = React.forwardRef<
 	React.ElementRef<typeof SwitchPrimitives.Root>,
@@ -30,6 +30,6 @@ const Switch = React.forwardRef<
 		/>
 	</SwitchPrimitives.Root>
 ));
-Switch.displayName = SwitchPrimitives.Root.displayName;
+setDisplayName(Switch, SwitchPrimitives.Root.displayName);
 
 export { Switch };

@@ -3,7 +3,7 @@
 import * as React from 'react';
 import * as SliderPrimitive from '@radix-ui/react-slider';
 
-import { cn } from '@/helpers/utils';
+import { cn, setDisplayName } from '@/helpers/utils';
 
 const Slider = React.forwardRef<
 	React.ElementRef<typeof SliderPrimitive.Root>,
@@ -40,6 +40,6 @@ const Slider = React.forwardRef<
 		/>
 	</SliderPrimitive.Root>
 ));
-Slider.displayName = SliderPrimitive.Root.displayName;
+setDisplayName(Slider, SliderPrimitive.Root.displayName);
 
 export { Slider };

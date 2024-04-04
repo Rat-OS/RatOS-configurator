@@ -1,5 +1,6 @@
 import { Button, buttonVariants } from '@/components/common/button';
+import { setDisplayName } from '@/helpers/utils';
 
-Button.displayName = 'Button';
+setDisplayName(Button, 'Button');
 
 export { Button, buttonVariants };

@@ -3,7 +3,7 @@ import * as LabelPrimitive from '@radix-ui/react-label';
 import { Slot } from '@radix-ui/react-slot';
 import { Controller, ControllerProps, FieldPath, FieldValues, FormProvider, useFormContext } from 'react-hook-form';
 
-import { cn } from '@/helpers/utils';
+import { cn, setDisplayName } from '@/helpers/utils';
 import { Label } from '@/components/ui/label';
 import { AnimatePresence, HTMLMotionProps, motion } from 'framer-motion';
 
@@ -71,7 +71,7 @@ const FormItem = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivEl
 		);
 	},
 );
-FormItem.displayName = 'FormItem';
+setDisplayName(FormItem, 'FormItem');
 
 const FormLabel = React.forwardRef<
 	React.ElementRef<typeof LabelPrimitive.Root>,
@@ -81,7 +81,7 @@ const FormLabel = React.forwardRef<
 
 	return <Label ref={ref} className={cn(error && 'text-destructive', className)} htmlFor={formItemId} {...props} />;
 });
-FormLabel.displayName = 'FormLabel';
+setDisplayName(FormLabel, 'FormLabel');
 
 const FormControl = React.forwardRef<React.ElementRef<typeof Slot>, React.ComponentPropsWithoutRef<typeof Slot>>(
 	({ ...props }, ref) => {
@@ -98,7 +98,7 @@ const FormControl = React.forwardRef<React.ElementRef<typeof Slot>, React.Compon
 		);
 	},
 );
-FormControl.displayName = 'FormControl';
+setDisplayName(FormControl, 'FormControl');
 
 const FormDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
 	({ className, ...props }, ref) => {
@@ -114,7 +114,7 @@ const FormDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttribu
 		);
 	},
 );
-FormDescription.displayName = 'FormDescription';
+setDisplayName(FormDescription, 'FormDescription');
 
 const FormMessage = React.forwardRef<HTMLParagraphElement, HTMLMotionProps<'p'>>(
 	({ className, children, ...props }, ref) => {
@@ -152,6 +152,6 @@ const FormMessage = React.forwardRef<HTMLParagraphElement, HTMLMotionProps<'p'>>
 		);
 	},
 );
-FormMessage.displayName = 'FormMessage';
+setDisplayName(FormMessage, 'FormMessage');
 
 export { useFormField, Form, FormItem, FormLabel, FormControl, FormDescription, FormMessage, FormField };

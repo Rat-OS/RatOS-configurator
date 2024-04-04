@@ -4,7 +4,7 @@ import * as React from 'react';
 import { CaretSortIcon, CheckIcon, ChevronDownIcon, ChevronUpIcon } from '@radix-ui/react-icons';
 import * as SelectPrimitive from '@radix-ui/react-select';
 
-import { cn } from '@/helpers/utils';
+import { cn, setDisplayName } from '@/helpers/utils';
 
 const Select = SelectPrimitive.Root;
 
@@ -31,7 +31,7 @@ const SelectTrigger = React.forwardRef<
 		</SelectPrimitive.Icon>
 	</SelectPrimitive.Trigger>
 ));
-SelectTrigger.displayName = SelectPrimitive.Trigger.displayName;
+setDisplayName(SelectTrigger, SelectPrimitive.Trigger.displayName);
 
 const SelectScrollUpButton = React.forwardRef<
 	React.ElementRef<typeof SelectPrimitive.ScrollUpButton>,
@@ -48,7 +48,7 @@ const SelectScrollUpButton = React.forwardRef<
 		<ChevronUpIcon className="size-6" />
 	</SelectPrimitive.ScrollUpButton>
 ));
-SelectScrollUpButton.displayName = SelectPrimitive.ScrollUpButton.displayName;
+setDisplayName(SelectScrollUpButton, SelectPrimitive.ScrollUpButton.displayName);
 
 const SelectScrollDownButton = React.forwardRef<
 	React.ElementRef<typeof SelectPrimitive.ScrollDownButton>,
@@ -65,7 +65,7 @@ const SelectScrollDownButton = React.forwardRef<
 		<ChevronDownIcon className="size-6" />
 	</SelectPrimitive.ScrollDownButton>
 ));
-SelectScrollDownButton.displayName = SelectPrimitive.ScrollDownButton.displayName;
+setDisplayName(SelectScrollDownButton, SelectPrimitive.ScrollDownButton.displayName);
 
 const SelectContent = React.forwardRef<
 	React.ElementRef<typeof SelectPrimitive.Content>,
@@ -97,7 +97,7 @@ const SelectContent = React.forwardRef<
 		</SelectPrimitive.Content>
 	</SelectPrimitive.Portal>
 ));
-SelectContent.displayName = SelectPrimitive.Content.displayName;
+setDisplayName(SelectContent, SelectPrimitive.Content.displayName);
 
 const SelectLabel = React.forwardRef<
 	React.ElementRef<typeof SelectPrimitive.Label>,
@@ -105,7 +105,7 @@ const SelectLabel = React.forwardRef<
 >(({ className, ...props }, ref) => (
 	<SelectPrimitive.Label ref={ref} className={cn('px-2 py-1.5 text-sm font-semibold', className)} {...props} />
 ));
-SelectLabel.displayName = SelectPrimitive.Label.displayName;
+setDisplayName(SelectLabel, SelectPrimitive.Label.displayName);
 
 const SelectItem = React.forwardRef<
 	React.ElementRef<typeof SelectPrimitive.Item>,
@@ -127,7 +127,7 @@ const SelectItem = React.forwardRef<
 		<SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
 	</SelectPrimitive.Item>
 ));
-SelectItem.displayName = SelectPrimitive.Item.displayName;
+setDisplayName(SelectItem, SelectPrimitive.Item.displayName);
 
 const SelectSeparator = React.forwardRef<
 	React.ElementRef<typeof SelectPrimitive.Separator>,
@@ -135,7 +135,7 @@ const SelectSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
 	<SelectPrimitive.Separator ref={ref} className={cn('-mx-1 my-1 h-px bg-muted', className)} {...props} />
 ));
-SelectSeparator.displayName = SelectPrimitive.Separator.displayName;
+setDisplayName(SelectSeparator, SelectPrimitive.Separator.displayName);
 
 export {
 	Select,

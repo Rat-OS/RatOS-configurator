@@ -4,7 +4,7 @@ import * as React from 'react';
 import * as CheckboxPrimitive from '@radix-ui/react-checkbox';
 import { CheckIcon } from '@radix-ui/react-icons';
 
-import { cn } from '@/helpers/utils';
+import { cn, setDisplayName } from '@/helpers/utils';
 
 const Checkbox = React.forwardRef<
 	React.ElementRef<typeof CheckboxPrimitive.Root>,
@@ -23,6 +23,6 @@ const Checkbox = React.forwardRef<
 		</CheckboxPrimitive.Indicator>
 	</CheckboxPrimitive.Root>
 ));
-Checkbox.displayName = CheckboxPrimitive.Root.displayName;
+setDisplayName(Checkbox, CheckboxPrimitive.Root.displayName);
 
 export { Checkbox };
