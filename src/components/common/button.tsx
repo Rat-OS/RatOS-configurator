@@ -93,10 +93,11 @@ export const buttonVariants = cva(
 	},
 );
 
-export type Intents = NonNullable<Required<VariantProps<typeof buttonVariants>>['variant']>;
+export type ButtonVariantProps = VariantProps<typeof buttonVariants>;
+export type Intents = NonNullable<Required<ButtonVariantProps>['variant']>;
 
-interface ButtonProps<T extends string>
-	extends React.PropsWithChildren<VariantProps<typeof buttonVariants> & React.ButtonHTMLAttributes<HTMLButtonElement>> {
+export interface ButtonProps<T extends string>
+	extends React.PropsWithChildren<ButtonVariantProps & React.ButtonHTMLAttributes<HTMLButtonElement>> {
 	onClick?: () => void;
 	className?: string;
 	target?: string;

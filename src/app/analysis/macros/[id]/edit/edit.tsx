@@ -62,6 +62,7 @@ export const EditMacro: React.FC<EditMacroProps> = ({ id }) => {
 					<AlertDialogFooter>
 						<AlertDialogCancel onClick={() => setIsAlertVisible(false)}>Cancel</AlertDialogCancel>
 						<AlertDialogAction
+							variant="danger"
 							onClick={() => {
 								setHasConfirmedRecordDeletion(true);
 								setIsAlertVisible(false);

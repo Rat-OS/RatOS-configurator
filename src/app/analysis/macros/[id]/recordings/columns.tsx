@@ -37,6 +37,8 @@ export const columns: (ColumnDef<MacroRecordingWithoutSourcePSDs> & ColumnCapabi
 	{
 		accessorKey: 'macroRecordingRunId',
 		enableGrouping: true,
+		enableHiding: false,
+		enableSorting: false,
 	},
 	{
 		id: 'date',
