@@ -86,26 +86,51 @@ export const useRealtimeAnalysisChart = (accelerometer?: MacroRecordingSettings[
 		if (animationDS == null) {
 			throw new Error('No animation data series');
 		}
+		// Log lengths if estimates and frequencies aren't the same length
+		if (res.x.frequencies.length !== res.x.estimates.length) {
+			getLogger().warn(
+				`X estimates and frequencies are not the same length (${res.x.estimates.length} vs ${res.x.frequencies.length})`,
+			);
+		}
+		if (res.y.frequencies.length !== res.y.estimates.length) {
+			getLogger().warn(
+				`Y estimates and frequencies are not the same length (${res.y.estimates.length} vs ${res.y.frequencies.length})`,
+			);
+		}
+		if (res.z.frequencies.length !== res.z.estimates.length) {
+			getLogger().warn(
+				`Z estimates and frequencies are not the same length (${res.z.estimates.length} vs ${res.z.frequencies.length})`,
+			);
+		}
+		if (res.total.frequencies.length !== res.total.estimates.length) {
+			getLogger().warn(
+				`Total estimates and frequencies are not the same length  (${res.total.estimates.length} vs ${res.total.frequencies.length})`,
+			);
+		}
 		// Pad PSD's to PSDLength
-		if (res.x.frequencies.length < PSDLength) {
-			const pad = new Array(PSDLength - res.x.frequencies.length).fill(0);
-			res.x.frequencies.unshift(...pad);
-			res.x.estimates.unshift(...pad);
+		if (res.x.frequencies.length < PSDLength || res.x.estimates.length < PSDLength) {
+			const padFreq = new Array(PSDLength - res.x.frequencies.length).fill(0);
+			const padEstimates = new Array(PSDLength - res.x.estimates.length).fill(0);
+			res.x.frequencies.unshift(...padFreq);
+			res.x.estimates.unshift(...padEstimates);
 		}
-		if (res.y.frequencies.length < PSDLength) {
-			const pad = new Array(PSDLength - res.y.frequencies.length).fill(0);
-			res.y.frequencies.unshift(...pad);
-			res.y.estimates.unshift(...pad);
+		if (res.y.frequencies.length < PSDLength || res.y.estimates.length < PSDLength) {
+			const padFreq = new Array(PSDLength - res.y.frequencies.length).fill(0);
+			const padEstimates = new Array(PSDLength - res.y.estimates.length).fill(0);
+			res.y.frequencies.unshift(...padFreq);
+			res.y.estimates.unshift(...padEstimates);
 		}
-		if (res.z.frequencies.length < PSDLength) {
-			const pad = new Array(PSDLength - res.z.frequencies.length).fill(0);
-			res.z.frequencies.unshift(...pad);
-			res.z.estimates.unshift(...pad);
+		if (res.z.frequencies.length < PSDLength || res.z.estimates.length < PSDLength) {
+			const padFreq = new Array(PSDLength - res.z.frequencies.length).fill(0);
+			const padEstimates = new Array(PSDLength - res.z.estimates.length).fill(0);
+			res.z.frequencies.unshift(...padFreq);
+			res.z.estimates.unshift(...padEstimates);
 		}
-		if (res.total.frequencies.length < PSDLength) {
-			const pad = new Array(PSDLength - res.total.frequencies.length).fill(0);
-			res.total.frequencies.unshift(...pad);
-			res.total.estimates.unshift(...pad);
+		if (res.total.frequencies.length < PSDLength || res.total.estimates.length < PSDLength) {
+			const padFreq = new Array(PSDLength - res.total.frequencies.length).fill(0);
+			const padEstimates = new Array(PSDLength - res.total.estimates.length).fill(0);
+			res.total.frequencies.unshift(...padFreq);
+			res.total.estimates.unshift(...padEstimates);
 		}
 		animationDS.x.clear();
 		animationDS.y.clear();
