@@ -63,21 +63,20 @@ const getTooltipDataTemplate = (
 };
 
 export const MacroChartPreview: React.FC<MacroChartPreviewProps> = ({ sequences }) => {
-	const sequenceData = useMemo(
-		() =>
-			sequences
-				?.map((seq) => {
-					return seq.recording?.capturePSD
-						? {
-								accel: seq.recording.accelerometer,
-								color: seq.recording.color,
-								name: seq.name,
-							}
-						: null;
-				})
-				.filter(Boolean) ?? [],
-		[sequences],
-	);
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	const sequenceData =
+		sequences
+			?.map((seq) => {
+				return seq.recording?.capturePSD
+					? {
+							accel: seq.recording.accelerometer,
+							color: seq.recording.color,
+							name: seq.name,
+						}
+					: null;
+			})
+			.filter(Boolean) ?? [];
+
 	const prevSequenceData = useRef(sequenceData);
 
 	const setupChart = useCallback(
