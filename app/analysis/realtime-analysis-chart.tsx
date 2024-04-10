@@ -21,13 +21,14 @@ import {
 	useRealtimeADXL,
 	useTicker,
 } from '@/app/analysis/hooks';
-import { MountainAnimation, NumberRange, SciChartSurface, easing } from 'scichart';
+import { LineAnimation, MountainAnimation, NumberRange, SciChartSurface, easing } from 'scichart';
 import { detrendSignal } from '@/app/analysis/periodogram';
 import { FullLoadScreen } from '@/components/common/full-load-screen';
 import { KlipperADXL345SubscriptionResponse, MacroRecordingSettings } from '@/zods/analysis';
 import { useRecoilValue } from 'recoil';
 import { ControlboardState } from '@/recoil/printer';
 import { toast } from 'sonner';
+import { getLogger } from '@/app/_helpers/logger';
 
 SciChartSurface.configure({
 	wasmUrl: '/configure/scichart2d.wasm',
@@ -84,6 +85,29 @@ export const useRealtimeAnalysisChart = (accelerometer?: MacroRecordingSettings[
 		if (animationDS == null) {
 			throw new Error('No animation data series');
 		}
+		if (
+			animationDS.x.count() !== res.x.frequencies.length ||
+			animationDS.y.count() !== res.y.frequencies.length ||
+			animationDS.z.count() !== res.z.frequencies.length ||
+			animationDS.total.count() !== res.total.frequencies.length
+		) {
+			getLogger().error(
+				{
+					x: animationDS.x.count(),
+					y: animationDS.y.count(),
+					z: animationDS.z.count(),
+					total: animationDS.total.count(),
+					expected: res.total.frequencies.length,
+				},
+				'PSD data series length mismatch',
+			);
+			toast.error('Failed to update PSD chart', {
+				description: `The PSD data series length mismatched, the chart will not be updated. 
+				Expected [${animationDS.x.count()}, ${animationDS.y.count()}, ${animationDS.z.count()}, ${animationDS.total.count}] data points, 
+				but got [${res.x.frequencies.length}, ${res.y.frequencies.length}, ${res.z.frequencies.length}, ${res.total.frequencies.length}]`,
+			});
+			return;
+		}
 		animationDS.x.clear();
 		animationDS.y.clear();
 		animationDS.z.clear();
@@ -94,13 +118,13 @@ export const useRealtimeAnalysisChart = (accelerometer?: MacroRecordingSettings[
 		animationDS.total.appendRange(res.total.frequencies, res.total.estimates);
 		surface.renderableSeries
 			.getById('x')
-			.runAnimation(new MountainAnimation({ duration: elapsed, ease: easing.inOutCirc, dataSeries: animationDS.x }));
+			.runAnimation(new LineAnimation({ duration: elapsed, ease: easing.inOutCirc, dataSeries: animationDS.x }));
 		surface.renderableSeries
 			.getById('y')
-			.runAnimation(new MountainAnimation({ duration: elapsed, ease: easing.inOutCirc, dataSeries: animationDS.y }));
+			.runAnimation(new LineAnimation({ duration: elapsed, ease: easing.inOutCirc, dataSeries: animationDS.y }));
 		surface.renderableSeries
 			.getById('z')
-			.runAnimation(new MountainAnimation({ duration: elapsed, ease: easing.inOutCirc, dataSeries: animationDS.z }));
+			.runAnimation(new LineAnimation({ duration: elapsed, ease: easing.inOutCirc, dataSeries: animationDS.z }));
 		surface.renderableSeries
 			.getById('total')
 			.runAnimation(
