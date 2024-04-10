@@ -505,8 +505,8 @@ export const readObjects = async <T extends z.ZodSchema, Output = z.output<T>>(
 	const availableBytes = stream.readableLength;
 
 	const result: Output[] = [];
-
-	stream.pipe(ndjson.parse()).on('data', function (obj) {
+	const parser = ndjson.parse();
+	stream.pipe(parser).on('data', function (obj) {
 		try {
 			result.push(schema.parse(obj));
 			if (result.length >= limit) {
@@ -518,6 +518,10 @@ export const readObjects = async <T extends z.ZodSchema, Output = z.output<T>>(
 			}
 			throw e;
 		}
+	});
+	parser.on('error', (e) => {
+		getLogger().error(e, `readObjects: Error reading object from file ${file} at ${stream.bytesRead + start} bytes`);
+		throw e;
 	});
 
 	await new Promise((resolve, reject) => {

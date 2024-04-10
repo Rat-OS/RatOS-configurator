@@ -3,8 +3,8 @@ import { CameraOption } from '@/app/calibration/helpers';
 
 export type MoonrakerStatus = 'connected' | 'connecting' | 'not-running';
 
-export interface InFlightRequestCallbacks {
-	[id: number]: (err: Error | null, result: any) => any;
+export interface InFlightRequestCallbacks<R = MoonrakerResponseSuccess['result']> {
+	[id: number]: (err: Error | null, result: R | null) => unknown;
 }
 
 export interface InFlightRequestTimeouts {

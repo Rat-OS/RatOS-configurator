@@ -41,8 +41,12 @@ export const replaceInFileByLine = async (
 			} else {
 				newLine = line.replace(searchOrReplacer, replace);
 			}
-			writeStream.write(newLine + EOL);
-			if (newLine !== line) {
+			if (newLine != null) {
+				writeStream.write(newLine + EOL);
+				if (newLine !== line) {
+					linesChanged++;
+				}
+			} else {
 				linesChanged++;
 			}
 		}

@@ -8,7 +8,9 @@ export const hostnameInput = z.object({
 });
 
 export const joinInput = z.object({
-	ssid: z.string(),
+	ssid: z.string().min(1).max(32),
 	passphrase: z.string().min(8).max(63),
+	frequencies: z.string(),
 	country: z.string().optional(),
+	hidden: z.boolean().optional(),
 });

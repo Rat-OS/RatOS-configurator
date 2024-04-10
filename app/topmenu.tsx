@@ -7,7 +7,8 @@ import logoWhite from '@/public/logo-white.svg';
 import { Signal, useNewSignal, useSignal } from '@/app/_helpers/signal';
 import * as Menu from '@/components/ui/menubar';
 import Link from 'next/link';
-import { CircleHelp } from 'lucide-react';
+import { CircleHelp, ExternalLink } from 'lucide-react';
+import { HelpActions } from '@/components/common/help-actions';
 
 type MenuId = Nominal<string, 'MenuId'>;
 type MenuEntryRenderer = (menu: typeof Menu) => React.ReactNode;
@@ -22,7 +23,7 @@ type MenusMap = Map<MenuId, MenuOptions>;
 type MenuBarContextValue = { registerMenu: RegisterMenu; unregisterMenu: UnregisterMenu; changed: MenusChangedSignal };
 type TopMenuProps = {
 	sidebarOpen: boolean;
-	setSidebarOpen: (open: boolean) => void;
+	setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
 	menus: React.MutableRefObject<MenusMap>;
 	menusChanged: MenusChangedSignal;
 };
@@ -47,7 +48,6 @@ export const useMenuBarProvider = () => {
 			if (menus.current.has(id) && renderFn === menus.current.get(id)?.render) {
 				return;
 			}
-			console.log('registering', id);
 			menus.current = new Map(menus.current).set(id, { render: renderFn, id: id });
 			menusChanged();
 		},
@@ -56,7 +56,6 @@ export const useMenuBarProvider = () => {
 
 	const unregisterMenu = useCallback(
 		(id: MenuId) => {
-			console.log('unregistering', id);
 			menus.current.delete(id);
 			menusChanged();
 		},
@@ -82,25 +81,12 @@ export const useTopMenu = (id: string, renderReactCallback: MenuEntryRenderer) =
 };
 
 export const TopMenu: React.FC<TopMenuProps> = ({ sidebarOpen, setSidebarOpen, menus, menusChanged }) => {
-	const [menu, setMenu] = useState(Array.from(menus.current.values()));
+	const [, setMenu] = useState(Array.from(menus.current.values()));
 	useSignal(
 		menusChanged,
 		useCallback(() => {
 			setMenu(Array.from(menus.current.values()));
 		}, [menus]),
-	);
-	const mobileMenuButton = (
-		<button
-			onClick={() => setSidebarOpen(true)}
-			className="inline-flex items-center justify-center rounded-md p-2 text-zinc-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-zinc-800"
-		>
-			<span className="sr-only">Open main menu</span>
-			{sidebarOpen ? (
-				<XMarkIcon className={twJoin('block', 'h-5 w-5')} aria-hidden="true" />
-			) : (
-				<Bars3Icon className={twJoin('block', 'h-5 w-5')} aria-hidden="true" />
-			)}
-		</button>
 	);
 	return (
 		<motion.div
@@ -117,7 +103,6 @@ export const TopMenu: React.FC<TopMenuProps> = ({ sidebarOpen, setSidebarOpen, m
 						<div className="flex h-16 shrink-0 items-center">
 							<Image width={160} height={40} className="h-8 w-auto" src={logoWhite} alt="Workflow" />
 						</div>
-						{menus.current.size === 0 && mobileMenuButton}
 					</div>
 					<Menu.Menubar className="lg:flex-1">
 						{menus.current.size > 0 &&
@@ -126,26 +111,36 @@ export const TopMenu: React.FC<TopMenuProps> = ({ sidebarOpen, setSidebarOpen, m
 							))}
 						<Menu.MenubarSeparator className="flex-1 bg-transparent" />
 						<Menu.MenubarMenu>
-							<Menu.MenubarTrigger className="flex-nowrap space-x-2 whitespace-nowrap text-nowrap">
-								<CircleHelp className="size-4" /> <span className="hidden lg:inline">Help</span>
+							<Menu.MenubarTrigger className="flex-nowrap whitespace-nowrap text-nowrap">
+								<Menu.MenubarIcon Icon={CircleHelp} /> <span className="hidden lg:inline">Help</span>
 							</Menu.MenubarTrigger>
 							<Menu.MenubarContent onCloseAutoFocus={(e) => e.preventDefault()}>
-								<Menu.MenubarItem asChild={true}>
+								<HelpActions />
+								<Menu.MenubarSeparator />
+								<Menu.MenubarItem asChild={true} className="gap-2">
 									<Link href="https://os.ratrig.com/docs/introduction" target="_blank" rel="noreferrer">
-										Docs
+										<Menu.MenubarContentIcon Icon={ExternalLink} /> Docs
 									</Link>
 								</Menu.MenubarItem>
-								<Menu.MenubarItem asChild={true}>
+								<Menu.MenubarItem asChild={true} className="gap-2">
 									<Link href="https://github.com/sponsors/miklschmidt" target="_blank" rel="noreferrer">
-										Donate
+										<Menu.MenubarContentIcon Icon={ExternalLink} /> Donate
 									</Link>
 								</Menu.MenubarItem>
 							</Menu.MenubarContent>
 						</Menu.MenubarMenu>
 
 						<Menu.MenubarMenu>
-							<Menu.MenubarTrigger asChild={true} className="flex-nowrap whitespace-nowrap text-nowrap lg:hidden">
-								{mobileMenuButton}
+							<Menu.MenubarTrigger
+								onClick={() => setSidebarOpen((old) => !old)}
+								className="flex-nowrap whitespace-nowrap text-nowrap lg:hidden"
+							>
+								<span className="sr-only">Open main menu</span>
+								{sidebarOpen ? (
+									<XMarkIcon className={twJoin('block', '-m-0.5 h-5 w-5')} aria-hidden="true" />
+								) : (
+									<Bars3Icon className={twJoin('block', '-m-0.5 h-5 w-5')} aria-hidden="true" />
+								)}
 							</Menu.MenubarTrigger>
 						</Menu.MenubarMenu>
 					</Menu.Menubar>

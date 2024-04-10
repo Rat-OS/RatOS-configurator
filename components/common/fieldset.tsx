@@ -8,10 +8,15 @@ const fieldsetVariants = cva([
 	'dark:before:pointer-events-none dark:before:absolute dark:before:shadow-[0px_2px_8px_0px_rgba(0,_0,_0,_0.20),_0px_1px_0px_0px_rgba(255,_255,_255,_0.09)_inset]',
 ]);
 
-type FieldsetProps = React.PropsWithChildren<{
-	className?: string;
-}>;
+type FieldsetProps = React.FieldsetHTMLAttributes<HTMLFieldSetElement> &
+	React.PropsWithChildren<{
+		className?: string;
+	}>;
 
 export const Fieldset: React.FC<FieldsetProps> = (props) => {
-	return <fieldset className={fieldsetVariants({ className: props.className })}>{props.children}</fieldset>;
+	return (
+		<fieldset {...props} className={fieldsetVariants({ className: props.className })}>
+			{props.children}
+		</fieldset>
+	);
 };

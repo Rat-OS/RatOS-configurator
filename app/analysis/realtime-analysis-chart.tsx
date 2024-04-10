@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useToolheads } from '@/hooks/useToolheadConfiguration';
 import { Card } from '@/components/common/card';
@@ -24,9 +24,10 @@ import {
 import { MountainAnimation, NumberRange, SciChartSurface, easing } from 'scichart';
 import { detrendSignal } from '@/app/analysis/periodogram';
 import { FullLoadScreen } from '@/components/common/full-load-screen';
-import { MacroRecordingSettings } from '@/zods/analysis';
+import { KlipperADXL345SubscriptionResponse, MacroRecordingSettings } from '@/zods/analysis';
 import { useRecoilValue } from 'recoil';
 import { ControlboardState } from '@/recoil/printer';
+import { toast } from 'sonner';
 
 SciChartSurface.configure({
 	wasmUrl: '/configure/scichart2d.wasm',
@@ -35,6 +36,7 @@ SciChartSurface.configure({
 
 export const useRealtimeAnalysisChart = (accelerometer?: MacroRecordingSettings['accelerometer']) => {
 	const [isChartEnabled, setIsChartEnabled] = useState(false);
+	const [dataHeader, setDataHeader] = useState<KlipperADXL345SubscriptionResponse['header'] | undefined>(undefined);
 	const toolheads = useToolheads();
 	const controlBoard = useRecoilValue(ControlboardState);
 	const adxl = accelerometer ?? toolheads[0].getYAccelerometerName();
@@ -42,9 +44,9 @@ export const useRealtimeAnalysisChart = (accelerometer?: MacroRecordingSettings[
 		(adxl === 'controlboard'
 			? controlBoard?.name
 			: adxl === 'toolboard_t0'
-				? toolheads[0].getToolboard()?.name
+				? toolheads[0]?.getToolboard()?.name
 				: adxl === 'toolboard_t1'
-					? toolheads[1].getToolboard()?.name
+					? toolheads[1]?.getToolboard()?.name
 					: adxl === 'rpi'
 						? 'Raspberry Pi'
 						: 'N/A') ?? 'N/A';
@@ -61,7 +63,7 @@ export const useRealtimeAnalysisChart = (accelerometer?: MacroRecordingSettings[
 	const psdYAxis = psdChart.surface.current?.yAxes.getById(PSD_CHART_AXIS_AMPLITUDE_ID) ?? null;
 	const updatePsdChartRange = useDynamicAxisRange(psdYAxis, PSDChartMinimumYVisibleRange);
 
-	const fifo = useADXLFifoTensor();
+	const fifo = useADXLFifoTensor(dataHeader);
 	const timeSinceLastPsd = useRef<number>(new Date().getTime());
 
 	useEffect(() => {
@@ -132,6 +134,13 @@ export const useRealtimeAnalysisChart = (accelerometer?: MacroRecordingSettings[
 		sensor: adxl,
 		enabled: isChartEnabled,
 		onDataUpdate: fifo.onData,
+		onSubscriptionSuccess: useCallback((header: KlipperADXL345SubscriptionResponse['header']) => {
+			setDataHeader(header);
+		}, []),
+		onSubscriptionFailure: useCallback((err: Error) => {
+			setIsChartEnabled(false);
+			toast.error('Failed to subscribe to ADXL345', { description: err.message });
+		}, []),
 	});
 	return useMemo(
 		() => ({

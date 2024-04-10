@@ -86146,6 +86146,17 @@ var trpc = createTRPCNext({
       ]
     };
   },
+  overrides: {
+    useMutation: {
+      /**
+       * This function is called whenever a `.useMutation` succeeds
+       **/
+      async onSuccess(opts) {
+        await opts.originalFn();
+        await opts.queryClient.invalidateQueries();
+      }
+    }
+  },
   /**
    * @link https://trpc.io/docs/ssr
    **/

@@ -1,15 +1,8 @@
 'use client';
-import {
-	ArrowDownOnSquareIcon,
-	ArrowsPointingOutIcon,
-	PresentationChartLineIcon,
-	SparklesIcon,
-	TvIcon,
-	VideoCameraIcon,
-} from '@heroicons/react/24/solid';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useCallback } from 'react';
 import type { Route } from 'next';
+import { AreaChart, LucideProps, Monitor, Video, Wand, Wand2 } from 'lucide-react';
 
 export const useLocalPathname = () => {
 	const pathname = (usePathname() ?? '/').replace('/configure', '') as Route;
@@ -20,7 +13,7 @@ export const useIsRouteActive = () => {
 	const pathname = useLocalPathname();
 	return useCallback(
 		(href: string) => {
-			return pathname === href;
+			return pathname.startsWith(href);
 		},
 		[pathname],
 	);
@@ -30,26 +23,39 @@ export type NavigationItem = {
 	name: string;
 	href: Route;
 	current: boolean;
-	icon: React.FC<React.ComponentProps<'svg'>>;
+	icon: React.ComponentType<any>;
 	iconClass?: string;
 };
 
 const routes: NavigationItem[] = [
-	{ name: 'Setup Wizard', href: '/wizard', current: false, icon: SparklesIcon },
-	{ name: 'Dashboard', href: '/', current: false, icon: TvIcon },
-	{ name: 'Visual Calibration', href: '/calibration', current: false, icon: VideoCameraIcon },
-	{ name: 'Analysis', href: '/analysis', current: false, icon: PresentationChartLineIcon },
-	// { name: 'Boards', href: '/', current: false, icon: CpuChipIcon },
+	{ name: 'Setup Wizard', href: '/wizard', current: false, icon: Wand2 },
+	{ name: 'Dashboard', href: '/', current: false, icon: Monitor },
+	{ name: 'Visual Calibration', href: '/calibration', current: false, icon: Video },
+	{ name: 'Resonance Analysis', href: '/analysis', current: false, icon: AreaChart },
+	// { name: 'Boards', href: '/', current: false, icon: Cpu },
 	// { name: 'Motion', href: '/motion', current: false, icon: ArrowsPointingOutIcon, iconClass: 'rotate-45' },
 	// { name: 'Toolhead', href: '/toolhead', current: false, icon: ArrowDownOnSquareIcon },
 ];
 
 export const useNavigation = () => {
 	const isRouteActive = useIsRouteActive();
-	return routes.map((n) => {
+	let prevActive: number | null = null;
+	const result: typeof routes = [];
+	routes.forEach((n, i) => {
 		n.current = isRouteActive(n.href);
-		return n;
+		if (n.current) {
+			if (prevActive !== null && result[prevActive]?.href.length < n.href.length) {
+				result[prevActive].current = false;
+				prevActive = i;
+			} else if (prevActive !== null) {
+				n.current = false;
+			} else {
+				prevActive = i;
+			}
+		}
+		result.push(n);
 	});
+	return result;
 };
 
 interface RedirecterProps extends React.PropsWithChildren {

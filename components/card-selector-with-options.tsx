@@ -106,7 +106,7 @@ export const CardSelectorWithOptions = <
 											{card.name}
 										</RadioGroup.Label>
 										<RadioGroup.Description as="div" className="text-xs text-zinc-500 dark:text-zinc-400">
-											<p className="sm:inline">{card.details}</p>
+											<div className="sm:inline">{card.details}</div>
 										</RadioGroup.Description>
 									</div>
 									<RadioGroup.Description as="div" className="mb-2 ml-4 flex text-sm sm:block sm:text-right">

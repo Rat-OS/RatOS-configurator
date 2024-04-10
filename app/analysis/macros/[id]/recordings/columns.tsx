@@ -7,11 +7,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/app/analysis/macros/components/data-table-column-header';
 import { MacroRecordingWithoutSourcePSDs } from '@/zods/analysis';
 import { Badge, BadgeProps } from '@/components/common/badge';
-import { ArrowDownOnSquareIcon, CpuChipIcon, ServerIcon } from '@heroicons/react/24/outline';
 import React from 'react';
 import { ColumnCapabilities } from '@/app/analysis/macros/components/data-table-toolbar';
 import * as luxon from 'luxon';
 import { MacroRecordingDataTableRowActions } from '@/app/analysis/macros/[id]/recordings/recording-row-actions';
+import { ArrowDownToDot, Cpu, Server } from 'lucide-react';
 luxon.Settings.defaultLocale = 'en-GB';
 
 export const columns: (ColumnDef<MacroRecordingWithoutSourcePSDs> & ColumnCapabilities)[] = [
@@ -37,6 +37,8 @@ export const columns: (ColumnDef<MacroRecordingWithoutSourcePSDs> & ColumnCapabi
 	{
 		accessorKey: 'macroRecordingRunId',
 		enableGrouping: true,
+		enableHiding: false,
+		enableSorting: false,
 	},
 	{
 		id: 'date',
@@ -71,16 +73,16 @@ export const columns: (ColumnDef<MacroRecordingWithoutSourcePSDs> & ColumnCapabi
 			let labels: { label: string; color: BadgeProps['color']; icon: React.ComponentType }[] = [];
 			switch (row.original.accelerometer) {
 				case 'controlboard':
-					labels.push({ label: 'Control Board', color: 'plain', icon: CpuChipIcon });
+					labels.push({ label: 'Control Board', color: 'plain', icon: Cpu });
 					break;
 				case 'rpi':
-					labels.push({ label: 'Host', color: 'plain', icon: ServerIcon });
+					labels.push({ label: 'Host', color: 'plain', icon: Server });
 					break;
 				case 'toolboard_t0':
-					labels.push({ label: 'Tool Board T0', color: 'plain', icon: ArrowDownOnSquareIcon });
+					labels.push({ label: 'Tool Board T0', color: 'plain', icon: ArrowDownToDot });
 					break;
 				case 'toolboard_t1':
-					labels.push({ label: 'Tool Board T1', color: 'plain', icon: ArrowDownOnSquareIcon });
+					labels.push({ label: 'Tool Board T1', color: 'plain', icon: ArrowDownToDot });
 					break;
 			}
 
@@ -97,10 +99,10 @@ export const columns: (ColumnDef<MacroRecordingWithoutSourcePSDs> & ColumnCapabi
 		},
 		getFacetedOptions: () => {
 			return [
-				{ label: 'Control Board', value: 'controlboard', icon: CpuChipIcon },
-				{ label: 'Host', value: 'rpi', icon: ServerIcon },
-				{ label: 'Tool Board T0', value: 'toolboard_t0', icon: ArrowDownOnSquareIcon },
-				{ label: 'Tool Board T1', value: 'toolboard_t1', icon: ArrowDownOnSquareIcon },
+				{ label: 'Control Board', value: 'controlboard', icon: Cpu },
+				{ label: 'Host', value: 'rpi', icon: Server },
+				{ label: 'Tool Board T0', value: 'toolboard_t0', icon: ArrowDownToDot },
+				{ label: 'Tool Board T1', value: 'toolboard_t1', icon: ArrowDownToDot },
 			];
 		},
 	},

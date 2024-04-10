@@ -3,10 +3,7 @@
 import { KlippyStateBadge } from '@/components/klippy-state-badge';
 import { MoonrakerStateBadge } from '@/components/moonraker-state-badge';
 import { trpc } from '@/helpers/trpc';
-import { ActionsDropdown } from '@/components/common/actions-dropdown';
 import React from 'react';
-import { useIsClient } from '@/hooks/isClient';
-import { Spinner } from '@/components/common/spinner';
 import { SetupSteps } from '@/components/setup-steps';
 
 interface WizardProps {
@@ -33,9 +30,6 @@ export const Wizard: React.FC<WizardProps> = (props) => {
 					<div className="flex space-x-1 sm:flex-row-reverse sm:justify-end sm:space-x-2 sm:space-y-0 md:flex-row">
 						<KlippyStateBadge />
 						<MoonrakerStateBadge />
-					</div>
-					<div className="mt-2 flex">
-						<ActionsDropdown className="block flex-1" />
 					</div>
 				</div>
 			</div>

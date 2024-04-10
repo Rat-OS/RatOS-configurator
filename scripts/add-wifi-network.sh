@@ -1,13 +1,32 @@
 #!/usr/bin/env bash
 if [ ! "$EUID" -eq 0 ]; then
 	echo "This script must run as root"
-	exit -1
+	exit 1
 fi
-NETWORK=$(sh -c "wpa_passphrase '$1' '$2'")
-if [[ ! $NETWORK =~ ^network ]]; then
-	echo "Invalid wifi credentials"
-	exit -1
+# NETWORK=$(sh -c "wpa_passphrase '$1' '$2'")
+# if [[ ! $NETWORK =~ ^network ]]; then
+# 	echo "Invalid wifi credentials"
+# 	exit 1
+# fi
+NETWORK="network={
+	ssid=$1
+	psk=$2
+	key_mgmt=WPA-PSK
+}"
+
+# Add frequencies
+NETWORK=${NETWORK/"}"/"	scan_freq=$4
+}"}
+
+if [ "$5" = "hidden" ]; then
+	NETWORK=${NETWORK/"}"/"	scan_ssid=1
+	}"}
 fi
+
+echo "$1 $2 $3 $4 $5";
+echo "$NETWORK";
+exit 0;
+
 cat << __EOF > /etc/wpa_supplicant/wpa_supplicant.conf
 # Use this file to configure your wifi connection(s).
 #

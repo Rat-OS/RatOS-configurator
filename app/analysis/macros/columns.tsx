@@ -8,10 +8,10 @@ import { DataTableColumnHeader } from '@/app/analysis/macros/components/data-tab
 import { DataTableRowActions } from '@/app/analysis/macros/macro-row-actions';
 import { Macro } from '@/zods/analysis';
 import { Badge, BadgeProps } from '@/components/common/badge';
-import { DotFilledIcon, DotIcon } from '@radix-ui/react-icons';
-import { ArrowDownOnSquareIcon, CpuChipIcon, ServerIcon } from '@heroicons/react/24/outline';
+import { DotFilledIcon } from '@radix-ui/react-icons';
 import React from 'react';
 import { ColumnCapabilities } from '@/app/analysis/macros/components/data-table-toolbar';
+import { ArrowDownToDot, Cpu, Play, Server } from 'lucide-react';
 
 export const columns: (ColumnDef<Macro> & ColumnCapabilities)[] = [
 	{
@@ -41,19 +41,22 @@ export const columns: (ColumnDef<Macro> & ColumnCapabilities)[] = [
 			row.original.sequences.map((sequence) => {
 				switch (sequence.recording?.accelerometer) {
 					case 'controlboard':
-						labels.push({ label: 'Control Board', color: 'gray', icon: CpuChipIcon });
+						labels.push({ label: 'Control Board', color: 'lime', icon: Cpu });
 						break;
 					case 'rpi':
-						labels.push({ label: 'Host', color: 'gray', icon: ServerIcon });
+						labels.push({ label: 'Host', color: 'yellow', icon: Server });
 						break;
 					case 'toolboard_t0':
-						labels.push({ label: 'Tool Board T0', color: 'gray', icon: ArrowDownOnSquareIcon });
+						labels.push({ label: 'Tool Board T0', color: 'sky', icon: ArrowDownToDot });
 						break;
 					case 'toolboard_t1':
-						labels.push({ label: 'Tool Board T1', color: 'gray', icon: ArrowDownOnSquareIcon });
+						labels.push({ label: 'Tool Board T1', color: 'pink', icon: ArrowDownToDot });
 						break;
 				}
 			});
+
+			// make sure there's no duplicate labels
+			labels = labels.filter((v, i, a) => a.findIndex((t) => t.label === v.label) === i);
 
 			return (
 				<div className="flex space-x-2">
@@ -71,10 +74,10 @@ export const columns: (ColumnDef<Macro> & ColumnCapabilities)[] = [
 		},
 		getFacetedOptions: () => {
 			return [
-				{ label: 'Control Board', value: 'controlboard', icon: CpuChipIcon },
-				{ label: 'Host', value: 'rpi', icon: ServerIcon },
-				{ label: 'Tool Board T0', value: 'toolboard_t0', icon: ArrowDownOnSquareIcon },
-				{ label: 'Tool Board T1', value: 'toolboard_t1', icon: ArrowDownOnSquareIcon },
+				{ label: 'Control Board', value: 'controlboard', icon: Cpu },
+				{ label: 'Host', value: 'rpi', icon: Server },
+				{ label: 'Tool Board T0', value: 'toolboard_t0', icon: ArrowDownToDot },
+				{ label: 'Tool Board T1', value: 'toolboard_t1', icon: ArrowDownToDot },
 			];
 		},
 		filterFn: (row, id, filterValues) => {
@@ -94,13 +97,13 @@ export const columns: (ColumnDef<Macro> & ColumnCapabilities)[] = [
 			return (
 				<div className="flex w-[100px] items-center space-x-3">
 					{actions > 0 && (
-						<Badge className="space-x-1" color="gray">
-							<DotIcon className="h-4 w-4 scale-150 text-foreground" /> {actions}
+						<Badge className="flex gap-1.5" color="gray">
+							<Play className="h-4 w-4 text-foreground" /> {actions}
 						</Badge>
 					)}
 					{recordActions > 0 && (
-						<Badge className="space-x-1" color="gray">
-							<DotFilledIcon className="h-4 w-4 scale-150 text-rose-400" /> {recordActions}
+						<Badge className="flex gap-1.5" color="gray">
+							<DotFilledIcon className="h-4 w-4 scale-[250%] text-rose-400" /> {recordActions}
 						</Badge>
 					)}
 				</div>
