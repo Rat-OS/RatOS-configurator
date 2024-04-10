@@ -80,7 +80,6 @@ const useOscillator = (G: ReturnType<typeof useGcodeCommand>, isEnabled: boolean
 			`;
 			const gcodeDuration = new Date().getTime() - beforeGcode;
 			isOscillating.current = false;
-			console.log(frequencyRef.current, isEnabledRef.current, gcodeDuration, macroTime / 2);
 			if (frequencyRef.current > 0 && isEnabledRef.current && gcodeDuration > macroTime / 2) {
 				oscillate();
 			} else {

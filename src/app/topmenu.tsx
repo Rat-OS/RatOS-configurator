@@ -48,7 +48,6 @@ export const useMenuBarProvider = () => {
 			if (menus.current.has(id) && renderFn === menus.current.get(id)?.render) {
 				return;
 			}
-			console.log('registering', id);
 			menus.current = new Map(menus.current).set(id, { render: renderFn, id: id });
 			menusChanged();
 		},
@@ -57,7 +56,6 @@ export const useMenuBarProvider = () => {
 
 	const unregisterMenu = useCallback(
 		(id: MenuId) => {
-			console.log('unregistering', id);
 			menus.current.delete(id);
 			menusChanged();
 		},
