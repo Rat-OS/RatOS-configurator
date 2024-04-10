@@ -52,7 +52,7 @@ export const SIGNAL_CHART_AXIS_HISTORY_ID = 'history';
 export const SIGNAL_CHART_SERIES_SIGNAL_ID = 'signal-series';
 export const SIGNAL_CHART_SERIES_HISTORY_ID = 'history-series';
 export const SIGNAL_CHART_AXIS_AMPLITUDE_ID = 'amplitude';
-const PSDLength = 131;
+export const PSDLength = 131;
 
 type ADXLAxes = 'x' | 'y' | 'z';
 
