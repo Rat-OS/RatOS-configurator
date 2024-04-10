@@ -62,6 +62,8 @@ type GitVersion = `${number}.${number}.${number}${`-${number}` | ``}${`-${string
 
 type GCode = Nominal<string, 'G-Code'>;
 
+type ReactCallback<T extends Function> = ReturnType<typeof React.useCallback<T>>;
+
 declare module 'tailwindcss/lib/util/flattenColorPalette' {
 	export default function flattenColorPalette(
 		colors: Record<string, string | Record<string, string>>,

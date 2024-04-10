@@ -5,8 +5,17 @@ import { CheckIcon, ChevronRightIcon, DotFilledIcon } from '@radix-ui/react-icon
 import * as MenubarPrimitive from '@radix-ui/react-menubar';
 
 import { cn, setDisplayName } from '@/helpers/utils';
+import { AnimatePresence, motion } from 'framer-motion';
+import { twJoin } from 'tailwind-merge';
+import { Check, LucideIcon } from 'lucide-react';
 
-const MenubarMenu = MenubarPrimitive.Menu;
+type MenuBarContextValue = {
+	value: null | string;
+};
+
+const MenubarContext = React.createContext<MenuBarContextValue>({
+	value: null,
+});
 
 const MenubarGroup = MenubarPrimitive.Group;
 
@@ -19,29 +28,105 @@ const MenubarRadioGroup = MenubarPrimitive.RadioGroup;
 const Menubar = React.forwardRef<
 	React.ElementRef<typeof MenubarPrimitive.Root>,
 	React.ComponentPropsWithoutRef<typeof MenubarPrimitive.Root>
->(({ className, ...props }, ref) => (
-	<MenubarPrimitive.Root
-		ref={ref}
-		className={cn('flex items-center space-x-1 rounded-md shadow-sm', className)}
-		{...props}
-	/>
-));
+>(({ className, children, ...props }, ref) => {
+	const [value, setValue] = React.useState<string | null>(null);
+
+	return (
+		<MenubarContext.Provider value={{ value: value }}>
+			<MenubarPrimitive.Root
+				ref={ref}
+				value={value ?? undefined}
+				className={cn('flex items-center space-x-1 rounded-md shadow-sm', className)}
+				onValueChange={setValue}
+				{...props}
+			>
+				{children}
+			</MenubarPrimitive.Root>
+		</MenubarContext.Provider>
+	);
+});
 setDisplayName(Menubar, MenubarPrimitive.Root.displayName);
+
+type MenubarMenuContextValue = {
+	id: string;
+};
+
+const MenubarMenuContext = React.createContext<MenubarMenuContextValue>({
+	id: '',
+});
+
+const MenubarMenu = (props: React.ComponentPropsWithoutRef<typeof MenubarPrimitive.Menu>) => {
+	const id = React.useId();
+	return (
+		<MenubarMenuContext.Provider value={{ id }}>
+			<MenubarPrimitive.Menu {...props} value={id} />
+		</MenubarMenuContext.Provider>
+	);
+};
+
+const MenubarIcon = React.forwardRef<
+	React.ElementRef<LucideIcon>,
+	React.ComponentPropsWithoutRef<LucideIcon> & { Icon: LucideIcon }
+>(({ className, Icon, ...props }, ref) =>
+	React.cloneElement<LucideIcon>(
+		<Icon
+			ref={ref}
+			className={cn(
+				'size-4 text-white transition-colors group-data-[state=open]:text-white lg:text-white/60',
+				className,
+			)}
+			{...props}
+		/>,
+	),
+);
 
 const MenubarTrigger = React.forwardRef<
 	React.ElementRef<typeof MenubarPrimitive.Trigger>,
 	React.ComponentPropsWithoutRef<typeof MenubarPrimitive.Trigger>
->(({ className, ...props }, ref) => (
-	<MenubarPrimitive.Trigger
-		ref={ref}
-		className={cn(
-			'flex cursor-default select-none items-center rounded-sm px-3 py-1 text-sm font-medium outline-none data-[state=open]:bg-accent data-[state=open]:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
-			className,
-		)}
-		{...props}
-	/>
-));
+>(({ className, children, ...props }, ref) => {
+	const { value } = React.useContext(MenubarContext);
+	const { id } = React.useContext(MenubarMenuContext);
+	return (
+		<MenubarPrimitive.Trigger
+			ref={ref}
+			className={cn(
+				'group relative flex cursor-default select-none items-center outline-none data-[state=open]:text-accent-foreground focus:text-accent-foreground',
+				className,
+			)}
+			{...props}
+		>
+			<AnimatePresence>
+				{value?.replace('radix-', '') == id && (
+					<motion.div
+						layoutId="menubarTrigger"
+						initial={{ opacity: 0 }}
+						animate={{
+							opacity: 1,
+							transition: { duration: 0.1, ease: 'easeOut' },
+						}}
+						exit={{
+							opacity: 0,
+							transition: { duration: 0.1, delay: 0.1, ease: 'easeIn' },
+						}}
+						transition={{ type: 'spring', damping: 20, mass: 0.5, stiffness: 450 }}
+						className={twJoin('pointer-events-none absolute inset-0 rounded-sm bg-brand-700')}
+					/>
+				)}
+			</AnimatePresence>
+			<div className="relative z-20 flex flex-1 items-center gap-2 rounded-sm p-3 text-sm font-medium text-accent-foreground">
+				{children}
+			</div>
+		</MenubarPrimitive.Trigger>
+	);
+});
 setDisplayName(MenubarTrigger, MenubarPrimitive.Trigger.displayName);
+
+const MenubarContentIcon = React.forwardRef<
+	React.ElementRef<LucideIcon>,
+	React.ComponentPropsWithoutRef<LucideIcon> & { Icon: LucideIcon }
+>(({ className, Icon, ...props }, ref) =>
+	React.cloneElement<LucideIcon>(<Icon ref={ref} className={cn('size-4 text-white/60', className)} {...props} />),
+);
 
 const MenubarSubTrigger = React.forwardRef<
 	React.ElementRef<typeof MenubarPrimitive.SubTrigger>,
@@ -52,7 +137,7 @@ const MenubarSubTrigger = React.forwardRef<
 	<MenubarPrimitive.SubTrigger
 		ref={ref}
 		className={cn(
-			'flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none data-[state=open]:bg-accent data-[state=open]:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
+			'flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none data-[state=open]:bg-accent data-[state=open]:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
 			inset && 'pl-8',
 			className,
 		)}
@@ -70,6 +155,8 @@ const MenubarSubContent = React.forwardRef<
 >(({ className, ...props }, ref) => (
 	<MenubarPrimitive.SubContent
 		ref={ref}
+		sideOffset={4}
+		alignOffset={-5}
 		className={cn(
 			'z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
 			className,
@@ -108,7 +195,7 @@ const MenubarItem = React.forwardRef<
 	<MenubarPrimitive.Item
 		ref={ref}
 		className={cn(
-			'relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 focus:bg-accent focus:text-accent-foreground',
+			'relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 focus:bg-accent focus:text-accent-foreground',
 			inset && 'pl-8',
 			className,
 		)}
@@ -147,14 +234,14 @@ const MenubarRadioItem = React.forwardRef<
 	<MenubarPrimitive.RadioItem
 		ref={ref}
 		className={cn(
-			'relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 focus:bg-accent focus:text-accent-foreground',
+			'relative flex cursor-default select-none items-center gap-2 rounded-sm py-1.5 pl-2 pr-8 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 focus:bg-accent focus:text-accent-foreground',
 			className,
 		)}
 		{...props}
 	>
-		<span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+		<span className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center">
 			<MenubarPrimitive.ItemIndicator>
-				<DotFilledIcon className="h-4 w-4 fill-current" />
+				<Check className="h-4 w-4 text-brand-400" />
 			</MenubarPrimitive.ItemIndicator>
 		</span>
 		{children}
@@ -191,6 +278,8 @@ MenubarShortcut.displayname = 'MenubarShortcut';
 
 export {
 	Menubar,
+	MenubarIcon,
+	MenubarContentIcon,
 	MenubarMenu,
 	MenubarTrigger,
 	MenubarContent,

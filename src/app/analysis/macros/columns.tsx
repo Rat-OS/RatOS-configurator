@@ -8,11 +8,10 @@ import { DataTableColumnHeader } from '@/app/analysis/macros/components/data-tab
 import { DataTableRowActions } from '@/app/analysis/macros/macro-row-actions';
 import { Macro } from '@/zods/analysis';
 import { Badge, BadgeProps } from '@/components/common/badge';
-import { DotFilledIcon, DotIcon } from '@radix-ui/react-icons';
-import { ArrowDownOnSquareIcon, CpuChipIcon, ServerIcon } from '@heroicons/react/24/outline';
+import { DotFilledIcon } from '@radix-ui/react-icons';
 import React from 'react';
 import { ColumnCapabilities } from '@/app/analysis/macros/components/data-table-toolbar';
-import { CirclePlay, Play } from 'lucide-react';
+import { ArrowDownToDot, Cpu, Play, Server } from 'lucide-react';
 
 export const columns: (ColumnDef<Macro> & ColumnCapabilities)[] = [
 	{
@@ -42,16 +41,16 @@ export const columns: (ColumnDef<Macro> & ColumnCapabilities)[] = [
 			row.original.sequences.map((sequence) => {
 				switch (sequence.recording?.accelerometer) {
 					case 'controlboard':
-						labels.push({ label: 'Control Board', color: 'lime', icon: CpuChipIcon });
+						labels.push({ label: 'Control Board', color: 'lime', icon: Cpu });
 						break;
 					case 'rpi':
-						labels.push({ label: 'Host', color: 'yellow', icon: ServerIcon });
+						labels.push({ label: 'Host', color: 'yellow', icon: Server });
 						break;
 					case 'toolboard_t0':
-						labels.push({ label: 'Tool Board T0', color: 'sky', icon: ArrowDownOnSquareIcon });
+						labels.push({ label: 'Tool Board T0', color: 'sky', icon: ArrowDownToDot });
 						break;
 					case 'toolboard_t1':
-						labels.push({ label: 'Tool Board T1', color: 'pink', icon: ArrowDownOnSquareIcon });
+						labels.push({ label: 'Tool Board T1', color: 'pink', icon: ArrowDownToDot });
 						break;
 				}
 			});
@@ -75,10 +74,10 @@ export const columns: (ColumnDef<Macro> & ColumnCapabilities)[] = [
 		},
 		getFacetedOptions: () => {
 			return [
-				{ label: 'Control Board', value: 'controlboard', icon: CpuChipIcon },
-				{ label: 'Host', value: 'rpi', icon: ServerIcon },
-				{ label: 'Tool Board T0', value: 'toolboard_t0', icon: ArrowDownOnSquareIcon },
-				{ label: 'Tool Board T1', value: 'toolboard_t1', icon: ArrowDownOnSquareIcon },
+				{ label: 'Control Board', value: 'controlboard', icon: Cpu },
+				{ label: 'Host', value: 'rpi', icon: Server },
+				{ label: 'Tool Board T0', value: 'toolboard_t0', icon: ArrowDownToDot },
+				{ label: 'Tool Board T1', value: 'toolboard_t1', icon: ArrowDownToDot },
 			];
 		},
 		filterFn: (row, id, filterValues) => {

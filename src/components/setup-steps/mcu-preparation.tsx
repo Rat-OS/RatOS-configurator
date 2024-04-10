@@ -1,5 +1,4 @@
-import { CpuChipIcon } from '@heroicons/react/24/outline';
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { trpc } from '@/helpers/trpc';
 import { usePrinterConfiguration } from '@/hooks/usePrinterConfiguration';
 import { StepScreen, StepScreenProps, useSteps } from '@/hooks/useSteps';
@@ -12,6 +11,7 @@ import { PrinterDefinitionWithResolvedToolheads } from '@/zods/printer';
 import { ToolOrAxis } from '@/zods/toolhead';
 import { ToolheadHelper } from '@/helpers/toolhead';
 import { useToolheadConfiguration } from '@/hooks/useToolheadConfiguration';
+import { Cpu } from 'lucide-react';
 
 export interface SelectableBoard extends SelectableCard {
 	board: BoardWithDetectionStatus;
@@ -94,7 +94,7 @@ export const MCUPreparation: React.FC<StepScreenProps & ExtraProps> = (props) =>
 						{b.flashScript && !b.disableAutoFlash ? 'Yes' : 'No'}
 					</span>
 				),
-				right: <CpuChipIcon className="h-8 w-8 text-zinc-500" />,
+				right: <Cpu className="h-8 w-8 text-zinc-500" />,
 			}));
 	}, [boardsQuery.isError, boardsQuery.data, toolhead]);
 

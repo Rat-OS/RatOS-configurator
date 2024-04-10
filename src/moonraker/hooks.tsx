@@ -160,10 +160,13 @@ export const useMoonraker = (options?: MoonrakerHookOptions) => {
 					if (err) {
 						return reject(err);
 					}
-					if (result?.error) {
+					if (result && typeof result === 'object' && 'error' in result && result.error) {
 						return reject(result.error);
 					}
-					resolve(result);
+					if (result == null) {
+						return reject(new Error('No result. Unknown response format.'));
+					}
+					resolve(result as Response);
 				};
 				let timeout = 10 * 1000;
 				if (method === 'printer.gcode.script') {

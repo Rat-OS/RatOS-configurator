@@ -29,6 +29,7 @@ import {
 	addN,
 	concat,
 	concat2d,
+	gather,
 	reshape,
 	split,
 	sum,
@@ -45,12 +46,14 @@ import {
 	ADXL345SensorName,
 	AccumulatedPSD,
 	KlipperADXL345SubscriptionData,
+	KlipperADXL345SubscriptionResponse,
 	PSD,
 	klipperADXL345SubscriptionDataSchema,
 	klipperADXL345SubscriptionResponseSchema,
 } from '@/zods/analysis';
 import { twJoin } from 'tailwind-merge';
 import { FullLoadScreen } from '@/components/common/full-load-screen';
+import { toast } from 'sonner';
 
 const getWsURL = () => {
 	const host = getHost();
@@ -67,6 +70,8 @@ let REQ_ID = 0;
 
 export interface RealtimeADXLOptions {
 	onDataUpdate?: (status: KlipperADXL345SubscriptionData) => void;
+	onSubscriptionFailure?: ReactCallback<(err: Error) => void>;
+	onSubscriptionSuccess?: ReactCallback<(header: KlipperADXL345SubscriptionResponse['header']) => void>;
 	enabled?: boolean;
 	sensor: ADXL345SensorName;
 }
@@ -75,30 +80,36 @@ const isSuccessResponse = (res: MoonrakerResponse): res is MoonrakerResponseSucc
 	return !('error' in res);
 };
 
-export const useRealtimeADXL = (options: RealtimeADXLOptions) => {
+export const useRealtimeADXL = <
+	ResponseType extends MoonrakerResponse,
+	SuccessResponseType extends MoonrakerResponseSuccess,
+>(
+	options: RealtimeADXLOptions,
+) => {
 	const [wsUrl, setWsUrl] = useState(getWsURL());
-	const inFlightRequests = useRef<InFlightRequestCallbacks>({});
+	const inFlightRequests = useRef<InFlightRequestCallbacks<SuccessResponseType['result']>>({});
 	const inFlightRequestTimeouts = useRef<InFlightRequestTimeouts>({});
 	const [isSubscribed, setIsSubscribed] = useState(false);
+	const { onSubscriptionFailure, onDataUpdate, sensor, enabled, onSubscriptionSuccess } = options;
 	const isSubscribedRef = useRef(isSubscribed);
 	isSubscribedRef.current = isSubscribed;
 	const kippyState = useKlippyStateHandler();
 	useEffect(() => {
 		setWsUrl(getWsURL());
 	}, []);
-	const { lastJsonMessage, sendJsonMessage, readyState } = useWebSocket<MoonrakerResponse>(
-		options.enabled === false ? null : wsUrl,
+	const { lastJsonMessage, sendJsonMessage, readyState } = useWebSocket<ResponseType>(
+		enabled === false ? null : wsUrl,
 		{
 			shouldReconnect: (closeEvent) => {
 				return true;
 			},
 			onMessage: (message) => {
-				if (options?.onDataUpdate && isSubscribedRef.current) {
+				if (onDataUpdate && isSubscribedRef.current) {
 					try {
-						const parsed = JSON.parse(message.data) as MoonrakerResponse;
+						const parsed = JSON.parse(message.data) as ResponseType;
 						if (isSuccessResponse(parsed) && parsed.params != null && 'data' in parsed.params) {
 							const res = klipperADXL345SubscriptionDataSchema.parse(parsed.params);
-							options.onDataUpdate?.(res);
+							onDataUpdate?.(res);
 						} else if (!isSuccessResponse(parsed)) {
 							getLogger().error('Error in response from klipper socket', parsed);
 						}
@@ -113,15 +124,18 @@ export const useRealtimeADXL = (options: RealtimeADXLOptions) => {
 		},
 	);
 
-	const subscribe = useCallback(async <R = unknown,>() => {
+	const subscribe = useCallback(async () => {
 		const id = ++REQ_ID;
-		return new Promise<R>((resolve, reject) => {
+		return new Promise<SuccessResponseType['result']>((resolve, reject) => {
 			inFlightRequests.current[id] = (err, result) => {
 				if (err) {
 					return reject(err);
 				}
-				if (result?.error) {
+				if (result && typeof result === 'object' && 'error' in result && result.error) {
 					return reject(result.error);
+				}
+				if (result == null) {
+					return reject(new Error('No result. Unknown response format.'));
 				}
 				resolve(result);
 			};
@@ -135,30 +149,36 @@ export const useRealtimeADXL = (options: RealtimeADXLOptions) => {
 				jsonrpc: '2.0',
 				method: 'adxl345/dump_adxl345',
 				params: {
-					sensor: options.sensor,
+					sensor: sensor,
 					response_template: {},
 				},
 				id: id,
 			});
 		});
-	}, [options.sensor, sendJsonMessage]);
+	}, [sensor, sendJsonMessage]);
 
 	useEffect(() => {
 		if (readyState === 1 && kippyState === 'ready' && !isSubscribedRef.current) {
 			subscribe()
 				.then((res) => {
 					const result = klipperADXL345SubscriptionResponseSchema.parse(res);
-					getLogger().info('Subscribed to ADXL345', result);
+					getLogger().info(result, 'Subscribed to ADXL345');
 					setIsSubscribed(true);
+					onSubscriptionSuccess?.(result.header);
 				})
 				.catch((err) => {
 					getLogger().error(err);
 					setIsSubscribed(false);
+					if (onSubscriptionFailure) {
+						onSubscriptionFailure(err);
+					} else {
+						toast.error('Failed to start accelerometer stream', { description: err.message });
+					}
 				});
 		} else if (isSubscribedRef.current) {
 			setIsSubscribed(false);
 		}
-	}, [kippyState, readyState, subscribe]);
+	}, [kippyState, readyState, subscribe, onSubscriptionFailure, onSubscriptionSuccess]);
 
 	useEffect(() => {
 		if (lastJsonMessage?.id && inFlightRequests.current[lastJsonMessage.id]) {
@@ -195,7 +215,7 @@ export const useRealtimeADXL = (options: RealtimeADXLOptions) => {
 const theme = new ChartTheme();
 export const useChart = <T,>(
 	definition: ISciChart2DDefinition | null,
-	initializer?: (surface: SciChartSurface) => T,
+	initializer?: ReactCallback<(surface: SciChartSurface) => T>,
 	indent = true,
 ) => {
 	const surface = useRef<SciChartSurface | null>(null);
@@ -251,7 +271,17 @@ export const useChart = <T,>(
 	);
 };
 
-export const useADXLFifoTensor = (fifoCapacity: number = 8192) => {
+const defaultAxisMap: KlipperADXL345SubscriptionResponse['header'] = [
+	`time`,
+	`x_acceleration`,
+	`y_acceleration`,
+	`z_acceleration`,
+];
+
+export const useADXLFifoTensor = (
+	dataHeader: KlipperADXL345SubscriptionResponse['header'] = defaultAxisMap,
+	fifoCapacity: number = 8192,
+) => {
 	const buffer = useRef<Tensor2D | null>(null);
 	const sampleRate = useRef<number>(0);
 	const [dropped, setDropped] = useState(0);
@@ -265,9 +295,17 @@ export const useADXLFifoTensor = (fifoCapacity: number = 8192) => {
 		buffer.current = keep;
 		return out;
 	}, []);
+	const axisMap = useMemo(() => {
+		return [
+			dataHeader.findIndex((v) => v.startsWith(`time`)),
+			dataHeader.findIndex((v) => v.startsWith(`x_acceleration`)),
+			dataHeader.findIndex((v) => v.startsWith(`y_acceleration`)),
+			dataHeader.findIndex((v) => v.startsWith(`z_acceleration`)),
+		];
+	}, [dataHeader]);
 	const onData = useCallback(
 		(status: KlipperADXL345SubscriptionData) => {
-			const incoming = tensor2d(status.data);
+			const incoming = gather<Tensor2D>(status.data, axisMap, 1);
 			const newBuffer = buffer.current ? concat2d([buffer.current, incoming], 0) : incoming;
 			if (newBuffer !== incoming) {
 				incoming.dispose();
@@ -282,7 +320,7 @@ export const useADXLFifoTensor = (fifoCapacity: number = 8192) => {
 				setDropped((prev) => prev + drop);
 			}
 		},
-		[fifoCapacity, take],
+		[axisMap, fifoCapacity, take],
 	);
 	useEffect(() => {
 		return () => {

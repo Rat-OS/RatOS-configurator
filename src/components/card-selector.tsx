@@ -8,7 +8,8 @@ import { motion } from 'framer-motion';
 export interface SelectableCard {
 	id: string | number;
 	name: string;
-	right: React.ReactNode | null;
+	right?: React.ReactNode | null;
+	left?: React.ReactNode | null;
 	details: React.ReactNode | string;
 }
 
@@ -59,6 +60,11 @@ export const CardSelector = <Selectable extends SelectableCard = SelectableCard>
 					>
 						{({ active, checked }) => (
 							<>
+								{card.left && (
+									<RadioGroup.Description as="div" className="mr-4 mt-2 flex text-sm sm:mt-0 sm:block sm:text-left">
+										{card.left}
+									</RadioGroup.Description>
+								)}
 								<div className="flex-1">
 									<RadioGroup.Label
 										as="p"
@@ -67,12 +73,14 @@ export const CardSelector = <Selectable extends SelectableCard = SelectableCard>
 										{props.title ? props.title(card) : card.name}
 									</RadioGroup.Label>
 									<RadioGroup.Description as="div" className="text-xs text-zinc-500 dark:text-zinc-400">
-										<p className="sm:inline">{card.details}</p>
+										<div className="sm:inline">{card.details}</div>
 									</RadioGroup.Description>
 								</div>
-								<RadioGroup.Description as="div" className="ml-4 mt-2 flex text-sm sm:mt-0 sm:block sm:text-right">
-									{card.right}
-								</RadioGroup.Description>
+								{card.right && (
+									<RadioGroup.Description as="div" className="ml-4 mt-2 flex text-sm sm:mt-0 sm:block sm:text-right">
+										{card.right}
+									</RadioGroup.Description>
+								)}
 								<div
 									className={twJoin(
 										active ? 'border' : 'border-2',

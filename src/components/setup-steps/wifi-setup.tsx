@@ -8,10 +8,14 @@ import { TextInput } from '@/components/forms/text-input';
 import { StepNavButton, StepNavButtons } from '@/components/step-nav-buttons';
 import type { Network } from '@/server/helpers/iw';
 import { Modal } from '@/components/common/modal';
-import { parseSignal } from '@/helpers/wifi';
+import { parseSignal, signalIcon } from '@/helpers/wifi';
 import { StepScreenProps } from '@/hooks/useSteps';
 import { trpc } from '@/helpers/trpc';
 import { hostnameInput, joinInput } from '@/helpers/validators/wifi';
+import { Button } from '@/components/common/button';
+import { Eye, EyeOff } from 'lucide-react';
+import { InfoMessage } from '@/components/common/info-message';
+import { MutationStatus } from '@/components/common/mutation-status';
 
 interface APList {
 	[id: string]: Network;
@@ -25,18 +29,23 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 	const [apList, setApList] = useState<APList>({});
 	const [selectedNetwork, setSelectedNetwork] = useState<null | Network>(null);
 	const [password, setPassword] = useState('');
-	const [hostname, setHostname] = useState('ratos');
+	const [hostname, setHostname] = useState('RatOS');
 	const [hostnameCompleted, setHostnameCompleted] = useState(false);
+	const [showHidden, setShowHidden] = useState(true);
+	const [overrideSSID, setOverrideSSID] = useState<string | null>(null);
 
-	const { isError, error, data } = trpc.wifi.scan.useQuery(undefined, {
-		refetchInterval: (data, query) => {
-			if (query.state.error) {
-				return false;
-			}
-			return 1000;
+	const { isError, error, data } = trpc.wifi.scan.useQuery(
+		{ showHidden },
+		{
+			refetchInterval: (data, query) => {
+				if (query.state.error) {
+					return false;
+				}
+				return 1000;
+			},
+			retry: false,
 		},
-		retry: false,
-	});
+	);
 	const hostnameMutation = trpc.wifi.hostname.useMutation();
 	const wifiMutation = trpc.wifi.join.useMutation();
 
@@ -52,27 +61,54 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 		});
 	}, [data]);
 
+	// Find all frequencies for SSID that are near the selected one.
+	const frequencies = useMemo(
+		() =>
+			Object.values(apList)
+				.filter(
+					(ap) =>
+						selectedNetwork != null &&
+						ap.ssid === selectedNetwork.ssid &&
+						Math.abs(ap.frequency - selectedNetwork?.frequency) < 1000,
+				)
+				.map((ap) => ap.frequency)
+				.join(' '),
+		[apList, selectedNetwork],
+	);
 	const hostnameValidation = hostnameInput.safeParse({ hostname });
-	const passwordValidation = joinInput.safeParse({ passphrase: password, ssid: selectedNetwork?.ssid });
+	const passwordValidation = joinInput.safeParse({
+		passphrase: password,
+		ssid: selectedNetwork?.ssid ?? overrideSSID,
+		country: selectedNetwork?.country,
+		frequencies,
+		hidden: selectedNetwork?.ssid == null,
+	});
 
 	const cards: SelectableNetwork[] = useMemo(() => {
 		if (isError) return [];
-		return Object.keys(apList).map((ap) => ({
-			name: apList[ap].ssid ?? 'Unknown Network',
-			id: ap,
-			details: (
-				<div className="gap-4 md:grid md:grid-cols-2">
-					<div className="md:col-span-1">
-						<span className="font-semibold">Signal Strength:</span> {parseSignal(apList[ap].signal)}
+		return Object.keys(apList)
+			.filter((ap) => apList[ap].ssid != null || showHidden)
+			.map((ap) => ({
+				name: apList[ap].ssid ?? 'Hidden SSID',
+				id: ap,
+				details: (
+					<div className="gap-4 md:grid md:grid-cols-2">
+						<div className="md:col-span-1">
+							<span className="font-semibold">Signal Strength:</span> {parseSignal(apList[ap].signal)}
+						</div>
+						<div className="md:col-span-1">
+							<span className="font-semibold">Frequency:</span> {Math.round(apList[ap].frequency / 100) / 10}GHz
+						</div>
 					</div>
-					<div className="md:col-span-1">
-						<span className="font-semibold">Frequency:</span> {Math.round(apList[ap].frequency / 100) / 10}GHz
-					</div>
-				</div>
-			),
-			right: <WifiIcon className="h-8 w-8 text-zinc-500 dark:text-zinc-400" />,
-		}));
-	}, [isError, apList]);
+				),
+				right: signalIcon(apList[ap].signal),
+			}))
+			.sort((a, b) => {
+				if (apList[a.id].signal > apList[b.id].signal) return -1;
+				if (apList[a.id].signal < apList[b.id].signal) return 1;
+				return 0;
+			});
+	}, [isError, apList, showHidden]);
 
 	const onSelectCard = useCallback(
 		(card: SelectableNetwork) => {
@@ -82,11 +118,14 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 	);
 
 	const connectToWifi = useCallback(() => {
-		if (selectedNetwork == null || selectedNetwork.ssid == null) {
+		if (selectedNetwork == null) {
 			throw new Error('Cannot join wifi without selecting a network');
 		}
-		wifiMutation.mutate({ passphrase: password, ssid: selectedNetwork.ssid, country: selectedNetwork.country });
-	}, [password, selectedNetwork, wifiMutation]);
+
+		if (passwordValidation.success) {
+			wifiMutation.mutate(passwordValidation.data);
+		}
+	}, [passwordValidation, selectedNetwork, wifiMutation]);
 
 	const rebootMutation = trpc.reboot.useMutation();
 
@@ -136,7 +175,7 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 				label="Printer hostname"
 				type="text"
 				key="hostname"
-				defaultValue="RatOS"
+				value={hostname}
 				error={
 					hostnameMutation.isError
 						? hostnameMutation.error.message
@@ -148,19 +187,57 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 				help='Only use characters from a-Z and dashes. For example, entering "RatOS" will make your printer available at http://RatOS.local/'
 			/>
 		) : selectedNetwork ? (
-			<TextInput
-				label={selectedNetwork.security.toLocaleUpperCase() + ' Password'}
-				type="password"
-				key="password"
-				error={
-					wifiMutation.isError
-						? wifiMutation.error.message
-						: passwordValidation.success
-							? undefined
-							: passwordValidation.error.issues[0].message
-				}
-				onChange={(val) => setPassword(val + '')}
-			/>
+			<div className="grid gap-4">
+				{selectedNetwork.ssid == null ? (
+					<div className="mb-4">
+						<InfoMessage title="Hidden SSID">
+							You have selected a hidden SSID. Please enter the SSID and password manually.
+						</InfoMessage>
+					</div>
+				) : (
+					<div>
+						<div className="mb-4 inline-flex gap-4 rounded-md border-2 border-brand-400/45 bg-brand-400/5 p-4">
+							<div className="">{signalIcon(selectedNetwork.signal, 'h-12 w-12')}</div>
+							<div className="flex flex-col gap-2 text-sm text-zinc-500 dark:text-zinc-400">
+								<h3 className="text-lg font-medium leading-6 text-zinc-900 dark:text-zinc-100">
+									{selectedNetwork.ssid}
+								</h3>
+								{selectedNetwork.country} - {Math.round(selectedNetwork.frequency / 100) / 10}GHz
+							</div>
+						</div>
+					</div>
+				)}
+				{selectedNetwork.ssid == null && (
+					<TextInput
+						label="SSID"
+						type="text"
+						key="ssid"
+						value={overrideSSID ?? ''}
+						error={
+							wifiMutation.isError
+								? wifiMutation.error.message
+								: passwordValidation.success
+									? undefined
+									: passwordValidation.error.formErrors.fieldErrors.ssid?.join('\n')
+						}
+						onChange={setOverrideSSID}
+					/>
+				)}
+				<TextInput
+					label={selectedNetwork.security.toLocaleUpperCase() + ' Password'}
+					type="password"
+					key="password"
+					value={password}
+					error={
+						wifiMutation.isError
+							? wifiMutation.error.message
+							: passwordValidation.success
+								? undefined
+								: passwordValidation.error.formErrors.fieldErrors.passphrase?.join('\n')
+					}
+					onChange={(val) => setPassword(val + '')}
+				/>
+			</div>
 		) : isError ? (
 			<div className="mb-4 h-48">
 				<ErrorMessage title="Unable to scan for wifi access points">{error?.message}</ErrorMessage>
@@ -185,9 +262,15 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 
 	if (selectedNetwork) {
 		rightButton = {
-			label: 'Save Wifi Credentials',
+			label: 'Submit',
 			disabled: !passwordValidation.success || wifiMutation.isLoading,
 			isLoading: wifiMutation.isLoading,
+			title: !passwordValidation.success
+				? passwordValidation.error.errors
+						.map((e) => (['ssid', 'password'].includes(e.path.pop() + '') ? null : `${e.path}: ${e.message}`))
+						.filter(Boolean)
+						.join('\n')
+				: undefined,
 			onClick: connectToWifi,
 		};
 		leftButton = {
@@ -221,11 +304,22 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 	return (
 		<Fragment>
 			<div className="p-8">
-				{' '}
-				<div className="mb-5 border-b border-zinc-200 pb-5 dark:border-zinc-700">
-					<h3 className="text-lg font-medium leading-6 text-zinc-900 dark:text-zinc-100">Configure Wifi Setup</h3>
-					<p className="mt-2 max-w-4xl text-sm text-zinc-500 dark:text-zinc-400">{subtext}</p>
+				<div className="mb-5 flex border-b border-zinc-200 pb-5 dark:border-zinc-700">
+					<div className="flex-1">
+						<h3 className="text-lg font-medium leading-6 text-zinc-900 dark:text-zinc-100">Configure Wifi Setup</h3>
+						<p className="mt-2 max-w-4xl text-sm text-zinc-500 dark:text-zinc-400">{subtext}</p>
+					</div>
+					{selectedNetwork == null && (
+						<div>
+							<Button variant="indeterminate" onClick={() => setShowHidden((org) => !org)}>
+								{showHidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}{' '}
+								{showHidden ? 'Hide Hidden SSIDs' : 'Show Hidden SSIDs'}
+							</Button>
+						</div>
+					)}
 				</div>
+				<MutationStatus {...wifiMutation} />
+				<MutationStatus {...hostnameMutation} />
 				{content}
 			</div>
 			<StepNavButtons right={rightButton} left={leftButton} />

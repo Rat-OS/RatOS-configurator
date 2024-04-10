@@ -1,5 +1,5 @@
 'use client';
-import { Check, CircleFadingPlus, Cross, X } from 'lucide-react';
+import { ArrowDownToDot, Check, CircleFadingPlus, Cpu, Cross, Server, X } from 'lucide-react';
 
 import { Button } from '@/components/common/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Fieldset } from '@/components/common/fieldset';
 import { Badge } from '@/components/common/badge';
 import { Card } from '@/components/common/card';
-import { CpuChipIcon, ServerIcon, ArrowDownOnSquareIcon } from '@heroicons/react/24/outline';
 import React, { PointerEvent, PropsWithChildren, useCallback, useMemo } from 'react';
 import { TWShadeableColorName, shadableTWColors } from '@/app/_helpers/colors';
 import { Switch } from '@/components/ui/switch';
@@ -95,25 +94,25 @@ export const MacroForm: React.FC<MacroFormProps> = ({ form, submit }) => {
 				label: 'Control Board',
 				value: 'controlboard',
 				description: 'Record data with an ADXL345 connected to the main control board',
-				icon: CpuChipIcon,
+				icon: Cpu,
 			},
 			{
 				label: 'Host',
 				value: 'rpi',
 				description: 'Record data with an ADXL345 connected to the Raspberry Pi or other host computer',
-				icon: ServerIcon,
+				icon: Server,
 			},
 			{
 				label: 'Tool Board T0',
 				value: 'toolboard_t0',
 				description: 'Record data with an ADXL345 on the toolboard on toolhead T0',
-				icon: ArrowDownOnSquareIcon,
+				icon: ArrowDownToDot,
 			},
 			{
 				label: 'Tool Board T1',
 				value: 'toolboard_t1',
 				description: 'Record data with an ADXL345 on the toolboard on toolhead T1',
-				icon: ArrowDownOnSquareIcon,
+				icon: ArrowDownToDot,
 			},
 		] satisfies AccelOptions[];
 	}, []);

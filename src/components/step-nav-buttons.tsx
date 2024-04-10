@@ -3,6 +3,7 @@ import { PlayIcon, ForwardIcon } from '@heroicons/react/24/outline';
 import React from 'react';
 import { Button } from '@/components/common/button';
 import { Spinner } from '@/components/common/spinner';
+import { ChevronLeft, ChevronRight, ChevronsRight } from 'lucide-react';
 
 export interface StepNavButton {
 	label?: string;
@@ -20,9 +21,9 @@ interface StepNavButtonsProps {
 
 export const StepNavButtons: React.FC<StepNavButtonsProps> = (props) => {
 	const leftIcon = props.left.isLoading ? (
-		<Spinner noMargin={true} className="mr-3 dark:text-black" />
+		<Spinner noMargin={true} className="dark:text-black" />
 	) : (
-		<PlayIcon className="mr-3 h-5 w-5 rotate-180" aria-hidden="true" />
+		<ChevronLeft className="-ml-2 h-5 w-5" aria-hidden="true" />
 	);
 	const left = props.left.onClick ? (
 		<div className="flex flex-1 justify-start">
@@ -40,9 +41,9 @@ export const StepNavButtons: React.FC<StepNavButtonsProps> = (props) => {
 	) : null;
 
 	const rightIcon = props.right.isLoading ? (
-		<Spinner noMargin={true} className="ml-3 dark:text-black" />
+		<Spinner noMargin={true} className="dark:text-black" />
 	) : (
-		<PlayIcon className="ml-3 h-5 w-5" aria-hidden="true" />
+		<ChevronRight className="-mr-2 h-5 w-5" aria-hidden="true" />
 	);
 
 	const right = props.right.onClick ? (
@@ -55,7 +56,7 @@ export const StepNavButtons: React.FC<StepNavButtonsProps> = (props) => {
 					title={props.skip.title}
 				>
 					{props.skip.label ?? 'Skip'}
-					<ForwardIcon className="ml-3 h-5 w-5" aria-hidden="true" />
+					<ChevronsRight className="-mr-1.5 h-5 w-5" aria-hidden="true" />
 				</Button>
 			)}
 			<Button

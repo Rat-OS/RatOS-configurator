@@ -19,6 +19,7 @@ import {
 import { toast } from 'sonner';
 import { getLogger } from '@/app/_helpers/logger';
 import { Check, OctagonAlert } from 'lucide-react';
+import { Form } from '@/components/ui/form';
 
 interface EditMacroProps {
 	id: string;
@@ -49,7 +50,7 @@ export const EditMacro: React.FC<EditMacroProps> = ({ id }) => {
 		form.reset(result.result);
 	});
 	return (
-		<>
+		<Form {...form}>
 			<MacroForm form={form} submit={hasConfirmedRecordDeletion ? submit : async () => setIsAlertVisible(true)} />
 			<AlertDialog open={isAlertVisible}>
 				<AlertDialogContent>
@@ -74,6 +75,6 @@ export const EditMacro: React.FC<EditMacroProps> = ({ id }) => {
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
-		</>
+		</Form>
 	);
 };

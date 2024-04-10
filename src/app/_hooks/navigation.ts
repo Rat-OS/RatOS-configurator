@@ -1,12 +1,4 @@
 'use client';
-import {
-	ArrowDownOnSquareIcon,
-	ArrowsPointingOutIcon,
-	PresentationChartLineIcon,
-	SparklesIcon,
-	TvIcon,
-	VideoCameraIcon,
-} from '@heroicons/react/24/solid';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useCallback } from 'react';
 import type { Route } from 'next';
@@ -40,7 +32,7 @@ const routes: NavigationItem[] = [
 	{ name: 'Dashboard', href: '/', current: false, icon: Monitor },
 	{ name: 'Visual Calibration', href: '/calibration', current: false, icon: Video },
 	{ name: 'Resonance Analysis', href: '/analysis', current: false, icon: AreaChart },
-	// { name: 'Boards', href: '/', current: false, icon: CpuChipIcon },
+	// { name: 'Boards', href: '/', current: false, icon: Cpu },
 	// { name: 'Motion', href: '/motion', current: false, icon: ArrowsPointingOutIcon, iconClass: 'rotate-45' },
 	// { name: 'Toolhead', href: '/toolhead', current: false, icon: ArrowDownOnSquareIcon },
 ];

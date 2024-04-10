@@ -47,7 +47,7 @@ export const buttonVariants = cva(
 					'border-transparent shadow-none bg-transparent text-zinc-700 dark:text-zinc-300 hover:underline hover:text-zinc-800 dark:hover:text-zinc-200 focus:ring-offset-2 focus:ring-zinc-900 dark:focus:ring-offset-zinc-100',
 			},
 			disabled: {
-				true: 'opacity-60 cursor-not-allowed pointer-events-none',
+				true: 'opacity-60 cursor-not-allowed',
 			},
 			size: {
 				sm: 'px-3 py-1 text-xs',
@@ -62,12 +62,12 @@ export const buttonVariants = cva(
 			{
 				variant: 'primary',
 				disabled: true,
-				class: 'hover:bg-brand-500',
+				class: 'hover:bg-brand-400/50',
 			},
 			{
 				variant: 'danger',
 				disabled: true,
-				class: 'hover:bg-red-500',
+				class: 'hover:bg-red-500/70',
 			},
 			{
 				variant: 'warning',
@@ -77,12 +77,12 @@ export const buttonVariants = cva(
 			{
 				variant: 'indeterminate',
 				disabled: true,
-				class: 'hover:bg-zinc-100 dark:hover:bg-zinc-900',
+				class: 'hover:bg-zinc-100 dark:hover:bg-zinc-800',
 			},
 			{
 				variant: 'info',
 				disabled: true,
-				class: 'hover:bg-blue-500',
+				class: 'hover:bg-sky-400/70',
 			},
 		],
 		defaultVariants: {

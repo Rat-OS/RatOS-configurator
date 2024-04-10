@@ -8,6 +8,8 @@ import { runSudoScript } from '@/server/helpers/run-script';
 import { publicProcedure, router } from '@/server/trpc';
 import { TRPCError } from '@trpc/server';
 import path from 'path';
+import { z } from 'zod';
+import { wifiFixture } from '@/data/wifi-fixture';
 
 export const wifiRouter = router({
 	hostname: publicProcedure.input(hostnameInput).mutation(async ({ input }) => {
@@ -30,7 +32,16 @@ export const wifiRouter = router({
 	}),
 	join: publicProcedure.input(joinInput).mutation(async ({ input }) => {
 		try {
-			await runSudoScript('add-wifi-network.sh', input.ssid, input.passphrase, input.country ?? 'GB');
+			console.log(
+				await runSudoScript(
+					'add-wifi-network.sh',
+					input.ssid,
+					input.passphrase,
+					input.country ?? 'GB',
+					input.frequencies,
+					input.hidden ? 'hidden' : 'shown',
+				),
+			);
 		} catch (e) {
 			if (e instanceof Error) {
 				getLogger().error(e.message);
@@ -45,7 +56,10 @@ export const wifiRouter = router({
 			result: 'success',
 		};
 	}),
-	scan: publicProcedure.query(async () => {
+	scan: publicProcedure.input(z.object({ showHidden: z.boolean().default(false) })).query(async ({ input }) => {
+		if (process.env.NODE_ENV === 'development') {
+			return wifiFixture(input.showHidden);
+		}
 		const wirelessInterface = await getWirelessInterface();
 		if (wirelessInterface == null || wirelessInterface.trim() === '') {
 			throw new TRPCError({
@@ -54,10 +68,7 @@ export const wifiRouter = router({
 			});
 		}
 		try {
-			// if (process.env.NODE_ENV === 'development') {
-			// 	return [];
-			// }
-			return await scan(wirelessInterface, { apForce: true });
+			return await scan(wirelessInterface, { apForce: true, showHidden: input.showHidden });
 		} catch (e) {
 			if (e instanceof Error) {
 				getLogger().error(e.message);
