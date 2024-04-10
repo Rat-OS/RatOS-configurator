@@ -67,6 +67,7 @@ export const EditMacro: React.FC<EditMacroProps> = ({ id }) => {
 							onClick={() => {
 								setHasConfirmedRecordDeletion(true);
 								setIsAlertVisible(false);
+								debugger;
 								submit();
 							}}
 						>

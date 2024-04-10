@@ -12,7 +12,7 @@ import React, { PointerEvent, PropsWithChildren, useCallback, useMemo } from 're
 import { TWShadeableColorName, shadableTWColors } from '@/app/_helpers/colors';
 import { Switch } from '@/components/ui/switch';
 import { FormField, FormItem, FormLabel, FormDescription, FormControl, Form, FormMessage } from '@/components/ui/form';
-import { UseFormReturn, useFieldArray } from 'react-hook-form';
+import { UseFormReturn, useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import { ADXL345SensorName, createMacroSchema } from '@/zods/analysis';
 import { z } from 'zod';
 import * as uuid from 'uuid';
@@ -87,6 +87,16 @@ const MacroSequence: React.FC<SequenceFormProps> = ({ value, children }) => {
 	);
 };
 
+const useFormValues = () => {
+	const { getValues } = useFormContext<z.input<typeof createMacroSchema>>();
+
+	return {
+		...useWatch(), // subscribe to form value updates
+
+		...getValues(), // always merge with latest form values
+	};
+};
+
 export const MacroForm: React.FC<MacroFormProps> = ({ form, submit }) => {
 	let labels: AccelOptions[] = useMemo(() => {
 		return [
@@ -128,6 +138,7 @@ export const MacroForm: React.FC<MacroFormProps> = ({ form, submit }) => {
 		},
 		[sequences],
 	);
+	const formValues = useFormValues();
 	if (sequences.fields == null) {
 		return;
 	}
@@ -197,13 +208,14 @@ export const MacroForm: React.FC<MacroFormProps> = ({ form, submit }) => {
 									<MacroSequence key={sequence.id ?? sequence.key} value={sequence}>
 										<>
 											<legend className="-ml-1 px-1 text-sm font-medium">
-												{sequence.name ?? `Sequence ${index + 1}`}
+												{formValues.sequences[index]?.name ?? sequence.name ?? `Sequence ${index + 1}`}
 											</legend>
 											<div className="absolute -right-2 -top-5">
 												<Button variant="danger" size="icon-xs" onClick={() => sequences.remove(index)}>
 													<X className="size-3" />
 												</Button>
 											</div>
+											<input type="hidden" {...form.register(`sequences.${index}.id`)} />
 											<div className="grid gap-3">
 												<FormField
 													control={form.control}
@@ -381,7 +393,7 @@ export const MacroForm: React.FC<MacroFormProps> = ({ form, submit }) => {
 							Graph Example Preview
 						</Badge>
 						<div className="flex flex-1">
-							<MacroChartPreview sequences={form.watch('sequences')} />
+							<MacroChartPreview sequences={formValues.sequences} />
 						</div>
 					</Card>
 				</ResizablePanel>
