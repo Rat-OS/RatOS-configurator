@@ -9,6 +9,7 @@ import {
 	PSD_CHART_AXIS_AMPLITUDE_ID,
 	useADXLSignalChart,
 	usePSDChart,
+	PSDLength,
 } from '@/app/analysis/charts';
 import { twJoin } from 'tailwind-merge';
 import { SciChartReact } from 'scichart-react';
@@ -85,28 +86,26 @@ export const useRealtimeAnalysisChart = (accelerometer?: MacroRecordingSettings[
 		if (animationDS == null) {
 			throw new Error('No animation data series');
 		}
-		if (
-			animationDS.x.count() !== res.x.frequencies.length ||
-			animationDS.y.count() !== res.y.frequencies.length ||
-			animationDS.z.count() !== res.z.frequencies.length ||
-			animationDS.total.count() !== res.total.frequencies.length
-		) {
-			getLogger().error(
-				{
-					x: animationDS.x.count(),
-					y: animationDS.y.count(),
-					z: animationDS.z.count(),
-					total: animationDS.total.count(),
-					expected: res.total.frequencies.length,
-				},
-				'PSD data series length mismatch',
-			);
-			toast.error('Failed to update PSD chart', {
-				description: `The PSD data series length mismatched, the chart will not be updated. 
-				Expected [${animationDS.x.count()}, ${animationDS.y.count()}, ${animationDS.z.count()}, ${animationDS.total.count}] data points, 
-				but got [${res.x.frequencies.length}, ${res.y.frequencies.length}, ${res.z.frequencies.length}, ${res.total.frequencies.length}]`,
-			});
-			return;
+		// Pad PSD's to PSDLength
+		if (res.x.frequencies.length < PSDLength) {
+			const pad = new Array(PSDLength - res.x.frequencies.length).fill(0);
+			res.x.frequencies.unshift(...pad);
+			res.x.estimates.unshift(...pad);
+		}
+		if (res.y.frequencies.length < PSDLength) {
+			const pad = new Array(PSDLength - res.y.frequencies.length).fill(0);
+			res.y.frequencies.unshift(...pad);
+			res.y.estimates.unshift(...pad);
+		}
+		if (res.z.frequencies.length < PSDLength) {
+			const pad = new Array(PSDLength - res.z.frequencies.length).fill(0);
+			res.z.frequencies.unshift(...pad);
+			res.z.estimates.unshift(...pad);
+		}
+		if (res.total.frequencies.length < PSDLength) {
+			const pad = new Array(PSDLength - res.total.frequencies.length).fill(0);
+			res.total.frequencies.unshift(...pad);
+			res.total.estimates.unshift(...pad);
 		}
 		animationDS.x.clear();
 		animationDS.y.clear();
