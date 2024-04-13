@@ -29,6 +29,7 @@ import {
 import { z } from 'zod';
 import path from 'path';
 import { serverSchema } from '@/env/schema.mjs';
+import { AccelerometerType } from '@/zods/hardware';
 
 type WritableFiles = { fileName: string; content: string; overwrite: boolean; order?: number }[];
 type ExcludeStepperParameters<T extends string> = (T extends
@@ -437,6 +438,18 @@ export const constructKlipperConfigHelpers = async (
 					result.push(`spi_software_sclk_pin: ${config.controlboard.ADXL345SPI.software.sclk}`);
 				}
 			}
+			if (config.controlboard.LIS2DW != null) {
+				result.push(''); // Add a newline for readability.
+				result.push(`[lis2dw controlboard]`);
+				result.push(`cs_pin: ${config.controlboard.LIS2DW.cs_pin}`);
+				if ('hardware' in config.controlboard.LIS2DW) {
+					result.push(`spi_bus: ${config.controlboard.LIS2DW.hardware.bus}`);
+				} else {
+					result.push(`spi_software_mosi_pin: ${config.controlboard.LIS2DW.software.mosi}`);
+					result.push(`spi_software_miso_pin: ${config.controlboard.LIS2DW.software.miso}`);
+					result.push(`spi_software_sclk_pin: ${config.controlboard.LIS2DW.software.sclk}`);
+				}
+			}
 			if (config.controlboard.outputPins != null) {
 				config.controlboard.outputPins.forEach((pindef) => {
 					result.push(''); // Add a newline for readability.
@@ -768,9 +781,53 @@ export const constructKlipperConfigHelpers = async (
 				result.push(`[include RatOS/sensors/rpi-adxl345.cfg]`);
 				result.push(''); // Add a newline for readability.
 			}
+			const xAccelName = xToolhead.getXAccelerometerName();
+			let xAccelType: z.infer<typeof AccelerometerType> = 'adxl345';
+			const yAccelName = xToolhead.getYAccelerometerName();
+			let yAccelType: z.infer<typeof AccelerometerType> = 'adxl345';
+			if (xAccelName === 'controlboard') {
+				if (config.controlboard.ADXL345SPI != null) {
+					xAccelType = 'adxl345';
+				}
+				if (config.controlboard.LIS2DW != null) {
+					xAccelType = 'lis2dw';
+				}
+			}
+			if (yAccelName === 'controlboard') {
+				if (config.controlboard.ADXL345SPI != null) {
+					yAccelType = 'adxl345';
+				}
+				if (config.controlboard.LIS2DW != null) {
+					yAccelType = 'lis2dw';
+				}
+			}
+			if (xAccelName === 'toolboard_t0' || xAccelName === 'toolboard_t1') {
+				const toolboard = xToolhead.getToolboard();
+				if (toolboard == null) {
+					throw new Error(`No toolboard found for T0`);
+				}
+				if (toolboard.ADXL345SPI != null) {
+					xAccelType = 'adxl345';
+				}
+				if (toolboard.LIS2DW != null) {
+					xAccelType = 'lis2dw';
+				}
+			}
+			if (yAccelName === 'toolboard_t0' || yAccelName === 'toolboard_t1') {
+				const toolboard = xToolhead.getToolboard();
+				if (toolboard == null) {
+					throw new Error(`No toolboard found for T0`);
+				}
+				if (toolboard.ADXL345SPI != null) {
+					yAccelType = 'adxl345';
+				}
+				if (toolboard.LIS2DW != null) {
+					yAccelType = 'lis2dw';
+				}
+			}
 			result.push('[resonance_tester]');
-			result.push(`accel_chip_x: adxl345 ${xToolhead.getXAccelerometerName()}`);
-			result.push(`accel_chip_y: adxl345 ${xToolhead.getYAccelerometerName()}`);
+			result.push(`accel_chip_x: ${xAccelType} ${xToolhead.getXAccelerometerName()}`);
+			result.push(`accel_chip_y: ${yAccelType} ${xToolhead.getYAccelerometerName()}`);
 			result.push('probe_points:');
 			result.push(`\t${printerSize.x / 2},${printerSize.y / 2},20`);
 			return result.join('\n');

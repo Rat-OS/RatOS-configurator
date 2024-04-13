@@ -191,10 +191,14 @@ export const deserializeToolheadConfiguration = async (
 		yEndstop: yEndstopOptions(printerConfig, config).find((e) => e.id === config.yEndstop),
 		xAccelerometer:
 			xAccels.find((a) => a.id === config.xAccelerometer) ??
-			(toolboard && toolboard.ADXL345SPI != null ? xAccels.find((a) => a.id === 'toolboard') : null),
+			(toolboard && (toolboard.ADXL345SPI != null || toolboard.LIS2DW)
+				? xAccels.find((a) => a.id === 'toolboard')
+				: null),
 		yAccelerometer:
 			yAccels.find((a) => a.id === config.yAccelerometer) ??
-			(toolboard && toolboard.ADXL345SPI != null ? yAccels.find((a) => a.id === 'toolboard') : null),
+			(toolboard && (toolboard.ADXL345SPI != null || toolboard.LIS2DW)
+				? yAccels.find((a) => a.id === 'toolboard')
+				: null),
 		partFan: partFanOptions({ controlboard }, { toolboard, axis: config.axis }).find((f) => f.id === config.partFan),
 		hotendFan: hotendFanOptions({ controlboard }, { toolboard, axis: config.axis }).find(
 			(f) => f.id === config.hotendFan,

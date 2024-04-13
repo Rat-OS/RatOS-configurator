@@ -55,6 +55,8 @@ export const Endstop = z.object({
 	title: z.string(),
 });
 
+export const AccelerometerType = z.union([z.literal('adxl345'), z.literal('lis2dw')]);
+
 export const Accelerometer = z.object({
 	id: z.enum(['toolboard', 'controlboard', 'sbc', 'none']),
 	title: z.string(),
