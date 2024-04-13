@@ -11,10 +11,13 @@ export const xAccelerometerOptions = (
 		{ id: 'none' as const, title: 'None' },
 		{ id: 'sbc' as const, title: 'Wired to Host Computer' },
 	];
-	if (config?.controlboard?.ADXL345SPI != null) {
+	if (config?.controlboard?.ADXL345SPI != null || config?.controlboard?.LIS2DW != null) {
 		accelerometers.push({ id: 'controlboard' as const, title: 'Wired to Controlboard' });
 	}
-	if (toolheadConfig?.toolboard != null && toolheadConfig.toolboard.ADXL345SPI != null) {
+	if (
+		toolheadConfig?.toolboard != null &&
+		(toolheadConfig.toolboard.ADXL345SPI != null || toolheadConfig.toolboard.LIS2DW != null)
+	) {
 		accelerometers.push({ id: 'toolboard' as const, title: 'Integrated on toolboard' });
 	}
 	return accelerometers;
@@ -28,10 +31,13 @@ export const yAccelerometerOptions = (
 		{ id: 'none' as const, title: 'None' },
 		{ id: 'sbc' as const, title: 'Wired to Host Computer' },
 	];
-	if (config?.controlboard?.ADXL345SPI != null) {
+	if (config?.controlboard?.ADXL345SPI != null || config?.controlboard?.LIS2DW != null) {
 		accelerometers.push({ id: 'controlboard' as const, title: 'Wired to Controlboard' });
 	}
-	if (toolheadConfig?.toolboard != null && toolheadConfig.toolboard.ADXL345SPI != null) {
+	if (
+		toolheadConfig?.toolboard != null &&
+		(toolheadConfig.toolboard.ADXL345SPI != null || toolheadConfig.toolboard.LIS2DW != null)
+	) {
 		accelerometers.push({ id: 'toolboard' as const, title: 'Integrated on toolboard' });
 	}
 	return accelerometers;

@@ -3,6 +3,16 @@ import { Driver } from '@/zods/motion';
 
 export const Drivers = z.array(Driver).parse([
 	{
+		id: 'LDO-TMC2209',
+		title: 'TMC2209',
+		type: 'TMC2209',
+		protocol: 'UART',
+		senseResistor: 0.11,
+		coolingCurrentThreshold: 1.1,
+		voltages: [24],
+		maxCurrent: 2.0,
+	},
+	{
 		id: 'BTT-TMC2209-13',
 		title: 'BTT TMC2209 v1.3',
 		type: 'TMC2209',

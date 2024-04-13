@@ -220,6 +220,18 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 				result.push(`spi_software_sclk_pin: ${this.getPinPrefix()}${toolboard.ADXL345SPI.software.sclk}`);
 			}
 		}
+		if (toolboard.LIS2DW != null) {
+			result.push(''); // Add a newline for readability.
+			result.push(`[lis2dw ${this.getToolboardName()}]`);
+			result.push(`cs_pin: ${this.getPinPrefix()}${toolboard.LIS2DW.cs_pin}`);
+			if ('hardware' in toolboard.LIS2DW) {
+				result.push(`spi_bus: ${toolboard.LIS2DW.hardware.bus}`);
+			} else {
+				result.push(`spi_software_mosi_pin: ${this.getPinPrefix()}${toolboard.LIS2DW.software.mosi}`);
+				result.push(`spi_software_miso_pin: ${this.getPinPrefix()}${toolboard.LIS2DW.software.miso}`);
+				result.push(`spi_software_sclk_pin: ${this.getPinPrefix()}${toolboard.LIS2DW.software.sclk}`);
+			}
+		}
 		if (toolboard.outputPins != null) {
 			toolboard.outputPins.forEach((pindef) => {
 				result.push(''); // Add a newline for readability.

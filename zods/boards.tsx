@@ -398,6 +398,28 @@ export const Board = z
 					),
 			)
 			.optional(),
+		LIS2DW: z
+			.object({
+				cs_pin: z.string(),
+			})
+			.and(
+				z
+					.object({
+						software: z.object({
+							sclk: z.string(),
+							mosi: z.string(),
+							miso: z.string(),
+						}),
+					})
+					.or(
+						z.object({
+							hardware: z.object({
+								bus: z.string(),
+							}),
+						}),
+					),
+			)
+			.optional(),
 		path: BoardPath,
 	})
 	.and(
