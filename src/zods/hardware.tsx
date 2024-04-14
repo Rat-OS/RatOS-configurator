@@ -55,12 +55,35 @@ export const Endstop = z.object({
 	title: z.string(),
 });
 
+export const KlipperAccelSensorNameSchame = z.union([
+	z.literal('toolboard_t0'),
+	z.literal('toolboard_t1'),
+	z.literal('controlboard'),
+	z.literal('rpi'),
+]);
+
 export const AccelerometerType = z.union([z.literal('adxl345'), z.literal('lis2dw')]);
 
 export const Accelerometer = z.object({
 	id: z.enum(['toolboard', 'controlboard', 'sbc', 'none']),
 	title: z.string(),
+	accelerometerType: AccelerometerType.default('adxl345').optional(),
 });
+
+export type KlipperAccelSensorName = z.infer<typeof KlipperAccelSensorNameSchame>;
+
+export const klipperAccelSensorSchema = z.object({
+	name: KlipperAccelSensorNameSchame,
+	type: AccelerometerType,
+});
+
+export type KlipperAccelSensorSchema = z.infer<typeof klipperAccelSensorSchema>;
+
+export const AccelerometerWithType = Accelerometer.extend({
+	accelerometerType: AccelerometerType,
+});
+
+export type AccelerometerWithType = z.infer<typeof AccelerometerWithType>;
 
 export const Fan = z.object({
 	id: z.enum([

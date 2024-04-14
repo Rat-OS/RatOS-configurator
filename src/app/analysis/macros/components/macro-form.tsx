@@ -13,7 +13,7 @@ import { TWShadeableColorName, shadableTWColors } from '@/app/_helpers/colors';
 import { Switch } from '@/components/ui/switch';
 import { FormField, FormItem, FormLabel, FormDescription, FormControl, Form, FormMessage } from '@/components/ui/form';
 import { UseFormReturn, useFieldArray, useFormContext, useWatch } from 'react-hook-form';
-import { ADXL345SensorName, createMacroSchema } from '@/zods/analysis';
+import { createMacroSchema } from '@/zods/analysis';
 import { z } from 'zod';
 import * as uuid from 'uuid';
 import { AnimatedContainer } from '@/components/common/animated-container';
@@ -21,6 +21,7 @@ import { AnimatePresence, motion, Reorder, useDragControls } from 'framer-motion
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import { MacroChartPreview } from '@/app/analysis/macros/components/macro-chart-preview';
 import { ScrollContainer } from '@/components/common/scroll-container';
+import { KlipperAccelSensorName } from '@/zods/hardware';
 
 const colorOptions = Object.keys(shadableTWColors).map((c) => {
 	return {
@@ -32,7 +33,7 @@ const colorOptions = Object.keys(shadableTWColors).map((c) => {
 
 type AccelOptions = {
 	label: string;
-	value: ADXL345SensorName;
+	value: KlipperAccelSensorName;
 	description: string;
 	icon: React.ComponentType<React.SVGAttributes<SVGElement>>;
 };
