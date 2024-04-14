@@ -29,7 +29,7 @@ import {
 import { z } from 'zod';
 import path from 'path';
 import { serverSchema } from '@/env/schema.mjs';
-import { AccelerometerType } from '@/zods/hardware';
+import { AccelerometerType, KlipperAccelSensorName, klipperAccelSensorSchema } from '@/zods/hardware';
 
 type WritableFiles = { fileName: string; content: string; overwrite: boolean; order?: number }[];
 type ExcludeStepperParameters<T extends string> = (T extends
@@ -301,6 +301,34 @@ export const constructKlipperConfigUtils = async (config: PrinterConfiguration) 
 				section.push(`# Assigned to slot: "${board.motorSlots[rail.motorSlot].title}"`);
 			}
 			return this.renderCommentHeader(header ?? rail.axis.toUpperCase(), section);
+		},
+		getAccelWithType(accelerometerName: KlipperAccelSensorName) {
+			let accelType: z.infer<typeof AccelerometerType> = 'adxl345';
+
+			if (accelerometerName === 'controlboard') {
+				if (config.controlboard?.ADXL345SPI != null) {
+					accelType = 'adxl345';
+				}
+				if (config.controlboard?.LIS2DW != null) {
+					accelType = 'lis2dw';
+				}
+			}
+			if (accelerometerName === 'toolboard_t0' || accelerometerName === 'toolboard_t1') {
+				const toolboard = toolheads.find((t) => t.getToolboardName() === accelerometerName)?.getToolboard();
+				if (toolboard == null) {
+					throw new Error(`No toolboard found for T0`);
+				}
+				if (toolboard.ADXL345SPI != null) {
+					accelType = 'adxl345';
+				}
+				if (toolboard.LIS2DW != null) {
+					accelType = 'lis2dw';
+				}
+			}
+			return klipperAccelSensorSchema.parse({
+				name: accelerometerName,
+				type: accelType,
+			});
 		},
 	};
 };
@@ -781,53 +809,11 @@ export const constructKlipperConfigHelpers = async (
 				result.push(`[include RatOS/sensors/rpi-adxl345.cfg]`);
 				result.push(''); // Add a newline for readability.
 			}
-			const xAccelName = xToolhead.getXAccelerometerName();
-			let xAccelType: z.infer<typeof AccelerometerType> = 'adxl345';
-			const yAccelName = xToolhead.getYAccelerometerName();
-			let yAccelType: z.infer<typeof AccelerometerType> = 'adxl345';
-			if (xAccelName === 'controlboard') {
-				if (config.controlboard.ADXL345SPI != null) {
-					xAccelType = 'adxl345';
-				}
-				if (config.controlboard.LIS2DW != null) {
-					xAccelType = 'lis2dw';
-				}
-			}
-			if (yAccelName === 'controlboard') {
-				if (config.controlboard.ADXL345SPI != null) {
-					yAccelType = 'adxl345';
-				}
-				if (config.controlboard.LIS2DW != null) {
-					yAccelType = 'lis2dw';
-				}
-			}
-			if (xAccelName === 'toolboard_t0' || xAccelName === 'toolboard_t1') {
-				const toolboard = xToolhead.getToolboard();
-				if (toolboard == null) {
-					throw new Error(`No toolboard found for T0`);
-				}
-				if (toolboard.ADXL345SPI != null) {
-					xAccelType = 'adxl345';
-				}
-				if (toolboard.LIS2DW != null) {
-					xAccelType = 'lis2dw';
-				}
-			}
-			if (yAccelName === 'toolboard_t0' || yAccelName === 'toolboard_t1') {
-				const toolboard = xToolhead.getToolboard();
-				if (toolboard == null) {
-					throw new Error(`No toolboard found for T0`);
-				}
-				if (toolboard.ADXL345SPI != null) {
-					yAccelType = 'adxl345';
-				}
-				if (toolboard.LIS2DW != null) {
-					yAccelType = 'lis2dw';
-				}
-			}
+			const xAccel = utils.getAccelWithType(xToolhead.getXAccelerometerName());
+			const yAccel = utils.getAccelWithType(xToolhead.getYAccelerometerName());
 			result.push('[resonance_tester]');
-			result.push(`accel_chip_x: ${xAccelType} ${xToolhead.getXAccelerometerName()}`);
-			result.push(`accel_chip_y: ${yAccelType} ${xToolhead.getYAccelerometerName()}`);
+			result.push(`accel_chip_x: ${xAccel.type} ${xAccel.name}`);
+			result.push(`accel_chip_y: ${yAccel.type} ${yAccel.name}`);
 			result.push('probe_points:');
 			result.push(`\t${printerSize.x / 2},${printerSize.y / 2},20`);
 			return result.join('\n');

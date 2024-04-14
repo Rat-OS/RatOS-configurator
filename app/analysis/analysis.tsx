@@ -11,19 +11,17 @@ import { useTopMenu } from '@/app/topmenu';
 import { RealtimeAnalysisChart, useRealtimeAnalysisChart } from '@/app/analysis/realtime-analysis-chart';
 import Link from 'next/link';
 import { trpc } from '@/utils/trpc';
-import { ADXL345SensorName, Macro, MacroRecording, MacroRecordingSettings } from '@/zods/analysis';
+import { Macro, MacroRecordingSettings } from '@/zods/analysis';
 import * as uuid from 'uuid';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { getLogger } from '@/app/_helpers/logger';
 import {
 	ArrowDownToDot,
-	ArrowRight,
 	AudioLines,
 	AudioWaveform,
 	Ban,
 	Cpu,
-	ExternalLink,
 	Home,
 	List,
 	Move3D,
@@ -36,14 +34,13 @@ import {
 	PencilRuler,
 	Play,
 	Plus,
-	Puzzle,
 	ServerIcon,
 	SquareFunction,
 } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
-import { UseTRPCMutationOptions } from '@trpc/react-query/shared';
 import { useToolheads } from '@/hooks/useToolheadConfiguration';
+import { KlipperAccelSensorName } from '@/zods/hardware';
 
 SciChartSurface.configure({
 	wasmUrl: '/configure/scichart2d.wasm',
@@ -282,7 +279,7 @@ export const Analysis = () => {
 									<Menu.MenubarContentIcon Icon={Move3D} /> Accelerometer
 								</Menu.MenubarSubTrigger>
 								<Menu.MenubarSubContent>
-									<Menu.MenubarRadioGroup value={adxl} onValueChange={(e) => setAdxl(e as ADXL345SensorName)}>
+									<Menu.MenubarRadioGroup value={adxl} onValueChange={(e) => setAdxl(e as KlipperAccelSensorName)}>
 										<Menu.MenubarRadioItem
 											value="rpi"
 											className={twJoin(axis === 'x' && frequency > 0 && 'font-semibold text-brand-400')}

@@ -19,26 +19,31 @@ import {
 	useBufferedADXLSignal,
 	useBufferedPSD,
 	useDynamicAxisRange,
-	useRealtimeADXL,
+	useRealtimeSensor,
 	useTicker,
 } from '@/app/analysis/hooks';
 import { LineAnimation, MountainAnimation, NumberRange, SciChartSurface, easing } from 'scichart';
 import { detrendSignal } from '@/app/analysis/periodogram';
 import { FullLoadScreen } from '@/components/common/full-load-screen';
-import { KlipperADXL345SubscriptionResponse, MacroRecordingSettings } from '@/zods/analysis';
+import { KlipperAccelSubscriptionResponse, MacroRecordingSettings } from '@/zods/analysis';
 import { useRecoilValue } from 'recoil';
 import { ControlboardState } from '@/recoil/printer';
 import { toast } from 'sonner';
 import { getLogger } from '@/app/_helpers/logger';
+import { AccelerometerType } from '@/zods/hardware';
+import { z } from 'zod';
 
 SciChartSurface.configure({
 	wasmUrl: '/configure/scichart2d.wasm',
 	dataUrl: '/configure/scichart2d.data',
 });
 
-export const useRealtimeAnalysisChart = (accelerometer?: MacroRecordingSettings['accelerometer']) => {
+export const useRealtimeAnalysisChart = (
+	accelerometer?: MacroRecordingSettings['accelerometer'],
+	accelerometerType: z.infer<typeof AccelerometerType> = 'adxl345',
+) => {
 	const [isChartEnabled, setIsChartEnabled] = useState(false);
-	const [dataHeader, setDataHeader] = useState<KlipperADXL345SubscriptionResponse['header'] | undefined>(undefined);
+	const [dataHeader, setDataHeader] = useState<KlipperAccelSubscriptionResponse['header'] | undefined>(undefined);
 	const toolheads = useToolheads();
 	const controlBoard = useRecoilValue(ControlboardState);
 	const adxl = accelerometer ?? toolheads[0].getYAccelerometerName();
@@ -178,11 +183,11 @@ export const useRealtimeAnalysisChart = (accelerometer?: MacroRecordingSettings[
 	});
 	useTicker(updateSignals);
 
-	useRealtimeADXL({
+	useRealtimeSensor({
 		sensor: adxl,
 		enabled: isChartEnabled,
 		onDataUpdate: fifo.onData,
-		onSubscriptionSuccess: useCallback((header: KlipperADXL345SubscriptionResponse['header']) => {
+		onSubscriptionSuccess: useCallback((header: KlipperAccelSubscriptionResponse['header']) => {
 			setDataHeader(header);
 		}, []),
 		onSubscriptionFailure: useCallback((err: Error) => {

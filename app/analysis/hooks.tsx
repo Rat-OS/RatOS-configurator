@@ -23,30 +23,16 @@ import {
 	build2DChart,
 	easing,
 } from 'scichart';
-import {
-	Tensor1D,
-	Tensor2D,
-	addN,
-	concat,
-	concat2d,
-	gather,
-	reshape,
-	split,
-	sum,
-	tensor1d,
-	tensor2d,
-	tidy,
-} from '@tensorflow/tfjs-core';
+import { Tensor1D, Tensor2D, addN, concat, concat2d, gather, reshape, split, tensor1d } from '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-backend-webgl';
 import { powerSpectralDensity, sumPSDs, welch } from '@/app/analysis/periodogram';
 import { ADXL_STREAM_BUFFER_SIZE } from '@/app/analysis/charts';
 import { TChartComponentProps } from 'scichart-react/types';
 import { ChartTheme } from '@/app/analysis/chart-theme';
 import {
-	ADXL345SensorName,
 	AccumulatedPSD,
-	KlipperADXL345SubscriptionData,
-	KlipperADXL345SubscriptionResponse,
+	KlipperAccelSubscriptionData,
+	KlipperAccelSubscriptionResponse,
 	PSD,
 	klipperADXL345SubscriptionDataSchema,
 	klipperADXL345SubscriptionResponseSchema,
@@ -54,6 +40,11 @@ import {
 import { twJoin } from 'tailwind-merge';
 import { FullLoadScreen } from '@/components/common/full-load-screen';
 import { toast } from 'sonner';
+import { AccelerometerType, KlipperAccelSensorName, klipperAccelSensorSchema } from '@/zods/hardware';
+import { z } from 'zod';
+import { useRecoilValue } from 'recoil';
+import { ControlboardState } from '@/recoil/printer';
+import { useToolheads } from '@/hooks/useToolheadConfiguration';
 
 const getWsURL = () => {
 	const host = getHost();
@@ -69,18 +60,49 @@ const getWsURL = () => {
 let REQ_ID = 0;
 
 export interface RealtimeADXLOptions {
-	onDataUpdate?: (status: KlipperADXL345SubscriptionData) => void;
+	onDataUpdate?: (status: KlipperAccelSubscriptionData) => void;
 	onSubscriptionFailure?: ReactCallback<(err: Error) => void>;
-	onSubscriptionSuccess?: ReactCallback<(header: KlipperADXL345SubscriptionResponse['header']) => void>;
+	onSubscriptionSuccess?: ReactCallback<(header: KlipperAccelSubscriptionResponse['header']) => void>;
 	enabled?: boolean;
-	sensor: ADXL345SensorName;
+	sensor: KlipperAccelSensorName;
 }
 
 const isSuccessResponse = (res: MoonrakerResponse): res is MoonrakerResponseSuccess => {
 	return !('error' in res);
 };
 
-export const useRealtimeADXL = <
+export const useAccelerometerWithType = (accelerometerName: KlipperAccelSensorName) => {
+	const controlBoard = useRecoilValue(ControlboardState);
+	const toolheads = useToolheads();
+	let accelType: z.infer<typeof AccelerometerType> = 'adxl345';
+
+	if (accelerometerName === 'controlboard') {
+		if (controlBoard?.ADXL345SPI != null) {
+			accelType = 'adxl345';
+		}
+		if (controlBoard?.LIS2DW != null) {
+			accelType = 'lis2dw';
+		}
+	}
+	if (accelerometerName === 'toolboard_t0' || accelerometerName === 'toolboard_t1') {
+		const toolboard = toolheads.find((t) => t.getToolboardName() === accelerometerName)?.getToolboard();
+		if (toolboard == null) {
+			throw new Error(`No toolboard found for T0`);
+		}
+		if (toolboard.ADXL345SPI != null) {
+			accelType = 'adxl345';
+		}
+		if (toolboard.LIS2DW != null) {
+			accelType = 'lis2dw';
+		}
+	}
+	return klipperAccelSensorSchema.parse({
+		name: accelerometerName,
+		type: accelType,
+	});
+};
+
+export const useRealtimeSensor = <
 	ResponseType extends MoonrakerResponse,
 	SuccessResponseType extends MoonrakerResponseSuccess,
 >(
@@ -91,6 +113,7 @@ export const useRealtimeADXL = <
 	const inFlightRequestTimeouts = useRef<InFlightRequestTimeouts>({});
 	const [isSubscribed, setIsSubscribed] = useState(false);
 	const { onSubscriptionFailure, onDataUpdate, sensor, enabled, onSubscriptionSuccess } = options;
+	const parsedSensor = useAccelerometerWithType(sensor);
 	const isSubscribedRef = useRef(isSubscribed);
 	isSubscribedRef.current = isSubscribed;
 	const kippyState = useKlippyStateHandler();
@@ -147,15 +170,15 @@ export const useRealtimeADXL = <
 			}, timeout); // 10 second timeout.
 			sendJsonMessage({
 				jsonrpc: '2.0',
-				method: 'adxl345/dump_adxl345',
+				method: parsedSensor.type === 'lis2dw' ? 'lis2dw/dump_lis2dw' : 'adxl345/dump_adxl345',
 				params: {
-					sensor: sensor,
+					sensor: parsedSensor.name,
 					response_template: {},
 				},
 				id: id,
 			});
 		});
-	}, [sensor, sendJsonMessage]);
+	}, [sendJsonMessage, parsedSensor]);
 
 	useEffect(() => {
 		if (readyState === 1 && kippyState === 'ready' && !isSubscribedRef.current) {
@@ -271,7 +294,7 @@ export const useChart = <T,>(
 	);
 };
 
-const defaultAxisMap: KlipperADXL345SubscriptionResponse['header'] = [
+const defaultAxisMap: KlipperAccelSubscriptionResponse['header'] = [
 	`time`,
 	`x_acceleration`,
 	`y_acceleration`,
@@ -279,7 +302,7 @@ const defaultAxisMap: KlipperADXL345SubscriptionResponse['header'] = [
 ];
 
 export const useADXLFifoTensor = (
-	dataHeader: KlipperADXL345SubscriptionResponse['header'] = defaultAxisMap,
+	dataHeader: KlipperAccelSubscriptionResponse['header'] = defaultAxisMap,
 	fifoCapacity: number = 8192,
 ) => {
 	const buffer = useRef<Tensor2D | null>(null);
@@ -304,7 +327,7 @@ export const useADXLFifoTensor = (
 		];
 	}, [dataHeader]);
 	const onData = useCallback(
-		(status: KlipperADXL345SubscriptionData) => {
+		(status: KlipperAccelSubscriptionData) => {
 			const incoming = gather<Tensor2D>(status.data, axisMap, 1);
 			const newBuffer = buffer.current ? concat2d([buffer.current, incoming], 0) : incoming;
 			if (newBuffer !== incoming) {

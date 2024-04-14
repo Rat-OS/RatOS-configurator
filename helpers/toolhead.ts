@@ -8,7 +8,7 @@ import {
 } from '@/zods/toolhead';
 import { getDefaultNozzle } from '@/data/nozzles';
 import deepEqual from 'deep-equal';
-import { ADXL345SensorName } from '@/zods/analysis';
+import { KlipperAccelSensorName } from '@/zods/hardware';
 
 type ToolheadSuffix = `t${ToolNumber}`;
 type ToolheadCommand = `T${ToolNumber}`;
@@ -92,7 +92,7 @@ export class ToolheadHelper<IsToolboard extends boolean> {
 	public getYAccelerometer() {
 		return this.config.yAccelerometer;
 	}
-	public getXAccelerometerName(): ADXL345SensorName {
+	public getXAccelerometerName(): KlipperAccelSensorName {
 		switch (this.getXAccelerometer()?.id) {
 			case 'controlboard':
 				return 'controlboard';
@@ -106,7 +106,7 @@ export class ToolheadHelper<IsToolboard extends boolean> {
 				return 'controlboard';
 		}
 	}
-	public getYAccelerometerName(): ADXL345SensorName {
+	public getYAccelerometerName(): KlipperAccelSensorName {
 		switch (this.getYAccelerometer()?.id) {
 			case 'controlboard':
 				return 'controlboard';
