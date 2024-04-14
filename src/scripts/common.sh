@@ -16,6 +16,12 @@ report_status()
 pnpm_install() {
     pushd "$SRC_DIR" || exit 1
 	if [ "$EUID" -eq 0 ]; then
+		# Check if node_modules is owned by root and delete
+		# Fixes old 2.0 installations
+		if [ -d "$SRC_DIR/node_modules" ] && [ "$(stat -c %U "$SRC_DIR/node_modules")" == "root" ]; then
+			report_status "Deleting root owned node_modules"
+			rm -rf "$SRC_DIR/node_modules"
+		fi
         sudo -u pi pnpm install --aggregate-output --no-color  --config.confirmModulesPurge=false
     else
 		pnpm install --aggregate-output --no-color  --config.confirmModulesPurge=false
