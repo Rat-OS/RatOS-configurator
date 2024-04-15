@@ -34,7 +34,7 @@ export const xEndstopOptions = (
 export const defaultXEndstop = {
 	id: 'endstop' as const,
 	title: 'Physical Endstop',
-	badge: [{ color: 'purple', children: 'Control Board' }],
+	badge: [{ color: 'purple' as const, children: 'Control Board' }],
 };
 
 export const yEndstopOptions = (

@@ -157,5 +157,5 @@ export const controllerFanOptions = (
 export const defaultControllerFan = {
 	id: '2pin' as const,
 	title: 'Input Voltage PWM',
-	badge: [{ color: 'purple', children: 'Control Board' }],
+	badge: [{ color: 'purple' as const, children: 'Control Board' }],
 };
