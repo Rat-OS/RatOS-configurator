@@ -4,6 +4,7 @@ import { CrossHairStateProps, useCrossHairState } from '@/app/calibration/hooks'
 
 export const CrossHair: React.FC<CrossHairStateProps & { isConnected: boolean }> = (props) => {
 	const {
+		canRender,
 		outerNozzleRadius,
 		nozzleRadius,
 		outerNozzleRadiusPercentWidth,
@@ -17,18 +18,18 @@ export const CrossHair: React.FC<CrossHairStateProps & { isConnected: boolean }>
 				<g className={twJoin(props.isConnected && outerNozzleRadius > 0 ? 'opacity-100' : 'opacity-0')}>
 					<rect
 						x="50%"
-						y={`${50 - outerNozzleRadiusPercentHeight}%`}
-						height={`${outerNozzleRadiusPercentHeight * 2}%`}
-						width={crosshairStrokeWidth}
+						y={!canRender ? '50%' : `${50 - outerNozzleRadiusPercentHeight}%`}
+						height={!canRender ? 0 : `${outerNozzleRadiusPercentHeight * 2}%`}
+						width={!canRender ? 0 : crosshairStrokeWidth}
 						shapeRendering="geometricPrecision"
 						className="fill-brand-500 transition-all ease-in-out"
 						style={{ transform: `translateX(-${crosshairStrokeWidth / 2})` }}
 					/>
 					<rect
-						x={`${50 - outerNozzleRadiusPercentWidth}%`}
+						x={!canRender ? '50%' : `${50 - outerNozzleRadiusPercentWidth}%`}
 						y="50%"
-						width={`${outerNozzleRadiusPercentWidth * 2}%`}
-						height={crosshairStrokeWidth}
+						width={!canRender ? 0 : `${outerNozzleRadiusPercentWidth * 2}%`}
+						height={!canRender ? 0 : crosshairStrokeWidth}
 						shapeRendering="geometricPrecision"
 						className="fill-brand-500 transition-all ease-in-out"
 						style={{ transform: `translateY(-${crosshairStrokeWidth / 2})` }}
@@ -37,7 +38,7 @@ export const CrossHair: React.FC<CrossHairStateProps & { isConnected: boolean }>
 				<circle
 					cx="50%"
 					cy="50%"
-					r={delayedIsLockingCoordinates ? outerNozzleRadius : outerNozzleRadius * 1.5}
+					r={!canRender ? 0 : delayedIsLockingCoordinates ? outerNozzleRadius : outerNozzleRadius * 1.5}
 					fill="none"
 					className={twJoin(
 						'ease-out',
@@ -49,7 +50,7 @@ export const CrossHair: React.FC<CrossHairStateProps & { isConnected: boolean }>
 				<circle
 					cx="50%"
 					cy="50%"
-					r={nozzleRadius}
+					r={!canRender ? 0 : nozzleRadius}
 					fill="none"
 					className={twJoin(
 						'stroke-brand-500 transition-all ease-in-out',
@@ -61,7 +62,7 @@ export const CrossHair: React.FC<CrossHairStateProps & { isConnected: boolean }>
 				<circle
 					cx="50%"
 					cy="50%"
-					r={outerNozzleRadius}
+					r={!canRender ? 0 : outerNozzleRadius}
 					fill="none"
 					className={twJoin(
 						'stroke-brand-500 transition-all ease-in-out',
