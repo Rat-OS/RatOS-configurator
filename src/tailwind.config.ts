@@ -12,6 +12,7 @@ export default {
 		'./components/**/*.{js,ts,jsx,tsx}',
 		'./helpers/**/*.{js,ts,jsx,tsx}',
 		'./app/**/*.{js,ts,jsx,tsx}',
+		'./data/**/*.{js,ts,jsx,tsx}',
 	],
 	theme: {
 		container: {

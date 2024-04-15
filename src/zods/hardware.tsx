@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { serverSchema } from '@/env/schema.mjs';
 import { PrinterRailDefinition, Stepper } from '@/zods/motion';
+import { badgeColorOptions } from '@/components/common/badge';
 
 export const thermistors = [
 	'EPCOS 100K B57560G104F',
@@ -53,6 +54,14 @@ export const Probe = hardwareType.extend({
 export const Endstop = z.object({
 	id: z.enum(['endstop', 'endstop-toolboard', 'sensorless']),
 	title: z.string(),
+	badge: z
+		.array(
+			z.object({
+				children: z.string(),
+				color: badgeColorOptions,
+			}),
+		)
+		.optional(),
 });
 
 export const KlipperAccelSensorNameSchame = z.union([
@@ -96,4 +105,12 @@ export const Fan = z.object({
 		'none',
 	]),
 	title: z.string(),
+	badge: z
+		.array(
+			z.object({
+				children: z.string(),
+				color: badgeColorOptions,
+			}),
+		)
+		.optional(),
 });

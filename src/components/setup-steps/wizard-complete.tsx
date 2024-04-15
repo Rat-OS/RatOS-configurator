@@ -65,10 +65,9 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 				if (printerConfig == null) {
 					return;
 				}
-				const toolboardEndstop = xEndstopOptions(
-					serializePartialPrinterConfiguration(printerConfig),
-					toolhead.serialize(),
-				).find((x) => x.id === 'endstop-toolboard');
+				const toolboardEndstop = xEndstopOptions(printerConfig, toolhead.getConfig()).find(
+					(x) => x.id === 'endstop-toolboard',
+				);
 				if (toolboardEndstop != null && toolhead != null) {
 					setToolhead({
 						...toolhead.getConfig(),
@@ -93,7 +92,7 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 		(toolhead.getToolboard() != null && !toolboardDetected.data) ||
 		(toolhead.getToolboard()?.alternativePT1000Resistor && toolhead.getThermistor() === 'PT1000');
 	return (
-		<Disclosure as="div" className="">
+		<Disclosure as="div" className="" defaultOpen={!!hasWarnings}>
 			{({ open }) => (
 				<>
 					<Disclosure.Button as="div" className="cursor-pointer border-b border-zinc-100 py-4 dark:border-zinc-800">
@@ -172,17 +171,27 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 									</div>
 								)}
 							</dl>
-							<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
+							<dl className="mt-4 grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 dark:border-zinc-800 sm:grid-cols-2">
 								<div className="sm:col-span-1">
 									<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">X Endstop</dt>
-									<dd className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:mt-2">
+									<dd className="mt-1 flex gap-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:mt-2">
 										{toolhead.getConfig().xEndstop?.title ?? 'None selected'}
+										{toolhead.getConfig().xEndstop?.badge?.map((b) => (
+											<Badge color={b.color} key={b.children}>
+												{b.children}
+											</Badge>
+										))}
 									</dd>
 								</div>
 								<div className="sm:col-span-1">
 									<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Y Endstop</dt>
-									<dd className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:mt-2">
+									<dd className="mt-1 flex gap-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:mt-2">
 										{toolhead.getConfig().yEndstop?.title ?? 'None selected'}
+										{toolhead.getConfig().yEndstop?.badge?.map((b) => (
+											<Badge color={b.color} key={b.children}>
+												{b.children}
+											</Badge>
+										))}
 									</dd>
 								</div>
 								<div className="sm:col-span-1">
@@ -210,21 +219,31 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 										</div>
 									)}
 							</dl>
-							<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
+							<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 dark:border-zinc-800 sm:grid-cols-2">
 								<div className="sm:col-span-1">
 									<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Part cooling fan</dt>
-									<dd className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:mt-2">
+									<dd className="mt-1 flex gap-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:mt-2">
 										{toolhead.getConfig().partFan?.title ?? 'None selected'}
+										{toolhead.getConfig().partFan?.badge?.map((b) => (
+											<Badge color={b.color} key={b.children}>
+												{b.children}
+											</Badge>
+										))}
 									</dd>
 								</div>
 								<div className="sm:col-span-1">
 									<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Hotend cooling fan</dt>
-									<dd className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:mt-2">
+									<dd className="mt-1 flex gap-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:mt-2">
 										{toolhead.getConfig().hotendFan?.title ?? 'None selected'}
+										{toolhead.getConfig().hotendFan?.badge?.map((b) => (
+											<Badge color={b.color} key={b.children}>
+												{b.children}
+											</Badge>
+										))}
 									</dd>
 								</div>
 							</dl>
-							<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
+							<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 dark:border-zinc-800 sm:grid-cols-2">
 								<div className="sm:col-span-1">
 									<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">X Accelerometer</dt>
 									<dd className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:mt-2">
@@ -433,8 +452,13 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 													<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">
 														Controller cooling fan
 													</dt>
-													<dd className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:mt-2">
+													<dd className="mt-1 flex gap-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:mt-2">
 														{parsedPrinterConfiguration.data.controllerFan?.title ?? 'None selected'}
+														{parsedPrinterConfiguration.data.controllerFan?.badge?.map((b) => (
+															<Badge color={b.color} key={b.children}>
+																{b.children}
+															</Badge>
+														))}
 													</dd>
 												</div>
 												{parsedPrinterConfiguration.data.controlboard != null && !controlboardDetected.data && (

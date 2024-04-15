@@ -187,8 +187,8 @@ export const deserializeToolheadConfiguration = async (
 		extruder: extruders.find((e) => e.id === config.extruder),
 		probe: probes.find((p) => p.id === config.probe),
 		thermistor: thermistors.find((t) => t === config.thermistor),
-		xEndstop: xEndstopOptions(printerConfig, config).find((e) => e.id === config.xEndstop),
-		yEndstop: yEndstopOptions(printerConfig, config).find((e) => e.id === config.yEndstop),
+		xEndstop: xEndstopOptions({ controlboard }, { toolboard, axis: config.axis }).find((e) => e.id === config.xEndstop),
+		yEndstop: yEndstopOptions({ controlboard }, { toolboard, axis: config.axis }).find((e) => e.id === config.yEndstop),
 		xAccelerometer:
 			xAccels.find((a) => a.id === config.xAccelerometer) ??
 			(toolboard && (toolboard.ADXL345SPI != null || toolboard.LIS2DW)
@@ -226,8 +226,12 @@ export const deserializePartialToolheadConfiguration = async (
 		extruder: extruders.find((e) => e.id === config?.extruder),
 		probe: probes.find((p) => p.id === config?.probe),
 		thermistor: thermistors.find((t) => t === config?.thermistor),
-		xEndstop: xEndstopOptions(printerConfig, config).find((e) => e.id === config?.xEndstop),
-		yEndstop: yEndstopOptions(printerConfig, config).find((e) => e.id === config?.yEndstop),
+		xEndstop: xEndstopOptions({ controlboard }, { toolboard, axis: config?.axis ?? PrinterAxis.x }).find(
+			(e) => e.id === config?.xEndstop,
+		),
+		yEndstop: yEndstopOptions({ controlboard }, { toolboard, axis: config?.axis ?? PrinterAxis.x }).find(
+			(e) => e.id === config?.yEndstop,
+		),
 		xAccelerometer: xAccelerometerOptions({ controlboard }, { toolboard }).find((a) => a.id === config?.xAccelerometer),
 		yAccelerometer: yAccelerometerOptions({ controlboard }, { toolboard }).find((a) => a.id === config?.yAccelerometer),
 		partFan: partFanOptions({ controlboard }, { toolboard, axis: config?.axis ?? PrinterAxis.x }).find(
@@ -240,12 +244,12 @@ export const deserializePartialToolheadConfiguration = async (
 };
 
 export const deserializePartialPrinterConfiguration = async (
-	config: SerializedPartialPrinterConfiguration,
+	config?: SerializedPartialPrinterConfiguration,
 ): Promise<PartialPrinterConfiguration> => {
 	const boards = await getBoards();
 	const controlboard = boards.find((b) => b.id === config?.controlboard);
 	const toolheads =
-		config.toolheads == null
+		config?.toolheads == null
 			? undefined
 			: await Promise.all(
 					config.toolheads.map(async (th) => await deserializePartialToolheadConfiguration(th, config, boards)),
@@ -773,7 +777,10 @@ export const printerRouter = router({
 		)
 		.output(z.array(Endstop))
 		.query(async (ctx) =>
-			xEndstopOptions(ctx.input.config, await getToolhead(ctx.input.config, ctx.input.toolOrAxis, true)),
+			xEndstopOptions(
+				await deserializePartialPrinterConfiguration(ctx.input.config ?? {}),
+				(await getToolhead(ctx.input.config, ctx.input.toolOrAxis))?.getConfig(),
+			),
 		),
 	yEndstops: publicProcedure
 		.input(
@@ -784,7 +791,10 @@ export const printerRouter = router({
 		)
 		.output(z.array(Endstop))
 		.query(async (ctx) =>
-			yEndstopOptions(ctx.input.config, await getToolhead(ctx.input.config, ctx.input.toolOrAxis, true)),
+			yEndstopOptions(
+				await deserializePartialPrinterConfiguration(ctx.input.config ?? {}),
+				(await getToolhead(ctx.input.config, ctx.input.toolOrAxis))?.getConfig(),
+			),
 		),
 	partFanOptions: publicProcedure
 		.input(

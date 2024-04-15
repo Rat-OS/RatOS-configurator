@@ -7,6 +7,9 @@ import { Command as CommandPrimitive } from 'cmdk';
 
 import { cn, setDisplayName } from '@/helpers/utils';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { scrollClasses } from '@/components/common/scroll-container';
+import { Input } from '@/components/ui/input';
+import { TextInput } from '@/components/forms/text-input';
 
 const Command = React.forwardRef<
 	React.ElementRef<typeof CommandPrimitive>,
@@ -41,16 +44,19 @@ const CommandInput = React.forwardRef<
 	React.ElementRef<typeof CommandPrimitive.Input>,
 	React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
 >(({ className, ...props }, ref) => (
-	<div className="flex items-center border-b px-3" cmdk-input-wrapper="">
+	<div className="flex items-center rounded-t-md border-b pl-3" cmdk-input-wrapper="">
 		<MagnifyingGlassIcon className="mr-2 h-4 w-4 shrink-0 opacity-50" />
 		<CommandPrimitive.Input
 			ref={ref}
+			asChild
 			className={cn(
-				'flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50',
+				'flex w-full rounded-md bg-transparent text-sm shadow-none outline-none placeholder:text-muted-foreground focus:ring-inset focus:ring-transparent disabled:cursor-not-allowed disabled:opacity-50 dark:border-transparent dark:focus:border-transparent dark:focus:ring-transparent dark:focus:ring-offset-0 dark:focus:ring-offset-transparent',
 				className,
 			)}
 			{...props}
-		/>
+		>
+			<Input variant="plain" />
+		</CommandPrimitive.Input>
 	</div>
 ));
 
@@ -62,7 +68,7 @@ const CommandList = React.forwardRef<
 >(({ className, ...props }, ref) => (
 	<CommandPrimitive.List
 		ref={ref}
-		className={cn('max-h-[300px] overflow-y-auto overflow-x-hidden', className)}
+		className={cn('max-h-[300px] overflow-y-auto overflow-x-hidden', scrollClasses, className)}
 		{...props}
 	/>
 ));
@@ -102,7 +108,7 @@ setDisplayName(CommandSeparator, CommandPrimitive.Separator.displayName);
 
 const CommandItem = React.forwardRef<
 	React.ElementRef<typeof CommandPrimitive.Item>,
-	React.ComponentPropsWithoutRef<typeof CommandPrimitive.Item>
+	React.ComponentPropsWithoutRef<typeof CommandPrimitive.Item> & { value?: string | number }
 >(({ className, ...props }, ref) => (
 	<CommandPrimitive.Item
 		ref={ref}

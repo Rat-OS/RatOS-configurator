@@ -1,4 +1,5 @@
 import {
+	deserializePartialPrinterConfiguration,
 	deserializePartialToolheadConfiguration,
 	deserializeToolheadConfiguration,
 	getPrinters,
@@ -23,10 +24,11 @@ import { serializePartialPrinterConfiguration, serializePrinterConfiguration } f
 import { deserializePrinterRail } from '@/utils/serialization';
 import { parseBoardPinConfig } from '@/server/helpers/metadata';
 import { getBoardChipId } from '@/helpers/board';
-import { ToolheadConfiguration } from '@/zods/toolhead';
+import { PartialToolheadConfiguration, ToolheadConfiguration } from '@/zods/toolhead';
 import { ServerCache } from '@/server/helpers/cache';
 import { glob } from 'glob';
 import { readFile } from 'fs/promises';
+import { PrinterAxis } from '@/zods/motion';
 
 describe('configuration', async () => {
 	ServerCache.flushAll();
@@ -252,11 +254,28 @@ describe('configuration', async () => {
 			expect(serializedConfig).not.toBeUndefined();
 		});
 		describe.each(printer.defaults.toolheads)('has valid toolhead $axis', async (toolhead) => {
+			test('can be deserialized', async () => {
+				if (partialConfig == null) {
+					throw new Error("partialConfig shouldn't be null or undefined");
+				}
+				await deserializePartialToolheadConfiguration(toolhead, partialConfig);
+			});
+			const deserializedToolheadConfig: PartialToolheadConfiguration = await deserializePartialToolheadConfiguration(
+				toolhead,
+				partialConfig,
+			);
+			const deserializedConfig = await deserializePartialPrinterConfiguration(partialConfig);
 			const defaultHotend = parsedHotends.find((hotend) => hotend.id === toolhead.hotend);
 			const defaultExtruder = parsedExtruders.find((extruder) => extruder.id === toolhead.extruder);
 			const defaultProbe = parsedProbes.find((probe) => probe.id === toolhead.probe);
-			const defaultXEndstop = xEndstopOptions(partialConfig).find((option) => option.id === toolhead.xEndstop);
-			const defaultYEndstop = yEndstopOptions(partialConfig).find((option) => option.id === toolhead.yEndstop);
+			const defaultXEndstop = xEndstopOptions(deserializedConfig, {
+				...deserializedToolheadConfig,
+				axis: deserializedToolheadConfig?.axis ?? PrinterAxis.x,
+			}).find((option) => option.id === toolhead.xEndstop);
+			const defaultYEndstop = yEndstopOptions(deserializedConfig, {
+				...deserializedToolheadConfig,
+				axis: deserializedToolheadConfig?.axis ?? PrinterAxis.x,
+			}).find((option) => option.id === toolhead.yEndstop);
 			const defaultToolboard = parsedBoards.find((board) => board.id === toolhead.toolboard);
 			test.skipIf(!toolhead.toolboard).concurrent('has valid toolboard default', () => {
 				expect(defaultToolboard).not.toBeNull();
@@ -275,12 +294,6 @@ describe('configuration', async () => {
 			});
 			test.concurrent('has valid x endstop default', () => {
 				expect(defaultYEndstop).not.toBeNull();
-			});
-			test.concurrent('can be deserialized', () => {
-				if (partialConfig == null) {
-					throw new Error("partialConfig shouldn't be null or undefined");
-				}
-				deserializePartialToolheadConfiguration(toolhead, partialConfig);
 			});
 		});
 		test.concurrent('has a valid image', async () => {

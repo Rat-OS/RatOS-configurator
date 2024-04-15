@@ -14,6 +14,7 @@ import { BasePrinterRail, PrinterAxis } from '@/zods/motion';
 import { z } from 'zod';
 import { AnimatePresence, LayoutGroup, motion } from 'framer-motion';
 import { AnimatedContainer } from '@/components/common/animated-container';
+import { fanHelp } from '@/data/fans';
 
 export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 	const [advancedSteppers, setAdvancedSteppers] = useState(false);
@@ -126,6 +127,7 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 								label="Controller fan"
 								query="controllerFanOptions"
 								vars={{ config: serializedPrinterConfiguration }}
+								help={fanHelp}
 								onSelect={setControllerFan}
 								value={selectedControllerFan}
 							/>
