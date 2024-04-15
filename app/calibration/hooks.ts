@@ -271,24 +271,21 @@ export const useCrossHairState = (props: CrossHairStateProps) => {
 	}, 'gcode_macro T1');
 	const tool = t0?.active ? 0 : t1?.active ? 1 : 0;
 	const [isLockingCoordinates] = useChangeEffect([props.isLockingCoordinates], SnapshotEffectDuration, true);
-	const [containerSize, setContainerSize] = useState<[number, number]>([0, 0]);
+	const [containerSize, setContainerSize] = useState<[number, number]>([1, 1]);
 	const [delayedIsLockingCoordinates] = useDelayedChangeEffect(
 		[props.isLockingCoordinates],
 		SnapshotEffectDuration - 10,
 		10,
 		true,
 	);
-	const nozzleRadius = useMemo(
-		() =>
-			toScreen(
-				((configFile.data?.configfile.settings[tool === 0 ? 'extruder' : 'extruder1'] as any)?.nozzle_diameter ?? 0.4) /
-					2,
-			),
-		[configFile.data?.configfile.settings, toScreen, tool],
-	);
+	const nozzleDiameter = (configFile.data?.configfile.settings[tool === 0 ? 'extruder' : 'extruder1'] as any)
+		?.nozzle_diameter;
+	const nozzleRadius = useMemo(() => toScreen((nozzleDiameter ?? 0.4) / 2), [nozzleDiameter, toScreen]);
+	const { outerNozzleDiameter } = settings;
+	const canRender = props.isConnected && outerNozzleDiameter != null && nozzleDiameter != null;
 	const outerNozzleRadius = useMemo(
-		() => (isLockingCoordinates ? nozzleRadius : toScreen(settings ? settings.outerNozzleDiameter / 2 : 1)),
-		[toScreen, isLockingCoordinates, nozzleRadius, settings],
+		() => (isLockingCoordinates ? nozzleRadius : toScreen(outerNozzleDiameter ? outerNozzleDiameter / 2 : 1)),
+		[toScreen, isLockingCoordinates, nozzleRadius, outerNozzleDiameter],
 	);
 	const outerNozzleRadiusPercentWidth = useMemo(
 		() => (!props.isConnected ? 0 : (outerNozzleRadius / containerSize[0]) * 100),
@@ -305,6 +302,7 @@ export const useCrossHairState = (props: CrossHairStateProps) => {
 	});
 
 	return {
+		canRender,
 		nozzleRadius,
 		outerNozzleRadius,
 		outerNozzleRadiusPercentWidth,

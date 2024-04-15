@@ -1,8 +1,10 @@
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { ExclamationCircleIcon } from '@heroicons/react/24/solid';
+import { Label } from '@radix-ui/react-label';
 import objectHash from 'object-hash';
 import React, { ChangeEvent, useCallback, useRef, useState } from 'react';
 import { twJoin } from 'tailwind-merge';
+import { Input } from '@/components/ui/input';
 
 interface TextInputProps<T extends string | number>
 	extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
@@ -27,10 +29,8 @@ export const TextInput = <T extends string | number>(props: TextInputProps<T>) =
 	) : null;
 
 	const inputClass = twJoin(
-		props.error
-			? 'ring-red-300 text-red-900 placeholder-red-300 focus:ring-red-500 dark:ring-red-500 dark:text-red-400 dark:placeholder-red-700'
-			: 'ring-zinc-300 text-zinc-900 placeholder-zinc-300 focus:ring-brand-600 dark:ring-zinc-700 dark:text-zinc-100 dark:placeholder-zinc-700 dark:focus:ring-brand-400 ',
-		'block w-full rounded-md bg-white py-1.5 pl-3 pr-3 text-leftshadow-sm ring-1 ring-inset focus:outline-none dark:bg-zinc-800 sm:text-sm sm:leading-6 border-0',
+		props.error &&
+			'border-red-300 text-red-900 placeholder-red-300 ring-red-500 dark:ring-red-500 dark:text-red-400 dark:placeholder-red-700',
 	);
 
 	const error = props.error ? (
@@ -73,9 +73,9 @@ export const TextInput = <T extends string | number>(props: TextInputProps<T>) =
 
 	return (
 		<div>
-			<label className="block text-sm font-semibold leading-6 text-zinc-700 dark:text-zinc-300">{props.label}</label>
-			<div className="relative mt-1 rounded-md shadow-sm">
-				<input
+			<Label className="block text-sm font-semibold leading-6 text-zinc-700 dark:text-zinc-300">{props.label}</Label>
+			<div className="relative rounded-md shadow-sm">
+				<Input
 					{...props}
 					type={isPasswordVisible ? 'text' : props.type}
 					className={inputClass}
@@ -83,6 +83,7 @@ export const TextInput = <T extends string | number>(props: TextInputProps<T>) =
 					defaultValue={props.defaultValue}
 					value={props.value}
 					onChange={onChange}
+					variant={props.error ? 'error' : 'default'}
 					aria-invalid={!!props.error}
 					aria-describedby={props.error ? fieldId.current + '-error' : undefined}
 				/>

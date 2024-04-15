@@ -10,6 +10,8 @@ import { WarningMessage } from '@/components/warning-message';
 import { Nozzle } from '@/zods/hardware';
 import { TextInput } from '@/components/forms/text-input';
 import { z } from 'zod';
+import { Strong } from '@/components/ui/typography';
+import { fanHelp } from '@/data/fans';
 
 interface ToolheadSettingsProps {
 	toolOrAxis: ToolOrAxis;
@@ -178,6 +180,7 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 						error={errors?.fieldErrors.partFan?.join('\n')}
 						label="Part cooling fan"
 						query="partFanOptions"
+						help={fanHelp}
 						onSelect={(value) => setToolheadField('partFan', value)}
 						value={toolhead.getPartFan()}
 					/>
@@ -189,6 +192,7 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 						error={errors?.fieldErrors.hotendFan?.join('\n')}
 						label="Hotend fan"
 						query="hotendFanOptions"
+						help={fanHelp}
 						onSelect={(value) => setToolheadField('hotendFan', value)}
 						value={toolhead.getHotendFan()}
 					/>

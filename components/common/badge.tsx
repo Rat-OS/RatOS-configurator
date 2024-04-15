@@ -1,6 +1,23 @@
 import { VariantProps, cva } from 'class-variance-authority';
 import { twMerge } from 'tailwind-merge';
+import { z } from 'zod';
 
+export const badgeColorOptions = z.union([
+	z.literal('rose'),
+	z.literal('red'),
+	z.literal('yellow'),
+	z.literal('orange'),
+	z.literal('green'),
+	z.literal('lime'),
+	z.literal('blue'),
+	z.literal('sky'),
+	z.literal('indigo'),
+	z.literal('purple'),
+	z.literal('pink'),
+	z.literal('brand'),
+	z.literal('gray'),
+	z.literal('plain'),
+]);
 export const badgeTextColorStyle = cva('', {
 	variants: {
 		color: {
@@ -18,7 +35,7 @@ export const badgeTextColorStyle = cva('', {
 			brand: 'text-brand-700 dark:text-brand-400',
 			gray: 'text-zinc-600 dark:text-zinc-400',
 			plain: 'text-zinc-900 dark:text-zinc-100',
-		},
+		} satisfies { [key in z.infer<typeof badgeColorOptions>]: string },
 	},
 });
 
@@ -39,7 +56,7 @@ export const badgeBackgroundColorStyle = cva('', {
 			brand: 'bg-brand-100 dark:bg-brand-400/10',
 			gray: 'bg-zinc-50 dark:bg-zinc-400/10',
 			plain: 'bg-zinc-900/10 dark:bg-zinc-100/10',
-		},
+		} satisfies { [key in z.infer<typeof badgeColorOptions>]: string },
 	},
 });
 
@@ -60,7 +77,7 @@ export const badgeBorderColorStyle = cva('', {
 			brand: 'border-brand-600/40 dark:border-brand-400/30 ring-brand-600/40 dark:ring-brand-400/30',
 			gray: 'border-zinc-500/10 dark:border-zinc-400/20 ring-zinc-500/10 dark:ring-zinc-400/20',
 			plain: 'border-zinc-900 dark:border-zinc-100 ring-zinc-900 dark:ring-zinc-100',
-		},
+		} satisfies { [key in z.infer<typeof badgeColorOptions>]: string },
 	},
 });
 
@@ -142,7 +159,7 @@ const badgeStyle = cva('flex-0 inline-flex w-auto items-center rounded-md font-m
 				badgeBorderColorStyle({ color: 'plain' }),
 				badgeTextColorStyle({ color: 'plain' }),
 			],
-		},
+		} satisfies { [key in z.infer<typeof badgeColorOptions>]: string[] },
 	},
 	defaultVariants: {
 		size: 'md',
