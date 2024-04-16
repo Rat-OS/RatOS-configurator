@@ -96,10 +96,14 @@ export const useAccelerometerWithType = (accelerometerName: KlipperAccelSensorNa
 			accelType = 'lis2dw';
 		}
 	}
-	return klipperAccelSensorSchema.parse({
-		name: accelerometerName,
-		type: accelType,
-	});
+	return useMemo(
+		() =>
+			klipperAccelSensorSchema.parse({
+				name: accelerometerName,
+				type: accelType,
+			}),
+		[accelerometerName, accelType],
+	);
 };
 
 export const useRealtimeSensor = <
