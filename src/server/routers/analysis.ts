@@ -1,7 +1,6 @@
 import { serverSchema } from '@/env/schema.mjs';
 import { publicProcedure, router } from '@/server/trpc';
 import {
-	accumulatedPSDSchema,
 	createMacroSchema,
 	macroIDSchema,
 	macroRecordingIdSchema,
@@ -15,7 +14,6 @@ import path from 'path';
 import { z } from 'zod';
 import { initObjectStorage } from '@/server/helpers/ndjson';
 import { getLogger } from '@/server/helpers/logger';
-import { m } from 'framer-motion';
 
 const environment = serverSchema.parse(process.env);
 const dataDir = path.join(environment.RATOS_DATA_DIR, 'analysis');
@@ -59,6 +57,30 @@ export const analysisRouter = router({
 		return {
 			result: 'success',
 			totalRecordingsRemoved,
+			macrosRemoved,
+		};
+	}),
+	deleteMacros: publicProcedure.input(z.array(macroIDSchema)).mutation(async ({ input }) => {
+		const result = await Promise.all(
+			input.map(async (id) => {
+				const macro = await macroStorage.findById(id);
+				if (macro == null) {
+					const resultMsg = `Can't delete macro: macro with id ${id} not found`;
+					getLogger().warn(resultMsg);
+					return { id, msg: resultMsg, totalRecordingsRemoved: 0, success: false };
+				}
+				const file = path.join(recordingsDataDir, `${id}.ndjson`);
+				const recordingStorage = initObjectStorage(file, macroRecordingSchema);
+				const totalRecordingsRemoved = await recordingStorage.destroyStorage();
+				const resultMsg = `Deleted ${totalRecordingsRemoved} recordings for macro "${macro.name}" (${macro.id})`;
+				getLogger().info(resultMsg);
+				return { id, msg: resultMsg, totalRecordingsRemoved, success: true };
+			}),
+		);
+		const macrosRemoved = await macroStorage.removeAll(input);
+		getLogger().info(`Deleted ${macrosRemoved}/${input.length} macros`);
+		return {
+			result,
 			macrosRemoved,
 		};
 	}),

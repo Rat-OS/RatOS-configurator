@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { trpc } from '@/utils/trpc';
 import { MacroForm } from '@/app/analysis/macros/components/macro-form';
 import { useForm } from 'react-hook-form';
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
 	AlertDialog,
 	AlertDialogHeader,
@@ -18,8 +18,10 @@ import {
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { getLogger } from '@/app/_helpers/logger';
-import { Check, OctagonAlert } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import { Form } from '@/components/ui/form';
+import Link from 'next/link';
+import { useTopMenu } from '@/app/topmenu';
 
 interface EditMacroProps {
 	id: string;
@@ -49,6 +51,26 @@ export const EditMacro: React.FC<EditMacroProps> = ({ id }) => {
 		});
 		form.reset(result.result);
 	});
+
+	useTopMenu(
+		'Analysis',
+		useCallback((Menu) => {
+			return (
+				<>
+					<Menu.MenubarMenu>
+						<Menu.MenubarTrigger className="cursor-pointer" asChild>
+							<Link href={`/analysis/macros`}>
+								<Menu.MenubarIcon Icon={ChevronLeft} />
+								<span className="hidden lg:inline">Cancel</span>
+							</Link>
+						</Menu.MenubarTrigger>
+						<Menu.MenubarContent className="hidden" />
+					</Menu.MenubarMenu>
+				</>
+			);
+		}, []),
+	);
+
 	return (
 		<Form {...form}>
 			<MacroForm form={form} submit={hasConfirmedRecordDeletion ? submit : async () => setIsAlertVisible(true)} />

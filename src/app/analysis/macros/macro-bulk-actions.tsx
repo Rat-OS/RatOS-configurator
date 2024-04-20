@@ -1,7 +1,7 @@
 'use client';
 
 import { DotsHorizontalIcon, DotsVerticalIcon } from '@radix-ui/react-icons';
-import { Row } from '@tanstack/react-table';
+import { Row, RowModel } from '@tanstack/react-table';
 
 import { Button } from '@/components/common/button';
 import {
@@ -29,18 +29,18 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { getLogger } from '@/app/_helpers/logger';
 
-interface DataTableRowActionsProps<TData extends z.infer<typeof macroSchema> = z.infer<typeof macroSchema>> {
-	row: Row<TData>;
+interface DataTableBulkActionsProps<TData extends z.infer<typeof macroSchema> = z.infer<typeof macroSchema>> {
+	selection: RowModel<TData>;
 	onUpdate?: () => void;
 }
 
-export function DataTableRowActions<TData extends z.infer<typeof macroSchema> = z.infer<typeof macroSchema>>({
-	row,
+export function DataTableBulkActions<TData extends z.infer<typeof macroSchema> = z.infer<typeof macroSchema>>({
+	selection,
 	onUpdate,
-}: DataTableRowActionsProps<TData>) {
+}: DataTableBulkActionsProps<TData>) {
 	const [isAlertVisible, setIsAlertVisible] = useState(false);
 
-	const deleteMacro = trpc.analysis.deleteMacro.useMutation();
+	const deleteMacros = trpc.analysis.deleteMacros.useMutation();
 
 	return (
 		<div className="flex justify-end">
@@ -52,14 +52,10 @@ export function DataTableRowActions<TData extends z.infer<typeof macroSchema> = 
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end" className="w-[160px]">
-					<DropdownMenuItem asChild>
-						<Link href={`/analysis/macros/${row.original.id}/recordings`}>View Recordings</Link>
+					<DropdownMenuItem onClick={() => setIsAlertVisible(true)} disabled={selection.rows.length === 0}>
+						Delete {selection.rows.length > 0 ? selection.rows.length : ''}{' '}
+						{selection.rows.length === 1 ? 'Macro' : 'Macros'}
 					</DropdownMenuItem>
-					<DropdownMenuItem asChild>
-						<Link href={`/analysis/macros/${row.original.id}/edit`}>Edit</Link>
-					</DropdownMenuItem>
-					<DropdownMenuSeparator />
-					<DropdownMenuItem onClick={() => setIsAlertVisible(true)}>Delete</DropdownMenuItem>
 				</DropdownMenuContent>
 			</DropdownMenu>
 			<AlertDialog open={isAlertVisible}>
@@ -67,7 +63,8 @@ export function DataTableRowActions<TData extends z.infer<typeof macroSchema> = 
 					<AlertDialogHeader>
 						<AlertDialogTitle>Are you sure?</AlertDialogTitle>
 						<AlertDialogDescription>
-							This action cannot be undone. This will permanently delete this macro and all associated recordings.
+							This action cannot be undone. This will permanently delete the selected macros and all associated
+							recordings.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
@@ -77,21 +74,24 @@ export function DataTableRowActions<TData extends z.infer<typeof macroSchema> = 
 							onClick={async () => {
 								setIsAlertVisible(false);
 								try {
-									const result = await deleteMacro.mutateAsync(row.original.id);
-									if (result.result == null) {
-										getLogger().error(row.original.id, 'Failed to delete macro');
-										toast.error('Failed to delete macro', {
+									const result = await deleteMacros.mutateAsync(selection.rows.map((row) => row.original.id));
+									const failed = result.result.filter((r) => !r.success);
+									if (failed.length > 0) {
+										getLogger().error(failed, 'Failed to delete one or more macros');
+										toast.error('Failed to delete one or more macros', {
 											description:
-												"An unknown error occurred and the macro seem to have disappeared from the database. This shouldn't happen. Please contact support.",
+												"An unknown error occurred and some of the macros you marked for deletion seem to have disappeared from the database. This shouldn't happen. Please contact support.",
 										});
-										return;
 									}
-									toast.success('Macro deleted!', {
-										description: `The macro and ${result.totalRecordingsRemoved} recording(s) were successfully deleted.`,
+									toast.success('Macros deleted!', {
+										description: `${result.macrosRemoved} out of ${result.result.length} macro(s) and ${result.result.reduce((prev, current) => prev + current.totalRecordingsRemoved, 0)} recording(s) were successfully deleted.`,
 									});
 								} catch (e) {
-									getLogger().error({ id: row.original.id, error: e }, 'Failed to delete macro');
-									toast.error('Failed to delete macro', {
+									getLogger().error(
+										{ ids: selection.rows.map((row) => row.original.id), error: e },
+										'Failed to delete macros',
+									);
+									toast.error('Failed to delete macros', {
 										description: `
 											<div>
 												<p>An error occurred while delete the macro.</p>

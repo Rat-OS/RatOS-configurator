@@ -40,6 +40,7 @@ type AccelOptions = {
 
 interface MacroFormProps {
 	form: UseFormReturn<z.input<typeof createMacroSchema>>;
+	isNew?: boolean;
 	submit: (e?: React.BaseSyntheticEvent) => Promise<void>;
 }
 
@@ -98,7 +99,7 @@ const useFormValues = () => {
 	};
 };
 
-export const MacroForm: React.FC<MacroFormProps> = ({ form, submit }) => {
+export const MacroForm: React.FC<MacroFormProps> = ({ form, submit, isNew }) => {
 	let labels: AccelOptions[] = useMemo(() => {
 		return [
 			{
@@ -154,8 +155,11 @@ export const MacroForm: React.FC<MacroFormProps> = ({ form, submit }) => {
 							<FormItem className="flex flex-row items-center justify-between">
 								<FormControl className="flex flex-1">
 									<Input
-										className="flex h-auto flex-1 border-none p-0 text-xl font-medium"
+										className="dark:focus-ring-0 flex h-auto flex-1 border-none p-0 text-xl font-medium focus:ring-0 focus:ring-offset-0"
 										type="text"
+										autoComplete="off"
+										aria-autocomplete="none"
+										autoCapitalize="on"
 										placeholder="Enter macro name..."
 										{...field}
 									/>
@@ -172,7 +176,10 @@ export const MacroForm: React.FC<MacroFormProps> = ({ form, submit }) => {
 								<FormControl className="flex flex-1">
 									<Input
 										placeholder="Enter a description..."
-										className="font-regular flex h-auto flex-1 border-none p-0 text-base text-muted-foreground"
+										autoComplete="off"
+										aria-autocomplete="none"
+										autoCapitalize="off"
+										className="font-regular dark:focus-ring-0 flex h-auto flex-1 border-none p-0 text-base text-muted-foreground focus:ring-0 focus:ring-offset-0 dark:text-muted-foreground"
 										{...field}
 									/>
 								</FormControl>
@@ -190,7 +197,7 @@ export const MacroForm: React.FC<MacroFormProps> = ({ form, submit }) => {
 						disabled={!form.formState.isDirty}
 					>
 						<Check className="size-3.5" />
-						Save
+						{isNew ? 'Create' : 'Save'}
 					</Button>
 				</div>
 			</header>

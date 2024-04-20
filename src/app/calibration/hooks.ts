@@ -157,12 +157,20 @@ export const useSpatialMapping = (props: SpatialMappingProps) => {
 	);
 
 	useResizeObserver(containerRef, (entry) => {
-		setContainerSize([entry.contentRect.width, entry.contentRect.height]);
+		if (entry.contentRect.width > 0 && entry.contentRect.height > 0) {
+			setContainerSize([entry.contentRect.width, entry.contentRect.height]);
+		} else {
+			const rect = containerRef.current?.getBoundingClientRect();
+			if (rect) {
+				setContainerSize([rect?.width, rect?.height]);
+			}
+		}
 	});
 
 	return {
 		toScreen,
 		toMillimeters,
+		containerSize,
 	};
 };
 
@@ -255,12 +263,12 @@ export type CrossHairStateProps = {
 	settings: VaocSettings;
 	isConnected: boolean;
 	toScreen: (val: number) => number;
-	containerRef: React.RefObject<HTMLDivElement>;
+	containerSize: [number, number];
 };
 const SNAPSHOT_DURATION = 200;
 
 export const useCrossHairState = (props: CrossHairStateProps) => {
-	const { toScreen, settings } = props;
+	const { toScreen, settings, containerSize } = props;
 	const SnapshotEffectDuration = props.snapshotDuration ?? SNAPSHOT_DURATION;
 	const configFile = usePrinterObjectQuery('configfile');
 	const t0 = usePrinterObjectSubscription((res) => {
@@ -271,7 +279,6 @@ export const useCrossHairState = (props: CrossHairStateProps) => {
 	}, 'gcode_macro T1');
 	const tool = t0?.active ? 0 : t1?.active ? 1 : 0;
 	const [isLockingCoordinates] = useChangeEffect([props.isLockingCoordinates], SnapshotEffectDuration, true);
-	const [containerSize, setContainerSize] = useState<[number, number]>([1, 1]);
 	const [delayedIsLockingCoordinates] = useDelayedChangeEffect(
 		[props.isLockingCoordinates],
 		SnapshotEffectDuration - 10,
@@ -297,17 +304,13 @@ export const useCrossHairState = (props: CrossHairStateProps) => {
 	);
 	const crosshairStrokeWidth = useMemo(() => toScreen(0.01), [toScreen]);
 
-	useResizeObserver(props.containerRef, (entry) => {
-		setContainerSize([entry.contentRect.width, entry.contentRect.height]);
-	});
-
 	return {
 		canRender,
-		nozzleRadius,
-		outerNozzleRadius,
-		outerNozzleRadiusPercentWidth,
-		outerNozzleRadiusPercentHeight,
-		crosshairStrokeWidth,
+		nozzleRadius: isNaN(nozzleRadius) ? 0 : nozzleRadius,
+		outerNozzleRadius: isNaN(outerNozzleRadius) ? 0 : outerNozzleRadius,
+		outerNozzleRadiusPercentWidth: isNaN(outerNozzleRadiusPercentWidth) ? 0 : outerNozzleRadiusPercentWidth,
+		outerNozzleRadiusPercentHeight: isNaN(outerNozzleRadiusPercentHeight) ? 0 : outerNozzleRadiusPercentHeight,
+		crosshairStrokeWidth: isNaN(crosshairStrokeWidth) ? 0 : crosshairStrokeWidth,
 		delayedIsLockingCoordinates,
 	};
 };

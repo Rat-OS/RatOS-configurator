@@ -12,10 +12,13 @@ import { DotFilledIcon } from '@radix-ui/react-icons';
 import React from 'react';
 import { ColumnCapabilities } from '@/app/analysis/macros/components/data-table-toolbar';
 import { ArrowDownToDot, Cpu, Play, Server } from 'lucide-react';
+import { DataTableBulkActions } from '@/app/analysis/macros/macro-bulk-actions';
 
 export const columns: (ColumnDef<Macro> & ColumnCapabilities)[] = [
 	{
 		id: 'select',
+		size: 30,
+		minSize: 30,
 		header: ({ table }) => (
 			<Checkbox
 				checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
@@ -35,6 +38,7 @@ export const columns: (ColumnDef<Macro> & ColumnCapabilities)[] = [
 	},
 	{
 		accessorKey: 'name',
+		size: 1000,
 		header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
 		cell: ({ row }) => {
 			let labels: { label: string; color: BadgeProps['color']; icon: React.ComponentType }[] = [];
@@ -59,7 +63,7 @@ export const columns: (ColumnDef<Macro> & ColumnCapabilities)[] = [
 			labels = labels.filter((v, i, a) => a.findIndex((t) => t.label === v.label) === i);
 
 			return (
-				<div className="flex space-x-2">
+				<div className="flex items-center space-x-2">
 					{labels.map((l) => (
 						<Badge color={l.color} key={l.label}>
 							{l.label}
@@ -89,13 +93,14 @@ export const columns: (ColumnDef<Macro> & ColumnCapabilities)[] = [
 	},
 	{
 		accessorKey: 'sequences',
+		size: 100,
 		header: ({ column }) => <DataTableColumnHeader column={column} title="Sequences" />,
 		cell: ({ row }) => {
 			const actions = row.original.sequences.filter((sequence) => !sequence.recording?.capturePSD).length;
 			const recordActions = row.original.sequences.filter((sequence) => sequence.recording?.capturePSD).length;
 
 			return (
-				<div className="flex w-[100px] items-center space-x-3">
+				<div className="flex items-center space-x-3">
 					{actions > 0 && (
 						<Badge className="flex gap-1.5" color="gray">
 							<Play className="h-4 w-4 text-foreground" /> {actions}
@@ -112,7 +117,10 @@ export const columns: (ColumnDef<Macro> & ColumnCapabilities)[] = [
 	},
 	{
 		id: 'actions',
-		header: ({ column }) => <DataTableColumnHeader column={column} title="Actions" />,
+		size: 16,
+		minSize: 16,
+		maxSize: 16,
+		header: ({ table }) => <DataTableBulkActions selection={table.getSelectedRowModel()} />,
 		cell: ({ row }) => <DataTableRowActions row={row} />,
 	},
 ];

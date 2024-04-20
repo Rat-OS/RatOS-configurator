@@ -5,7 +5,6 @@
  * The functions in this file are used to create object storage with common CRUD operations.
  * The object storage is used to store and manage data in a file using newline delimited JSON format.
  * The object storage can be initialized with a Zod schema to validate the objects in the storage.
- * The object storage provides common operations such as getAll, find, findById, insert, update, upsert, transform, replace, and remove.
  * The object storage also provides a destroyStorage operation to delete the storage file.
  *
  * @author Mikkel Schmidt <mikkel.schmidt@gmail.com>
@@ -13,14 +12,15 @@
  * @copyright 2024
  */
 
-import { createReadStream, createWriteStream, existsSync, fstat, mkdirSync, writeFileSync } from 'fs';
-import ndjson from 'ndjson';
+import { createReadStream, createWriteStream, existsSync, mkdirSync, writeFileSync } from 'fs';
 import { replaceInFileByLine } from '@/server/helpers/file-operations';
 import { z } from 'zod';
 import path from 'path';
 import { serverSchema } from '@/env/schema.mjs';
 import { getLogger } from '@/server/helpers/logger';
-import { unlink } from 'fs/promises';
+import { stat, unlink } from 'fs/promises';
+import split from 'split2';
+import { EOL } from 'os';
 
 const environment = serverSchema.parse(process.env);
 const statsFile = path.join(environment.RATOS_DATA_DIR, 'object-storage.ndjson');
@@ -34,6 +34,37 @@ const statsSchema = z.object({
 	lastAccessedTimeStamp: z.number().nullable().default(null),
 	version: z.number().default(0),
 });
+
+export const fileLocks = new Map<string, (() => void)[]>();
+
+export const lock = async (file: string, timeout: number = 1000) => {
+	if (!fileLocks.has(file)) {
+		fileLocks.set(file, []);
+		return;
+	}
+	const timeoutError = new Error(
+		`File lock timeout of ${timeout}ms reached, make sure to release the locks you claim on ${file}`,
+	);
+	return new Promise<void>((resolve, reject) => {
+		fileLocks.get(file)?.push(resolve);
+		setTimeout(() => {
+			reject(timeoutError);
+		}, timeout);
+	});
+};
+
+export const release = (file: string) => {
+	const locks = fileLocks.get(file);
+	if (locks) {
+		const resolve = locks.shift();
+		if (resolve) {
+			resolve();
+		}
+		if (locks.length === 0) {
+			fileLocks.delete(file);
+		}
+	}
+};
 
 /**
  * Initializes a base object storage using newline delimited json with common CRUD operations.
@@ -66,7 +97,7 @@ const _baseObjectStorage = <
 	 * @returns A promise that resolves to an array of objects.
 	 */
 	const getAll = async (start: number = 0, limit: number = Infinity) => {
-		return await readObjects(file, schema, start, limit);
+		return await readObjects(file, schema, undefined, start, limit);
 	};
 
 	/**
@@ -87,7 +118,7 @@ const _baseObjectStorage = <
 	 * @returns A promise that resolves to the matching objects.
 	 */
 	const findAll = async (search: (input: Output) => boolean, limit: number = Infinity) => {
-		return await findAllObjects(file, schema, search, limit);
+		return await findAllObjects(file, schema, search, undefined, limit);
 	};
 
 	/**
@@ -127,7 +158,7 @@ const _baseObjectStorage = <
 		const result = await replaceObjects(file, schema, (input) =>
 			input.id === id ? schema.parse({ ...input, ...obj }) : input,
 		);
-		if (result === 0) {
+		if (result.linesChanged === 0) {
 			throw new Error(`Object with id ${id} found`);
 		}
 		return result;
@@ -148,10 +179,10 @@ const _baseObjectStorage = <
 			}
 			return input;
 		});
-		if (results === 0) {
+		if (results.linesChanged === 0) {
 			return { updateCount: 0, result: await insert(obj) };
 		}
-		if (results > 1) {
+		if (results.linesChanged > 1) {
 			getLogger().warn(`Upserted more than one object with id ${obj.id}`);
 		}
 		return { updateCount: results, result: maybeMergedResult };
@@ -268,8 +299,8 @@ export const initObjectStorage = <
 	 */
 	const getAll = async (start: number = 0, limit: number = Infinity) => {
 		const result = await storage.getAll(start, limit);
-		const stats = await logStatError(() =>
-			statsStorage.upsert({ id: file, lastAccessedTimeStamp: new Date().getTime() }, true),
+		const stats = await logStatError(
+			async () => await statsStorage.upsert({ id: file, lastAccessedTimeStamp: new Date().getTime() }, true),
 		);
 		return {
 			...result,
@@ -286,7 +317,7 @@ export const initObjectStorage = <
 	const find = async (search: (input: Output) => boolean) => {
 		const result = await storage.find(search);
 		await logStatError(
-			() => statsStorage.upsert({ id: file, lastAccessedTimeStamp: new Date().getTime() }, true),
+			async () => await statsStorage.upsert({ id: file, lastAccessedTimeStamp: new Date().getTime() }, true),
 			true,
 		);
 		return result;
@@ -301,7 +332,7 @@ export const initObjectStorage = <
 	const findById = async (id: Input['id'] | Input) => {
 		const result = await storage.findById(id);
 		await logStatError(
-			() => statsStorage.upsert({ id: file, lastAccessedTimeStamp: new Date().getTime() }, true),
+			async () => await statsStorage.upsert({ id: file, lastAccessedTimeStamp: new Date().getTime() }, true),
 			true,
 		);
 		return result;
@@ -317,7 +348,7 @@ export const initObjectStorage = <
 	const findAll = async (search: (input: Output) => boolean, limit: number = Infinity) => {
 		const result = await storage.findAll(search, limit);
 		await logStatError(
-			() => statsStorage.upsert({ id: file, lastAccessedTimeStamp: new Date().getTime() }, true),
+			async () => await statsStorage.upsert({ id: file, lastAccessedTimeStamp: new Date().getTime() }, true),
 			true,
 		);
 		return result;
@@ -332,7 +363,7 @@ export const initObjectStorage = <
 		const result = await storage.insert(obj);
 		await logStatError(async () => {
 			const stats = await statsStorage.find((stat) => stat.id === file);
-			return statsStorage.upsert(
+			return await statsStorage.upsert(
 				{
 					id: file,
 					lastAccessedTimeStamp: new Date().getTime(),
@@ -354,11 +385,12 @@ export const initObjectStorage = <
 	 */
 	const update = async (obj: Partial<Input>, id: Input['id']) => {
 		const result = await storage.update(obj, id);
-		await logStatError(() =>
-			statsStorage.upsert(
-				{ id: file, lastAccessedTimeStamp: new Date().getTime(), lastModifiedTimeStamp: new Date().getTime() },
-				true,
-			),
+		await logStatError(
+			async () =>
+				await statsStorage.upsert(
+					{ id: file, lastAccessedTimeStamp: new Date().getTime(), lastModifiedTimeStamp: new Date().getTime() },
+					true,
+				),
 		);
 		return { updateCount: result, result: await storage.findById(id) };
 	};
@@ -372,7 +404,7 @@ export const initObjectStorage = <
 		const result = await storage.upsert(obj);
 		await logStatError(async () => {
 			const stats = await statsStorage.find((stat) => stat.id === file);
-			return statsStorage.upsert(
+			return await statsStorage.upsert(
 				{
 					id: file,
 					lastAccessedTimeStamp: new Date().getTime(),
@@ -402,12 +434,12 @@ export const initObjectStorage = <
 				id: file as z.infer<typeof statsSchema>['id'],
 				lastAccessedTimeStamp: new Date().getTime(),
 				lastModifiedTimeStamp: new Date().getTime(),
-				total: result,
+				total: result.linesTotal - result.linesDeleted,
 			};
 			if (version != null) {
 				stats.version = version;
 			}
-			return statsStorage.upsert(stats, true);
+			return await statsStorage.upsert(stats, true);
 		});
 		return result;
 	};
@@ -420,11 +452,12 @@ export const initObjectStorage = <
 	 */
 	const replace = async (replace: (input: Input) => Output) => {
 		const result = await storage.replace(replace);
-		await logStatError(() =>
-			statsStorage.upsert(
-				{ id: file, lastAccessedTimeStamp: new Date().getTime(), lastModifiedTimeStamp: new Date().getTime() },
-				true,
-			),
+		await logStatError(
+			async () =>
+				await statsStorage.upsert(
+					{ id: file, lastAccessedTimeStamp: new Date().getTime(), lastModifiedTimeStamp: new Date().getTime() },
+					true,
+				),
 		);
 		return result;
 	};
@@ -438,11 +471,30 @@ export const initObjectStorage = <
 		const result = await storage.remove((input) => input.id === id);
 		await logStatError(async () => {
 			const stats = await statsStorage.find((stat) => stat.id === file);
-			return statsStorage.upsert({
+			return await statsStorage.upsert({
 				id: file,
 				lastAccessedTimeStamp: new Date().getTime(),
 				lastModifiedTimeStamp: new Date().getTime(),
-				total: (stats?.total ?? 0) - result,
+				total: (stats?.total ?? 0) - result.linesDeleted,
+			});
+		});
+		return result;
+	};
+
+	/**
+	 * Deletes all item from storage that are contained within `ids`.
+	 * @param ids The IDs of the items to be deleted.
+	 * @returns The number of items deleted.
+	 */
+	const delAll = async (ids: Input['id'][]) => {
+		const result = await storage.remove((input) => ids.includes(input.id));
+		await logStatError(async () => {
+			const stats = await statsStorage.find((stat) => stat.id === file);
+			return await statsStorage.upsert({
+				id: file,
+				lastAccessedTimeStamp: new Date().getTime(),
+				lastModifiedTimeStamp: new Date().getTime(),
+				total: (stats?.total ?? 0) - result.linesDeleted,
 			});
 		});
 		return result;
@@ -469,6 +521,7 @@ export const initObjectStorage = <
 		transform,
 		replace,
 		remove: del,
+		removeAll: delAll,
 		destroyStorage,
 	};
 };
@@ -480,7 +533,8 @@ export const initObjectStorage = <
  * @template Output - The output type after parsing the objects.
  * @param {string} file - The path to the file to read.
  * @param {T} schema - The schema to use for parsing the objects.
- * @param {number} [start=0] - The starting position in the file to read from.
+ * @param {(obj: Output) => void | false} onObject - The function to call for each object read from the file. If the function returns false, the read operation will be stopped.
+ * @param {number} [start=0] - The starting position in bytes, in the file to read from.
  * @param {number} [limit=Infinity] - The maximum number of objects to read.
  * @returns {Promise<{
  *   result: Output[];
@@ -491,9 +545,14 @@ export const initObjectStorage = <
 export const readObjects = async <T extends z.ZodSchema, Output = z.output<T>>(
 	file: string,
 	schema: T,
+	onObject: (obj: Output) => void | false = () => {},
 	start: number = 0,
 	limit: number = Infinity,
-) => {
+): Promise<{
+	result: Output[];
+	cursor: number;
+	hasNextPage: boolean;
+}> => {
 	if (!existsSync(file)) {
 		return {
 			result: [],
@@ -502,37 +561,83 @@ export const readObjects = async <T extends z.ZodSchema, Output = z.output<T>>(
 		};
 	}
 	const stream = createReadStream(file, { encoding: 'utf-8', start });
-	const availableBytes = stream.readableLength;
+	const availableBytes = (await stat(file)).size - start;
 
 	const result: Output[] = [];
-	const parser = ndjson.parse();
-	stream.pipe(parser).on('data', function (obj) {
+	const toLines = split();
+	let bytesParsed = 0;
+	function processLine(line: Buffer) {
+		if (result.length >= limit) {
+			stream.destroy();
+			toLines.destroy();
+			return false;
+		}
+		let obj: unknown = null;
+		try {
+			obj = JSON.parse(line.toString());
+		} catch {
+			getLogger().warn(
+				line.toString(),
+				`readObjects: Error parsing json from file ${file} at ${stream.bytesRead + start} bytes`,
+			);
+		}
+		if (obj == null) {
+			return true;
+		}
 		try {
 			result.push(schema.parse(obj));
-			if (result.length >= limit) {
+			bytesParsed += line.byteLength;
+			if (onObject(result[result.length - 1]) === false) {
 				stream.destroy();
+				toLines.destroy();
+				return false;
 			}
 		} catch (e) {
 			if (e instanceof z.ZodError) {
-				getLogger().warn(e, `readObjects: Error parsing object from file ${file} at ${stream.bytesRead + start} bytes`);
+				getLogger().warn(
+					e,
+					`readObjects: Error validating object from file ${file} at ${stream.bytesRead + start} bytes`,
+				);
 			}
 			throw e;
 		}
+		return true;
+	}
+	function processFile() {
+		let ok = true;
+		let chunk: Buffer | null = null;
+		while (ok && stream.readable && (chunk = stream.read()) !== null) {
+			ok = toLines.write(chunk);
+		}
+		if (!ok && stream.readable) {
+			toLines.once('drain', processFile);
+			return;
+		}
+		let line: string | null = null;
+		while (toLines.readable && (line = toLines.read()) !== null) {
+			processLine(Buffer.from(line + EOL));
+		}
+	}
+	stream.on('readable', processFile);
+	stream.on('close', () => {
+		toLines.end();
+		processFile();
 	});
-	parser.on('error', (e) => {
-		getLogger().error(e, `readObjects: Error reading object from file ${file} at ${stream.bytesRead + start} bytes`);
+
+	toLines.on('error', (e) => {
+		getLogger().error(e, `readObjects: Error reading object from file ${file} at ${bytesParsed + start} bytes`);
 		throw e;
 	});
 
 	await new Promise((resolve, reject) => {
-		stream.on('close', resolve);
+		toLines.on('close', resolve);
 		stream.on('error', reject);
+		toLines.on('error', reject);
 	});
-
 	return {
 		result,
-		cursor: stream.bytesRead,
-		hasNextPage: stream.bytesRead < availableBytes,
+		cursor: bytesParsed + start,
+		hasNextPage: bytesParsed < availableBytes,
 	};
 };
 
@@ -549,29 +654,12 @@ export const findObject = async <T extends z.ZodSchema, Output = z.output<T>, In
 	schema: T,
 	search: (input: Output) => boolean,
 ): Promise<Output | null> => {
-	if (!existsSync(file)) {
-		return null;
-	}
-	const stream = createReadStream(file, { encoding: 'utf-8' });
-
 	let result: Output | null = null;
-	await new Promise((resolve, reject) => {
-		stream.pipe(ndjson.parse()).on('data', function (obj) {
-			try {
-				const parsed = schema.parse(obj) as Output;
-				if (search(parsed)) {
-					result = parsed;
-					stream.destroy();
-				}
-			} catch (e) {
-				if (e instanceof z.ZodError) {
-					getLogger().warn(e, `findObject: Error parsing object from file ${file}`);
-				}
-				throw e;
-			}
-		});
-		stream.on('close', resolve);
-		stream.on('error', reject);
+	await readObjects(file, schema, (obj) => {
+		if (search(obj)) {
+			result = obj;
+			return false; // Destroy the stream
+		}
 	});
 	return result;
 };
@@ -583,41 +671,40 @@ export const findObject = async <T extends z.ZodSchema, Output = z.output<T>, In
  * @param schema - The schema to validate the objects in the file.
  * @param search - The search function to determine if an object matches the search criteria.
  * @param limit - The maximum number of objects to find.
- * @returns A promise that resolves to the found object or `null` if no object is found.
+ *
  */
 export const findAllObjects = async <T extends z.ZodSchema, Output = z.output<T>, Input = z.input<T>>(
 	file: string,
 	schema: T,
 	search: (input: Output) => boolean,
+	start: number = 0,
 	limit: number = Infinity,
-): Promise<Output[]> => {
+) => {
 	if (!existsSync(file)) {
-		return [];
+		return {
+			result: [],
+			cursor: 0,
+			hasNextPage: false,
+		};
 	}
-	const stream = createReadStream(file, { encoding: 'utf-8' });
-
 	let result: Output[] = [];
-	await new Promise((resolve, reject) => {
-		stream.pipe(ndjson.parse()).on('data', function (obj) {
-			try {
-				const parsed = schema.parse(obj) as Output;
-				if (search(parsed)) {
-					result.push(parsed);
-				}
-				if (result.length >= limit) {
-					stream.destroy();
-				}
-			} catch (e) {
-				if (e instanceof z.ZodError) {
-					getLogger().warn(e, `findObject: Error parsing object from file ${file}`);
-				}
-				throw e;
+	const reader = await readObjects(
+		file,
+		schema,
+		(obj) => {
+			if (search(obj)) {
+				result.push(obj);
 			}
-		});
-		stream.on('close', resolve);
-		stream.on('error', reject);
-	});
-	return result;
+			if (result.length >= limit) {
+				return false;
+			}
+		},
+		start,
+	);
+	return {
+		...reader,
+		result,
+	};
 };
 
 /**
@@ -638,10 +725,8 @@ export const saveObject = async <T extends z.ZodSchema, Output = z.output<T>, In
 		encoding: 'utf-8',
 	});
 	const validated = schema.parse(obj);
-	var serialize = ndjson.stringify();
-	serialize.pipe(writeStream);
-	serialize.write(validated);
-	serialize.end();
+	writeStream.write(JSON.stringify(validated) + '\n');
+	writeStream.end();
 
 	await new Promise((resolve, reject) => {
 		writeStream.on('close', resolve);
@@ -673,21 +758,26 @@ export const transformObjects = async <
 	if (!existsSync(file)) {
 		throw new Error('File does not exist: ' + file);
 	}
-	return await replaceInFileByLine(file, (line, lineNumber) => {
-		try {
-			const obj = schema.parse(JSON.parse(line));
-			return JSON.stringify(transform(obj));
-		} catch (e) {
-			if (e instanceof z.ZodError) {
-				getLogger().warn(
-					e,
-					`transformObjects: Error parsing line ${lineNumber} of ${file}: ${e instanceof Error ? e.message : e}`,
-				);
-				return line;
+	await lock(file);
+	try {
+		return await replaceInFileByLine(file, (line, lineNumber) => {
+			try {
+				const obj = schema.parse(JSON.parse(line));
+				return JSON.stringify(transform(obj));
+			} catch (e) {
+				if (e instanceof z.ZodError) {
+					getLogger().warn(
+						e,
+						`transformObjects: Error parsing line ${lineNumber} of ${file}: ${e instanceof Error ? e.message : e}`,
+					);
+					return line;
+				}
+				throw e;
 			}
-			throw e;
-		}
-	});
+		});
+	} finally {
+		release(file);
+	}
 };
 
 /**
@@ -707,20 +797,26 @@ export const replaceObjects = async <T extends z.ZodSchema, Output = z.output<T>
 	if (!existsSync(file)) {
 		throw new Error('File does not exist: ' + file);
 	}
-	const results = await replaceInFileByLine(file, (line, lineNumber) => {
-		try {
-			const obj = schema.parse(JSON.parse(line));
-			return JSON.stringify(replace(obj));
-		} catch (e) {
-			if (e instanceof z.ZodError) {
-				getLogger().warn(
-					e,
-					`replaceObjects: Error parsing line ${lineNumber} of ${file}: ${e instanceof Error ? e.message : e}`,
-				);
-				return line;
+	await lock(file);
+	try {
+		const results = await replaceInFileByLine(file, (line, lineNumber) => {
+			try {
+				const obj = schema.parse(JSON.parse(line));
+				const newObj = replace(obj);
+				return newObj == null ? null : JSON.stringify(newObj);
+			} catch (e) {
+				if (e instanceof z.ZodError) {
+					getLogger().warn(
+						e,
+						`replaceObjects: Error parsing line ${lineNumber} of ${file}: ${e instanceof Error ? e.message : e}`,
+					);
+					return line;
+				}
+				throw e;
 			}
-			throw e;
-		}
-	});
-	return results;
+		});
+		return results;
+	} finally {
+		release(file);
+	}
 };

@@ -8,6 +8,7 @@ import { cn, setDisplayName } from '@/helpers/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 import { twJoin } from 'tailwind-merge';
 import { Check, LucideIcon } from 'lucide-react';
+import { Slot } from '@radix-ui/react-slot';
 
 type MenuBarContextValue = {
 	value: null | string;
@@ -83,9 +84,10 @@ const MenubarIcon = React.forwardRef<
 const MenubarTrigger = React.forwardRef<
 	React.ElementRef<typeof MenubarPrimitive.Trigger>,
 	React.ComponentPropsWithoutRef<typeof MenubarPrimitive.Trigger>
->(({ className, children, ...props }, ref) => {
+>(({ className, children, asChild, ...props }, ref) => {
 	const { value } = React.useContext(MenubarContext);
 	const { id } = React.useContext(MenubarMenuContext);
+	const Comp = asChild ? Slot : 'div';
 	return (
 		<MenubarPrimitive.Trigger
 			ref={ref}
@@ -113,9 +115,9 @@ const MenubarTrigger = React.forwardRef<
 					/>
 				)}
 			</AnimatePresence>
-			<div className="relative z-20 flex flex-1 items-center gap-2 rounded-sm p-3 text-sm font-medium text-accent-foreground">
+			<Comp className="relative z-20 flex flex-1 items-center gap-2 rounded-sm p-3 text-sm font-medium text-accent-foreground">
 				{children}
-			</div>
+			</Comp>
 		</MenubarPrimitive.Trigger>
 	);
 });

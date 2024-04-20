@@ -12,7 +12,6 @@ export const MCUPicker: React.FC<MCUStepScreenProps> = (props) => {
 	const { toolhead, skipSteps, setSelectedBoard, selectedControlboard, selectedToolboard, selectedPrinter, cards } =
 		props;
 
-	// TODO: This should be determined on the basis of defined board drivers / heaters (check pins), whether it has an extruderless config and how many drivers and which axes the printer requires.
 	const isToolboardRequired = useCallback(
 		(controlboard: BoardWithDetectionStatus | null = selectedControlboard) => {
 			return selectedPrinter != null && (controlboard?.driverCount ?? 0) < selectedPrinter.driverCountRequired;
