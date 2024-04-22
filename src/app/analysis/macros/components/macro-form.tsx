@@ -129,7 +129,7 @@ export const MacroForm: React.FC<MacroFormProps> = ({ form, submit, isNew }) => 
 			{
 				label: 'Beacon',
 				value: 'beacon',
-				description: 'Record data with an ADXL345 on the toolboard on toolhead T1',
+				description: 'Record data with the Beacon accelerometer',
 				icon: Target,
 			},
 		] satisfies AccelOptions[];
