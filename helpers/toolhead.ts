@@ -102,6 +102,8 @@ export class ToolheadHelper<IsToolboard extends boolean> {
 				}
 			case 'sbc':
 				return 'rpi';
+			case 'beacon':
+				return 'beacon';
 			default:
 				return 'controlboard';
 		}
@@ -116,6 +118,8 @@ export class ToolheadHelper<IsToolboard extends boolean> {
 				}
 			case 'sbc':
 				return 'rpi';
+			case 'beacon':
+				return 'beacon';
 			default:
 				return 'controlboard';
 		}

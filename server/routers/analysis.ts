@@ -1,7 +1,6 @@
 import { serverSchema } from '@/env/schema.mjs';
 import { publicProcedure, router } from '@/server/trpc';
 import {
-	accumulatedPSDSchema,
 	createMacroSchema,
 	macroIDSchema,
 	macroRecordingIdSchema,
@@ -15,7 +14,6 @@ import path from 'path';
 import { z } from 'zod';
 import { initObjectStorage } from '@/server/helpers/ndjson';
 import { getLogger } from '@/server/helpers/logger';
-import { m } from 'framer-motion';
 
 const environment = serverSchema.parse(process.env);
 const dataDir = path.join(environment.RATOS_DATA_DIR, 'analysis');
@@ -62,6 +60,30 @@ export const analysisRouter = router({
 			macrosRemoved,
 		};
 	}),
+	deleteMacros: publicProcedure.input(z.array(macroIDSchema)).mutation(async ({ input }) => {
+		const result = await Promise.all(
+			input.map(async (id) => {
+				const macro = await macroStorage.findById(id);
+				if (macro == null) {
+					const resultMsg = `Can't delete macro: macro with id ${id} not found`;
+					getLogger().warn(resultMsg);
+					return { id, msg: resultMsg, totalRecordingsRemoved: 0, success: false };
+				}
+				const file = path.join(recordingsDataDir, `${id}.ndjson`);
+				const recordingStorage = initObjectStorage(file, macroRecordingSchema);
+				const totalRecordingsRemoved = await recordingStorage.destroyStorage();
+				const resultMsg = `Deleted ${totalRecordingsRemoved} recordings for macro "${macro.name}" (${macro.id})`;
+				getLogger().info(resultMsg);
+				return { id, msg: resultMsg, totalRecordingsRemoved, success: true };
+			}),
+		);
+		const macrosRemoved = await macroStorage.removeAll(input);
+		getLogger().info(`Deleted ${macrosRemoved}/${input.length} macros`);
+		return {
+			result,
+			macrosRemoved,
+		};
+	}),
 	findMacro: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
 		const macro = await macroStorage.findById(input.id);
 		if (macro == null) {
@@ -96,6 +118,25 @@ export const analysisRouter = router({
 		);
 		return recording;
 	}),
+	getNextAndPreviousRunRecordingIds: publicProcedure
+		.input(z.object({ macroId: macroIDSchema, runId: macroRecordingRunIdSchema }))
+		.output(z.object({ next: macroRecordingRunIdSchema.nullable(), previous: macroRecordingRunIdSchema.nullable() }))
+		.query(async ({ input }) => {
+			const file = path.join(recordingsDataDir, `${input.macroId}.ndjson`);
+			const recordingStorage = initObjectStorage(file, macroRecordingSchemaWithoutSourcePSDs);
+			const recordings = await recordingStorage.getAll();
+			const first = recordings.result.findIndex((r) => r.macroRecordingRunId === input.runId);
+			const last = recordings.result.findLastIndex((r) => r.macroRecordingRunId === input.runId);
+			if (first === -1 || last === -1) {
+				throw new Error(`Recording with id ${input.runId} not found in macro with id ${input.macroId}`);
+			}
+			const nextRecording = recordings.result[last + 1];
+			const previousRecording = recordings.result[first - 1];
+			return {
+				next: nextRecording?.macroRecordingRunId ?? null,
+				previous: previousRecording?.macroRecordingRunId ?? null,
+			};
+		}),
 	getRecordings: publicProcedure
 		.input(
 			z.object({
@@ -125,17 +166,17 @@ export const analysisRouter = router({
 		}),
 	getRecording: publicProcedure
 		.input(z.object({ macroId: macroIDSchema, recordingId: macroRecordingIdSchema }))
-		.output(macroRecordingSchema.nullable())
+		.output(macroRecordingSchemaWithoutSourcePSDs.nullable())
 		.query(async ({ input }) => {
 			const file = path.join(recordingsDataDir, `${input.macroId}.ndjson`);
-			const recordingStorage = initObjectStorage(file, macroRecordingSchema);
+			const recordingStorage = initObjectStorage(file, macroRecordingSchemaWithoutSourcePSDs);
 			return await recordingStorage.find((r) => r.id === input.recordingId);
 		}),
 	getRunRecordings: publicProcedure
 		.input(z.object({ runId: macroRecordingRunIdSchema, macroId: macroIDSchema }))
 		.query(async ({ input }) => {
 			const file = path.join(recordingsDataDir, `${input.macroId}.ndjson`);
-			const recordingStorage = initObjectStorage(file, macroRecordingSchema);
+			const recordingStorage = initObjectStorage(file, macroRecordingSchemaWithoutSourcePSDs);
 			return await recordingStorage.findAll((r) => r.macroRecordingRunId === input.runId);
 		}),
 });

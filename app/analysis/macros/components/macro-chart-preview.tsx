@@ -1,6 +1,6 @@
 import { macroSequenceSchema } from '@/zods/analysis';
 import {
-	PSDChardNoSeriesDefinition,
+	PSDChartNoSeriesDefinition,
 	PSD_CHART_AXIS_AMPLITUDE_ID,
 	getPSDTooltipLegendTemplate,
 	psdRolloverTooltipTemplate,
@@ -210,7 +210,7 @@ export const MacroChartPreview: React.FC<MacroChartPreviewProps> = ({ sequences 
 		[sequenceData],
 	);
 
-	const chart = useChart(PSDChardNoSeriesDefinition, setupChart);
+	const chart = useChart(PSDChartNoSeriesDefinition, setupChart);
 
 	useEffect(() => {
 		if (sequenceData.length != 0 && deepEqual(sequenceData, prevSequenceData.current) === false) {

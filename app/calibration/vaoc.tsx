@@ -76,11 +76,11 @@ export const VAOC = () => {
 					<SafetyVisualization gestureState={gestureState} />
 				</FillVideoFrame>
 				<CrossHair
-					containerRef={uiState.containerRef}
 					isConnected={isConnected && videoState.aspectRatio != null}
 					isLockingCoordinates={uiState.isLockingCoordinates}
 					settings={settings}
 					toScreen={spatialMapping.toScreen}
+					containerSize={spatialMapping.containerSize}
 				/>
 				<FillViewport>
 					<h3

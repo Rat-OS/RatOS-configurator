@@ -1,6 +1,6 @@
 'use client';
 
-import { DotsHorizontalIcon } from '@radix-ui/react-icons';
+import { DotsHorizontalIcon, DotsVerticalIcon } from '@radix-ui/react-icons';
 import { Row } from '@tanstack/react-table';
 
 import { Button } from '@/components/common/button';
@@ -43,11 +43,11 @@ export function DataTableRowActions<TData extends z.infer<typeof macroSchema> = 
 	const deleteMacro = trpc.analysis.deleteMacro.useMutation();
 
 	return (
-		<>
+		<div className="flex justify-end">
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
 					<Button variant="plain" size="sm" className="flex data-[state=open]:bg-muted">
-						<DotsHorizontalIcon className="h-4 w-4" />
+						<DotsVerticalIcon className="h-4 w-4" />
 						<span className="sr-only">Open menu</span>
 					</Button>
 				</DropdownMenuTrigger>
@@ -79,7 +79,7 @@ export function DataTableRowActions<TData extends z.infer<typeof macroSchema> = 
 								try {
 									const result = await deleteMacro.mutateAsync(row.original.id);
 									if (result.result == null) {
-										getLogger().error('Failed to delete macro', row.original.id);
+										getLogger().error(row.original.id, 'Failed to delete macro');
 										toast.error('Failed to delete macro', {
 											description:
 												"An unknown error occurred and the macro seem to have disappeared from the database. This shouldn't happen. Please contact support.",
@@ -108,6 +108,6 @@ export function DataTableRowActions<TData extends z.infer<typeof macroSchema> = 
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
-		</>
+		</div>
 	);
 }

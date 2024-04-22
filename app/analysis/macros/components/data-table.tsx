@@ -80,7 +80,11 @@ export function DataTable<TData, TValue>({
 						<TableRow key={headerGroup.id}>
 							{headerGroup.headers.map((header) => {
 								return (
-									<TableHead key={header.id} colSpan={header.colSpan}>
+									<TableHead
+										key={header.id}
+										colSpan={header.colSpan}
+										style={{ width: `${header.getSize()}px`, maxWidth: header.getSize() }}
+									>
 										{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
 									</TableHead>
 								);
@@ -93,7 +97,9 @@ export function DataTable<TData, TValue>({
 						table.getRowModel().rows.map((row) => (
 							<TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
 								{row.getVisibleCells().map((cell) => (
-									<TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+									<TableCell key={cell.id} className="min-w-0 truncate" style={{ maxWidth: cell.column.getSize() }}>
+										{flexRender(cell.column.columnDef.cell, cell.getContext())}
+									</TableCell>
 								))}
 							</TableRow>
 						))

@@ -325,6 +325,9 @@ export const constructKlipperConfigUtils = async (config: PrinterConfiguration) 
 					accelType = 'lis2dw';
 				}
 			}
+			if (accelerometerName === 'beacon') {
+				accelType = 'beacon';
+			}
 			return klipperAccelSensorSchema.parse({
 				name: accelerometerName,
 				type: accelType,
@@ -812,8 +815,16 @@ export const constructKlipperConfigHelpers = async (
 			const xAccel = utils.getAccelWithType(xToolhead.getXAccelerometerName());
 			const yAccel = utils.getAccelWithType(xToolhead.getYAccelerometerName());
 			result.push('[resonance_tester]');
-			result.push(`accel_chip_x: ${xAccel.type} ${xAccel.name}`);
-			result.push(`accel_chip_y: ${yAccel.type} ${yAccel.name}`);
+			if (xAccel.type === 'beacon') {
+				result.push(`accel_chip_x: ${xAccel.type}`);
+			} else {
+				result.push(`accel_chip_x: ${xAccel.type} ${xAccel.name}`);
+			}
+			if (yAccel.type === 'beacon') {
+				result.push(`accel_chip_y: ${yAccel.type}`);
+			} else {
+				result.push(`accel_chip_y: ${yAccel.type} ${yAccel.name}`);
+			}
 			result.push('probe_points:');
 			result.push(`\t${printerSize.x / 2},${printerSize.y / 2},20`);
 			return result.join('\n');

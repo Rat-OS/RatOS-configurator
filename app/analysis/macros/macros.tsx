@@ -3,10 +3,32 @@ import { columns } from '@/app/analysis/macros/columns';
 import { DataTable } from '@/app/analysis/macros/components/data-table';
 import { trpc } from '@/helpers/trpc';
 import { Button } from '@/components/common/button';
-import { PlusCircleIcon } from 'lucide-react';
+import { ChevronLeft, PlusCircleIcon } from 'lucide-react';
+import Link from 'next/link';
+import { useTopMenu } from '@/app/topmenu';
+import { useCallback } from 'react';
 
 export default function AnalysisMacrosTable() {
 	const macroQuery = trpc.analysis.getMacros.useQuery({});
+
+	useTopMenu(
+		'Analysis',
+		useCallback((Menu) => {
+			return (
+				<>
+					<Menu.MenubarMenu>
+						<Menu.MenubarTrigger className="cursor-pointer" asChild>
+							<Link href={`/analysis`}>
+								<Menu.MenubarIcon Icon={ChevronLeft} />
+								<span className="hidden lg:inline">Back</span>
+							</Link>
+						</Menu.MenubarTrigger>
+						<Menu.MenubarContent className="hidden" />
+					</Menu.MenubarMenu>
+				</>
+			);
+		}, []),
+	);
 
 	return (
 		<div className="flex h-full flex-1 flex-col space-y-8 p-8">

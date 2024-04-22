@@ -72,7 +72,7 @@ export const MenuBarProvider: React.FC<React.PropsWithChildren<MenuBarContextVal
 	return <MenuBarContext.Provider value={props}>{props.children}</MenuBarContext.Provider>;
 };
 
-export const useTopMenu = (id: string, renderReactCallback: MenuEntryRenderer) => {
+export const useTopMenu = (id: string, renderReactCallback: ReactCallback<MenuEntryRenderer>) => {
 	const { registerMenu, unregisterMenu } = useContext(MenuBarContext);
 	useEffect(() => {
 		registerMenu(id as MenuId, renderReactCallback);

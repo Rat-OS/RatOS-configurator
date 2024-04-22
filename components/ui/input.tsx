@@ -6,11 +6,11 @@ import { twJoin } from 'tailwind-merge';
 
 const InputVariants = cva(
 	twJoin(
-		'flex w-full rounded-md border border-input bg-transparent px-3 py-1.5 text-sm shadow-sm transition-colors',
+		'flex w-full rounded-md border bg-transparent px-3 py-1.5 text-sm shadow-sm transition-colors',
 		'file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground',
 		'border-zinc-300 text-zinc-900 placeholder-zinc-300 ring-brand-600 dark:border-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-700 dark:focus:ring-brand-400 ',
-		'focus:ring-offset-zinc-900 sm:text-sm block w-full rounded-md border text-left shadow-sm ring-inset ring-offset-zinc-900 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 sm:leading-6',
-		'active:translate-y-px active:scale-[99%] active:outline-none',
+		'focus:ring-offset-zinc-900 block w-full rounded-md border text-left shadow-sm ring-inset ring-offset-zinc-900 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2',
+		'active:translate-y-px active:scale-[99%] active:outline-none active:ring-2 active:ring-offset-2',
 		'disabled:cursor-not-allowed disabled:opacity-50',
 	),
 	{
