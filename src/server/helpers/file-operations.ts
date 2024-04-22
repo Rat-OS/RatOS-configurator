@@ -24,7 +24,7 @@ export const replaceInFileByLine = async (
 	if (!existsSync(filePath)) {
 		throw new Error('File does not exist: ' + filePath);
 	}
-	const fileStream = createReadStream(filePath);
+	const fileStream = createReadStream(filePath, { highWaterMark: 1 * 1024 * 1024 });
 	const writeStream = createWriteStream(filePath + '.tmp', { flags: 'w' });
 
 	const rl = createInterface({
@@ -92,10 +92,7 @@ export const replaceInFileByLine = async (
 	}
 	if (linesChanged + linesDeleted > 0) {
 		await copyFile(filePath + '.tmp', filePath);
-	} else {
-		console.log('no changes', filePath + '.tmp');
 	}
-	console.log('unlinking', filePath + '.tmp');
 	await unlink(filePath + '.tmp');
 	return { linesChanged, linesDeleted, linesTotal: lineNumber };
 };

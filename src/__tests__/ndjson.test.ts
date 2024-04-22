@@ -128,7 +128,6 @@ describe('ndjson', () => {
 				'\n' +
 				JSON.stringify({ id: 3, name: 'Bob' }) +
 				'\n';
-			console.log(mockContent);
 			await writeFile(mockFile, mockContent);
 		});
 		afterEach(async () => {

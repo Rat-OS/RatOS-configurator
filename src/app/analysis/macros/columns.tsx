@@ -13,6 +13,7 @@ import React from 'react';
 import { ColumnCapabilities } from '@/app/analysis/macros/components/data-table-toolbar';
 import { ArrowDownToDot, Cpu, Play, Server } from 'lucide-react';
 import { DataTableBulkActions } from '@/app/analysis/macros/macro-bulk-actions';
+import Link from 'next/link';
 
 export const columns: (ColumnDef<Macro> & ColumnCapabilities)[] = [
 	{
@@ -69,7 +70,12 @@ export const columns: (ColumnDef<Macro> & ColumnCapabilities)[] = [
 							{l.label}
 						</Badge>
 					))}
-					<span className="max-w-[500px] truncate font-medium">{row.getValue('name')}</span>
+					<Link
+						href={`/analysis/macros/${row.original.id}/recordings`}
+						className="max-w-[500px] truncate font-medium hover:text-brand-400"
+					>
+						{row.getValue('name')}
+					</Link>
 				</div>
 			);
 		},

@@ -29,6 +29,9 @@ import {
 	CursorTooltipSvgAnnotation,
 	EDataSeriesType,
 	XyySeriesInfo,
+	BaseDataSeries,
+	XyyDataSeries,
+	IDataSeries,
 } from 'scichart';
 import { useChart } from '@/app/analysis/hooks';
 import { ChartTheme } from '@/app/analysis/chart-theme';
@@ -55,6 +58,22 @@ export const SIGNAL_CHART_AXIS_AMPLITUDE_ID = 'amplitude';
 export const PSDLength = 131;
 
 type ADXLAxes = 'x' | 'y' | 'z';
+
+export const isXyyDataSeries = (ds: IDataSeries): ds is XyyDataSeries => {
+	return ds.type === EDataSeriesType.Xyy;
+};
+
+export const isXyDataSeries = (ds: IDataSeries): ds is XyDataSeries => {
+	return ds.type === EDataSeriesType.Xy;
+};
+
+export const isXyySeriesInfo = (si: SeriesInfo): si is XyySeriesInfo => {
+	return si.dataSeriesType === EDataSeriesType.Xyy;
+};
+
+export const isXySeriesInfo = (si: SeriesInfo): si is SeriesInfo => {
+	return si.dataSeriesType === EDataSeriesType.Xy;
+};
 
 export const getAxisColorName = (axis: ADXLAxes): TWShadeableColorName => {
 	switch (axis) {
@@ -193,7 +212,7 @@ export const useADXLSignalChart = (axis: ADXLAxes) => {
 
 export const PSD_CHART_AXIS_AMPLITUDE_ID = 'amplitude';
 export const PSDChartMinimumYVisibleRange = new NumberRange(0, 1500);
-export const PSDChardNoSeriesDefinition: ISciChart2DDefinition = {
+export const PSDChartNoSeriesDefinition: ISciChart2DDefinition = {
 	surface: {
 		theme: theme,
 		padding: Thickness.fromNumber(0),
@@ -249,7 +268,7 @@ export const PSDChardNoSeriesDefinition: ISciChart2DDefinition = {
 	],
 };
 export const PSDChartDefinition: ISciChart2DDefinition = {
-	...PSDChardNoSeriesDefinition,
+	...PSDChartNoSeriesDefinition,
 	series: [
 		{
 			type: ESeriesType.MountainSeries,

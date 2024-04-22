@@ -96,6 +96,9 @@ export const useAccelerometerWithType = (accelerometerName: KlipperAccelSensorNa
 			accelType = 'lis2dw';
 		}
 	}
+	if (accelerometerName === 'beacon') {
+		accelType = 'beacon';
+	}
 	return useMemo(
 		() =>
 			klipperAccelSensorSchema.parse({
@@ -174,7 +177,12 @@ export const useRealtimeSensor = <
 			}, timeout); // 10 second timeout.
 			sendJsonMessage({
 				jsonrpc: '2.0',
-				method: parsedSensor.type === 'lis2dw' ? 'lis2dw/dump_lis2dw' : 'adxl345/dump_adxl345',
+				method:
+					parsedSensor.type === 'lis2dw'
+						? 'lis2dw/dump_lis2dw'
+						: parsedSensor.type === 'beacon'
+							? 'beacon/dump_accel'
+							: 'adxl345/dump_adxl345',
 				params: {
 					sensor: parsedSensor.name,
 					response_template: {},

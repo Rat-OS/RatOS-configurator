@@ -69,12 +69,13 @@ export const KlipperAccelSensorNameSchame = z.union([
 	z.literal('toolboard_t1'),
 	z.literal('controlboard'),
 	z.literal('rpi'),
+	z.literal('beacon'),
 ]);
 
-export const AccelerometerType = z.union([z.literal('adxl345'), z.literal('lis2dw')]);
+export const AccelerometerType = z.union([z.literal('adxl345'), z.literal('lis2dw'), z.literal('beacon')]);
 
 export const Accelerometer = z.object({
-	id: z.enum(['toolboard', 'controlboard', 'sbc', 'none']),
+	id: z.enum(['toolboard', 'controlboard', 'sbc', 'none', 'beacon']),
 	title: z.string(),
 	accelerometerType: AccelerometerType.default('adxl345').optional(),
 });

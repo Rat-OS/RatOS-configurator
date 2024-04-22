@@ -17,6 +17,7 @@ import { CommandLoading } from 'cmdk';
 import { PopoverAnchor } from '@radix-ui/react-popover';
 import { AnimatedContainer } from '@/components/common/animated-container';
 import { AnimatePresence } from 'framer-motion';
+import deepEqual from 'deep-equal';
 
 type Option = {
 	id: number | string;
@@ -52,6 +53,7 @@ export const useDropdownPrinterQueryState = <T extends DropdownQueryKeys = Dropd
 	query: T,
 	vars?: DropdownQueryInput<T>,
 	serializedPrinterConfiguration?: string,
+	fetchImmediately?: boolean,
 ) => {
 	const [isShown, setIsShown] = useState(false);
 	const serializedConfig = useSerializedPrinterConfiguration();
@@ -61,7 +63,7 @@ export const useDropdownPrinterQueryState = <T extends DropdownQueryKeys = Dropd
 		variables[serializedPrinterConfiguration] = serializedConfig;
 	}
 	const data = (trpc.printer[query] as DropdownQuery<T>).useQuery(variables, {
-		enabled: isShown,
+		enabled: isShown || fetchImmediately,
 		keepPreviousData: true,
 	});
 	return {
@@ -79,10 +81,15 @@ export const DropdownWithPrinterQuery = <T extends DropdownQueryKeys = DropdownQ
 	},
 ) => {
 	const { query, vars, serializedPrinterConfiguration, ...rest } = props;
-	const queryProps = useDropdownPrinterQueryState<T>(query, vars, serializedPrinterConfiguration);
+	const { value } = rest as unknown as { value: Option; onSelect: (option: Option) => void };
+	// Query the server for the options to refresh the value in case a badge contains stale hardware titles.
+	const fetchImmediately = value?.badge != null;
+	const queryProps = useDropdownPrinterQueryState<T>(query, vars, serializedPrinterConfiguration, fetchImmediately);
+	const selectedOption = (queryProps.options as Option[]).find((o) => o.id === value?.id);
+	const correctedValue = selectedOption ?? value;
 	return (
 		<React.Suspense>
-			<Dropdown {...rest} {...queryProps} />
+			<Dropdown {...rest} {...queryProps} value={correctedValue as DropdownQueryOutput<T>[number]} />
 		</React.Suspense>
 	);
 };

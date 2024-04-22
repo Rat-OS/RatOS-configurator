@@ -1,5 +1,5 @@
 'use client';
-import { ArrowDownToDot, Check, CircleFadingPlus, Cpu, Cross, Server, X } from 'lucide-react';
+import { ArrowDownToDot, Check, CircleFadingPlus, Cpu, Cross, Server, Target, X } from 'lucide-react';
 
 import { Button } from '@/components/common/button';
 import { Input } from '@/components/ui/input';
@@ -125,6 +125,12 @@ export const MacroForm: React.FC<MacroFormProps> = ({ form, submit, isNew }) => 
 				value: 'toolboard_t1',
 				description: 'Record data with an ADXL345 on the toolboard on toolhead T1',
 				icon: ArrowDownToDot,
+			},
+			{
+				label: 'Beacon',
+				value: 'beacon',
+				description: 'Record data with an ADXL345 on the toolboard on toolhead T1',
+				icon: Target,
 			},
 		] satisfies AccelOptions[];
 	}, []);

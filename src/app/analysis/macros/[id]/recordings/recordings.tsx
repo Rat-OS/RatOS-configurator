@@ -19,17 +19,17 @@ export default function MacroRecordings({ id }: { id: string }) {
 	const [macro] = trpc.analysis.findMacro.useSuspenseQuery({ id: id });
 
 	useTopMenu(
-		'Analysis',
+		'Analysis Recordings',
 		useCallback(
 			(Menu) => {
 				return (
 					<>
 						<Menu.MenubarMenu>
 							<Menu.MenubarTrigger className="cursor-pointer" asChild>
-								<Link href={`/analysis/macros`}>
+								<span onClick={() => window.history.back()}>
 									<Menu.MenubarIcon Icon={ChevronLeft} />
 									<span className="hidden lg:inline">Back</span>
-								</Link>
+								</span>
 							</Menu.MenubarTrigger>
 							<Menu.MenubarContent className="hidden" />
 						</Menu.MenubarMenu>
@@ -50,12 +50,13 @@ export default function MacroRecordings({ id }: { id: string }) {
 	);
 
 	return (
-		<div className="hidden h-full flex-1 flex-col space-y-8 p-8 md:flex">
+		<div className="flex h-full flex-1 flex-col space-y-8 p-8">
 			<div className="flex items-center justify-between space-y-2">
 				<div>
 					<h2 className="text-xl font-semibold leading-none tracking-tight">Recordings for {macro.name}</h2>
 					<p className="text-base font-medium text-muted-foreground">
-						You have recorded {macroRecordingsQuery.total} sequence(s) for this macro so far.
+						You have recorded {macroRecordingsQuery.total || macroRecordingsQuery.result.length} sequence(s) for this
+						macro so far.
 					</p>
 				</div>
 			</div>

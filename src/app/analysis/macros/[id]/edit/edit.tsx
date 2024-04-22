@@ -59,10 +59,10 @@ export const EditMacro: React.FC<EditMacroProps> = ({ id }) => {
 				<>
 					<Menu.MenubarMenu>
 						<Menu.MenubarTrigger className="cursor-pointer" asChild>
-							<Link href={`/analysis/macros`}>
+							<span onClick={() => window.history.back()}>
 								<Menu.MenubarIcon Icon={ChevronLeft} />
 								<span className="hidden lg:inline">Cancel</span>
-							</Link>
+							</span>
 						</Menu.MenubarTrigger>
 						<Menu.MenubarContent className="hidden" />
 					</Menu.MenubarMenu>

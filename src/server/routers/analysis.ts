@@ -118,6 +118,25 @@ export const analysisRouter = router({
 		);
 		return recording;
 	}),
+	getNextAndPreviousRunRecordingIds: publicProcedure
+		.input(z.object({ macroId: macroIDSchema, runId: macroRecordingRunIdSchema }))
+		.output(z.object({ next: macroRecordingRunIdSchema.nullable(), previous: macroRecordingRunIdSchema.nullable() }))
+		.query(async ({ input }) => {
+			const file = path.join(recordingsDataDir, `${input.macroId}.ndjson`);
+			const recordingStorage = initObjectStorage(file, macroRecordingSchemaWithoutSourcePSDs);
+			const recordings = await recordingStorage.getAll();
+			const first = recordings.result.findIndex((r) => r.macroRecordingRunId === input.runId);
+			const last = recordings.result.findLastIndex((r) => r.macroRecordingRunId === input.runId);
+			if (first === -1 || last === -1) {
+				throw new Error(`Recording with id ${input.runId} not found in macro with id ${input.macroId}`);
+			}
+			const nextRecording = recordings.result[last + 1];
+			const previousRecording = recordings.result[first - 1];
+			return {
+				next: nextRecording?.macroRecordingRunId ?? null,
+				previous: previousRecording?.macroRecordingRunId ?? null,
+			};
+		}),
 	getRecordings: publicProcedure
 		.input(
 			z.object({
@@ -147,17 +166,17 @@ export const analysisRouter = router({
 		}),
 	getRecording: publicProcedure
 		.input(z.object({ macroId: macroIDSchema, recordingId: macroRecordingIdSchema }))
-		.output(macroRecordingSchema.nullable())
+		.output(macroRecordingSchemaWithoutSourcePSDs.nullable())
 		.query(async ({ input }) => {
 			const file = path.join(recordingsDataDir, `${input.macroId}.ndjson`);
-			const recordingStorage = initObjectStorage(file, macroRecordingSchema);
+			const recordingStorage = initObjectStorage(file, macroRecordingSchemaWithoutSourcePSDs);
 			return await recordingStorage.find((r) => r.id === input.recordingId);
 		}),
 	getRunRecordings: publicProcedure
 		.input(z.object({ runId: macroRecordingRunIdSchema, macroId: macroIDSchema }))
 		.query(async ({ input }) => {
 			const file = path.join(recordingsDataDir, `${input.macroId}.ndjson`);
-			const recordingStorage = initObjectStorage(file, macroRecordingSchema);
+			const recordingStorage = initObjectStorage(file, macroRecordingSchemaWithoutSourcePSDs);
 			return await recordingStorage.findAll((r) => r.macroRecordingRunId === input.runId);
 		}),
 });

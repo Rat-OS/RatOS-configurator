@@ -155,11 +155,19 @@ const _baseObjectStorage = <
 	 * @throws Error if no object with the specified ID is found.
 	 */
 	const update = async (obj: Partial<Input>, id: Input['id']) => {
-		const result = await replaceObjects(file, schema, (input) =>
-			input.id === id ? schema.parse({ ...input, ...obj }) : input,
-		);
+		let found = false;
+		const result = await replaceObjects(file, schema, (input) => {
+			if (input.id === id) {
+				found = true;
+				return schema.parse({ ...input, ...obj });
+			}
+			return input;
+		});
+		if (!found) {
+			throw new Error(`Object with id ${id} not found`);
+		}
 		if (result.linesChanged === 0) {
-			throw new Error(`Object with id ${id} found`);
+			getLogger().warn(obj, `Update to object with id ${id} resulted in no changes`);
 		}
 		return result;
 	};
@@ -172,14 +180,17 @@ const _baseObjectStorage = <
 	 */
 	const upsert = async (obj: Input, merge: boolean = false) => {
 		let maybeMergedResult: Output = schema.parse(obj) as Output;
+		let found = false;
 		const results = await replaceObjects<T, Output | Input, Input>(file, schema, (input) => {
 			if (input.id === obj.id) {
+				found = true;
 				maybeMergedResult = schema.parse({ ...(merge === true ? input : {}), ...obj }) as Output;
 				return maybeMergedResult;
 			}
 			return input;
 		});
-		if (results.linesChanged === 0) {
+		if (!found) {
+			console.log('what in the fuck', results, obj);
 			return { updateCount: 0, result: await insert(obj) };
 		}
 		if (results.linesChanged > 1) {
@@ -316,10 +327,6 @@ export const initObjectStorage = <
 	 */
 	const find = async (search: (input: Output) => boolean) => {
 		const result = await storage.find(search);
-		await logStatError(
-			async () => await statsStorage.upsert({ id: file, lastAccessedTimeStamp: new Date().getTime() }, true),
-			true,
-		);
 		return result;
 	};
 
@@ -331,10 +338,6 @@ export const initObjectStorage = <
 	 */
 	const findById = async (id: Input['id'] | Input) => {
 		const result = await storage.findById(id);
-		await logStatError(
-			async () => await statsStorage.upsert({ id: file, lastAccessedTimeStamp: new Date().getTime() }, true),
-			true,
-		);
 		return result;
 	};
 
@@ -347,10 +350,6 @@ export const initObjectStorage = <
 	 */
 	const findAll = async (search: (input: Output) => boolean, limit: number = Infinity) => {
 		const result = await storage.findAll(search, limit);
-		await logStatError(
-			async () => await statsStorage.upsert({ id: file, lastAccessedTimeStamp: new Date().getTime() }, true),
-			true,
-		);
 		return result;
 	};
 
@@ -560,7 +559,7 @@ export const readObjects = async <T extends z.ZodSchema, Output = z.output<T>>(
 			hasNextPage: false,
 		};
 	}
-	const stream = createReadStream(file, { encoding: 'utf-8', start });
+	const stream = createReadStream(file, { encoding: 'utf-8', start, highWaterMark: 1 * 1024 * 1024 });
 	const availableBytes = (await stat(file)).size - start;
 
 	const result: Output[] = [];
