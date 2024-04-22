@@ -36,6 +36,7 @@ import {
 	Plus,
 	ServerIcon,
 	SquareFunction,
+	Target,
 } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
@@ -118,6 +119,10 @@ const macroRecordingMutationOptions: Parameters<typeof trpc.analysis.saveRecordi
 export const Analysis = () => {
 	const router = useRouter();
 	const toolheads = useToolheads();
+	const hasBeacon = useMemo(
+		() => toolheads.some((th) => th.getYAccelerometerName() === 'beacon' || th.getXAccelerometerName() === 'beacon'),
+		[toolheads],
+	);
 	const [adxl, setAdxl] = useState<MacroRecordingSettings['accelerometer']>(toolheads[0].getYAccelerometerName());
 	const {
 		isChartEnabled,
@@ -282,7 +287,7 @@ export const Analysis = () => {
 									<Menu.MenubarRadioGroup value={adxl} onValueChange={(e) => setAdxl(e as KlipperAccelSensorName)}>
 										<Menu.MenubarRadioItem
 											value="rpi"
-											className={twJoin(axis === 'x' && frequency > 0 && 'font-semibold text-brand-400')}
+											className={twJoin(adxl === 'rpi' && 'font-semibold text-brand-400')}
 											onSelect={(e) => e.preventDefault()}
 										>
 											<Menu.MenubarContentIcon Icon={ServerIcon} />
@@ -290,7 +295,7 @@ export const Analysis = () => {
 										</Menu.MenubarRadioItem>
 										<Menu.MenubarRadioItem
 											value="controlboard"
-											className={twJoin(axis === 'y' && frequency > 0 && 'font-semibold text-brand-400')}
+											className={twJoin(adxl === 'controlboard' && 'font-semibold text-brand-400')}
 											onSelect={(e) => e.preventDefault()}
 										>
 											<Menu.MenubarContentIcon Icon={Cpu} />
@@ -299,7 +304,7 @@ export const Analysis = () => {
 										{toolheads[0].hasToolboard() && (
 											<Menu.MenubarRadioItem
 												value="toolboard_t0"
-												className={twJoin(axis === 'a' && frequency > 0 && 'font-semibold text-brand-400')}
+												className={twJoin(adxl === 'toolboard_t0' && 'font-semibold text-brand-400')}
 												onSelect={(e) => e.preventDefault()}
 											>
 												<Menu.MenubarContentIcon Icon={ArrowDownToDot} />
@@ -309,11 +314,21 @@ export const Analysis = () => {
 										{toolheads.length > 1 && toolheads[1].hasToolboard() && (
 											<Menu.MenubarRadioItem
 												value="toolboard_t1"
-												className={twJoin(axis === 'b' && frequency > 0 && 'font-semibold text-brand-400')}
+												className={twJoin(adxl === 'toolboard_t1' && 'font-semibold text-brand-400')}
 												onSelect={(e) => e.preventDefault()}
 											>
 												<Menu.MenubarContentIcon Icon={ArrowDownToDot} />
 												Toolboard T1
+											</Menu.MenubarRadioItem>
+										)}
+										{hasBeacon && (
+											<Menu.MenubarRadioItem
+												value="beacon"
+												className={twJoin(adxl === 'beacon' && 'font-semibold text-brand-400')}
+												onSelect={(e) => e.preventDefault()}
+											>
+												<Menu.MenubarContentIcon Icon={Target} />
+												Beacon
 											</Menu.MenubarRadioItem>
 										)}
 									</Menu.MenubarRadioGroup>
@@ -464,11 +479,12 @@ export const Analysis = () => {
 			[
 				isChartEnabled,
 				adxl,
-				axis,
-				frequency,
 				toolheads,
+				hasBeacon,
 				isMacroRunning,
 				runMacro,
+				axis,
+				frequency,
 				MacroIcon,
 				macros.result,
 				setIsChartEnabled,
