@@ -14,7 +14,6 @@ import { MacroRecordingDataTableRowActions } from '@/app/analysis/macros/[id]/re
 import { ArrowDownToDot, Cpu, Server } from 'lucide-react';
 import { KlipperAccelSensorName } from '@/zods/hardware';
 import { RecordingBulkActions } from '@/app/analysis/macros/[id]/recordings/recordings-bulk-actions';
-import { table } from 'console';
 import Link from 'next/link';
 luxon.Settings.defaultLocale = 'en-GB';
 const userLocale = luxon.DateTime.local().locale;
@@ -182,6 +181,6 @@ export const columns: (ColumnDef<MacroRecordingWithoutSourcePSDs> & ColumnCapabi
 		id: 'actions',
 		size: 25,
 		header: ({ table }) => <RecordingBulkActions selection={table.getSelectedRowModel()} />,
-		cell: ({ row }) => <MacroRecordingDataTableRowActions row={row} />,
+		cell: ({ row }) => null,
 	},
 ];
