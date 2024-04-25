@@ -365,7 +365,7 @@ export const getPSDTooltipLegendTemplate = (seriesInfos: SeriesInfo[], svgAnnota
 			`${seriesInfo.renderableSeries.rolloverModifierProps.tooltipTitle}${separator} ${(seriesInfo.yValue / 1000).toFixed(2)} g^2/Hz @ ${seriesInfo.formattedXValue}`,
 		);
 		outputSvgString += `<text x="${padding}" y="${y}" class="text-sm text-medium font-sans" fill="${shadableTWColors[textColor][400]}">
-		<tspan class="font-bold">${seriesInfo.renderableSeries.rolloverModifierProps.tooltipTitle}</tspan>${separator} ${(seriesInfo.yValue / 1000).toFixed(2)} g<tspan y="${y - 4}" class="sup">2</tspan><tspan y=${y}>/Hz</tspan>@ ${seriesInfo.formattedXValue}
+		<tspan class="font-bold">${seriesInfo.renderableSeries.rolloverModifierProps.tooltipTitle}</tspan>${separator} ${(seriesInfo.yValue / 1000).toFixed(2)} g<tspan y="${y - 4}" class="sup">2</tspan><tspan y=${y}>/Hz</tspan> @ ${seriesInfo.formattedXValue}
 		</text>`;
 		y += 20;
 		if (seriesInfo.dataSeriesType === EDataSeriesType.Xyy) {
