@@ -226,9 +226,18 @@ const _baseObjectStorage = <
 	 * @returns A promise that resolves to the result of replacing the objects in the file.
 	 */
 	const del = async (search: (input: Input) => boolean) => {
-		return await replaceObjects<T, Output, Input>(file, schema, (input) =>
-			search(input) ? null : (schema.parse(input) as Output),
-		);
+		const found: Input[] = [];
+		const result = await replaceObjects<T, Output, Input>(file, schema, (input) => {
+			if (search(input)) {
+				found.push(input);
+				return null;
+			}
+			return schema.parse(input) as Output;
+		});
+		return {
+			found,
+			...result,
+		};
 	};
 
 	/**

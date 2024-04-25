@@ -93,12 +93,13 @@ const MenubarTrigger = React.forwardRef<
 			ref={ref}
 			className={cn(
 				'group relative flex cursor-default select-none items-center outline-none data-[state=open]:text-accent-foreground focus:text-accent-foreground',
+				!props.disabled ? 'cursor-pointer' : 'cursor-not-allowed opacity-50',
 				className,
 			)}
 			{...props}
 		>
 			<AnimatePresence>
-				{value?.replace('radix-', '') == id && (
+				{value?.replace('radix-', '') == id && !props.disabled && (
 					<motion.div
 						layoutId="menubarTrigger"
 						initial={{ opacity: 0 }}

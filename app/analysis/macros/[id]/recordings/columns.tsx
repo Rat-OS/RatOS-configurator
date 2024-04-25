@@ -13,6 +13,8 @@ import * as luxon from 'luxon';
 import { MacroRecordingDataTableRowActions } from '@/app/analysis/macros/[id]/recordings/recording-row-actions';
 import { ArrowDownToDot, Cpu, Server } from 'lucide-react';
 import { KlipperAccelSensorName } from '@/zods/hardware';
+import { RecordingBulkActions } from '@/app/analysis/macros/[id]/recordings/recordings-bulk-actions';
+import Link from 'next/link';
 luxon.Settings.defaultLocale = 'en-GB';
 const userLocale = luxon.DateTime.local().locale;
 
@@ -40,6 +42,7 @@ export const columns: (ColumnDef<MacroRecordingWithoutSourcePSDs> & ColumnCapabi
 	},
 	{
 		accessorKey: 'macroRecordingRunId',
+		header: 'Macro Run ID',
 		enableGrouping: true,
 		enableHiding: false,
 		enableSorting: false,
@@ -50,7 +53,10 @@ export const columns: (ColumnDef<MacroRecordingWithoutSourcePSDs> & ColumnCapabi
 		accessorKey: 'startTimeStamp',
 		header: ({ column }) => <DataTableColumnHeader column={column} title="Date" />,
 		cell: ({ row }) => {
-			const leafRows = row.getLeafRows();
+			let leafRows = row.getLeafRows();
+			if (leafRows.length === 0) {
+				leafRows = [row];
+			}
 			const start = luxon.DateTime.fromMillis(leafRows[0].original.startTimeStamp);
 			const end = luxon.DateTime.fromMillis(leafRows[leafRows.length - 1].original.endTimeStamp);
 			const date = start.equals(end)
@@ -83,7 +89,12 @@ export const columns: (ColumnDef<MacroRecordingWithoutSourcePSDs> & ColumnCapabi
 				icon: React.ComponentType;
 			}[] = [];
 			const name: string[] = [];
-			row.getLeafRows().forEach((r) => {
+
+			let leafRows = row.getLeafRows();
+			if (leafRows.length === 0) {
+				leafRows = [row];
+			}
+			leafRows.forEach((r) => {
 				name.push(r.original.name);
 				if (labels.find((l) => l.accel === r.original.accelerometer)) {
 					return;
@@ -131,7 +142,12 @@ export const columns: (ColumnDef<MacroRecordingWithoutSourcePSDs> & ColumnCapabi
 							{l.label}
 						</Badge>
 					))}
-					{name.length > 1 ? name.slice(0, -1).join(', ') + ' & ' + name.slice(-1) : name[0]}
+					<Link
+						href={`/analysis/macros/${row.original.macroId}/recordings/${row.original.macroRecordingRunId}`}
+						className="truncate font-medium hover:text-brand-400"
+					>
+						{name.length > 1 ? name.slice(0, -1).join(', ') + ' & ' + name.slice(-1) : name[0]}
+					</Link>
 				</div>
 			);
 		},
@@ -157,7 +173,10 @@ export const columns: (ColumnDef<MacroRecordingWithoutSourcePSDs> & ColumnCapabi
 		size: 200,
 		header: ({ column }) => <DataTableColumnHeader column={column} title="Duration" />,
 		cell: ({ row }) => {
-			const leafRows = row.getLeafRows();
+			let leafRows = row.getLeafRows();
+			if (leafRows.length === 0) {
+				leafRows = [row];
+			}
 			const duration = luxon.Duration.fromMillis(
 				leafRows[leafRows.length - 1].original.endTimeStamp - leafRows[0].original.startTimeStamp,
 			)
@@ -172,8 +191,8 @@ export const columns: (ColumnDef<MacroRecordingWithoutSourcePSDs> & ColumnCapabi
 	},
 	{
 		id: 'actions',
-		size: 150,
-		header: ({ column }) => <DataTableColumnHeader column={column} title="Actions" />,
-		cell: ({ row }) => <MacroRecordingDataTableRowActions row={row} />,
+		size: 25,
+		header: ({ table }) => <RecordingBulkActions selection={table.getSelectedRowModel()} />,
+		cell: ({ row }) => null,
 	},
 ];

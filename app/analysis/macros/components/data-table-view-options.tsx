@@ -18,6 +18,9 @@ interface DataTableViewOptionsProps<TData> {
 }
 
 export function DataTableViewOptions<TData>({ table }: DataTableViewOptionsProps<TData>) {
+	const isGroupable = table.getAllColumns().some((column) => {
+		return column.getCanGroup();
+	});
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
@@ -26,7 +29,7 @@ export function DataTableViewOptions<TData>({ table }: DataTableViewOptionsProps
 					View
 				</Button>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent align="end" className="w-[150px]">
+			<DropdownMenuContent align="end">
 				<DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
 				<DropdownMenuSeparator />
 				{table
@@ -44,6 +47,42 @@ export function DataTableViewOptions<TData>({ table }: DataTableViewOptionsProps
 							</DropdownMenuCheckboxItem>
 						);
 					})}
+				{isGroupable && (
+					<>
+						<DropdownMenuSeparator />
+						<DropdownMenuLabel>Group rows</DropdownMenuLabel>
+						<DropdownMenuSeparator />
+						{table
+							.getAllColumns()
+							.filter((column) => column.getCanGroup())
+							.map((column) => {
+								const header = table.getHeaderGroups()[0].headers.find((h) => h.id === column.id);
+								console.log(table.getFlatHeaders());
+								if (typeof column.columnDef.header === 'function' && header == null) {
+									return null;
+								}
+								const title =
+									typeof column.columnDef.header === 'function' && header != null
+										? column.columnDef.header({
+												table,
+												column,
+												header,
+											})
+										: column.columnDef.header;
+								return (
+									<DropdownMenuCheckboxItem
+										key={column.id}
+										className="capitalize"
+										checked={column.getIsGrouped()}
+										onCheckedChange={(value) => column.toggleGrouping()}
+									>
+										{title}
+									</DropdownMenuCheckboxItem>
+								);
+							})
+							.filter(Boolean)}
+					</>
+				)}
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);

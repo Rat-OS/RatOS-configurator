@@ -45,9 +45,18 @@ export function DataTable<TData, TValue>({
 	const [grouping, setGrouping] = React.useState<GroupingState>(initialGrouping ?? []);
 	const [sorting, setSorting] = React.useState<SortingState>(initialSorting ?? []);
 
+	const cols = React.useMemo(
+		() =>
+			columns.map((c) => {
+				c.enableGrouping = c.enableGrouping === true ? true : false;
+				return c;
+			}),
+		[columns],
+	);
+
 	const table = useReactTable({
 		data,
-		columns,
+		columns: cols,
 		state: {
 			sorting,
 			columnVisibility,

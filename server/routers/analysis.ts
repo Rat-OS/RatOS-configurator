@@ -84,6 +84,30 @@ export const analysisRouter = router({
 			macrosRemoved,
 		};
 	}),
+	deleteRecordings: publicProcedure
+		.input(z.object({ macroId: macroIDSchema, recordingIds: z.array(macroRecordingIdSchema) }))
+		.mutation(async ({ input }) => {
+			const macro = await macroStorage.findById(input.macroId);
+			if (macro == null) {
+				const resultMsg = `Can't delete recordings, macro with id ${input.macroId} not found`;
+				getLogger().warn(resultMsg);
+				return { msg: resultMsg, recordingsRemoved: 0, success: false };
+			}
+			const file = path.join(recordingsDataDir, `${input.macroId}.ndjson`);
+			const recordingStorage = initObjectStorage(file, macroRecordingSchema);
+			const removeResult = await recordingStorage.removeAll(input.recordingIds);
+			const resultMsg = `Deleted ${removeResult.linesDeleted} recordings for macro "${macro.name}" (${input.macroId})`;
+			const recordingCount = macro.recordingCount as z.input<typeof macroSchema>['recordingCount'];
+			removeResult.found.forEach((r) => {
+				recordingCount[r.sequenceId] -= 1;
+			});
+			await macroStorage.update(
+				{ recordingCount: recordingCount, updatedAtTimeStamp: new Date().getTime() },
+				input.macroId,
+			);
+			getLogger().info(resultMsg);
+			return { msg: resultMsg, recordingsRemoved: removeResult.linesDeleted, success: true };
+		}),
 	findMacro: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
 		const macro = await macroStorage.findById(input.id);
 		if (macro == null) {

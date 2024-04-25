@@ -29,15 +29,15 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { getLogger } from '@/app/_helpers/logger';
 
-interface DataTableBulkActionsProps<TData extends z.infer<typeof macroSchema> = z.infer<typeof macroSchema>> {
+interface MacroBulkActionsProps<TData extends z.infer<typeof macroSchema> = z.infer<typeof macroSchema>> {
 	selection: RowModel<TData>;
 	onUpdate?: () => void;
 }
 
-export function DataTableBulkActions<TData extends z.infer<typeof macroSchema> = z.infer<typeof macroSchema>>({
+export function MacroBulkActions<TData extends z.infer<typeof macroSchema> = z.infer<typeof macroSchema>>({
 	selection,
 	onUpdate,
-}: DataTableBulkActionsProps<TData>) {
+}: MacroBulkActionsProps<TData>) {
 	const [isAlertVisible, setIsAlertVisible] = useState(false);
 
 	const deleteMacros = trpc.analysis.deleteMacros.useMutation();
@@ -94,7 +94,7 @@ export function DataTableBulkActions<TData extends z.infer<typeof macroSchema> =
 									toast.error('Failed to delete macros', {
 										description: `
 											<div>
-												<p>An error occurred while delete the macro.</p>
+												<p>An error occurred while deleting the macros.</p>
 												<pre class="text-wrap mt-4 text-rose-400 font-medium whitespace-pre-wrap">${e instanceof Error ? e.message : e instanceof String ? e : 'Unknown error'}</pre>
 											</div>
 										`,

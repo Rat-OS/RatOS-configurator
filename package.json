@@ -99,6 +99,7 @@
 		"react-diff-view": "^3.2.0",
 		"react-dom": "18.2.0",
 		"react-hook-form": "^7.51.2",
+		"react-hotkeys-hook": "^4.5.0",
 		"react-resizable-panels": "^2.0.16",
 		"react-use-websocket": "^4.5.0",
 		"read-package-up": "^11.0.0",

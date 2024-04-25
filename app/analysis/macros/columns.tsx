@@ -12,7 +12,7 @@ import { DotFilledIcon } from '@radix-ui/react-icons';
 import React from 'react';
 import { ColumnCapabilities } from '@/app/analysis/macros/components/data-table-toolbar';
 import { ArrowDownToDot, Cpu, Play, Server } from 'lucide-react';
-import { DataTableBulkActions } from '@/app/analysis/macros/macro-bulk-actions';
+import { MacroBulkActions } from '@/app/analysis/macros/macro-bulk-actions';
 import Link from 'next/link';
 
 export const columns: (ColumnDef<Macro> & ColumnCapabilities)[] = [
@@ -72,7 +72,7 @@ export const columns: (ColumnDef<Macro> & ColumnCapabilities)[] = [
 					))}
 					<Link
 						href={`/analysis/macros/${row.original.id}/recordings`}
-						className="max-w-[500px] truncate font-medium hover:text-brand-400"
+						className="truncate font-medium hover:text-brand-400"
 					>
 						{row.getValue('name')}
 					</Link>
@@ -126,7 +126,7 @@ export const columns: (ColumnDef<Macro> & ColumnCapabilities)[] = [
 		size: 16,
 		minSize: 16,
 		maxSize: 16,
-		header: ({ table }) => <DataTableBulkActions selection={table.getSelectedRowModel()} />,
+		header: ({ table }) => <MacroBulkActions selection={table.getSelectedRowModel()} />,
 		cell: ({ row }) => <DataTableRowActions row={row} />,
 	},
 ];

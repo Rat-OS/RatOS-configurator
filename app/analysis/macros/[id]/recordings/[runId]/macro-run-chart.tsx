@@ -13,6 +13,7 @@ import React, { useCallback, useEffect, useRef } from 'react';
 import {
 	BandAnimation,
 	CursorModifier,
+	EAutoRange,
 	FastBandRenderableSeries,
 	FastLineRenderableSeries,
 	LineAnimation,
@@ -64,7 +65,6 @@ export const MacroRunChart: React.FC<MacroRunChartProps> = ({ recordings, sequen
 					}
 				}
 			}
-
 			if (bandSeries) {
 				const rs = new FastBandRenderableSeries(surface.webAssemblyContext2D, {
 					dataSeries: new XyyDataSeries(surface.webAssemblyContext2D, {
@@ -118,7 +118,10 @@ export const MacroRunChart: React.FC<MacroRunChartProps> = ({ recordings, sequen
 				yAxis.visibleRange = new NumberRange(
 					Math.min(...sequenceData.map((seq) => seq.psd.powerRange.min)),
 					Math.max(...sequenceData.map((seq) => seq.psd.powerRange.max)),
-				).growBy(new NumberRange(0.0, 0.1));
+				).growBy(new NumberRange(0.0, 0.2));
+				yAxis.autoRange = EAutoRange.Always;
+				yAxis.autoRangeAnimation.duration = 500;
+				yAxis.autoRangeAnimation.easing = easing.inOutCirc;
 			}
 
 			surface.chartModifiers.add(
