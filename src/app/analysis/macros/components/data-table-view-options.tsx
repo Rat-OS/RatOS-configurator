@@ -18,6 +18,9 @@ interface DataTableViewOptionsProps<TData> {
 }
 
 export function DataTableViewOptions<TData>({ table }: DataTableViewOptionsProps<TData>) {
+	const isGroupable = table.getAllColumns().some((column) => {
+		column.getCanGroup();
+	});
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
@@ -44,6 +47,26 @@ export function DataTableViewOptions<TData>({ table }: DataTableViewOptionsProps
 							</DropdownMenuCheckboxItem>
 						);
 					})}
+				{isGroupable && (
+					<>
+						<DropdownMenuSeparator />
+						{table
+							.getAllColumns()
+							.filter((column) => column.getCanGroup())
+							.map((column) => {
+								return (
+									<DropdownMenuCheckboxItem
+										key={column.id}
+										className="capitalize"
+										checked={column.getIsGrouped()}
+										onCheckedChange={(value) => column.toggleGrouping()}
+									>
+										{column.id}
+									</DropdownMenuCheckboxItem>
+								);
+							})}
+					</>
+				)}
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);

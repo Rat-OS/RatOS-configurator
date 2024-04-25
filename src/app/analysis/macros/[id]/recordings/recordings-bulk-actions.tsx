@@ -12,7 +12,7 @@ import {
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
-import { macroSchema } from '@/zods/analysis';
+import { MacroRecordingWithoutSourcePSDs, macroRecordingSchema, macroSchema } from '@/zods/analysis';
 import { z } from 'zod';
 import { trpc } from '@/utils/trpc';
 import {
@@ -29,18 +29,18 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { getLogger } from '@/app/_helpers/logger';
 
-interface MacroBulkActionsProps<TData extends z.infer<typeof macroSchema> = z.infer<typeof macroSchema>> {
+interface RecordingBulkActionsProps<TData extends MacroRecordingWithoutSourcePSDs = MacroRecordingWithoutSourcePSDs> {
 	selection: RowModel<TData>;
 	onUpdate?: () => void;
 }
 
-export function MacroBulkActions<TData extends z.infer<typeof macroSchema> = z.infer<typeof macroSchema>>({
+export function RecordingBulkActions<TData extends MacroRecordingWithoutSourcePSDs = MacroRecordingWithoutSourcePSDs>({
 	selection,
 	onUpdate,
-}: MacroBulkActionsProps<TData>) {
+}: RecordingBulkActionsProps<TData>) {
 	const [isAlertVisible, setIsAlertVisible] = useState(false);
 
-	const deleteMacros = trpc.analysis.deleteMacros.useMutation();
+	const deleteRecordings = trpc.analysis.deleteRecordings.useMutation();
 
 	return (
 		<div className="flex justify-end">
@@ -54,7 +54,7 @@ export function MacroBulkActions<TData extends z.infer<typeof macroSchema> = z.i
 				<DropdownMenuContent align="end" className="w-[160px]">
 					<DropdownMenuItem onClick={() => setIsAlertVisible(true)} disabled={selection.rows.length === 0}>
 						Delete {selection.rows.length > 0 ? selection.rows.length : ''}{' '}
-						{selection.rows.length === 1 ? 'Macro' : 'Macros'}
+						{selection.rows.length === 1 ? 'Recording' : 'Recordings'}
 					</DropdownMenuItem>
 				</DropdownMenuContent>
 			</DropdownMenu>
@@ -63,7 +63,7 @@ export function MacroBulkActions<TData extends z.infer<typeof macroSchema> = z.i
 					<AlertDialogHeader>
 						<AlertDialogTitle>Are you sure?</AlertDialogTitle>
 						<AlertDialogDescription>
-							This action cannot be undone. This will permanently delete the selected macros and all associated
+							This action cannot be undone. This will permanently delete the {selection.flatRows.length} selected
 							recordings.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
@@ -74,27 +74,46 @@ export function MacroBulkActions<TData extends z.infer<typeof macroSchema> = z.i
 							onClick={async () => {
 								setIsAlertVisible(false);
 								try {
-									const result = await deleteMacros.mutateAsync(selection.rows.map((row) => row.original.id));
-									const failed = result.result.filter((r) => !r.success);
-									if (failed.length > 0) {
-										getLogger().error(failed, 'Failed to delete one or more macros');
-										toast.error('Failed to delete one or more macros', {
-											description:
-												"An unknown error occurred and some of the macros you marked for deletion seem to have disappeared from the database. This shouldn't happen. Please contact support.",
+									const result = await deleteRecordings.mutateAsync({
+										macroId: selection.rows[0].original.macroId,
+										recordingIds: selection.flatRows.map((row) => row.original.id),
+									});
+									if (result.success) {
+										if (result.recordingsRemoved !== selection.flatRows.length) {
+											getLogger().error(result, 'Failed to delete one or more macros');
+											toast.error('Failed to delete one or more macros', {
+												description:
+													"An unknown error occurred and some of the recordings you marked for deletion seem to have disappeared from the database. This shouldn't happen. Please contact support.",
+											});
+										}
+										toast.success('Recordings deleted!', {
+											description: `${result.recordingsRemoved} recording(s) were successfully deleted.`,
+										});
+										return;
+									} else {
+										getLogger().error(result, 'Failed to delete recordings');
+										toast.error('Failed to delete recordings', {
+											description: `
+												<div>
+													<p>An error occurred while deleting the selected recordings.</p>
+													<pre class="text-wrap mt-4 text-rose-400 font-medium whitespace-pre-wrap">${result.msg ?? 'Unknown error'}</pre>
+												</div>
+											`,
 										});
 									}
-									toast.success('Macros deleted!', {
-										description: `${result.macrosRemoved} out of ${result.result.length} macro(s) and ${result.result.reduce((prev, current) => prev + current.totalRecordingsRemoved, 0)} recording(s) were successfully deleted.`,
-									});
 								} catch (e) {
 									getLogger().error(
-										{ ids: selection.rows.map((row) => row.original.id), error: e },
-										'Failed to delete macros',
+										{
+											ids: selection.rows.map((row) => row.original.id),
+											macroId: selection.rows[0].original.macroId,
+											error: e,
+										},
+										'Failed to delete recordings',
 									);
-									toast.error('Failed to delete macros', {
+									toast.error('Failed to delete recordings', {
 										description: `
 											<div>
-												<p>An error occurred while deleting the macros.</p>
+												<p>An error occurred while deleting the recordings.</p>
 												<pre class="text-wrap mt-4 text-rose-400 font-medium whitespace-pre-wrap">${e instanceof Error ? e.message : e instanceof String ? e : 'Unknown error'}</pre>
 											</div>
 										`,

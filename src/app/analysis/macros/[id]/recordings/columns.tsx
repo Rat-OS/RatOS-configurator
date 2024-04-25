@@ -13,6 +13,9 @@ import * as luxon from 'luxon';
 import { MacroRecordingDataTableRowActions } from '@/app/analysis/macros/[id]/recordings/recording-row-actions';
 import { ArrowDownToDot, Cpu, Server } from 'lucide-react';
 import { KlipperAccelSensorName } from '@/zods/hardware';
+import { RecordingBulkActions } from '@/app/analysis/macros/[id]/recordings/recordings-bulk-actions';
+import { table } from 'console';
+import Link from 'next/link';
 luxon.Settings.defaultLocale = 'en-GB';
 const userLocale = luxon.DateTime.local().locale;
 
@@ -131,7 +134,12 @@ export const columns: (ColumnDef<MacroRecordingWithoutSourcePSDs> & ColumnCapabi
 							{l.label}
 						</Badge>
 					))}
-					{name.length > 1 ? name.slice(0, -1).join(', ') + ' & ' + name.slice(-1) : name[0]}
+					<Link
+						href={`/analysis/macros/${row.original.macroId}/recordings/${row.original.macroRecordingRunId}`}
+						className="truncate font-medium hover:text-brand-400"
+					>
+						{name.length > 1 ? name.slice(0, -1).join(', ') + ' & ' + name.slice(-1) : name[0]}
+					</Link>
 				</div>
 			);
 		},
@@ -172,8 +180,8 @@ export const columns: (ColumnDef<MacroRecordingWithoutSourcePSDs> & ColumnCapabi
 	},
 	{
 		id: 'actions',
-		size: 150,
-		header: ({ column }) => <DataTableColumnHeader column={column} title="Actions" />,
+		size: 25,
+		header: ({ table }) => <RecordingBulkActions selection={table.getSelectedRowModel()} />,
 		cell: ({ row }) => <MacroRecordingDataTableRowActions row={row} />,
 	},
 ];
