@@ -91,7 +91,7 @@ export const analysisRouter = router({
 			if (macro == null) {
 				const resultMsg = `Can't delete recordings, macro with id ${input.macroId} not found`;
 				getLogger().warn(resultMsg);
-				return { msg: resultMsg, totalRecordingsRemoved: 0, success: false };
+				return { msg: resultMsg, recordingsRemoved: 0, success: false };
 			}
 			const file = path.join(recordingsDataDir, `${input.macroId}.ndjson`);
 			const recordingStorage = initObjectStorage(file, macroRecordingSchema);
