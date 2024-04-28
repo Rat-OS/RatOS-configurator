@@ -9,7 +9,7 @@ import {
 	PSD_CHART_AXIS_AMPLITUDE_ID,
 	useADXLSignalChart,
 	usePSDChart,
-	PSDLength,
+	ADXL_STREAM_BUFFER_SIZE,
 } from '@/app/analysis/charts';
 import { twJoin } from 'tailwind-merge';
 import { SciChartReact } from 'scichart-react';
@@ -22,7 +22,7 @@ import {
 	useRealtimeSensor,
 	useTicker,
 } from '@/app/analysis/hooks';
-import { LineAnimation, MountainAnimation, NumberRange, SciChartSurface, easing } from 'scichart';
+import { LineAnimation, MountainAnimation, NumberRange, SciChartSurface, XyDataSeries, easing } from 'scichart';
 import { detrendSignal } from '@/app/analysis/periodogram';
 import { FullLoadScreen } from '@/components/common/full-load-screen';
 import { KlipperAccelSubscriptionResponse, MacroRecordingSettings } from '@/zods/analysis';
@@ -112,30 +112,29 @@ export const useRealtimeAnalysisChart = (
 				`Total estimates and frequencies are not the same length  (${res.total.estimates.length} vs ${res.total.frequencies.length})`,
 			);
 		}
-		// Pad PSD's to PSDLength
-		if (res.x.frequencies.length < PSDLength || res.x.estimates.length < PSDLength) {
-			const padFreq = new Array(PSDLength - res.x.frequencies.length).fill(0);
-			const padEstimates = new Array(PSDLength - res.x.estimates.length).fill(0);
-			res.x.frequencies.unshift(...padFreq);
-			res.x.estimates.unshift(...padEstimates);
-		}
-		if (res.y.frequencies.length < PSDLength || res.y.estimates.length < PSDLength) {
-			const padFreq = new Array(PSDLength - res.y.frequencies.length).fill(0);
-			const padEstimates = new Array(PSDLength - res.y.estimates.length).fill(0);
-			res.y.frequencies.unshift(...padFreq);
-			res.y.estimates.unshift(...padEstimates);
-		}
-		if (res.z.frequencies.length < PSDLength || res.z.estimates.length < PSDLength) {
-			const padFreq = new Array(PSDLength - res.z.frequencies.length).fill(0);
-			const padEstimates = new Array(PSDLength - res.z.estimates.length).fill(0);
-			res.z.frequencies.unshift(...padFreq);
-			res.z.estimates.unshift(...padEstimates);
-		}
-		if (res.total.frequencies.length < PSDLength || res.total.estimates.length < PSDLength) {
-			const padFreq = new Array(PSDLength - res.total.frequencies.length).fill(0);
-			const padEstimates = new Array(PSDLength - res.total.estimates.length).fill(0);
-			res.total.frequencies.unshift(...padFreq);
-			res.total.estimates.unshift(...padEstimates);
+		if (res.x.frequencies.length !== surface.renderableSeries.getById('x').dataSeries.count()) {
+			surface.renderableSeries.getById('x').dataSeries.clear();
+			surface.renderableSeries.getById('y').dataSeries.clear();
+			surface.renderableSeries.getById('z').dataSeries.clear();
+			surface.renderableSeries.getById('total').dataSeries.clear();
+			(surface.renderableSeries.getById('x').dataSeries as XyDataSeries).appendRange(
+				res.x.frequencies,
+				res.x.estimates,
+			);
+			(surface.renderableSeries.getById('y').dataSeries as XyDataSeries).appendRange(
+				res.y.frequencies,
+				res.y.estimates,
+			);
+			(surface.renderableSeries.getById('z').dataSeries as XyDataSeries).appendRange(
+				res.z.frequencies,
+				res.z.estimates,
+			);
+			(surface.renderableSeries.getById('total').dataSeries as XyDataSeries).appendRange(
+				res.total.frequencies,
+				res.total.estimates,
+			);
+			updatePsdChartRange(new NumberRange(res.total.powerRange.min, res.total.powerRange.max));
+			return;
 		}
 		animationDS.x.clear();
 		animationDS.y.clear();
@@ -181,7 +180,7 @@ export const useRealtimeAnalysisChart = (
 		updateSignalChartRange();
 		updatePsd(time, dX, dY, dZ, true);
 	});
-	useTicker(updateSignals);
+	useTicker(fifo.sampleRate.current / ADXL_STREAM_BUFFER_SIZE, isChartEnabled ? updateSignals : undefined);
 
 	useRealtimeSensor({
 		sensor: adxl,
@@ -215,63 +214,60 @@ export const useRealtimeAnalysisChart = (
 
 type RealtimeAnalysisChartProps = ReturnType<typeof useRealtimeAnalysisChart>['chartProps'];
 
-export const RealtimeAnalysisChart: React.FC<RealtimeAnalysisChartProps> = ({
-	xSignalChart,
-	ySignalChart,
-	zSignalChart,
-	psdChart,
-}) => {
-	return (
-		<div className="flex max-h-full min-h-full flex-col space-y-4 @container">
-			{/* <Toolbar buttons={toolbarButtons} /> */}
-			<div className="grid grid-cols-1 gap-4 @screen-lg:grid-cols-3">
-				<Card className="flex max-h-32 min-h-32 overflow-hidden @screen-lg:max-h-72 @screen-lg:min-h-72">
-					<h3 className="text-md absolute left-0 right-0 top-0 flex items-center space-x-2 p-4 font-semibold">
-						<div className={twJoin('flex-none rounded-full bg-yellow-400/10 p-1 text-yellow-400')}>
-							<div className="h-2 w-2 rounded-full bg-current" />
-						</div>
-						<span className="text-zinc-100">X Signal</span>
-					</h3>
+export const RealtimeAnalysisChart: React.FC<RealtimeAnalysisChartProps> = React.memo(
+	({ xSignalChart, ySignalChart, zSignalChart, psdChart }) => {
+		return (
+			<div className="flex max-h-full min-h-full flex-col space-y-4 @container">
+				{/* <Toolbar buttons={toolbarButtons} /> */}
+				<div className="grid grid-cols-1 gap-4 @screen-lg:grid-cols-3">
+					<Card className="flex max-h-32 min-h-32 overflow-hidden @screen-lg:max-h-72 @screen-lg:min-h-72">
+						<h3 className="text-md absolute left-0 right-0 top-0 flex items-center space-x-2 p-4 font-semibold">
+							<div className={twJoin('flex-none rounded-full bg-yellow-400/10 p-1 text-yellow-400')}>
+								<div className="h-2 w-2 rounded-full bg-current" />
+							</div>
+							<span className="text-zinc-100">X Signal</span>
+						</h3>
+						<SciChartReact
+							{...xSignalChart.forwardProps}
+							className="flex-1 rounded-lg"
+							fallback={<FullLoadScreen className="ml-[150px] bg-zinc-900" />}
+						/>
+					</Card>
+					<Card className="flex max-h-32 min-h-32 overflow-hidden @screen-lg:max-h-72 @screen-lg:min-h-72">
+						<h3 className="text-md absolute left-0 right-0 top-0 flex items-center space-x-2 p-4 font-semibold">
+							<div className={twJoin('flex-none rounded-full bg-sky-400/10 p-1 text-sky-400')}>
+								<div className="h-2 w-2 rounded-full bg-current" />
+							</div>
+							<span className="text-zinc-100">Y Signal</span>
+						</h3>
+						<SciChartReact
+							{...ySignalChart.forwardProps}
+							className="flex-1 rounded-lg"
+							fallback={<FullLoadScreen className="ml-[150px] bg-zinc-900" />}
+						/>
+					</Card>
+					<Card className="flex max-h-32 min-h-32 overflow-hidden @screen-lg:max-h-72 @screen-lg:min-h-72">
+						<h3 className="text-md absolute left-0 right-0 top-0 flex items-center space-x-2 p-4 font-semibold">
+							<div className={twJoin('flex-none rounded-full bg-rose-400/10 p-1 text-rose-400')}>
+								<div className="h-2 w-2 rounded-full bg-current" />
+							</div>
+							<span className="text-zinc-100">Z Signal</span>
+						</h3>
+						<SciChartReact
+							{...zSignalChart.forwardProps}
+							className="flex-1 rounded-lg"
+							fallback={<FullLoadScreen className="ml-[150px] bg-zinc-900" />}
+						/>
+					</Card>
+				</div>
+				<Card className="flex flex-1 overflow-hidden">
 					<SciChartReact
-						{...xSignalChart.forwardProps}
-						className="flex-1 rounded-lg"
-						fallback={<FullLoadScreen className="ml-[150px] bg-zinc-900" />}
-					/>
-				</Card>
-				<Card className="flex max-h-32 min-h-32 overflow-hidden @screen-lg:max-h-72 @screen-lg:min-h-72">
-					<h3 className="text-md absolute left-0 right-0 top-0 flex items-center space-x-2 p-4 font-semibold">
-						<div className={twJoin('flex-none rounded-full bg-sky-400/10 p-1 text-sky-400')}>
-							<div className="h-2 w-2 rounded-full bg-current" />
-						</div>
-						<span className="text-zinc-100">Y Signal</span>
-					</h3>
-					<SciChartReact
-						{...ySignalChart.forwardProps}
-						className="flex-1 rounded-lg"
-						fallback={<FullLoadScreen className="ml-[150px] bg-zinc-900" />}
-					/>
-				</Card>
-				<Card className="flex max-h-32 min-h-32 overflow-hidden @screen-lg:max-h-72 @screen-lg:min-h-72">
-					<h3 className="text-md absolute left-0 right-0 top-0 flex items-center space-x-2 p-4 font-semibold">
-						<div className={twJoin('flex-none rounded-full bg-rose-400/10 p-1 text-rose-400')}>
-							<div className="h-2 w-2 rounded-full bg-current" />
-						</div>
-						<span className="text-zinc-100">Z Signal</span>
-					</h3>
-					<SciChartReact
-						{...zSignalChart.forwardProps}
-						className="flex-1 rounded-lg"
+						{...psdChart.forwardProps}
+						className="flex-1"
 						fallback={<FullLoadScreen className="ml-[150px] bg-zinc-900" />}
 					/>
 				</Card>
 			</div>
-			<Card className="flex flex-1 overflow-hidden">
-				<SciChartReact
-					{...psdChart.forwardProps}
-					className="flex-1"
-					fallback={<FullLoadScreen className="ml-[150px] bg-zinc-900" />}
-				/>
-			</Card>
-		</div>
-	);
-};
+		);
+	},
+);

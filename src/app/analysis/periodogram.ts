@@ -2,6 +2,7 @@ import { signal as tfSignal, Tensor1D, sum, pow, div, mean, sub, tidy } from '@t
 import '@tensorflow/tfjs-backend-webgl';
 import { NumberRange } from 'scichart';
 import { PSD } from '@/zods/analysis';
+import { getLogger } from '@/app/_helpers/logger';
 
 /**
  * Returns the ceil of the log2 of the absolute value of the passed number
@@ -61,7 +62,6 @@ export async function powerSpectralDensity(
 	let klipScale = (await tidy(() => div(div(1.0, sum(pow(win, 2))), sampleRate)).array()) as number;
 
 	const detrended = options?.isDetrended ? signal : detrendSignal(signal);
-	// console.log('stft options', sample_rate, signal.size, fftSize);
 	let f = tfSignal.stft(detrended, fftSize, Math.floor(fftSize / 2), fftSize, tfSignal.hannWindow);
 
 	let x = (await f.array()) as number[][];
@@ -76,12 +76,15 @@ export async function powerSpectralDensity(
 			let frequencies: number[] = [];
 			let maxPower = 0;
 			let minPower = 0;
+			let skipped = 0;
+			const fftRatio = sampleRate / fftSize;
 			for (var i = 0; i < series.length - 1; i += 2) {
-				const frequency = (i === 0 ? 0 : i / 2) * (sampleRate / fftSize);
+				const frequency = (i === 0 ? 0 : i / 2) * fftRatio;
 				if (frequency > MAX_FREQ) {
+					skipped++;
 					continue;
 				}
-				const nextFrequency = ((i + 2) / 2) * (sampleRate / fftSize);
+				const nextFrequency = ((i + 2) / 2) * fftRatio;
 				// apply scaling
 				// magnitude is sqrt(real^2 + imag^2), power is magnitude^2
 				let power: number = series[i] ** 2 + series[i + 1] ** 2;
@@ -113,7 +116,7 @@ export async function powerSpectralDensity(
 export const welch = async (PSDs: PSD[]): Promise<PSD> => {
 	if (PSDs.length == 0) throw new Error('Unable to calculate any PSD estimates');
 	if (PSDs.length == 1) {
-		console.warn('Not enough data to compute more than one segment, returning single modified periodogram.');
+		getLogger().warn('Not enough data to compute more than one segment, returning single modified periodogram.');
 		return PSDs[0];
 	}
 

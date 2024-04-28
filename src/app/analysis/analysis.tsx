@@ -117,6 +117,7 @@ const macroRecordingMutationOptions: Parameters<typeof trpc.analysis.saveRecordi
 };
 
 export const Analysis = () => {
+	const [macros] = trpc.analysis.getMacros.useSuspenseQuery({ limit: 10 });
 	const router = useRouter();
 	const toolheads = useToolheads();
 	const hasBeacon = useMemo(
@@ -132,7 +133,6 @@ export const Analysis = () => {
 		currentAccelerometer,
 		currentAccelerometerHardwareName,
 	} = useRealtimeAnalysisChart(adxl);
-	const [macros] = trpc.analysis.getMacros.useSuspenseQuery({ limit: 10 });
 	const { mutateAsync: mutateRecordingAsync } = trpc.analysis.saveRecording.useMutation(macroRecordingMutationOptions);
 
 	const [isRecording, setIsRecording] = useState(false);

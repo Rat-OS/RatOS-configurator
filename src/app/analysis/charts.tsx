@@ -55,7 +55,6 @@ export const SIGNAL_CHART_AXIS_HISTORY_ID = 'history';
 export const SIGNAL_CHART_SERIES_SIGNAL_ID = 'signal-series';
 export const SIGNAL_CHART_SERIES_HISTORY_ID = 'history-series';
 export const SIGNAL_CHART_AXIS_AMPLITUDE_ID = 'amplitude';
-export const PSDLength = 131;
 
 type ADXLAxes = 'x' | 'y' | 'z';
 
@@ -282,10 +281,10 @@ export const PSDChartDefinition: ISciChart2DDefinition = {
 			xyData: {
 				containsNaN: false,
 				isSorted: true,
-				xValues: Array(PSDLength)
+				xValues: Array(ADXL_STREAM_BUFFER_SIZE)
 					.fill(0)
-					.map((_, i) => Math.floor((i / PSDLength) * 200)),
-				yValues: Array(PSDLength)
+					.map((_, i) => Math.floor((i / ADXL_STREAM_BUFFER_SIZE) * 200)),
+				yValues: Array(ADXL_STREAM_BUFFER_SIZE)
 					.fill(0)
 					.map((_, i) => 0),
 			},
@@ -301,10 +300,10 @@ export const PSDChartDefinition: ISciChart2DDefinition = {
 			xyData: {
 				containsNaN: false,
 				isSorted: true,
-				xValues: Array(PSDLength)
+				xValues: Array(ADXL_STREAM_BUFFER_SIZE)
 					.fill(0)
-					.map((_, i) => Math.floor((i / PSDLength) * 200)),
-				yValues: Array(PSDLength)
+					.map((_, i) => Math.floor((i / ADXL_STREAM_BUFFER_SIZE) * 200)),
+				yValues: Array(ADXL_STREAM_BUFFER_SIZE)
 					.fill(0)
 					.map((_, i) => 0),
 			},
@@ -320,10 +319,10 @@ export const PSDChartDefinition: ISciChart2DDefinition = {
 			xyData: {
 				containsNaN: false,
 				isSorted: true,
-				xValues: Array(PSDLength)
+				xValues: Array(ADXL_STREAM_BUFFER_SIZE)
 					.fill(0)
-					.map((_, i) => Math.floor((i / PSDLength) * 200)),
-				yValues: Array(PSDLength)
+					.map((_, i) => Math.floor((i / ADXL_STREAM_BUFFER_SIZE) * 200)),
+				yValues: Array(ADXL_STREAM_BUFFER_SIZE)
 					.fill(0)
 					.map((_, i) => 0),
 			},
@@ -339,10 +338,10 @@ export const PSDChartDefinition: ISciChart2DDefinition = {
 			xyData: {
 				containsNaN: false,
 				isSorted: true,
-				xValues: Array(PSDLength)
+				xValues: Array(ADXL_STREAM_BUFFER_SIZE)
 					.fill(0)
-					.map((_, i) => Math.floor((i / PSDLength) * 200)),
-				yValues: Array(PSDLength)
+					.map((_, i) => Math.floor((i / ADXL_STREAM_BUFFER_SIZE) * 200)),
+				yValues: Array(ADXL_STREAM_BUFFER_SIZE)
 					.fill(0)
 					.map((_, i) => 0),
 			},
@@ -473,21 +472,6 @@ export const psdRolloverTooltipTemplate: TRolloverTooltipSvgTemplate = (id, seri
 		</svg>`;
 };
 
-const getTooltipDataTemplate = (
-	seriesInfo: SeriesInfo,
-	tooltipTitle: string,
-	tooltipLabelX: string,
-	tooltipLabelY: string,
-) => {
-	// Lines here are returned to the tooltip and displayed as text-line per tooltip
-	const lines: string[] = [];
-	lines.push(tooltipTitle);
-	lines.push(
-		`<tspan class="opacity-70 font-medium">${seriesInfo.formattedYValue} @ ${seriesInfo.formattedXValue}</tspan>`,
-	);
-	return lines;
-};
-
 export const usePSDChart = () => {
 	return useChart(
 		PSDChartDefinition,
@@ -546,18 +530,6 @@ export const usePSDChart = () => {
 			});
 
 			surface.chartModifiers.add(
-				new RolloverModifier({
-					// Defines if rollover vertical line is shown
-					showRolloverLine: true,
-					// Shows the default tooltip
-					showTooltip: false,
-					yAxisId: PSD_CHART_AXIS_AMPLITUDE_ID,
-					// Optional: Overrides the content of the tooltip
-					tooltipDataTemplate: getTooltipDataTemplate,
-				}),
-			);
-
-			surface.chartModifiers.add(
 				new CursorModifier({
 					// Defines if crosshair is shown
 					crosshairStroke: twColors.sky[400],
@@ -566,6 +538,9 @@ export const usePSDChart = () => {
 					showYLine: true,
 					// Shows the default tooltip
 					showTooltip: false,
+					tooltipLegendTemplate: getPSDTooltipLegendTemplate,
+					tooltipLegendOffsetX: 16,
+					tooltipLegendOffsetY: 16,
 					yAxisId: PSD_CHART_AXIS_AMPLITUDE_ID,
 					axisLabelFill: twColors.zinc[900],
 					axisLabelStroke: twColors.zinc[100],
