@@ -388,14 +388,17 @@ export const useBufferedADXLSignal = (
 	update.current = updateFn;
 	const tick = useCallback(async () => {
 		const sinceLast = new Date().getTime() - lastUpdate.current;
-		if (fifoTensor.buffer.current == null || fifoTensor.buffer.current.shape[0] < ADXL_STREAM_BUFFER_SIZE / 2) {
+		const samples = Math.min(Math.ceil(fifoTensor.sampleRate.current * (sinceLast / 1000)), ADXL_STREAM_BUFFER_SIZE);
+		// const samples = Math.ceil(fifoTensor.sampleRate.current / 50);
+		if (fifoTensor.buffer.current == null || fifoTensor.buffer.current.shape[0] < 5) {
 			return;
 		}
-		let toTake = ADXL_STREAM_BUFFER_SIZE / 2;
+		let toTake = samples;
 		if (fifoTensor.buffer.current.shape[0] > ADXL_STREAM_BUFFER_SIZE * 12) {
 			toTake += ADXL_STREAM_BUFFER_SIZE;
 		}
 		const data = fifoTensor.take(toTake);
+		lastUpdate.current = new Date().getTime();
 		if (data == null) {
 			return;
 		}
@@ -534,22 +537,28 @@ export const useAccumulatedPSD = (updateFn?: (result: AccumulatedPSD) => void) =
 		[isAccumulating, onData, start, stop],
 	);
 };
-
-export function useTicker(tickOrTargetFps: () => Promise<void>, tick?: undefined): void;
-export function useTicker(tickOrTargetFps: number, tick: () => Promise<void>): void;
-export function useTicker(tickOrTargetFps: number | (() => Promise<void>), tick?: () => Promise<void>) {
+const DEFAULT_FPS = 24;
+export function useTicker(tickOrTargetFps?: () => Promise<void>, tick?: undefined): void;
+export function useTicker(tickOrTargetFps?: number, tick?: () => Promise<void>): void;
+export function useTicker(tickOrTargetFps?: number | (() => Promise<void>), tick?: () => Promise<void>) {
 	if (typeof tickOrTargetFps === 'function') {
 		tick = tickOrTargetFps;
 	}
-	if (tick == null) {
-		throw new Error('Tick function is required');
-	}
 	const fnRef = useRef(tick);
 	fnRef.current = tick;
-	const interval = Math.floor(1000 / (typeof tickOrTargetFps === 'function' ? 50 : tickOrTargetFps));
+	const interval = Math.floor(
+		1000 / (typeof tickOrTargetFps === 'function' ? DEFAULT_FPS : tickOrTargetFps ?? DEFAULT_FPS),
+	);
+	const isEnabled = tick != null;
 	useEffect(() => {
+		if (isEnabled === false) {
+			return;
+		}
 		let id = 0;
 		const update = async () => {
+			if (fnRef.current == null) {
+				return;
+			}
 			await fnRef.current();
 			id = window.setTimeout(update, interval);
 		};
@@ -557,7 +566,7 @@ export function useTicker(tickOrTargetFps: number | (() => Promise<void>), tick?
 		return () => {
 			window.clearTimeout(id);
 		};
-	}, [interval]);
+	}, [interval, isEnabled]);
 }
 
 const maximumRangeUnion = (axis: AxisBase2D | (AxisBase2D | null)[]) => {
