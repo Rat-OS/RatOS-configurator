@@ -23,8 +23,19 @@ import {
 	build2DChart,
 	easing,
 } from 'scichart';
-import { Tensor1D, Tensor2D, addN, concat, concat2d, gather, reshape, split, tensor1d } from '@tensorflow/tfjs-core';
-import '@tensorflow/tfjs-backend-webgl';
+import {
+	Tensor1D,
+	Tensor2D,
+	addN,
+	concat,
+	concat2d,
+	gather,
+	reshape,
+	setBackend,
+	split,
+	tensor1d,
+} from '@tensorflow/tfjs-core';
+import '@tensorflow/tfjs-backend-wasm';
 import { powerSpectralDensity, sumPSDs, welch } from '@/app/analysis/periodogram';
 import { ADXL_STREAM_BUFFER_SIZE } from '@/app/analysis/charts';
 import { TChartComponentProps } from 'scichart-react/types';
@@ -156,7 +167,7 @@ export const useRealtimeSensor = <
 
 	const subscribe = useCallback(async () => {
 		const id = ++REQ_ID;
-		return new Promise<SuccessResponseType['result']>((resolve, reject) => {
+		return new Promise<SuccessResponseType['result']>(async (resolve, reject) => {
 			inFlightRequests.current[id] = (err, result) => {
 				if (err) {
 					return reject(err);

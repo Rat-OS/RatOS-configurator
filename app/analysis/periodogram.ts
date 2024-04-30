@@ -1,4 +1,4 @@
-import { signal as tfSignal, Tensor1D, sum, pow, div, mean, sub, tidy } from '@tensorflow/tfjs-core';
+import { signal as tfSignal, Tensor1D, sum, pow, div, mean, sub, tidy, setBackend, ready } from '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-backend-webgl';
 import { NumberRange } from 'scichart';
 import { PSD } from '@/zods/analysis';
@@ -62,6 +62,7 @@ export async function powerSpectralDensity(
 	let klipScale = (await tidy(() => div(div(1.0, sum(pow(win, 2))), sampleRate)).array()) as number;
 
 	const detrended = options?.isDetrended ? signal : detrendSignal(signal);
+	await setBackend('webgl');
 	let f = tfSignal.stft(detrended, fftSize, Math.floor(fftSize / 2), fftSize, tfSignal.hannWindow);
 
 	let x = (await f.array()) as number[][];
@@ -69,47 +70,49 @@ export async function powerSpectralDensity(
 	detrended.dispose();
 	win.dispose();
 
-	return welch(
-		x.map((series) => {
-			// Get the power of each FFT bin value
-			let powers: number[] = [];
-			let frequencies: number[] = [];
-			let maxPower = 0;
-			let minPower = 0;
-			let skipped = 0;
-			const fftRatio = sampleRate / fftSize;
-			for (var i = 0; i < series.length - 1; i += 2) {
-				const frequency = (i === 0 ? 0 : i / 2) * fftRatio;
-				if (frequency > MAX_FREQ) {
-					skipped++;
-					continue;
-				}
-				const nextFrequency = ((i + 2) / 2) * fftRatio;
-				// apply scaling
-				// magnitude is sqrt(real^2 + imag^2), power is magnitude^2
-				let power: number = series[i] ** 2 + series[i + 1] ** 2;
-				power *= klipScale;
-				// Don't scale DC or Nyquist by 2
-				if (_scaling == 'psd' && i > 0 && nextFrequency < MAX_FREQ) {
-					power *= scaling_factor;
-				}
-				if (power > maxPower) {
-					maxPower = power;
-				}
-				if (power < minPower) {
-					minPower = power;
-				}
-				powers.push(power);
-				frequencies.push(frequency);
+	const data = x.map((series) => {
+		// Get the power of each FFT bin value
+		let powers: number[] = [];
+		let frequencies: number[] = [];
+		let maxPower = 0;
+		let minPower = 0;
+		let skipped = 0;
+		const fftRatio = sampleRate / fftSize;
+		for (var i = 0; i < series.length - 1; i += 2) {
+			const frequency = (i === 0 ? 0 : i / 2) * fftRatio;
+			if (frequency > MAX_FREQ) {
+				skipped++;
+				continue;
 			}
+			const nextFrequency = ((i + 2) / 2) * fftRatio;
+			// apply scaling
+			// magnitude is sqrt(real^2 + imag^2), power is magnitude^2
+			let power: number = series[i] ** 2 + series[i + 1] ** 2;
+			power *= klipScale;
+			// Don't scale DC or Nyquist by 2
+			if (_scaling == 'psd' && i > 0 && nextFrequency < MAX_FREQ) {
+				power *= scaling_factor;
+			}
+			if (power > maxPower) {
+				maxPower = power;
+			}
+			if (power < minPower) {
+				minPower = power;
+			}
+			powers.push(power);
+			frequencies.push(frequency);
+		}
 
-			return {
-				estimates: powers,
-				frequencies: frequencies,
-				powerRange: new NumberRange(minPower, maxPower),
-			};
-		}),
-	);
+		return {
+			estimates: powers,
+			frequencies: frequencies,
+			powerRange: new NumberRange(minPower, maxPower),
+		};
+	});
+
+	await setBackend('wasm');
+
+	return welch(data);
 }
 
 // Keep this async so that we can potentially move it to the GPU
