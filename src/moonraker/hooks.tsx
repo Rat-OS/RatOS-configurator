@@ -30,7 +30,6 @@ import type {
 import { getHost } from '@/helpers/util';
 import { merge } from 'ts-deepmerge';
 import deepEqual from 'deep-equal';
-import { e } from 'vitest/dist/reporters-rzC174PQ';
 
 let REQ_ID = 0;
 

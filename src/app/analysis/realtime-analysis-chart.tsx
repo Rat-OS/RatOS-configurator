@@ -32,6 +32,10 @@ import { toast } from 'sonner';
 import { getLogger } from '@/app/_helpers/logger';
 import { AccelerometerType } from '@/zods/hardware';
 import { z } from 'zod';
+import { useQuery } from '@tanstack/react-query';
+import { setWasmPaths } from '@tensorflow/tfjs-backend-wasm';
+import '@tensorflow/tfjs-backend-cpu';
+import { setBackend } from '@tensorflow/tfjs-core';
 
 SciChartSurface.configure({
 	wasmUrl: '/configure/scichart2d.wasm',
@@ -42,6 +46,18 @@ export const useRealtimeAnalysisChart = (
 	accelerometer?: MacroRecordingSettings['accelerometer'],
 	accelerometerType: z.infer<typeof AccelerometerType> = 'adxl345',
 ) => {
+	useQuery(['wasmBackend'], {
+		queryFn: async () => {
+			setWasmPaths({
+				'tfjs-backend-wasm.wasm': '/configure/tfjs-backend-wasm.wasm',
+				'tfjs-backend-wasm-simd.wasm': '/configure/tfjs-backend-wasm-simd.wasm',
+				'tfjs-backend-wasm-threaded-simd.wasm': '/configure/tfjs-backend-wasm-threaded-simd.wasm',
+			});
+			await setBackend('wasm');
+			return 'wasm';
+		},
+		suspense: true,
+	});
 	const [isChartEnabled, setIsChartEnabled] = useState(false);
 	const [dataHeader, setDataHeader] = useState<KlipperAccelSubscriptionResponse['header'] | undefined>(undefined);
 	const toolheads = useToolheads();
