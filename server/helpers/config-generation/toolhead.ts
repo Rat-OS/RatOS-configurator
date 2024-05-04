@@ -449,6 +449,7 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 			`variable_purge_before_unload: 0`,
 			`variable_extruder_load_speed: 60`,
 			`variable_filament_load_speed: 10`,
+			`variable_standby: False`,
 		];
 		if (this.printer.kinematics == 'hybrid-corexy-idex') {
 			result.push(
