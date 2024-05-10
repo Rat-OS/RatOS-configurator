@@ -26,12 +26,14 @@ interface SelectableNetwork extends SelectableCard {
 }
 
 export const WifiSetup: React.FC<StepScreenProps> = (props) => {
+	const timeoutRef = React.useRef<number | null>(null);
+	const [isScanning, setIsScanning] = useState(true);
 	const [apList, setApList] = useState<APList>({});
 	const [selectedNetwork, setSelectedNetwork] = useState<null | Network>(null);
 	const [password, setPassword] = useState('');
 	const [hostname, setHostname] = useState('RatOS');
 	const [hostnameCompleted, setHostnameCompleted] = useState(false);
-	const [showHidden, setShowHidden] = useState(true);
+	const [showHidden, setShowHidden] = useState(false);
 	const [overrideSSID, setOverrideSSID] = useState<string | null>(null);
 
 	const { isError, error, data } = trpc.wifi.scan.useQuery(
@@ -44,10 +46,18 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 				return 1000;
 			},
 			retry: false,
+			enabled: isScanning && selectedNetwork == null,
 		},
 	);
 	const hostnameMutation = trpc.wifi.hostname.useMutation();
 	const wifiMutation = trpc.wifi.join.useMutation();
+
+	useEffect(() => {
+		// Cleanup
+		return () => {
+			if (timeoutRef.current != null) clearTimeout(timeoutRef.current);
+		};
+	}, []);
 
 	useEffect(() => {
 		setApList((apList) => {
@@ -89,7 +99,7 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 		return Object.keys(apList)
 			.filter((ap) => apList[ap].ssid != null || showHidden)
 			.map((ap) => ({
-				name: apList[ap].ssid ?? 'Hidden SSID',
+				name: apList[ap].ssid?.trim() == '' ? 'Hidden SSID' : apList[ap].ssid ?? 'Hidden SSID',
 				id: ap,
 				details: (
 					<div className="gap-4 md:grid md:grid-cols-2">
@@ -242,7 +252,7 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 			<div className="mb-4 h-48">
 				<ErrorMessage title="Unable to scan for wifi access points">{error?.message}</ErrorMessage>
 			</div>
-		) : Object.keys(apList).length === 0 ? (
+		) : Object.keys(apList).length === 0 || !isScanning ? (
 			<div className="mb-4 flex h-48 items-center justify-center">
 				<Spinner />
 			</div>
@@ -311,7 +321,20 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 					</div>
 					{selectedNetwork == null && (
 						<div>
-							<Button variant="indeterminate" onClick={() => setShowHidden((org) => !org)}>
+							<Button
+								variant="indeterminate"
+								onClick={() => {
+									// Disable fetching
+									setIsScanning(false);
+									// wait for current scans to complete
+									if (timeoutRef.current != null) clearTimeout(timeoutRef.current);
+									timeoutRef.current = window.setTimeout(() => {
+										setShowHidden((org) => !org);
+										setIsScanning(true);
+										timeoutRef.current = null;
+									}, 5000);
+								}}
+							>
 								{showHidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}{' '}
 								{showHidden ? 'Hide Hidden SSIDs' : 'Show Hidden SSIDs'}
 							</Button>
