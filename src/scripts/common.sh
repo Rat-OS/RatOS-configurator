@@ -22,9 +22,9 @@ pnpm_install() {
 			report_status "Deleting root owned node_modules"
 			rm -rf "$SRC_DIR/node_modules"
 		fi
-        sudo -u pi pnpm install --aggregate-output --no-color  --config.confirmModulesPurge=false
+        sudo -u pi pnpm install --frozen-lockfile --aggregate-output --no-color --config.confirmModulesPurge=false
     else
-		pnpm install --aggregate-output --no-color  --config.confirmModulesPurge=false
+		pnpm install --frozen-lockfile --aggregate-output --no-color --config.confirmModulesPurge=false
 	fi
     popd || exit 1
 }
