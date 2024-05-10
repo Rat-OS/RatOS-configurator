@@ -10,6 +10,16 @@ verify_ready()
     fi
 }
 
+maybe_truncate_log()
+{
+    LOG_FILE="/var/log/ratos-configurator.log"
+    if grep -q "    'network=" $LOG_FILE; then
+        report_status "Found network credentials in log, truncating ..."
+        truncate -s 0 "$LOG_FILE"
+        report_status "Log truncated. If you've posted a debug-zip publically, please change your wifi password."
+    fi
+}
+
 verify_ready
 verify_users
 install_hooks
