@@ -32,15 +32,13 @@ export const wifiRouter = router({
 	}),
 	join: publicProcedure.input(joinInput).mutation(async ({ input }) => {
 		try {
-			console.log(
-				await runSudoScript(
-					'add-wifi-network.sh',
-					input.ssid,
-					input.passphrase,
-					input.country ?? 'GB',
-					input.frequencies,
-					input.hidden ? 'hidden' : 'shown',
-				),
+			await runSudoScript(
+				'add-wifi-network.sh',
+				input.ssid,
+				input.passphrase,
+				input.country ?? 'GB',
+				input.frequencies,
+				input.hidden ? 'hidden' : 'shown',
 			);
 		} catch (e) {
 			if (e instanceof Error) {

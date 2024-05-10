@@ -23,10 +23,6 @@ if [ "$5" = "hidden" ]; then
 	}"}
 fi
 
-echo "$1 $2 $3 $4 $5";
-echo "$NETWORK";
-exit 0;
-
 cat << __EOF > /etc/wpa_supplicant/wpa_supplicant.conf
 # Use this file to configure your wifi connection(s).
 #
