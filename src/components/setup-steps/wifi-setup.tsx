@@ -217,22 +217,23 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 						</div>
 					</div>
 				)}
-				{selectedNetwork.ssid == null && (
-					<TextInput
-						label="SSID"
-						type="text"
-						key="ssid"
-						value={overrideSSID ?? ''}
-						error={
-							wifiMutation.isError
-								? wifiMutation.error.message
-								: passwordValidation.success
-									? undefined
-									: passwordValidation.error.formErrors.fieldErrors.ssid?.join('\n')
-						}
-						onChange={setOverrideSSID}
-					/>
-				)}
+				{selectedNetwork.ssid == null ||
+					(selectedNetwork.ssid.trim() === '' && (
+						<TextInput
+							label="SSID"
+							type="text"
+							key="ssid"
+							value={overrideSSID ?? ''}
+							error={
+								wifiMutation.isError
+									? wifiMutation.error.message
+									: passwordValidation.success
+										? undefined
+										: passwordValidation.error.formErrors.fieldErrors.ssid?.join('\n')
+							}
+							onChange={setOverrideSSID}
+						/>
+					))}
 				<TextInput
 					label={selectedNetwork.security.toLocaleUpperCase() + ' Password'}
 					type="password"
@@ -326,13 +327,14 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 								onClick={() => {
 									// Disable fetching
 									setIsScanning(false);
+									setShowHidden((org) => !org);
 									// wait for current scans to complete
 									if (timeoutRef.current != null) clearTimeout(timeoutRef.current);
 									timeoutRef.current = window.setTimeout(() => {
-										setShowHidden((org) => !org);
+										setApList({});
 										setIsScanning(true);
 										timeoutRef.current = null;
-									}, 5000);
+									}, 4000);
 								}}
 							>
 								{showHidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}{' '}
