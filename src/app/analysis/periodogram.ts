@@ -1,4 +1,19 @@
-import { signal as tfSignal, Tensor1D, sum, pow, div, mean, sub, tidy, setBackend, ready } from '@tensorflow/tfjs-core';
+import {
+	signal as tfSignal,
+	Tensor1D,
+	sum,
+	pow,
+	div,
+	mean,
+	sub,
+	tidy,
+	setBackend,
+	ready,
+	transpose,
+	mul,
+	real,
+	tensor1d,
+} from '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-backend-webgl';
 import { NumberRange } from 'scichart';
 import { PSD } from '@/zods/analysis';
@@ -27,6 +42,9 @@ export const detrendSignal = (signal: Tensor1D) => tidy(() => sub<Tensor1D>(sign
 const WINDOW_T_SEC = 0.5;
 const MAX_FREQ = 200;
 
+export const getFFTSize = (sampleRate: number, windowT: number = WINDOW_T_SEC): number =>
+	1 << Math.floor(sampleRate * windowT - 1).toString(2).length;
+
 /**
  * Estimates the power spectral density of a real-valued input signal using the periodogram method and a hann window.
  * Output units are based on that of the input signal, of the form X^2/Hz, where X is the units of the input signal.
@@ -47,7 +65,7 @@ export async function powerSpectralDensity(
 ): Promise<PSD> {
 	let { fftSize, _scaling } = Object.assign(
 		{
-			fftSize: 1 << nextpow2(sampleRate * WINDOW_T_SEC - 1),
+			fftSize: getFFTSize(sampleRate, WINDOW_T_SEC),
 			_scaling: 'psd',
 		},
 		options,
@@ -59,16 +77,21 @@ export async function powerSpectralDensity(
 
 	let scaling_factor: number = _scaling === 'none' ? 1 : 2;
 	const win = tfSignal.hannWindow(fftSize);
-	let klipScale = (await tidy(() => div(div(1.0, sum(pow(win, 2))), sampleRate)).array()) as number;
+	let windowLossCompensationFactor = (await tidy(() => div(div(1.0, sum(pow(win, 2))), sampleRate)).array()) as number;
 
-	const detrended = options?.isDetrended ? signal : detrendSignal(signal);
-	await setBackend('webgl');
-	let f = tfSignal.stft(detrended, fftSize, Math.floor(fftSize / 2), fftSize, tfSignal.hannWindow);
+	const detrended = (await (options?.isDetrended ? signal : detrendSignal(signal)).array()) as number[];
+	// await setBackend('webgl');
 
-	let x = (await f.array()) as number[][];
-	f.dispose();
-	detrended.dispose();
+	let x = (await tidy(() => {
+		let f = tfSignal.stft(tensor1d(detrended), fftSize, Math.floor(fftSize / 2), fftSize, tfSignal.hannWindow);
+		f = mul(transpose(f, [0, 1], true), f);
+		f = mul(f, windowLossCompensationFactor);
+		f = mul(f, scaling_factor);
+		f = real(f);
+		return f;
+	}).array()) as number[][];
 	win.dispose();
+	// await setBackend('wasm');
 
 	const data = x.map((series) => {
 		// Get the power of each FFT bin value
@@ -78,20 +101,21 @@ export async function powerSpectralDensity(
 		let minPower = 0;
 		let skipped = 0;
 		const fftRatio = sampleRate / fftSize;
-		for (var i = 0; i < series.length - 1; i += 2) {
-			const frequency = (i === 0 ? 0 : i / 2) * fftRatio;
+		for (var i = 0; i < series.length - 1; i += 1) {
+			const frequency = i * fftRatio;
 			if (frequency > MAX_FREQ) {
 				skipped++;
 				continue;
 			}
-			const nextFrequency = ((i + 2) / 2) * fftRatio;
+			// const nextFrequency = ((i + 2) / 2) * fftRatio;
 			// apply scaling
+			// console.log(series[i], series[i + 1]);
 			// magnitude is sqrt(real^2 + imag^2), power is magnitude^2
-			let power: number = series[i] ** 2 + series[i + 1] ** 2;
-			power *= klipScale;
+			let power: number = series[i]; //series[i] ** 2 + series[i + 1] ** 2;
+			// power *= klipScale;
 			// Don't scale DC or Nyquist by 2
-			if (_scaling == 'psd' && i > 0 && nextFrequency < MAX_FREQ) {
-				power *= scaling_factor;
+			if ((_scaling == 'psd' && i === 0) || frequency < sampleRate / 2) {
+				power /= scaling_factor;
 			}
 			if (power > maxPower) {
 				maxPower = power;
@@ -109,8 +133,6 @@ export async function powerSpectralDensity(
 			powerRange: new NumberRange(minPower, maxPower),
 		};
 	});
-
-	await setBackend('wasm');
 
 	return welch(data);
 }

@@ -15,6 +15,7 @@ import { twJoin } from 'tailwind-merge';
 import { SciChartReact } from 'scichart-react';
 import {
 	useADXLFifoTensor,
+	useAccelerometerWithType,
 	useAccumulatedPSD,
 	useBufferedADXLSignal,
 	useBufferedPSD,
@@ -30,17 +31,127 @@ import { useRecoilValue } from 'recoil';
 import { ControlboardState } from '@/recoil/printer';
 import { toast } from 'sonner';
 import { getLogger } from '@/app/_helpers/logger';
-import { AccelerometerType } from '@/zods/hardware';
+import { AccelerometerType, KlipperAccelSensorName } from '@/zods/hardware';
 import { z } from 'zod';
 import { useQuery } from '@tanstack/react-query';
 import { setWasmPaths } from '@tensorflow/tfjs-backend-wasm';
 import '@tensorflow/tfjs-backend-cpu';
 import { setBackend } from '@tensorflow/tfjs-core';
+import { WorkerInput, WorkerOutput, WorkCommand, WorkResult, WorkerSignalOutput } from '@/app/analysis/_worker';
+import { fromWorker } from 'observable-webworker';
+import {
+	Subject,
+	animationFrames,
+	buffer,
+	bufferTime,
+	distinctUntilChanged,
+	filter,
+	map,
+	multicast,
+	share,
+} from 'rxjs';
+import { getHost } from '@/helpers/util';
 
 SciChartSurface.configure({
 	wasmUrl: '/configure/scichart2d.wasm',
 	dataUrl: '/configure/scichart2d.data',
 });
+
+const getWsURL = () => {
+	const host = getHost();
+	if (host == null || host.trim() == '') {
+		return null;
+	}
+	if (typeof window == 'undefined') {
+		return null;
+	}
+	return `ws://${host}:7125/klippysocket`;
+};
+
+const detrendFloatSignal = (signal: Float64Array) => {
+	const mean = signal.reduce((acc, val) => acc + val, 0) / signal.length;
+	for (let i = 0; i < signal.length; i++) {
+		signal[i] -= mean;
+	}
+	return signal;
+};
+const log = (msg: string) =>
+	map(<T,>(x: T) => {
+		console.log(msg, x);
+		return x;
+	});
+
+const input$ = new Subject<WorkerInput>();
+const worker = fromWorker<WorkerInput, WorkerOutput>(
+	() => new Worker(new URL('@/app/analysis/_worker/index', import.meta.url)),
+	input$,
+).pipe(share());
+const signal$ = worker.pipe(
+	filter((output): output is WorkerSignalOutput => output.type === WorkResult.SIGNAL),
+	map((output) => new Float64Array(output.payload)),
+	bufferTime(1000 / 60),
+	filter((signals) => signals.length > 0),
+	map((signals) => {
+		const time = new Float64Array(signals.length);
+		const x = new Float64Array(signals.length);
+		const y = new Float64Array(signals.length);
+		const z = new Float64Array(signals.length);
+		signals.forEach((signal, i) => {
+			time[i] = signal[0];
+			x[i] = signal[1];
+			y[i] = signal[2];
+			z[i] = signal[3];
+		});
+		return [time, x, y, z] as [Float64Array, Float64Array, Float64Array, Float64Array];
+	}),
+);
+const useWorker = (
+	enabled: boolean,
+	sensor: KlipperAccelSensorName,
+	onResult: ReactCallback<(signal: [Float64Array, Float64Array, Float64Array, Float64Array]) => void>,
+) => {
+	const parsedSensor = useAccelerometerWithType(sensor);
+	const [wsUrl, setWsUrl] = useState(getWsURL());
+	const [sampleRate, setSampleRate] = useState(0);
+	const [specSampleRate, setSpecSampleRate] = useState(0);
+	const [rxRate, setRxRate] = useState(0);
+	useEffect(() => {
+		setWsUrl(getWsURL());
+	}, []);
+	useEffect(() => {
+		console.log('subscribing to signal');
+		const signalSub = signal$.subscribe(onResult);
+		return () => {
+			console.log('unsubscribing signal');
+			signalSub.unsubscribe();
+		};
+	}, [onResult]);
+	useEffect(() => {
+		if (enabled && wsUrl != null) {
+			console.log('STARTING STREAM');
+			const sub = worker.subscribe((output) => {
+				// if (output.type === WorkResult.SAMPLE_RATE) {
+				// 	setSampleRate(output.payload);
+				// } else if (output.type === WorkResult.SPEC_SAMPLE_RATE) {
+				// 	setSpecSampleRate(output.payload);
+				// } else if (output.type === WorkResult.RX_RATE) {
+				// 	setRxRate(output.payload);
+				// }
+			});
+			input$.next({ type: WorkCommand.START, payload: { url: wsUrl, sensor: sensor } });
+			return () => {
+				console.log('STOPPING STREAM');
+				input$.next({ type: WorkCommand.STOP });
+				sub.unsubscribe();
+			};
+		}
+	}, [enabled, sensor, wsUrl]);
+	return {
+		sampleRate,
+		specSampleRate,
+		rxRate,
+	};
+};
 
 export const useRealtimeAnalysisChart = (
 	accelerometer?: MacroRecordingSettings['accelerometer'],
@@ -53,12 +164,21 @@ export const useRealtimeAnalysisChart = (
 				'tfjs-backend-wasm-simd.wasm': '/configure/tfjs-backend-wasm-simd.wasm',
 				'tfjs-backend-wasm-threaded-simd.wasm': '/configure/tfjs-backend-wasm-threaded-simd.wasm',
 			});
-			await setBackend('wasm');
+			await setBackend('webgl');
 			return 'wasm';
 		},
 		suspense: true,
 	});
-	const [isChartEnabled, setIsChartEnabled] = useState(false);
+	const [isChartEnabled, _setIsChartEnabled] = useState(false);
+	const setIsChartEnabled = useCallback((val: boolean) => {
+		_setIsChartEnabled((curVal) => {
+			if (curVal === false && val === true) {
+				// Reset time since last PSD calculation
+				timeSinceLastPsd.current = new Date().getTime();
+			}
+			return val;
+		});
+	}, []);
 	const [dataHeader, setDataHeader] = useState<KlipperAccelSubscriptionResponse['header'] | undefined>(undefined);
 	const toolheads = useToolheads();
 	const controlBoard = useRecoilValue(ControlboardState);
@@ -81,12 +201,15 @@ export const useRealtimeAnalysisChart = (
 	const xSignalYAxis = xSignalChart.data.current?.yAxis ?? null;
 	const ySignalYAxis = ySignalChart.data.current?.yAxis ?? null;
 	const zSignalYAxis = zSignalChart.data.current?.yAxis ?? null;
-	const updateSignalChartRange = useDynamicAxisRange([xSignalYAxis, ySignalYAxis, zSignalYAxis]);
+	const signalAxes = useMemo(
+		() => [xSignalYAxis, ySignalYAxis, zSignalYAxis],
+		[xSignalYAxis, ySignalYAxis, zSignalYAxis],
+	);
+	const updateSignalChartRange = useDynamicAxisRange(signalAxes);
 
 	const psdYAxis = psdChart.surface.current?.yAxes.getById(PSD_CHART_AXIS_AMPLITUDE_ID) ?? null;
 	const updatePsdChartRange = useDynamicAxisRange(psdYAxis, PSDChartMinimumYVisibleRange);
 
-	const fifo = useADXLFifoTensor(dataHeader);
 	const timeSinceLastPsd = useRef<number>(new Date().getTime());
 
 	useEffect(() => {
@@ -176,40 +299,43 @@ export const useRealtimeAnalysisChart = (
 			);
 		updatePsdChartRange(new NumberRange(res.total.powerRange.min, res.total.powerRange.max));
 	});
-	const updatePsd = useBufferedPSD(fifo.sampleRate, psds.onData);
-	const updateSignals = useBufferedADXLSignal(fifo, async (time, x, y, z) => {
-		// Center the signals by subtracting the mean
-		const dX = detrendSignal(x);
-		const dY = detrendSignal(y);
-		const dZ = detrendSignal(z);
-		x.dispose();
-		y.dispose();
-		z.dispose();
-		Promise.all([time.array(), dX.array(), dY.array(), dZ.array()]).then(([timeData, xData, yData, zData]) => {
-			xSignalChart.data.current?.signalData.appendRange(timeData, xData);
-			ySignalChart.data.current?.signalData.appendRange(timeData, yData);
-			zSignalChart.data.current?.signalData.appendRange(timeData, zData);
-			xSignalChart.data.current?.historyData.appendRange(timeData, xData);
-			ySignalChart.data.current?.historyData.appendRange(timeData, yData);
-			zSignalChart.data.current?.historyData.appendRange(timeData, zData);
-		});
-		updateSignalChartRange();
-		updatePsd(time, dX, dY, dZ, true);
-	});
-	useTicker(fifo.sampleRate.current / ADXL_STREAM_BUFFER_SIZE, isChartEnabled ? updateSignals : undefined);
+	const updateSignals = useCallback(
+		async ([time, x, y, z]: [Float64Array, Float64Array, Float64Array, Float64Array]) => {
+			// Center the signals by subtracting the mean
+			const dX = detrendFloatSignal(x);
+			const dY = detrendFloatSignal(y);
+			const dZ = detrendFloatSignal(z);
+			xSignalChart.data.current?.signalData.appendRange(time, dX);
+			ySignalChart.data.current?.signalData.appendRange(time, dY);
+			zSignalChart.data.current?.signalData.appendRange(time, dZ);
+			xSignalChart.data.current?.historyData.appendRange(time, dX);
+			ySignalChart.data.current?.historyData.appendRange(time, dY);
+			zSignalChart.data.current?.historyData.appendRange(time, dZ);
+			updateSignalChartRange();
+			// updatePsd(time, dX, dY, dZ, true);
+		},
+		[updateSignalChartRange, xSignalChart.data, ySignalChart.data, zSignalChart.data],
+	);
+	// useTicker(fifo.sampleRate.current / ADXL_STREAM_BUFFER_SIZE, isChartEnabled ? updateSignals : undefined);
 
-	useRealtimeSensor({
-		sensor: adxl,
-		enabled: isChartEnabled,
-		onDataUpdate: fifo.onData,
-		onSubscriptionSuccess: useCallback((header: KlipperAccelSubscriptionResponse['header']) => {
-			setDataHeader(header);
-		}, []),
-		onSubscriptionFailure: useCallback((err: Error) => {
-			setIsChartEnabled(false);
-			toast.error('Failed to subscribe to ADXL345', { description: err.message });
-		}, []),
-	});
+	const worker = useWorker(isChartEnabled, adxl, updateSignals);
+	// const updatePsd = useBufferedPSD(worker.specSampleRate, psds.onData);
+
+	// useRealtimeSensor({
+	// 	sensor: adxl,
+	// 	enabled: isChartEnabled,
+	// 	onDataUpdate: fifo.onData,
+	// 	onSubscriptionSuccess: useCallback((header: KlipperAccelSubscriptionResponse['header']) => {
+	// 		setDataHeader(header);
+	// 	}, []),
+	// 	onSubscriptionFailure: useCallback(
+	// 		(err: Error) => {
+	// 			setIsChartEnabled(false);
+	// 			toast.error('Failed to subscribe to ADXL345', { description: err.message });
+	// 		},
+	// 		[setIsChartEnabled],
+	// 	),
+	// });
 	return useMemo(
 		() => ({
 			isChartEnabled,
@@ -224,7 +350,17 @@ export const useRealtimeAnalysisChart = (
 				psdChart,
 			},
 		}),
-		[isChartEnabled, psds, adxl, adxlHardwareName, xSignalChart, ySignalChart, zSignalChart, psdChart],
+		[
+			isChartEnabled,
+			setIsChartEnabled,
+			psds,
+			adxl,
+			adxlHardwareName,
+			xSignalChart,
+			ySignalChart,
+			zSignalChart,
+			psdChart,
+		],
 	);
 };
 

@@ -140,6 +140,9 @@ importers:
       axios:
         specifier: ^0.26.1
         version: 0.26.1
+      bignumber.js:
+        specifier: ^9.1.2
+        version: 9.1.2
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.0
@@ -221,6 +224,9 @@ importers:
       object-hash:
         specifier: ^3.0.0
         version: 3.0.0
+      observable-webworker:
+        specifier: ^6.0.1
+        version: 6.0.1(rxjs@7.8.1)
       pino:
         specifier: ^8.17.2
         version: 8.17.2
@@ -266,6 +272,9 @@ importers:
       recoil-sync:
         specifier: ^0.2.0
         version: 0.2.0(recoil@0.7.7(react-dom@18.2.0(react@18.2.0))(react@18.2.0))
+      rxjs:
+        specifier: ^7.8.1
+        version: 7.8.1
       scichart:
         specifier: ^3.3.570
         version: 3.3.570
@@ -402,6 +411,9 @@ importers:
       tailwindcss:
         specifier: ^3.4.3
         version: 3.4.3
+      tinybench:
+        specifier: ^2.8.0
+        version: 2.8.0
       vitest:
         specifier: ^1.2.1
         version: 1.2.1(@types/node@18.19.4)(jsdom@20.0.3)(terser@5.29.1)
@@ -2259,6 +2271,9 @@ packages:
   base64-js@1.5.1:
     resolution: {integrity: sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==}
 
+  bignumber.js@9.1.2:
+    resolution: {integrity: sha512-2/mKyZH9K85bzOEfhXDBFZTGd1CTs+5IHpeFQo9luiBG7hghdC851Pj2WAhb6E3R6b9tZj/XKhbg4fum+Kepug==}
+
   binary-extensions@2.2.0:
     resolution: {integrity: sha512-jDctJ/IVQbZoJykoeHbhXpOlNBqGNcwXJKJog42E5HDPUwQTSdjCHdihjj0DlnheQ7blbT6dHOafNAiS8ooQKA==}
     engines: {node: '>=8'}
@@ -3913,6 +3928,11 @@ packages:
     resolution: {integrity: sha512-aU6xnDFYT3x17e/f0IiiwlGPTy2jzMySGfUB4fq6z7CV8l85CWHDk5ErhyhpfDHhrOMwGFhSQkhMGHaIotA6Ng==}
     engines: {node: '>= 0.4'}
 
+  observable-webworker@6.0.1:
+    resolution: {integrity: sha512-SC2/vtDBVux3J3vnITqULHej0XZoy1FE7r3NlpBoGK9RD4jrvAbTvOPbcB+0Ctk+kZJd2k7Me8YP5T+cDn5iFg==}
+    peerDependencies:
+      rxjs: '>=6.4.0'
+
   on-exit-leak-free@2.1.0:
     resolution: {integrity: sha512-VuCaZZAjReZ3vUwgOB8LxAosIurDiAW0s13rI1YwmaP++jvcxP77AWoQvenZebpCA2m8WC1/EosPYPMjnRAp/w==}
 
@@ -4446,6 +4466,9 @@ packages:
   run-parallel@1.2.0:
     resolution: {integrity: sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==}
 
+  rxjs@7.8.1:
+    resolution: {integrity: sha512-AA3TVj+0A2iuIoQkWEK/tqFjBq2j+6PO6Y0zJcvzLAFhEFIO3HL0vls9hWLncZbAAbK0mar7oZ4V079I/qPMxg==}
+
   safe-array-concat@1.0.1:
     resolution: {integrity: sha512-6XbUAseYE2KtOuGueyeobCySj9L4+66Tn6KQMOPQJrAJEowYKW/YR/MGJZl7FdydUdaFu4LYyDZjxf4/Nmo23Q==}
     engines: {node: '>=0.4'}
@@ -4780,8 +4803,8 @@ packages:
   through@2.3.8:
     resolution: {integrity: sha512-w89qg7PI8wAdvX60bMDP+bFoD5Dvhm9oLheFp5O4a2QF0cSBGsBX4qZmadPMvVqlLJBBci+WqGGOAPvcDeNSVg==}
 
-  tinybench@2.5.1:
-    resolution: {integrity: sha512-65NKvSuAVDP/n4CqH+a9w2kTlLReS9vhsAP06MWx+/89nMinJyB2icyl58RIcqCmIggpojIGeuJGhjU1aGMBSg==}
+  tinybench@2.8.0:
+    resolution: {integrity: sha512-1/eK7zUnIklz4JUUlL+658n58XO2hHLQfSk1Zf2LKieUjxidN16eKFEoDEfjHc3ohofSSqK3X5yO6VGb6iW8Lw==}
 
   tinypool@0.8.1:
     resolution: {integrity: sha512-zBTCK0cCgRROxvs9c0CGK838sPkeokNGdQVUUwHAbynHFlmyJYj825f/oRs528HaIJ97lo0pLIlDUzwN+IorWg==}
@@ -7145,6 +7168,8 @@ snapshots:
 
   base64-js@1.5.1: {}
 
+  bignumber.js@9.1.2: {}
+
   binary-extensions@2.2.0: {}
 
   blacklist@1.1.4: {}
@@ -9015,6 +9040,11 @@ snapshots:
       define-properties: 1.2.1
       es-abstract: 1.22.3
 
+  observable-webworker@6.0.1(rxjs@7.8.1):
+    dependencies:
+      rxjs: 7.8.1
+      tslib: 2.6.2
+
   on-exit-leak-free@2.1.0: {}
 
   once@1.4.0:
@@ -9551,6 +9581,10 @@ snapshots:
     dependencies:
       queue-microtask: 1.2.3
 
+  rxjs@7.8.1:
+    dependencies:
+      tslib: 2.6.2
+
   safe-array-concat@1.0.1:
     dependencies:
       call-bind: 1.0.5
@@ -9906,7 +9940,7 @@ snapshots:
 
   through@2.3.8: {}
 
-  tinybench@2.5.1: {}
+  tinybench@2.8.0: {}
 
   tinypool@0.8.1: {}
 
@@ -10150,7 +10184,7 @@ snapshots:
       picocolors: 1.0.0
       std-env: 3.7.0
       strip-literal: 1.3.0
-      tinybench: 2.5.1
+      tinybench: 2.8.0
       tinypool: 0.8.1
       vite: 5.0.10(@types/node@18.19.4)(terser@5.29.1)
       vite-node: 1.2.1(@types/node@18.19.4)(terser@5.29.1)

@@ -73,12 +73,16 @@ const useOscillator = (G: ReturnType<typeof useGcodeCommand>, isEnabled: boolean
 		const direction = axisRef.current === 'a' ? '1,1' : axisRef.current === 'b' ? '1,-1' : axisRef.current;
 		const beforeGcode = new Date().getTime();
 		try {
+			if (!isEnabledRef.current) {
+				isOscillating.current = false;
+				return;
+			}
 			await G`
 			OSCILLATE FREQ=${frequencyRef.current} TIME=${macroTime / 1000} AXIS=${direction}
 			`;
 			const gcodeDuration = new Date().getTime() - beforeGcode;
 			isOscillating.current = false;
-			if (frequencyRef.current > 0 && isEnabledRef.current && gcodeDuration > macroTime / 2) {
+			if (frequencyRef.current > 0 && gcodeDuration > macroTime / 2) {
 				oscillate();
 			} else {
 				setTimeout(() => {
@@ -134,6 +138,8 @@ export const Analysis = () => {
 		currentAccelerometerHardwareName,
 	} = useRealtimeAnalysisChart(adxl);
 	const { mutateAsync: mutateRecordingAsync } = trpc.analysis.saveRecording.useMutation(macroRecordingMutationOptions);
+	const isChartEnabledRef = useRef(isChartEnabled);
+	isChartEnabledRef.current = isChartEnabled;
 
 	const [isRecording, setIsRecording] = useState(false);
 	const [isMacroRunning, setIsMacroRunning] = useState(false);
@@ -148,6 +154,7 @@ export const Analysis = () => {
 		<Params extends readonly unknown[]>(macro: (...args: [AbortSignal, ...Params]) => Promise<any>, ...args: Params) =>
 			async () => {
 				abortController.current = new AbortController();
+				const wasStreaming = isChartEnabledRef.current;
 				setFrequency(0);
 				setIsMacroRunning(true);
 				setIsChartEnabled(true);
@@ -173,7 +180,9 @@ export const Analysis = () => {
 				} finally {
 					setIsMacroRunning(false);
 					setIsRecording(false);
-					setIsChartEnabled(false);
+					if (!wasStreaming) {
+						setIsChartEnabled(false);
+					}
 					currentMacro.current = null;
 				}
 			},

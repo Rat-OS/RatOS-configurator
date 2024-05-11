@@ -20,6 +20,7 @@ export const klipperADXL345SubscriptionResponseSchema = z.object({
 export const klipperADXL345SubscriptionDataSchema = z.object({
 	data: z.array(z.tuple([z.number(), z.number(), z.number(), z.number()])),
 	overflows: z.number().optional(),
+	errors: z.number().optional(),
 });
 
 export const psdSchema = z.object({

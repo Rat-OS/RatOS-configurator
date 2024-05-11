@@ -4,8 +4,8 @@ import { getHost } from '@/helpers/util';
 import {
 	InFlightRequestCallbacks,
 	InFlightRequestTimeouts,
-	MoonrakerResponse,
-	MoonrakerResponseSuccess,
+	JSONRPCResponse,
+	JSONRPCResponseSuccess,
 } from '@/moonraker/types';
 import { MutableRefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getLogger } from '@/app/_helpers/logger';
@@ -24,16 +24,25 @@ import {
 	easing,
 } from 'scichart';
 import {
+	Rank,
+	Scalar,
+	Tensor,
 	Tensor1D,
 	Tensor2D,
 	addN,
 	concat,
 	concat2d,
+	div,
 	gather,
 	reshape,
 	setBackend,
+	slice,
 	split,
+	sub,
 	tensor1d,
+	tensor2d,
+	tidy,
+	buffer as tfBuffer,
 } from '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-backend-wasm';
 import { powerSpectralDensity, sumPSDs, welch } from '@/app/analysis/periodogram';
@@ -56,6 +65,7 @@ import { z } from 'zod';
 import { useRecoilValue } from 'recoil';
 import { ControlboardState } from '@/recoil/printer';
 import { useToolheads } from '@/hooks/useToolheadConfiguration';
+import { TensorLike2D } from '@tensorflow/tfjs-core/dist/types';
 
 const getWsURL = () => {
 	const host = getHost();
@@ -78,7 +88,7 @@ export interface RealtimeADXLOptions {
 	sensor: KlipperAccelSensorName;
 }
 
-const isSuccessResponse = (res: MoonrakerResponse): res is MoonrakerResponseSuccess => {
+const isSuccessResponse = (res: JSONRPCResponse): res is JSONRPCResponseSuccess => {
 	return !('error' in res);
 };
 
@@ -121,8 +131,8 @@ export const useAccelerometerWithType = (accelerometerName: KlipperAccelSensorNa
 };
 
 export const useRealtimeSensor = <
-	ResponseType extends MoonrakerResponse,
-	SuccessResponseType extends MoonrakerResponseSuccess,
+	ResponseType extends JSONRPCResponse,
+	SuccessResponseType extends JSONRPCResponseSuccess,
 >(
 	options: RealtimeADXLOptions,
 ) => {
@@ -155,6 +165,7 @@ export const useRealtimeSensor = <
 							getLogger().error('Error in response from klipper socket', parsed);
 						}
 					} catch (e) {
+						// eslint-disable-next-line no-console
 						console.warn('OnMessage: Failed to parse message', e, message.data);
 					}
 				}
@@ -324,63 +335,136 @@ const defaultAxisMap: KlipperAccelSubscriptionResponse['header'] = [
 	`z_acceleration`,
 ];
 
-export const useADXLFifoTensor = (
-	dataHeader: KlipperAccelSubscriptionResponse['header'] = defaultAxisMap,
-	fifoCapacity: number = 8192,
+type BufferOptions = {
+	strictSampleSize: boolean;
+	mode: 'fifo';
+	fifoCapacity?: number;
+};
+
+const optDefaults: BufferOptions = {
+	mode: 'fifo',
+	strictSampleSize: false as const,
+};
+
+export const useTensorBuffer = <T extends Tensor = Tensor1D, O extends Partial<BufferOptions> = typeof optDefaults>(
+	initial: T = tensor1d([], 'float32') as T,
+	opts?: Partial<O>,
 ) => {
-	const buffer = useRef<Tensor2D | null>(null);
-	const sampleRate = useRef<number>(0);
+	type TakeResult = O['strictSampleSize'] extends true ? T | null : T;
+	const { fifoCapacity, mode, strictSampleSize } = { ...optDefaults, ...opts };
 	const [dropped, setDropped] = useState(0);
-	const take = useCallback((count: number) => {
-		if (buffer.current == null) {
-			return null;
-		}
-		const max = Math.min(count, buffer.current.shape[0]);
-		const [out, keep] = split<Tensor2D>(buffer.current, [max, buffer.current.shape[0] - max], 0);
+	const buffer = useRef<T>(initial);
+	const set = useCallback((val: T) => {
 		buffer.current.dispose();
-		buffer.current = keep;
-		return out;
+		buffer.current = val;
 	}, []);
-	const axisMap = useMemo(() => {
-		return [
-			dataHeader.findIndex((v) => v.startsWith(`time`)),
-			dataHeader.findIndex((v) => v.startsWith(`x_acceleration`)),
-			dataHeader.findIndex((v) => v.startsWith(`y_acceleration`)),
-			dataHeader.findIndex((v) => v.startsWith(`z_acceleration`)),
-		];
-	}, [dataHeader]);
-	const onData = useCallback(
-		(status: KlipperAccelSubscriptionData) => {
-			const incoming = gather<Tensor2D>(status.data, axisMap, 1);
-			const newBuffer = buffer.current ? concat2d([buffer.current, incoming], 0) : incoming;
-			if (newBuffer !== incoming) {
-				incoming.dispose();
+	const take = useCallback(
+		(count: number): TakeResult => {
+			const max = Math.min(count, buffer.current.shape[0]);
+			if (strictSampleSize === true && max !== count) {
+				return null as TakeResult;
 			}
-			buffer.current?.dispose();
-			buffer.current = newBuffer;
-			sampleRate.current = status.data.length / (status.data[status.data.length - 1][0] - status.data[0][0]);
-			if (buffer.current.shape[0] > fifoCapacity) {
-				console.debug('Fifo capacity exceeded, dropping frames', buffer.current.shape[0]);
+			const [out, keep] = split<T>(buffer.current, [max, buffer.current.shape[0] - max], 0);
+			set(keep);
+			return out;
+		},
+		[strictSampleSize, set],
+	);
+	const put = useCallback(
+		(val: T) => {
+			set(concat([buffer.current, val]));
+			if (fifoCapacity != null && buffer.current.shape[0] > fifoCapacity) {
+				getLogger().error(`Fifo capacity exceeded, dropping ${buffer.current.shape[0] - fifoCapacity} frames`);
 				const drop = buffer.current.shape[0] - fifoCapacity;
 				take(drop)?.dispose();
 				setDropped((prev) => prev + drop);
 			}
+			val.dispose();
 		},
-		[axisMap, fifoCapacity, take],
+		[fifoCapacity, set, take],
 	);
+	const reset = useCallback(() => {
+		set(initial);
+	}, [initial, set]);
+	const dispose = useCallback(() => {
+		buffer.current.dispose();
+	}, []);
 	useEffect(() => {
 		return () => {
-			buffer.current?.dispose();
-			buffer.current = null;
+			dispose();
 		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
-	return {
-		onData: onData,
-		take: take,
-		buffer: buffer,
-		dropped: dropped,
-		sampleRate: sampleRate,
-	};
+	if (mode !== 'fifo') {
+		throw new Error('Only fifo mode is currently supported');
+	}
+	return useMemo(
+		() => ({
+			buffer,
+			take,
+			put,
+			reset,
+			dispose,
+			dropped,
+		}),
+		[buffer, take, put, reset, dispose, dropped],
+	);
+};
+
+const expectedSampleRates = [100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600, 51200];
+export const useADXLFifoTensor = (
+	dataHeader: KlipperAccelSubscriptionResponse['header'] = defaultAxisMap,
+	fifoCapacity: number = 8192,
+) => {
+	const buffer = useTensorBuffer(tensor2d([], [0, dataHeader.length], 'float32'), {
+		fifoCapacity,
+		strictSampleSize: true,
+	});
+	const sampleRate = useRef<number>(0);
+	const timeOffset = useRef<number>(0);
+	const axisMap = useMemo(() => {
+		return [
+			dataHeader.findIndex((v) => v.startsWith(`time`)),
+			dataHeader.findIndex((v) => v.startsWith(`x`)),
+			dataHeader.findIndex((v) => v.startsWith(`y`)),
+			dataHeader.findIndex((v) => v.startsWith(`z`)),
+		];
+	}, [dataHeader]);
+	const onData = useCallback(
+		(status: KlipperAccelSubscriptionData) => {
+			if (timeOffset.current === 0) {
+				timeOffset.current = status.data[0][axisMap[0]];
+			}
+			const incoming = gather<Tensor2D>(
+				status.data.map((d) => {
+					d[0] = d[0] - timeOffset.current;
+					return d;
+				}), // 32-bit floating point precision sucks so much..
+				axisMap,
+				1,
+			);
+			buffer.put(incoming);
+			sampleRate.current = status.data.length / (status.data[status.data.length - 1][0] - status.data[0][0]);
+		},
+		[axisMap, buffer],
+	);
+	const closestRealSampleRate = expectedSampleRates.reduce((prev, cur) => {
+		if (Math.abs(cur - sampleRate.current) < Math.abs(prev - sampleRate.current)) {
+			return cur;
+		}
+		return prev;
+	}, expectedSampleRates[0]);
+	return useMemo(
+		() => ({
+			onData: onData,
+			take: buffer.take,
+			buffer: buffer.buffer,
+			dropped: buffer.dropped,
+			sampleRate: sampleRate,
+			closestRealSampleRate,
+		}),
+		[closestRealSampleRate, onData, buffer],
+	);
 };
 
 export const isXySeries = (series: any): series is XyDataSeries => {
@@ -405,6 +489,7 @@ export const useBufferedADXLSignal = (
 			return;
 		}
 		let toTake = samples;
+		// prevent overflow
 		if (fifoTensor.buffer.current.shape[0] > ADXL_STREAM_BUFFER_SIZE * 12) {
 			toTake += ADXL_STREAM_BUFFER_SIZE;
 		}
@@ -429,22 +514,21 @@ export const useBufferedADXLSignal = (
 	return tick;
 };
 
-export const useBufferedPSD = (
-	sampleRate: MutableRefObject<number>,
-	updateFn: null | ((x: PSD, y: PSD, z: PSD, total: PSD) => void),
-) => {
-	const xref = useRef<Tensor1D>(tensor1d([]));
-	const yref = useRef<Tensor1D>(tensor1d([]));
-	const zref = useRef<Tensor1D>(tensor1d([]));
+export const useBufferedPSD = (sampleRate: number, updateFn: null | ((x: PSD, y: PSD, z: PSD, total: PSD) => void)) => {
+	const xref = useRef<Tensor1D>(tensor1d([], 'float32'));
+	const yref = useRef<Tensor1D>(tensor1d([], 'float32'));
+	const zref = useRef<Tensor1D>(tensor1d([], 'float32'));
+	const tref = useRef<Tensor1D>(tensor1d([], 'float32'));
 	const update = useRef(updateFn);
 	update.current = updateFn;
 
 	const onData = useCallback(
 		async (time: Tensor1D, x: Tensor1D, y: Tensor1D, z: Tensor1D, isDetrended?: boolean) => {
-			const rate = sampleRate.current;
+			const rate = sampleRate;
 			const newX = concat([x, xref.current]);
 			const newY = concat([y, yref.current]);
 			const newZ = concat([z, zref.current]);
+			const newT = concat([time, tref.current]);
 			x.dispose();
 			y.dispose();
 			z.dispose();
@@ -455,27 +539,37 @@ export const useBufferedPSD = (
 			xref.current = newX;
 			yref.current = newY;
 			zref.current = newZ;
-			if (xref.current.shape[0] > rate) {
-				const xData = xref.current.clone();
-				const yData = yref.current.clone();
-				const zData = zref.current.clone();
-				const totalData = addN([xData, yData, zData]);
+			tref.current = newT;
+			if (xref.current.shape[0] >= rate) {
+				const [xData, xKeep] = split<Tensor1D>(xref.current, [rate, xref.current.shape[0] - rate], 0);
+				const [yData, yKeep] = split<Tensor1D>(yref.current, [rate, yref.current.shape[0] - rate], 0);
+				const [zData, zKeep] = split<Tensor1D>(zref.current, [rate, zref.current.shape[0] - rate], 0);
+				const [tData, tKeep] = split<Tensor1D>(tref.current, [rate, tref.current.shape[0] - rate], 0);
+				const realSampleRate = await div<Scalar>(
+					tData.shape[0],
+					sub<Scalar>(gather<Tensor1D>(tData, 0, 0, 0), gather<Tensor1D>(tData, tData.shape[0] - 1, 0, 0)),
+				).array();
+				const first = await gather<Tensor1D>(tData, 0, 0, 0).array();
+				const last = await gather<Tensor1D>(tData, tData.shape[0] - 1, 0, 0).array();
+				// console.log(first, last, realSampleRate, tData.shape[0] / (first - last));
 				xref.current.dispose();
 				yref.current.dispose();
 				zref.current.dispose();
-				xref.current = tensor1d([]);
-				yref.current = tensor1d([]);
-				zref.current = tensor1d([]);
+				tref.current.dispose();
+				xref.current = xKeep;
+				yref.current = yKeep;
+				zref.current = zKeep;
+				tref.current = tKeep;
 				const [xpsd, ypsd, zpsd] = await Promise.all([
-					powerSpectralDensity(xData, rate, { isDetrended: isDetrended }),
-					powerSpectralDensity(yData, rate, { isDetrended: isDetrended }),
-					powerSpectralDensity(zData, rate, { isDetrended: isDetrended }),
+					powerSpectralDensity(xData, 3140, { isDetrended: isDetrended }),
+					powerSpectralDensity(yData, 3140, { isDetrended: isDetrended }),
+					powerSpectralDensity(zData, 3140, { isDetrended: isDetrended }),
 				]);
 				const totalpsd = sumPSDs([xpsd, ypsd, zpsd]);
 				xData.dispose();
 				yData.dispose();
 				zData.dispose();
-				totalData.dispose();
+				tData.dispose();
 				update.current?.(xpsd, ypsd, zpsd, totalpsd);
 			}
 		},
@@ -658,14 +752,11 @@ export function useDynamicAxisRange(
 					if (maxRef.current == null || a == null) {
 						return;
 					}
-					a.animateVisibleRange(
-						new NumberRange(
-							Math.min(newMin ?? maxRef.current.min, minimum.min),
-							Math.max(newMax ?? maxRef.current.max, minimum.max),
-						),
-						sinceLastUpdate,
-						easing.inOutCirc,
+					const newRange = new NumberRange(
+						Math.min(newMin ?? maxRef.current.min, minimum.min),
+						Math.max(newMax ?? maxRef.current.max, minimum.max),
 					);
+					a.animateVisibleRange(newRange, sinceLastUpdate, easing.inOutCirc);
 				});
 				lastChange.current = new Date().getTime();
 				return;
@@ -682,14 +773,11 @@ export function useDynamicAxisRange(
 						if (maxRef.current == null || a == null) {
 							return;
 						}
-						a.animateVisibleRange(
-							new NumberRange(
-								Math.min(newMin ?? maxRef.current.min, minimum.min),
-								Math.max(newMax ?? maxRef.current.max, minimum.max),
-							),
-							sinceLastUpdate / 2,
-							easing.inOutCirc,
+						const newRange = new NumberRange(
+							Math.min(newMin ?? maxRef.current.min, minimum.min),
+							Math.max(newMax ?? maxRef.current.max, minimum.max),
 						);
+						a.animateVisibleRange(newRange, sinceLastUpdate / 2, easing.inOutCirc);
 					});
 					lastChange.current = new Date().getTime();
 					return;

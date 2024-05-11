@@ -100,7 +100,7 @@ export const useADXLSignalChart = (axis: ADXLAxes) => {
 			(surface: SciChartSurface) => {
 				const color = getAxisColor(axis);
 				// Category axis as the actual time doesn't matter (samples are evenly spaced).
-				const xAxis = new CategoryAxis(surface.webAssemblyContext2D, {
+				const xAxis = new NumericAxis(surface.webAssemblyContext2D, {
 					id: SIGNAL_CHART_AXIS_SIGNAL_ID + axis,
 					autoRange: EAutoRange.Always,
 					maxAutoTicks: ADXL_STREAM_BUFFER_SIZE,
@@ -114,7 +114,7 @@ export const useADXLSignalChart = (axis: ADXLAxes) => {
 				surface.xAxes.add(xAxis);
 
 				// Category axis as the actual time doesn't matter (samples are evenly spaced).
-				const xHistoryAxis = new CategoryAxis(surface.webAssemblyContext2D, {
+				const xHistoryAxis = new NumericAxis(surface.webAssemblyContext2D, {
 					id: SIGNAL_CHART_AXIS_HISTORY_ID + axis,
 					autoRange: EAutoRange.Always,
 					drawLabels: false,

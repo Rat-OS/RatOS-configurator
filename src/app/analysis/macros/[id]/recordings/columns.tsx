@@ -153,7 +153,6 @@ export const columns: (ColumnDef<MacroRecordingWithoutSourcePSDs> & ColumnCapabi
 		},
 		filterFn: (row, id, filterValues) => {
 			const searchString = `${row.original.name} ${row.original.accelerometer} ${row.original.recordingHardwareName}`;
-			console.log(searchString, filterValues);
 			return (
 				Array.isArray(filterValues) &&
 				filterValues.flat().some((filterValue: any) => searchString.includes(filterValue))
