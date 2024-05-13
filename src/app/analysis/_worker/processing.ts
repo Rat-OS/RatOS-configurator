@@ -2,32 +2,19 @@ import { KlipperAccelSubscriptionData } from '@/zods/analysis';
 import BigNumber from 'bignumber.js';
 import {
 	Observable,
-	animationFrames,
-	audit,
-	buffer,
-	bufferCount,
 	bufferTime,
-	bufferWhen,
 	concatMap,
 	delay,
 	distinctUntilChanged,
 	first,
 	firstValueFrom,
 	from,
-	interval,
-	last,
-	lastValueFrom,
 	map,
 	mergeMap,
 	of,
-	race,
-	switchMap,
-	switchScan,
-	tap,
-	timestamp,
-	shareReplay,
 	share,
 } from 'rxjs';
+import { log } from '@/app/analysis/_worker/stream-utils';
 
 const expectedSampleRates = [100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600, 51200];
 /**
@@ -39,11 +26,7 @@ export type AccelSample = [BigNumber | number, number, number, number];
  */
 export type BigNumberAccelSample = [BigNumber, number, number, number];
 export type AccelSampleMs = [number, number, number, number];
-const log = (msg: string) =>
-	map(<T>(x: T) => {
-		console.log(msg, x);
-		return x;
-	});
+
 type KlipperAccelSubscriptionDataCompat = Omit<KlipperAccelSubscriptionData, 'data'> & { data: AccelSample[] };
 export const createSignalBuffers = async (dataStream$: Observable<KlipperAccelSubscriptionDataCompat>) => {
 	const timeStamp: number | BigNumber = await firstValueFrom(
@@ -54,7 +37,6 @@ export const createSignalBuffers = async (dataStream$: Observable<KlipperAccelSu
 			}),
 		),
 	);
-	console.log('got timestamp', timeStamp);
 	const subtractTimeStamp = ([time, x, y, z]: AccelSample): BigNumberAccelSample => [
 		BigNumber(time).minus(timeStamp).shiftedBy(3),
 		x,
@@ -64,31 +46,23 @@ export const createSignalBuffers = async (dataStream$: Observable<KlipperAccelSu
 	const signal$ = dataStream$.pipe(
 		concatMap((data) => from(data.data)),
 		map(subtractTimeStamp),
+		share(),
 	);
 
 	const sampleRate$ = signal$.pipe(
 		bufferTime(1000),
 		map((samples) =>
-			new BigNumber(samples.length)
-				.div(samples[samples.length - 1][0].minus(samples[0][0]).shiftedBy(-3))
-				.decimalPlaces(0, BigNumber.ROUND_FLOOR)
-				.toNumber(),
+			samples.length < 1
+				? 1
+				: Math.floor(samples.length / samples[samples.length - 1][0].minus(samples[0][0]).shiftedBy(-3).toNumber()),
 		),
 		distinctUntilChanged(),
 		log('sampleRate$'),
-	);
-	const rxRate$ = signal$.pipe(
-		timestamp(),
-		bufferTime(1000),
-		map((samples) =>
-			Math.floor(samples.length / ((samples[samples.length - 1].timestamp - samples[0].timestamp) / 1000)),
-		),
-		distinctUntilChanged(),
-		log('rxRate$'),
+		share(),
 	);
 
 	const timeMappedSignal$ = dataStream$.pipe(
-		concatMap((data) =>
+		mergeMap((data) =>
 			from(data.data).pipe(
 				map(subtractTimeStamp),
 				mergeMap((sample) => {
@@ -96,25 +70,14 @@ export const createSignalBuffers = async (dataStream$: Observable<KlipperAccelSu
 						.minus(subtractTimeStamp(data.data[0])[0])
 						.decimalPlaces(0, BigNumber.ROUND_FLOOR)
 						.toNumber();
-					return of(sample).pipe(delay(d));
+					// downscale the delay, the scheduler is not perfect as it depends on the work on the main thread.
+					const date = new Date(new Date().getTime() + d * 0.7);
+					return of(sample).pipe(delay(date));
 				}),
 			),
 		),
+		share(),
 	);
-	// const signalFrameBuffer$ = sampleRate$.pipe(switchMap((sampleRate) => signal$.pipe(bufferCount(sampleRate / fps))));
-	const sanityCheck$ = timeMappedSignal$
-		.pipe(
-			bufferCount(2),
-			map((samples) => {
-				const [first, second] = samples;
-				if (first[0].isGreaterThan(second[0])) {
-					console.log(
-						`Timestamps are not monotonically increasing! ${first[0].toString()} came before ${second[0].toString()}`,
-					);
-				}
-			}),
-		)
-		.subscribe(() => {});
 
 	const specSampleRate$ = sampleRate$.pipe(
 		map((sr) =>
@@ -127,18 +90,16 @@ export const createSignalBuffers = async (dataStream$: Observable<KlipperAccelSu
 		),
 		distinctUntilChanged(),
 		log('specSampleRate$'),
+		share(),
 	);
-	const psdSignalBuffer$ = specSampleRate$.pipe(switchMap((sampleRate) => signal$.pipe(bufferCount(sampleRate))));
 
 	return {
 		/**
 		 * All timestamps are relative to the first timestamp in the stream. This is that first timestamp.
 		 */
 		timeStamp,
-		// signalFrameBuffer$,
+		signal$,
 		timeMappedSignal$,
-		psdSignalBuffer$,
-		rxRate$,
 		specSampleRate$,
 		sampleRate$,
 	};

@@ -37,7 +37,14 @@ import { useQuery } from '@tanstack/react-query';
 import { setWasmPaths } from '@tensorflow/tfjs-backend-wasm';
 import '@tensorflow/tfjs-backend-cpu';
 import { setBackend } from '@tensorflow/tfjs-core';
-import { WorkerInput, WorkerOutput, WorkCommand, WorkResult, WorkerSignalOutput } from '@/app/analysis/_worker';
+import {
+	WorkerInput,
+	WorkerOutput,
+	WorkCommand,
+	WorkResult,
+	WorkerSignalOutput,
+	WorkerPSDOutput,
+} from '@/app/analysis/_worker';
 import { fromWorker } from 'observable-webworker';
 import {
 	Subject,
@@ -51,6 +58,7 @@ import {
 	share,
 } from 'rxjs';
 import { getHost } from '@/helpers/util';
+import { PSDResult } from '@/app/analysis/_worker/psd';
 
 SciChartSurface.configure({
 	wasmUrl: '/configure/scichart2d.wasm',
@@ -75,11 +83,6 @@ const detrendFloatSignal = (signal: Float64Array) => {
 	}
 	return signal;
 };
-const log = (msg: string) =>
-	map(<T,>(x: T) => {
-		console.log(msg, x);
-		return x;
-	});
 
 const input$ = new Subject<WorkerInput>();
 const worker = fromWorker<WorkerInput, WorkerOutput>(
@@ -89,7 +92,7 @@ const worker = fromWorker<WorkerInput, WorkerOutput>(
 const signal$ = worker.pipe(
 	filter((output): output is WorkerSignalOutput => output.type === WorkResult.SIGNAL),
 	map((output) => new Float64Array(output.payload)),
-	bufferTime(1000 / 60),
+	buffer(animationFrames()), // 24 updates per second
 	filter((signals) => signals.length > 0),
 	map((signals) => {
 		const time = new Float64Array(signals.length);
@@ -104,43 +107,55 @@ const signal$ = worker.pipe(
 		});
 		return [time, x, y, z] as [Float64Array, Float64Array, Float64Array, Float64Array];
 	}),
+	share(),
+);
+const psd$ = worker.pipe(
+	filter((output): output is WorkerPSDOutput => output.type === WorkResult.PSD),
+	map((output) => output.payload),
+	share(),
 );
 const useWorker = (
 	enabled: boolean,
 	sensor: KlipperAccelSensorName,
 	onResult: ReactCallback<(signal: [Float64Array, Float64Array, Float64Array, Float64Array]) => void>,
+	onPSDResult: ReactCallback<(psd: Omit<PSDResult, 'source'>) => void>,
 ) => {
 	const parsedSensor = useAccelerometerWithType(sensor);
 	const [wsUrl, setWsUrl] = useState(getWsURL());
 	const [sampleRate, setSampleRate] = useState(0);
 	const [specSampleRate, setSpecSampleRate] = useState(0);
-	const [rxRate, setRxRate] = useState(0);
+	const onResultRef = useRef(onResult);
+	onResultRef.current = onResult;
+	const onPSDResultRef = useRef(onPSDResult);
+	onPSDResultRef.current = onPSDResult;
 	useEffect(() => {
 		setWsUrl(getWsURL());
 	}, []);
 	useEffect(() => {
-		console.log('subscribing to signal');
-		const signalSub = signal$.subscribe(onResult);
-		return () => {
-			console.log('unsubscribing signal');
-			signalSub.unsubscribe();
+		const subscriber = (signal: [Float64Array, Float64Array, Float64Array, Float64Array]) => {
+			onResultRef.current(signal);
 		};
-	}, [onResult]);
+		const signalSub = signal$.subscribe(subscriber);
+		const psdSubscriber = (psd: Omit<PSDResult, 'source'>) => {
+			onPSDResultRef.current(psd);
+		};
+		const psdSub = psd$.subscribe(psdSubscriber);
+		return () => {
+			signalSub.unsubscribe();
+			psdSub.unsubscribe();
+		};
+	}, []);
 	useEffect(() => {
 		if (enabled && wsUrl != null) {
-			console.log('STARTING STREAM');
 			const sub = worker.subscribe((output) => {
-				// if (output.type === WorkResult.SAMPLE_RATE) {
-				// 	setSampleRate(output.payload);
-				// } else if (output.type === WorkResult.SPEC_SAMPLE_RATE) {
-				// 	setSpecSampleRate(output.payload);
-				// } else if (output.type === WorkResult.RX_RATE) {
-				// 	setRxRate(output.payload);
-				// }
+				if (output.type === WorkResult.SAMPLE_RATE) {
+					setSampleRate(output.payload);
+				} else if (output.type === WorkResult.SPEC_SAMPLE_RATE) {
+					setSpecSampleRate(output.payload);
+				}
 			});
 			input$.next({ type: WorkCommand.START, payload: { url: wsUrl, sensor: sensor } });
 			return () => {
-				console.log('STOPPING STREAM');
 				input$.next({ type: WorkCommand.STOP });
 				sub.unsubscribe();
 			};
@@ -149,7 +164,6 @@ const useWorker = (
 	return {
 		sampleRate,
 		specSampleRate,
-		rxRate,
 	};
 };
 
@@ -205,7 +219,7 @@ export const useRealtimeAnalysisChart = (
 		() => [xSignalYAxis, ySignalYAxis, zSignalYAxis],
 		[xSignalYAxis, ySignalYAxis, zSignalYAxis],
 	);
-	const updateSignalChartRange = useDynamicAxisRange(signalAxes);
+	const updateSignalChartRange = useDynamicAxisRange(signalAxes, new NumberRange(-5000, 5000), 1000);
 
 	const psdYAxis = psdChart.surface.current?.yAxes.getById(PSD_CHART_AXIS_AMPLITUDE_ID) ?? null;
 	const updatePsdChartRange = useDynamicAxisRange(psdYAxis, PSDChartMinimumYVisibleRange);
@@ -219,86 +233,89 @@ export const useRealtimeAnalysisChart = (
 		}
 	}, [isChartEnabled]);
 
-	const psds = useAccumulatedPSD((res) => {
-		const surface = psdChart.surface.current;
-		if (surface == null) {
-			return;
-		}
-		const elapsed = new Date().getTime() - timeSinceLastPsd.current;
-		timeSinceLastPsd.current = new Date().getTime();
-		const animationDS = psdChart.data.current?.animationSeries;
-		if (animationDS == null) {
-			throw new Error('No animation data series');
-		}
-		// Log lengths if estimates and frequencies aren't the same length
-		if (res.x.frequencies.length !== res.x.estimates.length) {
-			getLogger().warn(
-				`X estimates and frequencies are not the same length (${res.x.estimates.length} vs ${res.x.frequencies.length})`,
-			);
-		}
-		if (res.y.frequencies.length !== res.y.estimates.length) {
-			getLogger().warn(
-				`Y estimates and frequencies are not the same length (${res.y.estimates.length} vs ${res.y.frequencies.length})`,
-			);
-		}
-		if (res.z.frequencies.length !== res.z.estimates.length) {
-			getLogger().warn(
-				`Z estimates and frequencies are not the same length (${res.z.estimates.length} vs ${res.z.frequencies.length})`,
-			);
-		}
-		if (res.total.frequencies.length !== res.total.estimates.length) {
-			getLogger().warn(
-				`Total estimates and frequencies are not the same length  (${res.total.estimates.length} vs ${res.total.frequencies.length})`,
-			);
-		}
-		if (res.x.frequencies.length !== surface.renderableSeries.getById('x').dataSeries.count()) {
-			surface.renderableSeries.getById('x').dataSeries.clear();
-			surface.renderableSeries.getById('y').dataSeries.clear();
-			surface.renderableSeries.getById('z').dataSeries.clear();
-			surface.renderableSeries.getById('total').dataSeries.clear();
-			(surface.renderableSeries.getById('x').dataSeries as XyDataSeries).appendRange(
-				res.x.frequencies,
-				res.x.estimates,
-			);
-			(surface.renderableSeries.getById('y').dataSeries as XyDataSeries).appendRange(
-				res.y.frequencies,
-				res.y.estimates,
-			);
-			(surface.renderableSeries.getById('z').dataSeries as XyDataSeries).appendRange(
-				res.z.frequencies,
-				res.z.estimates,
-			);
-			(surface.renderableSeries.getById('total').dataSeries as XyDataSeries).appendRange(
-				res.total.frequencies,
-				res.total.estimates,
-			);
+	const updatePSD = useCallback(
+		(res: Omit<PSDResult, 'source'>) => {
+			const surface = psdChart.surface.current;
+			if (surface == null) {
+				return;
+			}
+			const elapsed = new Date().getTime() - timeSinceLastPsd.current;
+			timeSinceLastPsd.current = new Date().getTime();
+			const animationDS = psdChart.data.current?.animationSeries;
+			if (animationDS == null) {
+				throw new Error('No animation data series');
+			}
+			// Log lengths if estimates and frequencies aren't the same length
+			if (res.x.frequencies.length !== res.x.estimates.length) {
+				getLogger().warn(
+					`X estimates and frequencies are not the same length (${res.x.estimates.length} vs ${res.x.frequencies.length})`,
+				);
+			}
+			if (res.y.frequencies.length !== res.y.estimates.length) {
+				getLogger().warn(
+					`Y estimates and frequencies are not the same length (${res.y.estimates.length} vs ${res.y.frequencies.length})`,
+				);
+			}
+			if (res.z.frequencies.length !== res.z.estimates.length) {
+				getLogger().warn(
+					`Z estimates and frequencies are not the same length (${res.z.estimates.length} vs ${res.z.frequencies.length})`,
+				);
+			}
+			if (res.total.frequencies.length !== res.total.estimates.length) {
+				getLogger().warn(
+					`Total estimates and frequencies are not the same length  (${res.total.estimates.length} vs ${res.total.frequencies.length})`,
+				);
+			}
+			if (res.x.frequencies.length !== surface.renderableSeries.getById('x').dataSeries.count()) {
+				surface.renderableSeries.getById('x').dataSeries.clear();
+				surface.renderableSeries.getById('y').dataSeries.clear();
+				surface.renderableSeries.getById('z').dataSeries.clear();
+				surface.renderableSeries.getById('total').dataSeries.clear();
+				(surface.renderableSeries.getById('x').dataSeries as XyDataSeries).appendRange(
+					res.x.frequencies,
+					res.x.estimates,
+				);
+				(surface.renderableSeries.getById('y').dataSeries as XyDataSeries).appendRange(
+					res.y.frequencies,
+					res.y.estimates,
+				);
+				(surface.renderableSeries.getById('z').dataSeries as XyDataSeries).appendRange(
+					res.z.frequencies,
+					res.z.estimates,
+				);
+				(surface.renderableSeries.getById('total').dataSeries as XyDataSeries).appendRange(
+					res.total.frequencies,
+					res.total.estimates,
+				);
+				updatePsdChartRange(new NumberRange(res.total.powerRange.min, res.total.powerRange.max));
+				return;
+			}
+			animationDS.x.clear();
+			animationDS.y.clear();
+			animationDS.z.clear();
+			animationDS.total.clear();
+			animationDS.x.appendRange(res.x.frequencies, res.x.estimates);
+			animationDS.y.appendRange(res.y.frequencies, res.y.estimates);
+			animationDS.z.appendRange(res.z.frequencies, res.z.estimates);
+			animationDS.total.appendRange(res.total.frequencies, res.total.estimates);
+			surface.renderableSeries
+				.getById('x')
+				.runAnimation(new LineAnimation({ duration: elapsed, ease: easing.inOutCirc, dataSeries: animationDS.x }));
+			surface.renderableSeries
+				.getById('y')
+				.runAnimation(new LineAnimation({ duration: elapsed, ease: easing.inOutCirc, dataSeries: animationDS.y }));
+			surface.renderableSeries
+				.getById('z')
+				.runAnimation(new LineAnimation({ duration: elapsed, ease: easing.inOutCirc, dataSeries: animationDS.z }));
+			surface.renderableSeries
+				.getById('total')
+				.runAnimation(
+					new MountainAnimation({ duration: elapsed, ease: easing.inOutCirc, dataSeries: animationDS.total }),
+				);
 			updatePsdChartRange(new NumberRange(res.total.powerRange.min, res.total.powerRange.max));
-			return;
-		}
-		animationDS.x.clear();
-		animationDS.y.clear();
-		animationDS.z.clear();
-		animationDS.total.clear();
-		animationDS.x.appendRange(res.x.frequencies, res.x.estimates);
-		animationDS.y.appendRange(res.y.frequencies, res.y.estimates);
-		animationDS.z.appendRange(res.z.frequencies, res.z.estimates);
-		animationDS.total.appendRange(res.total.frequencies, res.total.estimates);
-		surface.renderableSeries
-			.getById('x')
-			.runAnimation(new LineAnimation({ duration: elapsed, ease: easing.inOutCirc, dataSeries: animationDS.x }));
-		surface.renderableSeries
-			.getById('y')
-			.runAnimation(new LineAnimation({ duration: elapsed, ease: easing.inOutCirc, dataSeries: animationDS.y }));
-		surface.renderableSeries
-			.getById('z')
-			.runAnimation(new LineAnimation({ duration: elapsed, ease: easing.inOutCirc, dataSeries: animationDS.z }));
-		surface.renderableSeries
-			.getById('total')
-			.runAnimation(
-				new MountainAnimation({ duration: elapsed, ease: easing.inOutCirc, dataSeries: animationDS.total }),
-			);
-		updatePsdChartRange(new NumberRange(res.total.powerRange.min, res.total.powerRange.max));
-	});
+		},
+		[psdChart.data, psdChart.surface, updatePsdChartRange],
+	);
 	const updateSignals = useCallback(
 		async ([time, x, y, z]: [Float64Array, Float64Array, Float64Array, Float64Array]) => {
 			// Center the signals by subtracting the mean
@@ -318,7 +335,7 @@ export const useRealtimeAnalysisChart = (
 	);
 	// useTicker(fifo.sampleRate.current / ADXL_STREAM_BUFFER_SIZE, isChartEnabled ? updateSignals : undefined);
 
-	const worker = useWorker(isChartEnabled, adxl, updateSignals);
+	useWorker(isChartEnabled, adxl, updateSignals, updatePSD);
 	// const updatePsd = useBufferedPSD(worker.specSampleRate, psds.onData);
 
 	// useRealtimeSensor({
@@ -340,7 +357,7 @@ export const useRealtimeAnalysisChart = (
 		() => ({
 			isChartEnabled,
 			setIsChartEnabled,
-			psds,
+			psds: updatePSD,
 			currentAccelerometer: adxl,
 			currentAccelerometerHardwareName: adxlHardwareName,
 			chartProps: {
@@ -353,7 +370,7 @@ export const useRealtimeAnalysisChart = (
 		[
 			isChartEnabled,
 			setIsChartEnabled,
-			psds,
+			updatePSD,
 			adxl,
 			adxlHardwareName,
 			xSignalChart,

@@ -83,12 +83,11 @@ export const createADXL345Stream = (url: string, sensor: KlipperAccelSensorName)
 					id: ++id,
 				}) satisfies KlipperADXLRequest,
 			() => {
-				subject.complete();
 				return null;
 			},
 			(msg) => {
 				if ('result' in msg && isKlipperAccelSubscriptionResponse(msg.result)) {
-					console.log('subscribed to klippy socket!');
+					console.log('subscribed to klippy socket!', msg);
 					header = msg.result.header;
 					return false;
 				}
@@ -102,6 +101,7 @@ export const createADXL345Stream = (url: string, sensor: KlipperAccelSensorName)
 			},
 		)
 		.pipe(
+			share(),
 			filter((msg): msg is { params: KlipperAccelSubscriptionData } => isKlipperAccelSubscriptionData(msg)),
 			map((msg) => {
 				return msg.params;
@@ -109,8 +109,12 @@ export const createADXL345Stream = (url: string, sensor: KlipperAccelSensorName)
 			share(),
 		);
 
+	// Keep a subscription open. The caller will be responsible for closing the stream.
+	// This prevents us from rapidly connecting / disconnecting from the socket depending on downstream behavior.
+	dataStream$.subscribe();
+
 	return {
 		dataStream$,
-		close: subject.complete,
+		close: subject.complete.bind(subject),
 	};
 };

@@ -98,6 +98,7 @@ export async function powerSpectralDensity(
 		let powers: number[] = [];
 		let frequencies: number[] = [];
 		let maxPower = 0;
+		let peakFrequency = 0;
 		let minPower = 0;
 		let skipped = 0;
 		const fftRatio = sampleRate / fftSize;
@@ -119,6 +120,7 @@ export async function powerSpectralDensity(
 			}
 			if (power > maxPower) {
 				maxPower = power;
+				peakFrequency = frequency;
 			}
 			if (power < minPower) {
 				minPower = power;
@@ -131,6 +133,7 @@ export async function powerSpectralDensity(
 			estimates: powers,
 			frequencies: frequencies,
 			powerRange: new NumberRange(minPower, maxPower),
+			peakFrequency: peakFrequency,
 		};
 	});
 

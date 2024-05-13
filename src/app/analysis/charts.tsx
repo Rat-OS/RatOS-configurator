@@ -125,7 +125,7 @@ export const useADXLSignalChart = (axis: ADXLAxes) => {
 
 				const yAxis = new NumericAxis(surface.webAssemblyContext2D, {
 					autoRange: EAutoRange.Never,
-					visibleRange: new NumberRange(-1000, 1000),
+					visibleRange: new NumberRange(-5000, 5000),
 					drawLabels: false,
 					id: SIGNAL_CHART_AXIS_AMPLITUDE_ID + axis,
 					drawMinorTickLines: false,
@@ -170,10 +170,6 @@ export const useADXLSignalChart = (axis: ADXLAxes) => {
 					isSorted: true,
 					dataSeriesName: axis.toLocaleUpperCase() + ' History',
 					dataIsSortedInX: true,
-					xValues: Array(ADXL_STREAM_BUFFER_SIZE * historyCount)
-						.fill(0)
-						.map((_, i) => i),
-					yValues: Array(ADXL_STREAM_BUFFER_SIZE * historyCount).fill(0),
 				});
 
 				// Line series to render the historical signal data (last 200 buffers)

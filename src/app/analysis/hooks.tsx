@@ -714,6 +714,7 @@ const growByUnion = (axis: AxisBase2D | (AxisBase2D | null)[]) => {
 export function useDynamicAxisRange(
 	axis: AxisBase2D | (AxisBase2D | null)[] | null,
 	minimum: NumberRange = new NumberRange(0, 0),
+	animationDuration?: number,
 ) {
 	const maxRef = useRef<NumberRange | null>(axis ? maximumRangeUnion(axis) : null);
 	const lastUpdate = useRef<number>(new Date().getTime());
@@ -728,7 +729,7 @@ export function useDynamicAxisRange(
 			if (maxRef.current == null) {
 				maxRef.current = visibleRangeUnion(axis);
 			}
-			const sinceLastUpdate = new Date().getTime() - lastUpdate.current;
+			const sinceLastUpdate = animationDuration ?? new Date().getTime() - lastUpdate.current;
 			const sinceLastChange = new Date().getTime() - lastChange.current;
 			lastUpdate.current = new Date().getTime();
 			let max = maximumRangeUnion(axis);
@@ -747,19 +748,20 @@ export function useDynamicAxisRange(
 			if (max.min < maxRef.current.min) {
 				newMin = max.min;
 			}
-			if (newMax != null || newMin != null) {
-				axes.forEach((a) => {
-					if (maxRef.current == null || a == null) {
-						return;
-					}
-					const newRange = new NumberRange(
-						Math.min(newMin ?? maxRef.current.min, minimum.min),
-						Math.max(newMax ?? maxRef.current.max, minimum.max),
-					);
-					a.animateVisibleRange(newRange, sinceLastUpdate, easing.inOutCirc);
-				});
-				lastChange.current = new Date().getTime();
-				return;
+			const bestMin = Math.min(newMin ?? maxRef.current.min, minimum.min);
+			const bestMax = Math.max(newMax ?? maxRef.current.max, minimum.max);
+			if (newMax != null || (newMin != null && sinceLastChange > sinceLastUpdate / 2)) {
+				if (bestMin !== maxRef.current.min || bestMax !== maxRef.current.max) {
+					maxRef.current = new NumberRange(bestMin, bestMax);
+					axes.forEach((a) => {
+						if (maxRef.current == null || a == null) {
+							return;
+						}
+						const newRange = new NumberRange(bestMin, bestMax);
+						a.animateVisibleRange(newRange, sinceLastUpdate, easing.inOutQuad);
+					});
+					lastChange.current = new Date().getTime();
+				}
 			}
 			if (sinceLastChange > sinceLastUpdate * 3) {
 				if (max.max < maxRef.current.max) {
@@ -773,18 +775,16 @@ export function useDynamicAxisRange(
 						if (maxRef.current == null || a == null) {
 							return;
 						}
-						const newRange = new NumberRange(
-							Math.min(newMin ?? maxRef.current.min, minimum.min),
-							Math.max(newMax ?? maxRef.current.max, minimum.max),
-						);
-						a.animateVisibleRange(newRange, sinceLastUpdate / 2, easing.inOutCirc);
+						const newRange = new NumberRange(bestMin, bestMax);
+						a.animateVisibleRange(newRange, sinceLastUpdate / 2, easing.inOutQuad);
 					});
+					maxRef.current = new NumberRange(bestMin, bestMax);
 					lastChange.current = new Date().getTime();
 					return;
 				}
 			}
 		},
-		[axis, minimum],
+		[animationDuration, axis, minimum],
 	);
 
 	return update;
