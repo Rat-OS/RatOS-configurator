@@ -49,6 +49,7 @@ jobs:
         id: pnpm-install
         with:
           run_install: false
+          version: 9.1
 
       - name: Generate keys
         id: generate-keys
