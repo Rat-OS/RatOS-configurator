@@ -1,4 +1,5 @@
 import { MoonrakerPrinterState, MoonrakerPrinterStateErrorEnum, parseMoonrakerHTTPResponse } from '@/zods/moonraker';
+import { ZodError } from 'zod';
 
 export const queryPrinterState = async (): Promise<
 	Zod.output<typeof MoonrakerPrinterState>['status']['print_stats']['state']
@@ -14,6 +15,8 @@ export const queryPrinterState = async (): Promise<
 				(MoonrakerPrinterStateErrorEnum.MOONRAKER_OFFLINE ||
 					e.cause === MoonrakerPrinterStateErrorEnum.MOONRAKER_INTERNAL_ERROR)
 		) {
+			return 'error';
+		} else if (e instanceof ZodError) {
 			return 'error';
 		} else {
 			throw e;
