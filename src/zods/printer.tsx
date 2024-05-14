@@ -36,6 +36,7 @@ export const PrinterDefinition = z
 	.object({
 		id: z.string(),
 		name: z.string().describe('The name of the printer'),
+		releaseDate: z.string().optional().describe('The release date of the printer in ISO 8601/RFC3339 eg. 2023-12-31'),
 		description: z.string().describe('A description of the printer'),
 		manufacturer: z.string().describe('The name of the manufacturer of this printer'),
 		documentationLink: z.string().describe('Link to the RatOS documentation for this printer'),

@@ -15,9 +15,9 @@ ${helper.renderBoards()}
 ### BASE SETUP
 #############################################################################################################
 ${helper.renderBase()}
-[include RatOS/printers/caramba-idex/caramba.cfg]
-[include RatOS/printers/caramba-idex/macros.cfg]
-[include RatOS/printers/caramba-idex/${config.size.x}.cfg]
+[include RatOS/printers/v-core-4-idex/v-core-4-idex.cfg]
+[include RatOS/printers/v-core-4-idex/macros.cfg]
+[include RatOS/printers/v-core-4-idex/${config.size.x}.cfg]
 
 # Extruder
 ${helper.renderExtruder()}

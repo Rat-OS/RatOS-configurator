@@ -18,7 +18,10 @@ export const readPrinterAtom = async ({
 }: ReadAtomInterface): Promise<z.infer<typeof PrinterDefinitionWithResolvedToolheads> | null> => {
 	const printer = await read(PrinterState.key);
 	if (printer != null) {
-		const printerId = z.object({ id: PrinterDefinitionWithResolvedToolheads.shape.id }).safeParse(printer);
+		let printerId = z.object({ id: PrinterDefinitionWithResolvedToolheads.shape.id }).safeParse(printer);
+		if (!printerId.success) {
+			printerId = z.object({ id: PrinterDefinitionWithResolvedToolheads.shape.id }).safeParse({ id: printer });
+		}
 		if (printerId.success) {
 			let newPrinter: null | PrinterDefinitionWithResolvedToolheads = cachedPrinters[printerId.data.id];
 			if (newPrinter == null) {

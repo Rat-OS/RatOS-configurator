@@ -15,9 +15,9 @@ ${helper.renderBoards()}
 ### BASE SETUP
 #############################################################################################################
 ${helper.renderBase()}
-[include RatOS/printers/caramba/caramba.cfg]
-[include RatOS/printers/caramba/macros.cfg]
-[include RatOS/printers/caramba/${config.size.x}.cfg]
+[include RatOS/printers/v-core-4-hybrid/v-core-4-hybrid.cfg]
+[include RatOS/printers/v-core-4-hybrid/macros.cfg]
+[include RatOS/printers/v-core-4-hybrid/${config.size.x}.cfg]
 
 # Extruder
 ${helper.renderExtruder()}
@@ -118,14 +118,22 @@ ${helper.renderUserStepperSections({
 			endstop: 0 - margin.min,
 		}),
 	},
-	y: {
+	x1: {
 		directionInverted: false,
+		rotationComment: '40 for 20 tooth 2GT pulleys, 32 for 16 tooth 2GT pulleys',
+	},
+	y: {
+		directionInverted: true,
 		rotationComment: '40 for 20 tooth 2GT pulleys, 32 for 16 tooth 2GT pulleys',
 		limits: (margin) => ({
 			min: 0 - margin.min,
 			max: config.size.y + margin.max,
-			endstop: config.size.y + margin.max,
+			endstop: 0 - margin.min,
 		}),
+	},
+	y1: {
+		directionInverted: false,
+		rotationComment: '40 for 20 tooth 2GT pulleys, 32 for 16 tooth 2GT pulleys',
 	},
 	z: {
 		directionInverted: true,

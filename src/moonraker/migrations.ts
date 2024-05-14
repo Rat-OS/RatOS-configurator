@@ -97,6 +97,86 @@ export const migrations: Migration[] = [
 			return { result: 'Nothing to migrate' };
 		},
 	},
+	{
+		version: 2,
+		description: 'Change caramba printers to v-core-4 / v-chonk',
+		up: async () => {
+			const res = await window.fetch(`http://${getHost()}/server/database/item?namespace=RatOS`);
+			if (res.ok) {
+				const data = (await res.json()) as
+					| { result: MoonrakerDBItemResponse<{ [key: string]: unknown }> }
+					| { error: { message: string } };
+				if ('error' in data) {
+					throw new Error(data.error.message);
+				}
+				const result: string[] = [];
+				if (data.result.value == null) {
+					return { result: 'Nothing to migrate' };
+				}
+				for await (const [key, value] of Object.entries(data.result.value)) {
+					if (key === 'Printer' && typeof value === 'string') {
+						const migratedValue = value.replace(/caramba-chonk/g, 'v-chonk').replace(/caramba/g, 'v-core-4');
+						if (migratedValue === value) {
+							continue;
+						}
+						await window.fetch(`http://${getHost()}/server/database/item`, {
+							method: 'POST',
+							headers: {
+								'Content-Type': 'application/json',
+							},
+							body: JSON.stringify({
+								namespace: 'RatOS',
+								key: 'Printer',
+								value: migratedValue,
+							}),
+						});
+						result.push(`Migrated ${value} to ${migratedValue}`);
+					}
+				}
+				return { result: `Succesfully migrated ${result.length} keys.\n${result.join('\n')}` };
+			} else {
+				return { result: 'Nothing to migrate' };
+			}
+		},
+		down: async () => {
+			const res = await window.fetch(`http://${getHost()}/server/database/item?namespace=RatOS`);
+			if (res.ok) {
+				const data = (await res.json()) as
+					| { result: MoonrakerDBItemResponse<{ [key: string]: unknown }> }
+					| { error: { message: string } };
+				if ('error' in data) {
+					throw new Error(data.error.message);
+				}
+				const result: string[] = [];
+				if (data.result.value == null) {
+					return { result: 'Nothing to migrate' };
+				}
+				for await (const [key, value] of Object.entries(data.result.value)) {
+					if (key === 'Printer' && typeof value === 'string') {
+						const migratedValue = value.replace(/v-chonk/g, 'caramba-chonk').replace(/v-core-4/g, 'caramba');
+						if (migratedValue === value) {
+							continue;
+						}
+						await window.fetch(`http://${getHost()}/server/database/item`, {
+							method: 'POST',
+							headers: {
+								'Content-Type': 'application/json',
+							},
+							body: JSON.stringify({
+								namespace: 'RatOS',
+								key: 'Printer',
+								value: migratedValue,
+							}),
+						});
+						result.push(`Migrated ${value} to ${migratedValue}`);
+					}
+				}
+				return { result: `Succesfully migrated ${result.length} keys.\n${result.join('\n')}` };
+			} else {
+				return { result: 'Nothing to migrate' };
+			}
+		},
+	},
 ];
 
 export const getCurrentVersion = async (): Promise<number> => {
@@ -136,7 +216,7 @@ export const migrate = async (from: number, to: number) => {
 	isMigrating = true;
 	try {
 		const migrationsToRun = migrations
-			.filter((m) => m.version >= from && m.version <= to)
+			.filter((m) => m.version > from && m.version <= to)
 			.sort((a, b) => (from <= to ? a.version - b.version : b.version - a.version));
 		for await (const migration of migrationsToRun) {
 			const result = await (from < to ? migration.up() : migration.down());

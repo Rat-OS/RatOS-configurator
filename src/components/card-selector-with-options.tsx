@@ -84,8 +84,7 @@ export const CardSelectorWithOptions = <
 
 	return (
 		<RadioGroup value={selected} onChange={onSelect}>
-			<RadioGroup.Label className="sr-only">Selector</RadioGroup.Label>
-			<div className="space-y-4" ref={parent}>
+			<div className="grid grid-cols-1 gap-4 xl:grid-cols-2" ref={parent}>
 				{props.cards.map((card, i) => (
 					<RadioGroup.Option
 						key={card.id}
@@ -94,53 +93,57 @@ export const CardSelectorWithOptions = <
 							twJoin(
 								checked ? 'border-transparent' : 'border-zinc-300 dark:border-zinc-700',
 								active ? 'ring-2 ring-brand-600 dark:ring-brand-500' : '',
-								'relative cursor-pointer rounded-lg border bg-white px-4 py-4 shadow-sm focus:outline-none dark:bg-zinc-800',
+								'relative flex cursor-pointer items-stretch rounded-lg border bg-white px-4 py-4 shadow-sm focus:outline-none dark:bg-zinc-800',
 							)
 						}
 					>
 						{({ active, checked }) => (
 							<>
-								<div className="flex justify-between">
-									<div className="flex-1">
+								<div className="flex flex-1 items-stretch justify-between gap-4">
+									<div className="flex flex-1 flex-col">
 										<RadioGroup.Label as="p" className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
 											{card.name}
 										</RadioGroup.Label>
-										<RadioGroup.Description as="div" className="text-xs text-zinc-500 dark:text-zinc-400">
+										<RadioGroup.Description
+											as="div"
+											className="mt-1 flex-1 text-xs font-medium text-zinc-500 dark:text-zinc-400"
+										>
 											<div className="sm:inline">{card.details}</div>
 										</RadioGroup.Description>
+										{card.options != null && (
+											<RadioGroup
+												value={selected?.id === card.id ? selectedOption : null}
+												onChange={(option: Option) => onSelectOption(card, option)}
+												className="mt-2 w-full"
+											>
+												<RadioGroup.Label className="sr-only"> Choose a size option </RadioGroup.Label>
+												<div className="grid grid-cols-3 gap-1 2xl:grid-cols-4">
+													{card.options.map((option) => (
+														<RadioGroup.Option
+															key={option.name}
+															value={option}
+															className={({ active, checked }) =>
+																twMerge(
+																	active || checked ? 'ring-2' : 'ring-1',
+																	'flex items-center justify-center rounded-md px-3 py-3 text-sm font-semibold uppercase ring-inset sm:flex-1 xl:text-xs 2xl:text-sm',
+																	badgeBackgroundColorStyle({ color: checked ? 'brand' : 'gray' }),
+																	badgeBorderColorStyle({ color: active || checked ? 'brand' : 'gray' }),
+																	badgeTextColorStyle({ color: active || checked ? 'brand' : 'gray' }),
+																	active || checked ? '' : 'dark:hover:bg-zinc-400/30',
+																)
+															}
+														>
+															<RadioGroup.Label as="span">{option.name}</RadioGroup.Label>
+														</RadioGroup.Option>
+													))}
+												</div>
+											</RadioGroup>
+										)}
 									</div>
-									<RadioGroup.Description as="div" className="mb-2 ml-4 flex text-sm sm:block sm:text-right">
+									<RadioGroup.Description as="div" className="flex-0 relative flex text-sm sm:block sm:text-right">
 										{card.right}
 									</RadioGroup.Description>
 								</div>
-								{card.options != null && (
-									<RadioGroup
-										value={selected?.id === card.id ? selectedOption : null}
-										onChange={(option: Option) => onSelectOption(card, option)}
-										className="mt-2"
-									>
-										<RadioGroup.Label className="sr-only"> Choose a memory option </RadioGroup.Label>
-										<div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
-											{card.options.map((option) => (
-												<RadioGroup.Option
-													key={option.name}
-													value={option}
-													className={({ active, checked }) =>
-														twMerge(
-															active || checked ? 'ring-2' : 'ring-1',
-															'flex items-center justify-center rounded-md px-3 py-3 text-sm font-semibold uppercase ring-inset sm:flex-1',
-															badgeBackgroundColorStyle({ color: checked ? 'brand' : 'gray' }),
-															badgeBorderColorStyle({ color: active || checked ? 'brand' : 'gray' }),
-															badgeTextColorStyle({ color: active || checked ? 'brand' : 'gray' }),
-														)
-													}
-												>
-													<RadioGroup.Label as="span">{option.name}</RadioGroup.Label>
-												</RadioGroup.Option>
-											))}
-										</div>
-									</RadioGroup>
-								)}
 								<div
 									className={twJoin(
 										active ? 'border' : 'border-2',
