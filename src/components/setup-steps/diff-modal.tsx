@@ -91,7 +91,7 @@ export const DiffModal: React.FC<ModalProps> = (props) => {
 		<Transition.Root show={isOpen} as={Fragment} appear={true}>
 			<Dialog
 				as="div"
-				className="git-diff fixed inset-0 z-10 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-400 scrollbar-thumb-rounded-md dark:scrollbar-thumb-zinc-600"
+				className="git-diff fixed inset-0 z-50 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-400 scrollbar-thumb-rounded-md dark:scrollbar-thumb-zinc-600"
 				onClose={close}
 			>
 				<div className="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">
