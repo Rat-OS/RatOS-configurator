@@ -63,7 +63,7 @@ type UnixTimestamp = Nominal<number, 'timestamp'>;
 export type PrinterObjectQueries = {
 	print_stats: MoonrakerMethod<
 		{
-			state: 'paused' | 'printing' | 'complete' | 'error' | 'canceled' | 'standby';
+			state?: 'paused' | 'printing' | 'complete' | 'error' | 'canceled' | 'standby';
 		},
 		void
 	>;
