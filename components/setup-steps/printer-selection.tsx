@@ -45,11 +45,8 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 	const cards = printerQuery.data
 		? (printerQuery.data
 				.slice()
-				.sort((a, b) =>
-					a.manufacturer === 'Rat Rig' && (b.manufacturer !== 'Rat Rig' || b.description.indexOf('Discontinued') > -1)
-						? -1
-						: a.name.localeCompare(b.name),
-				)
+				.filter((p) => p.manufacturer === 'Rat Rig')
+				.sort((a, b) => a.releaseDate?.localeCompare(b.name) ?? a.name.localeCompare(b.name))
 				.map((p) => {
 					const printerImgUri = 'printerId=' + encodeURIComponent(p.id);
 					return {
@@ -58,13 +55,15 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 						details: p.description,
 						printer: p,
 						right: (
-							<Image
-								src={'/configure/api/printer-image?' + printerImgUri}
-								width={50}
-								className="rounded-lg bg-white p-1 shadow-md dark:shadow-zinc-900"
-								height={50}
-								alt={`${p.manufacturer} ${p.name}`}
-							/>
+							<div className="relative">
+								<Image
+									src={'/configure/api/printer-image?' + printerImgUri}
+									className="aspect-auto rounded-lg object-contain object-right"
+									width={100}
+									height={100}
+									alt={`${p.manufacturer} ${p.name}`}
+								/>
+							</div>
 						),
 						options:
 							Object.values(p.sizes).length > 1
@@ -74,7 +73,39 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 				}) satisfies SelectablePrinter[])
 		: [];
 
-	const selectedCard = cards.find((c) => c.id === selectedPrinter?.id);
+	const unofficialPrinters = printerQuery.data
+		? (printerQuery.data
+				.slice()
+				.filter((p) => p.manufacturer !== 'Rat Rig')
+				.sort((a, b) => (a.manufacturer + a.name).localeCompare(b.manufacturer + b.name))
+				.map((p) => {
+					const printerImgUri = 'printerId=' + encodeURIComponent(p.id);
+					return {
+						id: p.id,
+						name: `${p.manufacturer} ${p.name}`,
+						details: p.description,
+						printer: p,
+						right: (
+							<div className="relative">
+								<Image
+									src={'/configure/api/printer-image?' + printerImgUri}
+									className="aspect-auto rounded-lg object-contain object-right"
+									width={100}
+									height={100}
+									alt={`${p.manufacturer} ${p.name}`}
+								/>
+							</div>
+						),
+						options:
+							Object.values(p.sizes).length > 1
+								? Object.entries(p.sizes).map(([key, volume]) => ({ id: key, name: key + '', volume }))
+								: undefined,
+					};
+				}) satisfies SelectablePrinter[])
+		: [];
+
+	const selectedCard =
+		cards.find((c) => c.id === selectedPrinter?.id) ?? unofficialPrinters.find((c) => c.id === selectedPrinter?.id);
 	const selectedPrinterOptionFromCard = selectedCard?.options?.find((o) => {
 		if (typeof selectedPrinterOption !== 'string' && typeof selectedPrinterOption !== 'number') {
 			return (
@@ -142,8 +173,22 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 					</p>
 				</div>
 				<ShowWhenReady isReady={printerQuery.isFetched} queryErrors={errors}>
+					<h3 className="font-display font-bold tracking-tight text-zinc-300">Official Support</h3>
+					<p className="mb-4 max-w-4xl text-sm font-medium text-zinc-500 dark:text-zinc-500">
+						These printers are officially supported by Rat Rig and the RatOS team.
+					</p>
 					<CardSelectorWithOptions
 						cards={cards}
+						onSelect={onSelectPrinter}
+						value={selectedCard}
+						optionValue={selectedPrinterOptionFromCard}
+					/>
+					<h3 className="font-display mt-8 font-bold tracking-tight text-zinc-300">Community Support</h3>
+					<p className="mb-4 max-w-4xl text-sm font-medium text-zinc-500 dark:text-zinc-500">
+						These printers are supported through community contributions and may not be as well tested.
+					</p>
+					<CardSelectorWithOptions
+						cards={unofficialPrinters}
 						onSelect={onSelectPrinter}
 						value={selectedCard}
 						optionValue={selectedPrinterOptionFromCard}

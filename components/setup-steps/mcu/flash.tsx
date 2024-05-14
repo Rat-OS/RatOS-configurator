@@ -10,6 +10,10 @@ import { WarningMessage } from '@/components/warning-message';
 import { MCUStepScreenProps } from '@/components/setup-steps/mcu-preparation';
 import { DFUFlash } from '@/components/setup-steps/mcu/dfu-flash';
 import { SDCardFlashing } from '@/components/setup-steps/mcu/sd-card-flash';
+import { Card } from '@/components/common/card';
+import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ChevronRight, FileQuestion, MemoryStick, ToyBrick, Zap } from 'lucide-react';
+import { Badge } from '@/components/common/badge';
 
 export const MCUFlashing = (props: MCUStepScreenProps) => {
 	const [forceReflash, setForceReflash] = useState(false);
@@ -130,63 +134,132 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 		const pathStrategyEnabled = boardDetected.data && selectedBoard?.flashScript != null;
 		const unidentifiedPathStrategyEnabled = unidentifiedBoards.data?.length;
 		const dfu = (
-			<Button
-				variant="indeterminate"
-				onClick={() => setFlashStrategy('dfu')}
-				disabled={!dfuStrategyEnabled}
-				className="justify-center"
-				title={dfuStrategyEnabled ? undefined : 'This board does not support DFU flashing.'}
-			>
-				Flash manually via DFU
-			</Button>
+			<Card className="flex flex-col justify-between">
+				<CardHeader>
+					<CardTitle>Manual flashing using DFU</CardTitle>
+					<CardDescription>
+						Flash the board by manually placing a boot jumper or clicking boot and reset buttons on your board.
+						Instructions will be provided on the next page.
+					</CardDescription>
+				</CardHeader>
+				<CardContent className="text-right xl:text-left">
+					<Button
+						variant="indeterminate"
+						onClick={() => setFlashStrategy('dfu')}
+						disabled={!dfuStrategyEnabled}
+						className="justify-endt"
+						title={dfuStrategyEnabled ? undefined : 'This board does not support DFU flashing.'}
+					>
+						<ToyBrick className="size-4" />
+						Flash manually via DFU
+					</Button>
+				</CardContent>
+			</Card>
 		);
 		const sdCard = (
-			<Button
-				variant="indeterminate"
-				onClick={() => setFlashStrategy('sdcard')}
-				disabled={!sdCardStrategyEnabled}
-				className="justify-center"
-				title={sdCardStrategyEnabled ? undefined : 'This board does not support SD card flashing.'}
-			>
-				Flash manually via SD card
-			</Button>
+			<Card className="flex flex-col justify-between">
+				<CardHeader>
+					<CardTitle>Manual flashing using an SD-card</CardTitle>
+					<CardDescription>
+						Flash the board by placing the firmware on an SD-card and inserting it into the board. Instructions will be
+						provided on the next page.
+					</CardDescription>
+					<CardDescription className="text-sky-300/50">
+						This method is generally not recommended unless other methods aren't available.
+					</CardDescription>
+				</CardHeader>
+				<CardContent className="text-right xl:text-left">
+					<Button
+						variant="indeterminate"
+						onClick={() => setFlashStrategy('sdcard')}
+						disabled={!sdCardStrategyEnabled}
+						className="justify-center"
+						title={sdCardStrategyEnabled ? undefined : 'This board does not support SD card flashing.'}
+					>
+						<MemoryStick className="size-4" />
+						Flash manually via SD card
+					</Button>
+				</CardContent>
+			</Card>
 		);
 		const path = (
-			<Button
-				variant="indeterminate"
-				onClick={onFlashViaPath}
-				disabled={!pathStrategyEnabled}
-				className="justify-center"
-				title={pathStrategyEnabled ? undefined : 'Board was not detected.'}
-			>
-				Flash automatically
-			</Button>
+			<Card className="flex flex-col justify-between">
+				<CardHeader>
+					<CardTitle className="flex items-center justify-between gap-2">
+						Automated flashing
+						{!pathStrategyEnabled ? (
+							<Badge color="yellow" className="mr-1">
+								Unavailable
+							</Badge>
+						) : (
+							<Badge color="lime" className="mr-1">
+								Recommended
+							</Badge>
+						)}
+					</CardTitle>
+					<CardDescription>
+						If RatOS has already detected your board, it can be flashed automatically. This is the fastest and easiest
+						method.
+					</CardDescription>
+				</CardHeader>
+				<CardContent className="text-right xl:text-left">
+					<Button
+						variant="indeterminate"
+						onClick={onFlashViaPath}
+						disabled={!pathStrategyEnabled}
+						className="justify-center"
+						title={pathStrategyEnabled ? undefined : 'Board was not detected.'}
+					>
+						<Zap className="size-4" />
+						Flash automatically
+					</Button>
+				</CardContent>
+			</Card>
 		);
 		const unidentifiedPath = (
-			<Button
-				variant="indeterminate"
-				className="justify-center"
-				disabled={!unidentifiedPathStrategyEnabled}
-				title={unidentifiedPathStrategyEnabled ? undefined : 'No unidentified boards detected.'}
-				dropdownItems={unidentifiedBoards.data?.map((ub) => ({
-					onClick: () => {
-						if (selectedBoard == null) return;
-						setFlashStrategy('path');
-						setFlashPath(ub);
-						flashViaPath.mutate({ boardPath: selectedBoard.path, flashPath: ub, toolhead: toolhead?.serialize() });
-					},
-					title: ub,
-				}))}
-			>
-				Flash unidentified board
-			</Button>
+			<Card className="flex flex-col justify-between">
+				<CardHeader>
+					<CardTitle className="flex items-center justify-between gap-2">
+						Automated flashing
+						{!unidentifiedPathStrategyEnabled && (
+							<Badge color="yellow" className="mr-1">
+								Unavailable
+							</Badge>
+						)}
+					</CardTitle>
+					<CardDescription>
+						If RatOS detects any boards that are already running klipper but not managed by RatOS, their device path
+						will be listed here. If you're unsure what to pick, choose one of the other methods.
+					</CardDescription>
+				</CardHeader>
+				<CardContent className="text-right xl:text-left">
+					<Button
+						variant="indeterminate"
+						className="justify-center"
+						disabled={!unidentifiedPathStrategyEnabled}
+						title={unidentifiedPathStrategyEnabled ? undefined : 'No unidentified boards detected.'}
+						dropdownItems={unidentifiedBoards.data?.map((ub) => ({
+							onClick: () => {
+								if (selectedBoard == null) return;
+								setFlashStrategy('path');
+								setFlashPath(ub);
+								flashViaPath.mutate({ boardPath: selectedBoard.path, flashPath: ub, toolhead: toolhead?.serialize() });
+							},
+							title: ub,
+						}))}
+					>
+						<FileQuestion className="size-4" />
+						Flash unidentified board
+					</Button>
+				</CardContent>
+			</Card>
 		);
 		content = (
 			<Fragment>
 				<h3 className="text-xl font-medium text-zinc-900 dark:text-zinc-100">
 					How do you want to flash your {selectedBoard?.name}?
 				</h3>
-				<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+				<div className="grid grid-cols-1 gap-4 sm:grid-cols-1 xl:grid-cols-2">
 					{path}
 					{dfu}
 					{sdCard}

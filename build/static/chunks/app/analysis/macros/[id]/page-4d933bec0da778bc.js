@@ -1,0 +1,2 @@
+(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[6804],{34003:function(n,e,c){Promise.resolve().then(c.bind(c,2559))},2559:function(n,e,c){"use strict";c.r(e),c.d(e,{default:function(){return MacroPage}});var r=c(25374);function MacroPage(n){let{params:e}=n,c=(0,r.useRouter)();c.replace("/analysis/macros/".concat(e.id,"/recordings"))}},25374:function(n,e,c){n.exports=c(64839)}},function(n){n.O(0,[9321,8458,1744],function(){return n(n.s=34003)}),_N_E=n.O()}]);
+//# sourceMappingURL=page-4d933bec0da778bc.js.map

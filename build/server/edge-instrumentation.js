@@ -1,2 +1,2 @@
-(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[118],{996:(e,r,s)=>{"use strict";s.r(r),s.d(r,{register:()=>register});let register=async()=>{}}},e=>{var r=e(e.s=996);(_ENTRIES="undefined"==typeof _ENTRIES?{}:_ENTRIES).middleware_instrumentation=r}]);
+(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[118],{142:(e,r,s)=>{"use strict";s.r(r),s.d(r,{register:()=>register});let register=async()=>{}}},e=>{var r=e(e.s=142);(_ENTRIES="undefined"==typeof _ENTRIES?{}:_ENTRIES).middleware_instrumentation=r}]);
 //# sourceMappingURL=edge-instrumentation.js.map

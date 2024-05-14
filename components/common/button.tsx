@@ -8,7 +8,7 @@ import { ChevronDownIcon } from '@heroicons/react/20/solid';
 import { Route } from 'next';
 
 export const buttonVariants = cva(
-	'inline-flex gap-2 items-center justify-center border font-semibold rounded-md shadow-sm focus:outline-none focus:ring-2 capitalize relative active:translate-y-px active:scale-[99%] active:outline-none transition-all',
+	'inline-flex items-center justify-center border font-semibold rounded-md shadow-sm focus:outline-none focus:ring-2 capitalize relative active:translate-y-px active:scale-[99%] active:outline-none transition-all',
 	{
 		variants: {
 			variant: {
@@ -50,9 +50,9 @@ export const buttonVariants = cva(
 				true: 'opacity-60 cursor-not-allowed',
 			},
 			size: {
-				sm: 'px-3 py-1 text-xs',
-				lg: 'px-6 py-3 text-lg',
-				default: 'px-4 py-2 text-sm',
+				sm: 'px-2 py-1 text-xs gap-2',
+				lg: 'px-6 py-3 text-lg gap-4',
+				default: 'px-3 py-2 text-sm gap-2',
 				icon: 'h-9 w-9',
 				'icon-sm': 'h-6 w-6',
 				'icon-xs': 'h-4 w-4',
@@ -145,12 +145,12 @@ export const Button = forwardRef(function Button<T extends string>(
 			</Link>
 		);
 	}
-	if (dropdownItems && onClick == null) {
+	if (dropdownItems && dropdownItems.length && onClick == null) {
 		return (
 			<Menu as="span" className="relative inline-block text-left">
 				<Menu.Button className={buttonClasses} title={title} disabled={!!disabled}>
 					{children}
-					<ChevronDownIcon className="-mr-1 ml-2 h-5 w-5" aria-hidden="true" />
+					<ChevronDownIcon className="-mr-2 h-5 w-5" aria-hidden="true" />
 				</Menu.Button>
 
 				<Transition
