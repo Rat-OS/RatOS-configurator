@@ -277,7 +277,6 @@ export const deserializePrinterConfiguration = async (
 		config.toolheads == null
 			? undefined
 			: await Promise.all(config.toolheads.map((th) => deserializeToolheadConfiguration(th, config, boards)));
-
 	return PrinterConfiguration.parse({
 		toolheads: toolheads,
 		printer: (await getPrinters()).find((p) => p.id === config?.printer),

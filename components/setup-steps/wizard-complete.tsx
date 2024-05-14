@@ -560,8 +560,8 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 										Please review the changes to the configuration files.
 									</p>
 								</div>
-								<dl className="gap-y-4py-4 grid grid-cols-1 gap-x-4 sm:grid-cols-2">
-									<div className=" space-y-4 dark:border-zinc-700 sm:col-span-2">
+								<dl className="grid grid-cols-1 gap-x-4 gap-y-4 pb-4 sm:grid-cols-2">
+									<div className="dark:border-zinc-700 sm:col-span-2">
 										<FileChanges
 											serializedConfig={parsedPrinterConfiguration.success ? serializedPrinterConfiguration : null}
 											onFilesToIgnoreChange={setFilesToIgnore}
@@ -569,11 +569,21 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 										/>
 									</div>
 								</dl>
-								<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-t border-zinc-100 py-4 dark:border-zinc-700 sm:grid-cols-2">
-									<div className=" space-y-4 dark:border-zinc-700 sm:col-span-2">
+								<dl className="grid grid-cols-1 gap-x-4 gap-y-4 border-zinc-100 dark:border-zinc-700 sm:grid-cols-2">
+									<div className="dark:border-zinc-700 sm:col-span-2">
 										<InfoMessage>
-											If the above information is correct, go ahead and save the configuration. If not, go back and
-											change the configuration by clicking the steps in the "Setup Progress" panel.
+											<ul className="ml-4 list-disc space-y-2">
+												<li>
+													If the above information is correct, and you agree with the changes, go ahead and save the
+													configuration. If not, go back and change the configuration by clicking the steps in the
+													"Setup Progress" panel.
+												</li>
+												<li>
+													If you are unsure about the changes to a modified file, remember there's always a timestamped
+													backup created next to the given file when a file is overwritten, you can easily copy paste
+													from the old backup file in the Machine tab in mainsail, in case things go wrong.
+												</li>
+											</ul>
 										</InfoMessage>
 									</div>
 								</dl>

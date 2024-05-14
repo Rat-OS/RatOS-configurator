@@ -34,7 +34,13 @@ export const PrinterSizeDefinition = z
 
 export const PrinterDefinition = z
 	.object({
-		id: z.string(),
+		id: z.string().transform((data) => {
+			return data === 'caramba-chonk'
+				? 'v-chonk'
+				: data.startsWith('caramba-')
+					? data.replace('caramba-', 'v-core-4-')
+					: data;
+		}),
 		name: z.string().describe('The name of the printer'),
 		releaseDate: z.string().optional().describe('The release date of the printer in ISO 8601/RFC3339 eg. 2023-12-31'),
 		description: z.string().describe('A description of the printer'),

@@ -342,22 +342,24 @@ export const FileChanges: React.FC<FileChangesProps> = (props) => {
 		enabled: serializedConfig != null,
 	});
 	return (
-		<ul role="list" className="divide-y divide-zinc-100 dark:divide-zinc-800">
-			{filesToWrite.data?.map((fileToWrite) => {
-				return (
-					<ChangedFile
-						key={fileToWrite.fileName}
-						file={fileToWrite}
-						isMarkedIgnored={filesToIgnore.includes(fileToWrite.fileName)}
-						isMarkedOverwritten={filesToOverwrite.includes(fileToWrite.fileName)}
-						addFileToIgnore={addFileToIgnore}
-						addFileToOverwrite={addFileToOverwrite}
-						removeFileToIgnore={removeFileToIgnore}
-						removeFileToOverwrite={removeFileToOverwrite}
-					/>
-				);
-			})}
+		<>
+			<ul role="list" className="divide-y divide-zinc-100 dark:divide-zinc-800">
+				{filesToWrite.data?.map((fileToWrite) => {
+					return (
+						<ChangedFile
+							key={fileToWrite.fileName}
+							file={fileToWrite}
+							isMarkedIgnored={filesToIgnore.includes(fileToWrite.fileName)}
+							isMarkedOverwritten={filesToOverwrite.includes(fileToWrite.fileName)}
+							addFileToIgnore={addFileToIgnore}
+							addFileToOverwrite={addFileToOverwrite}
+							removeFileToIgnore={removeFileToIgnore}
+							removeFileToOverwrite={removeFileToOverwrite}
+						/>
+					);
+				})}
+			</ul>
 			<QueryStatus {...filesToWrite} />
-		</ul>
+		</>
 	);
 };
