@@ -143,22 +143,24 @@ export default function Page() {
 						<Badge
 							className="order-first capitalize @screen-sm:order-none"
 							color={
-								printerState == 'canceled'
-									? 'pink'
-									: printerState == 'complete'
-										? 'green'
-										: printerState == 'error'
-											? 'red'
-											: printerState === 'paused'
-												? 'sky'
-												: printerState === 'printing'
-													? 'yellow'
-													: printerState === 'standby'
-														? 'brand'
-														: 'gray'
+								printerState === undefined
+									? 'gray'
+									: printerState == 'canceled'
+										? 'pink'
+										: printerState == 'complete'
+											? 'green'
+											: printerState == 'error'
+												? 'red'
+												: printerState === 'paused'
+													? 'sky'
+													: printerState === 'printing'
+														? 'yellow'
+														: printerState === 'standby'
+															? 'brand'
+															: 'gray'
 							}
 						>
-							{printerState ?? 'Loading...'}
+							{printerState === undefined ? 'Offline' : printerState ?? 'Loading...'}
 						</Badge>
 					</div>
 				</div>

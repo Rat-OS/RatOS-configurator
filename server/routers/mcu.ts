@@ -269,7 +269,7 @@ export const mcuRouter = router({
 				});
 			}
 			const printerState = await queryPrinterState();
-			if (!['error', 'complete', 'canceled', 'standby'].includes(printerState)) {
+			if (!['error', 'complete', 'canceled', 'standby', undefined].includes(printerState)) {
 				throw new TRPCError({
 					code: 'PRECONDITION_FAILED',
 					message: `Printer is busy, board cannot be queried at this time without interrupting operations. Klipper print state reported as "${printerState}".`,

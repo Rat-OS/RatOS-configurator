@@ -23,7 +23,7 @@ export const queryPrinterState = async (): Promise<
 };
 
 export const klipperRestart = async (force = false) => {
-	if (force || ['error', 'complete', 'canceled', 'standby'].includes(await queryPrinterState())) {
+	if (force || ['error', 'complete', 'canceled', 'standby', undefined].includes(await queryPrinterState())) {
 		await fetch('http://localhost:7125/printer/restart', { method: 'POST' });
 		return true;
 	}
