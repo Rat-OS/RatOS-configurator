@@ -16,6 +16,7 @@
 		"build:cli": "cd ./cli && tsx ./build.ts",
 		"copyScichartData": "copy-files-from-to --config copy-files-from-to.json"
 	},
+	"packageManager": "pnpm@9.1.0",
 	"pnpm": {
 		"overrides": {
 			"react-remove-scroll": "2.5.9"
