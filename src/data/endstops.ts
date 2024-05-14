@@ -13,7 +13,12 @@ export const xEndstopOptions = (
 		endstops.push({
 			id: 'endstop-toolboard' as const,
 			title: 'Physical Endstop',
-			badge: [{ color: 'sky', children: `${toolheadConfig.toolboard.name} T${toolheadConfig.toolNumber}` }],
+			badge: [
+				{
+					color: 'sky',
+					children: `${toolheadConfig.toolboard.name}${toolheadConfig.toolNumber != null && ` T${toolheadConfig.toolNumber}`}`,
+				},
+			],
 		});
 	}
 	if (toolheadConfig?.axis === PrinterAxis.x) {

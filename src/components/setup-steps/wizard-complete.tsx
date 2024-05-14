@@ -178,7 +178,7 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 										{toolhead.getConfig().xEndstop?.title ?? 'None selected'}
 										{toolhead.getConfig().xEndstop?.badge?.map((b) => (
 											<Badge color={b.color} key={b.children}>
-												{b.children}
+												{b.children.replace('Tundefined', `T${toolhead.getTool()}`)}
 											</Badge>
 										))}
 									</dd>
@@ -226,7 +226,7 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 										{toolhead.getConfig().partFan?.title ?? 'None selected'}
 										{toolhead.getConfig().partFan?.badge?.map((b) => (
 											<Badge color={b.color} key={b.children}>
-												{b.children}
+												{b.children.replace('Tundefined', `T${toolhead.getTool()}`)}
 											</Badge>
 										))}
 									</dd>
@@ -237,7 +237,7 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 										{toolhead.getConfig().hotendFan?.title ?? 'None selected'}
 										{toolhead.getConfig().hotendFan?.badge?.map((b) => (
 											<Badge color={b.color} key={b.children}>
-												{b.children}
+												{b.children.replace('Tundefined', `T${toolhead.getTool()}`)}
 											</Badge>
 										))}
 									</dd>

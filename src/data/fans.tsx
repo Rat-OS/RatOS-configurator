@@ -47,12 +47,22 @@ export const partFanOptions = (
 		fans.push({
 			id: '2pin-toolboard' as const,
 			title: 'Input Voltage PWM',
-			badge: [{ color: 'sky', children: `${toolheadConfig.toolboard.name} T${toolheadConfig.toolNumber}` }],
+			badge: [
+				{
+					color: 'sky',
+					children: `${toolheadConfig.toolboard.name}${toolheadConfig.toolNumber != null && ` T${toolheadConfig.toolNumber}`}`,
+				},
+			],
 		});
 		fans.push({
 			id: '4pin-toolboard' as const,
 			title: 'Digital PWM on 2-pin port',
-			badge: [{ color: 'sky', children: `${toolheadConfig.toolboard.name} T${toolheadConfig.toolNumber}` }],
+			badge: [
+				{
+					color: 'sky',
+					children: `${toolheadConfig.toolboard.name}${toolheadConfig.toolNumber != null && ` T${toolheadConfig.toolNumber}`}`,
+				},
+			],
 		});
 		if (
 			toolheadConfig?.toolboard.fourPinFanConnectorCount != null &&
@@ -61,7 +71,12 @@ export const partFanOptions = (
 			fans.push({
 				id: '4pin-dedicated-toolboard' as const,
 				title: 'Digital PWM on 4-pin port',
-				badge: [{ color: 'sky', children: `${toolheadConfig.toolboard.name} T${toolheadConfig.toolNumber}` }],
+				badge: [
+					{
+						color: 'sky',
+						children: `${toolheadConfig.toolboard.name}${toolheadConfig.toolNumber != null && ` T${toolheadConfig.toolNumber}`}`,
+					},
+				],
 			});
 		}
 	}
@@ -101,12 +116,22 @@ export const hotendFanOptions = (
 		fans.push({
 			id: '2pin-toolboard' as const,
 			title: 'Input Voltage PWM',
-			badge: [{ color: 'sky', children: `${toolheadConfig.toolboard.name} T${toolheadConfig.toolNumber}` }],
+			badge: [
+				{
+					color: 'sky',
+					children: `${toolheadConfig.toolboard.name}${toolheadConfig.toolNumber != null && ` T${toolheadConfig.toolNumber}`}`,
+				},
+			],
 		});
 		fans.push({
 			id: '4pin-toolboard' as const,
 			title: 'Digital PWM on 2-pin port',
-			badge: [{ color: 'sky', children: `${toolheadConfig.toolboard.name} T${toolheadConfig.toolNumber}` }],
+			badge: [
+				{
+					color: 'sky',
+					children: `${toolheadConfig.toolboard.name}${toolheadConfig.toolNumber != null && ` T${toolheadConfig.toolNumber}`}`,
+				},
+			],
 		});
 		if (
 			toolheadConfig?.toolboard.fourPinFanConnectorCount != null &&
@@ -115,7 +140,12 @@ export const hotendFanOptions = (
 			fans.push({
 				id: '4pin-dedicated-toolboard' as const,
 				title: 'Digital PWM on 4-pin port',
-				badge: [{ color: 'sky', children: `${toolheadConfig.toolboard.name} T${toolheadConfig.toolNumber}` }],
+				badge: [
+					{
+						color: 'sky',
+						children: `${toolheadConfig.toolboard.name}${toolheadConfig.toolNumber != null && ` T${toolheadConfig.toolNumber}`}`,
+					},
+				],
 			});
 		}
 	}
