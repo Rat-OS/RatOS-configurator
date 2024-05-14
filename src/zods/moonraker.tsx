@@ -7,14 +7,16 @@ export const MoonrakerBaseResult = z.object({
 export const MoonrakerPrinterState = MoonrakerBaseResult.extend({
 	status: z.object({
 		print_stats: z.object({
-			state: z.union([
-				z.literal('paused'),
-				z.literal('printing'),
-				z.literal('complete'),
-				z.literal('error'),
-				z.literal('canceled'),
-				z.literal('standby'),
-			]),
+			state: z
+				.union([
+					z.literal('paused'),
+					z.literal('printing'),
+					z.literal('complete'),
+					z.literal('error'),
+					z.literal('canceled'),
+					z.literal('standby'),
+				])
+				.optional(),
 		}),
 	}),
 });
