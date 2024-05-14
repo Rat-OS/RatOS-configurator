@@ -34,12 +34,12 @@ declare namespace __next_route_internal_types__ {
     | `/api/download-firmware`
     | `/api/printer-image`
     | `/`
-    | `/calibration`
     | `/motion`
-    | `/wizard`
+    | `/calibration`
     | `/toolhead`
-    | `/analysis`
+    | `/wizard`
     | `/analysis/macros`
+    | `/analysis`
     | `/analysis/macros/new`
   type DynamicRoutes<T extends string = string> = 
     | `/api/trpc/${SafeSlug<T>}`
