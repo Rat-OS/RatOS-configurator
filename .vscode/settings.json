@@ -30,5 +30,8 @@
 	"emmet.showExpandedAbbreviation": "never",
 	"emmet.showAbbreviationSuggestions": false,
 	"editor.insertSpaces": false,
-	"tailwindCSS.experimental.configFile": null
+	"tailwindCSS.experimental.configFile": null,
+	"[svg]": {
+		"editor.defaultFormatter": "jock.svg"
+	}
 }
