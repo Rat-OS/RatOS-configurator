@@ -454,6 +454,8 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 			`variable_filament_load_speed: 10`,
 			`variable_standby: False`,
 			`variable_temperature_offset: 0                                               # hotend temperature offset`,
+			`variable_has_oozeguard: False                                                # toolhead has a oozeguard`,
+			`variable_has_front_arm_nozzle_wiper: False                                   # toolhead has front arm nozzle wipers`,
 		];
 		if (this.printer.kinematics == 'hybrid-corexy-idex') {
 			result.push(
