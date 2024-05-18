@@ -157,7 +157,7 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 						)}
 						<div className="col-span-2">
 							<Toggle
-								label="Stealtchop"
+								label="Stealthchop"
 								description="Silent operation at the cost of a 135 mm/s velocity limit and less positional accuracy. Not recommended unless quiteness is absolutely necessary."
 								onChange={setStealthchop}
 								value={!!stealthchop}

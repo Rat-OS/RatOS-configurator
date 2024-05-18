@@ -62,7 +62,7 @@ export const createSignalBuffers = async (dataStream$: Observable<KlipperAccelSu
 	);
 
 	const timeMappedSignal$ = dataStream$.pipe(
-		mergeMap((data) =>
+		concatMap((data) =>
 			from(data.data).pipe(
 				map(subtractTimeStamp),
 				mergeMap((sample) => {

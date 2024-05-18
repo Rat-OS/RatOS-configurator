@@ -37,12 +37,6 @@ export const accumulatedPSDSchema = z.object({
 	y: psdSchema,
 	z: psdSchema,
 	total: psdSchema,
-	source: z.object({
-		x: z.array(psdSchema),
-		y: z.array(psdSchema),
-		z: z.array(psdSchema),
-		total: z.array(psdSchema),
-	}),
 });
 
 // Macro data structure
@@ -84,9 +78,7 @@ export const macroRecordingSchema = z.object({
 	name: z.string(),
 });
 
-export const macroRecordingSchemaWithoutSourcePSDs = macroRecordingSchema.extend({
-	psd: accumulatedPSDSchema.omit({ source: true }),
-});
+export const macroRecordingSchemaWithoutSourcePSDs = macroRecordingSchema;
 
 export const macroSequenceSchema = z.object({
 	id: macroSequenceIDSchema,

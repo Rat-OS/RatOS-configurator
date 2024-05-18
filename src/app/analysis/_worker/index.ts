@@ -1,12 +1,10 @@
 import { KlipperAccelSensorName } from '@/zods/hardware';
-import { DoWork, runWorker } from 'observable-webworker';
-import { EMPTY, Observable, Subject, from, of, throwError } from 'rxjs';
-import { map, mergeAll, mergeMap } from 'rxjs/operators';
+import { DoWork, fromWorker, runWorker } from 'observable-webworker';
+import { EMPTY, Observable, Subject, firstValueFrom, from, merge, of, throwError } from 'rxjs';
+import { filter, map, mergeAll, mergeMap, share } from 'rxjs/operators';
 import { createSignalBuffers, type AccelSampleMs } from '@/app/analysis/_worker/processing';
 import { createADXL345Stream } from '@/app/analysis/_worker/adxl345-stream';
-import { PSD } from '@/zods/analysis';
-import { AccumulateAndCallback, PSDResult, createPSDProcessor } from '@/app/analysis/_worker/psd';
-import { rejects } from 'assert';
+import { PSDResult, PSDWorkerInput, PSDWorkerOutput } from '@/app/analysis/_worker/psd';
 
 export enum WorkCommand {
 	START = 'START',
@@ -69,6 +67,10 @@ export type WorkerAccumulationResultOuput = {
 	payload: PSDResult;
 };
 
+export type WorkerAccumulationStarted = {
+	type: WorkResult.ACCUMULATING;
+};
+
 export type WorkerOutput =
 	| {
 			type: WorkResult.STARTED;
@@ -96,15 +98,20 @@ export type WorkerOutput =
 			payload: number;
 	  }
 	| WorkerPSDOutput
+	| WorkerAccumulationStarted
 	| WorkerAccumulationResultOuput;
 
 const mapToWorkerOutput = <T>(mapFn: (input: T) => WorkerOutput) => map(mapFn);
 
+const psdInput$ = new Subject<PSDWorkerInput>();
+
+const psdWorker = fromWorker<PSDWorkerInput, PSDWorkerOutput>(
+	() => new Worker(new URL('@/app/analysis/_worker/psd', import.meta.url)),
+	psdInput$,
+);
 export class AccelSensorWorker implements DoWork<WorkerInput, WorkerOutput> {
 	private stream: ReturnType<typeof createADXL345Stream> | null = null;
 	private signalProcessor: Awaited<ReturnType<typeof createSignalBuffers>> | null = null;
-	private psdProcessor: Awaited<ReturnType<typeof createPSDProcessor>> | null = null;
-	private accumulationSubject = new Subject<AccumulateAndCallback>();
 	public work(input$: Observable<WorkerInput>) {
 		return input$.pipe(
 			mergeMap((input): Observable<WorkerOutput> => {
@@ -121,14 +128,12 @@ export class AccelSensorWorker implements DoWork<WorkerInput, WorkerOutput> {
 								throw Error(`Stream not initialized`);
 							}
 							this.signalProcessor = await createSignalBuffers(this.stream.dataStream$);
-							this.psdProcessor = createPSDProcessor(
-								this.signalProcessor.signal$,
-								this.accumulationSubject.asObservable(),
-								this.signalProcessor.specSampleRate$,
+							this.signalProcessor.signal$.subscribe((s) =>
+								psdInput$.next({ command: 'sampleInput', payload: [s[0].toNumber(), s[1], s[2], s[3]] }),
 							);
-							setTimeout(() => {
-								this.accumulationSubject.next(false);
-							}, 200);
+							this.signalProcessor.specSampleRate$.subscribe((s) =>
+								psdInput$.next({ command: 'specSampleRateInput', payload: s }),
+							);
 							return from([
 								of({
 									type: WorkResult.STARTED,
@@ -155,13 +160,16 @@ export class AccelSensorWorker implements DoWork<WorkerInput, WorkerOutput> {
 										payload: specSampleRate,
 									})),
 								),
-								this.psdProcessor.pipe(
-									mapToWorkerOutput((psd) => {
+								psdWorker.pipe(
+									filter((output): output is { type: 'psd'; psd: PSDResult } => output.type === 'psd'),
+									mapToWorkerOutput((output) => {
+										console.log('mapping psd result');
 										return {
 											type: WorkResult.PSD,
-											payload: psd,
+											payload: output.psd,
 										};
 									}),
+									share(),
 								),
 							]).pipe(mergeAll());
 						};
@@ -181,41 +189,48 @@ export class AccelSensorWorker implements DoWork<WorkerInput, WorkerOutput> {
 						if (this.signalProcessor == null) {
 							throw Error(`Stream not initialized`);
 						}
-						if (this.psdProcessor == null) {
-							throw Error(`PSD process not initialized`);
+						if (psdWorker == null) {
+							throw Error(`PSD worker not initialized`);
 						}
-
-						return from(
-							new Promise<PSDResult>((resolve, reject) => {
-								this.accumulationSubject.next(resolve);
-								setTimeout(
-									() => {
-										this.accumulationSubject.next(false);
-										reject('Accumulation timed out at 5 minutes');
-									},
-									1000 * 60 * 5,
-								);
-							}),
-						).pipe(
-							mapToWorkerOutput((result) => ({
-								type: WorkResult.ACCUMULATED,
-								payload: result,
-							})),
+						console.log('starting accumulation');
+						psdInput$.next({ command: 'accumulate', payload: true });
+						return merge(
+							of({
+								type: WorkResult.ACCUMULATING,
+							} as WorkerOutput),
+							from(
+								firstValueFrom(
+									psdWorker.pipe(
+										filter(
+											(output): output is { type: 'accumulation_finished'; psd: PSDResult } =>
+												output.type === 'accumulation_finished',
+										),
+										share(),
+									),
+								),
+							).pipe(
+								mapToWorkerOutput((result) => ({
+									type: WorkResult.ACCUMULATED,
+									payload: result.psd,
+								})),
+							),
 						);
 					}
 					case WorkCommand.STOP_ACCUMULATION: {
-						if (this.psdProcessor == null) {
+						if (this.psdWorker == null) {
 							throw Error(`Stream not initialized`);
 						}
-						if (this.psdProcessor == null) {
+						if (this.psdWorker == null) {
 							throw Error(`PSD process not initialized`);
 						}
-						this.accumulationSubject.next(false);
+						console.log('stopping accumulation');
+						psdInput$.next({ command: 'accumulate', payload: false });
 						return EMPTY;
 					}
 					default: {
 						this.stream?.close();
 						this.stream = null;
+						console.log(input);
 						throw new Error(`Invalid command`);
 					}
 				}

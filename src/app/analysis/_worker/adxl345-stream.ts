@@ -8,6 +8,7 @@ import {
 } from '@/zods/analysis';
 import { KlipperAccelSensorName } from '@/zods/hardware';
 import BigNumber from 'bignumber.js';
+import { error } from 'console';
 import { filter, map, share } from 'rxjs';
 import { WebSocketSubject, webSocket } from 'rxjs/webSocket';
 
@@ -87,7 +88,6 @@ export const createADXL345Stream = (url: string, sensor: KlipperAccelSensorName)
 			},
 			(msg) => {
 				if ('result' in msg && isKlipperAccelSubscriptionResponse(msg.result)) {
-					console.log('subscribed to klippy socket!', msg);
 					header = msg.result.header;
 					return false;
 				}
@@ -96,6 +96,7 @@ export const createADXL345Stream = (url: string, sensor: KlipperAccelSensorName)
 				}
 				if (!isSuccessResponse(msg)) {
 					getLogger().error(msg, 'Error in response from adxl345 subscription on klipper socket');
+					throw new Error(`${msg.error.error}: ${msg.error.message}`);
 				}
 				return false;
 			},
@@ -115,6 +116,9 @@ export const createADXL345Stream = (url: string, sensor: KlipperAccelSensorName)
 
 	return {
 		dataStream$,
-		close: subject.complete.bind(subject),
+		close: () => {
+			console.log('closing stream!');
+			subject.complete.bind(subject)();
+		},
 	};
 };

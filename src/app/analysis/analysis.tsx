@@ -360,6 +360,12 @@ export const Analysis = () => {
 							>
 								<Menu.MenubarContentIcon Icon={Pause} /> Stop
 							</Menu.MenubarItem>
+							<Menu.MenubarItem onClick={psds.startAccumulation}>
+								<Menu.MenubarContentIcon Icon={Play} /> Accumulate
+							</Menu.MenubarItem>
+							<Menu.MenubarItem onClick={psds.stopAccumulation}>
+								<Menu.MenubarContentIcon Icon={Play} /> Stop Accumulation
+							</Menu.MenubarItem>
 						</Menu.MenubarContent>
 					</Menu.MenubarMenu>
 					<Menu.MenubarMenu>
@@ -491,6 +497,8 @@ export const Analysis = () => {
 				toolheads,
 				hasBeacon,
 				isMacroRunning,
+				psds.startAccumulation,
+				psds.stopAccumulation,
 				runMacro,
 				axis,
 				frequency,

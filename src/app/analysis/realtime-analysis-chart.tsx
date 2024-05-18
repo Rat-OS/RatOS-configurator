@@ -44,6 +44,8 @@ import {
 	WorkResult,
 	WorkerSignalOutput,
 	WorkerPSDOutput,
+	WorkerAccumulationResultOuput,
+	WorkerAccumulationStarted,
 } from '@/app/analysis/_worker';
 import { fromWorker } from 'observable-webworker';
 import {
@@ -53,12 +55,15 @@ import {
 	bufferTime,
 	distinctUntilChanged,
 	filter,
+	firstValueFrom,
 	map,
 	multicast,
 	share,
+	timeout,
 } from 'rxjs';
 import { getHost } from '@/helpers/util';
 import { PSDResult } from '@/app/analysis/_worker/psd';
+import { start } from 'repl';
 
 SciChartSurface.configure({
 	wasmUrl: '/configure/scichart2d.wasm',
@@ -119,6 +124,7 @@ const useWorker = (
 	sensor: KlipperAccelSensorName,
 	onResult: ReactCallback<(signal: [Float64Array, Float64Array, Float64Array, Float64Array]) => void>,
 	onPSDResult: ReactCallback<(psd: Omit<PSDResult, 'source'>) => void>,
+	onError: ReactCallback<(err: Error) => void>,
 ) => {
 	const parsedSensor = useAccelerometerWithType(sensor);
 	const [wsUrl, setWsUrl] = useState(getWsURL());
@@ -128,6 +134,27 @@ const useWorker = (
 	onResultRef.current = onResult;
 	const onPSDResultRef = useRef(onPSDResult);
 	onPSDResultRef.current = onPSDResult;
+
+	const startAccumulation = useCallback(async () => {
+		input$.next({ type: WorkCommand.START_ACCUMULATION });
+		return await firstValueFrom(
+			worker.pipe(
+				filter((output): output is WorkerAccumulationStarted => output.type === WorkResult.ACCUMULATING),
+				map(() => true),
+				timeout(5000),
+			),
+		);
+	}, []);
+	const stopAccumulation = useCallback(async () => {
+		input$.next({ type: WorkCommand.STOP_ACCUMULATION });
+		return await firstValueFrom(
+			worker.pipe(
+				filter((output): output is WorkerAccumulationResultOuput => output.type === WorkResult.ACCUMULATED),
+				map((output) => output.payload),
+				timeout(25000),
+			),
+		);
+	}, []);
 	useEffect(() => {
 		setWsUrl(getWsURL());
 	}, []);
@@ -147,12 +174,26 @@ const useWorker = (
 	}, []);
 	useEffect(() => {
 		if (enabled && wsUrl != null) {
-			const sub = worker.subscribe((output) => {
-				if (output.type === WorkResult.SAMPLE_RATE) {
-					setSampleRate(output.payload);
-				} else if (output.type === WorkResult.SPEC_SAMPLE_RATE) {
-					setSpecSampleRate(output.payload);
-				}
+			const sub = worker.subscribe({
+				next: (output) => {
+					switch (output.type) {
+						case WorkResult.STARTED:
+							break;
+						case WorkResult.STOPPED:
+							break;
+						case WorkResult.ACCUMULATING:
+							break;
+						case WorkResult.ACCUMULATED:
+							break;
+						case WorkResult.SAMPLE_RATE:
+							setSampleRate(output.payload);
+							break;
+						case WorkResult.SPEC_SAMPLE_RATE:
+							setSpecSampleRate(output.payload);
+							break;
+					}
+				},
+				error: onError,
 			});
 			input$.next({ type: WorkCommand.START, payload: { url: wsUrl, sensor: sensor } });
 			return () => {
@@ -160,10 +201,12 @@ const useWorker = (
 				sub.unsubscribe();
 			};
 		}
-	}, [enabled, sensor, wsUrl]);
+	}, [enabled, onError, sensor, wsUrl]);
 	return {
 		sampleRate,
 		specSampleRate,
+		startAccumulation,
+		stopAccumulation,
 	};
 };
 
@@ -225,13 +268,6 @@ export const useRealtimeAnalysisChart = (
 	const updatePsdChartRange = useDynamicAxisRange(psdYAxis, PSDChartMinimumYVisibleRange);
 
 	const timeSinceLastPsd = useRef<number>(new Date().getTime());
-
-	useEffect(() => {
-		if (isChartEnabled) {
-			// Reset time since last PSD calculation
-			timeSinceLastPsd.current = new Date().getTime();
-		}
-	}, [isChartEnabled]);
 
 	const updatePSD = useCallback(
 		(res: Omit<PSDResult, 'source'>) => {
@@ -335,7 +371,21 @@ export const useRealtimeAnalysisChart = (
 	);
 	// useTicker(fifo.sampleRate.current / ADXL_STREAM_BUFFER_SIZE, isChartEnabled ? updateSignals : undefined);
 
-	useWorker(isChartEnabled, adxl, updateSignals, updatePSD);
+	const onStreamError = useCallback(
+		(err: Error) => {
+			setIsChartEnabled(false);
+			console.log(err);
+			toast.error('Error during accelerometer data streaming', { description: err.message });
+		},
+		[setIsChartEnabled],
+	);
+	const { startAccumulation, stopAccumulation } = useWorker(
+		isChartEnabled,
+		adxl,
+		updateSignals,
+		updatePSD,
+		onStreamError,
+	);
 	// const updatePsd = useBufferedPSD(worker.specSampleRate, psds.onData);
 
 	// useRealtimeSensor({
@@ -357,7 +407,10 @@ export const useRealtimeAnalysisChart = (
 		() => ({
 			isChartEnabled,
 			setIsChartEnabled,
-			psds: updatePSD,
+			psds: {
+				startAccumulation,
+				stopAccumulation,
+			},
 			currentAccelerometer: adxl,
 			currentAccelerometerHardwareName: adxlHardwareName,
 			chartProps: {
@@ -370,7 +423,8 @@ export const useRealtimeAnalysisChart = (
 		[
 			isChartEnabled,
 			setIsChartEnabled,
-			updatePSD,
+			startAccumulation,
+			stopAccumulation,
 			adxl,
 			adxlHardwareName,
 			xSignalChart,
