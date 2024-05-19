@@ -1,16 +1,14 @@
 import { getLogger } from '@/app/_helpers/logger';
-import { JSONRPCRequest, JSONRPCResponse, JSONRPCResponseSuccess } from '@/moonraker/types';
+import { JSONRPCRequest, JSONRPCResponseSuccess } from '@/moonraker/types';
 import {
 	KlipperAccelSubscriptionData,
 	KlipperAccelSubscriptionResponse,
-	klipperADXL345SubscriptionDataSchema,
 	klipperADXL345SubscriptionResponseSchema,
 } from '@/zods/analysis';
 import { KlipperAccelSensorName } from '@/zods/hardware';
 import BigNumber from 'bignumber.js';
-import { error } from 'console';
 import { filter, map, share } from 'rxjs';
-import { WebSocketSubject, webSocket } from 'rxjs/webSocket';
+import { webSocket } from 'rxjs/webSocket';
 
 let id = 0;
 

@@ -25,6 +25,7 @@ import { Rank, Tensor2D, reshape, split, sum, tensor2d, tidy } from '@tensorflow
 import BigNumber from 'bignumber.js';
 import { log } from '@/app/analysis/_worker/stream-utils';
 import { runWorker } from 'observable-webworker';
+import next from 'next';
 
 const runPSD = async (samples: AccelSampleMs[], includeSource: boolean = false) => {
 	const sampleRate = new BigNumber(samples.length)
@@ -60,14 +61,11 @@ export type AccumulateAndCallback = false | ((psd: Awaited<ReturnType<typeof run
 
 const psdProcess = new Subject();
 const psdProcess$ = psdProcess.asObservable();
-export const createPSDProcessor = (
-	signal$: Observable<AccelSampleMs>,
-	accumulate$: Observable<AccumulateAndCallback>,
-	specSampleRate$: Observable<number>,
-) => {
+const accumulationSubject = new Subject<AccumulateAndCallback>();
+const accumulation$ = accumulationSubject.asObservable();
+const createPSDProcessor = (signal$: Observable<AccelSampleMs>, specSampleRate$: Observable<number>) => {
 	console.log('creating psd processor');
-	const sampleRate$ = specSampleRate$.pipe(shareReplay(1));
-	return accumulate$.pipe(
+	return accumulation$.pipe(
 		distinctUntilChanged(),
 		log('accumulate$'),
 		switchScan(
@@ -80,51 +78,51 @@ export const createPSDProcessor = (
 					// }, 2000);
 					return signal$.pipe(
 						scan((sampleAcc, sample) => sampleAcc.concat([sample]), [] as AccelSampleMs[]),
+						filter((samples) => samples.length > 3200),
 						map((samples) => {
-							if (samples.length % (3200 * 4) === 0) {
-								console.log('rendering psd of', samples.length, 'samples');
-								psdProcess.next({});
-							}
+							// if (samples.length % (3200 * 4) === 0) {
+							// 	console.log('rendering psd of', samples.length, 'samples');
+							// 	psdProcess.next({});
+							// }
 							return {
 								samples,
-								onComplete: accumulate,
+								onAccumulationComplete: accumulate,
 							};
 						}),
 					);
 				}
 				console.log('passing through');
-				if (!accumulate && acc.onComplete) {
+				if (!accumulate && acc.onAccumulationComplete) {
 					console.log('calculating psd and calling callback');
-					const cb = acc.onComplete;
+					const cb = acc.onAccumulationComplete;
 					runPSD(acc.samples, true).then((psd) => {
 						cb(psd);
 					});
 				}
 				// Don't accumulate
-				return sampleRate$.pipe(
-					switchMap((sampleRate) => signal$.pipe(bufferCount(sampleRate))),
+				return specSampleRate$.pipe(
+					switchMap((sampleRate) => {
+						console.log('buffering at sample rate', sampleRate);
+						return signal$.pipe(bufferCount(sampleRate));
+					}),
 					map((samples) => {
 						return {
 							samples,
-							onComplete: false,
+							onAccumulationComplete: false,
 						};
 					}),
 				);
 			},
-			{ samples: [] as AccelSampleMs[], onComplete: false as AccumulateAndCallback },
+			{ samples: [] as AccelSampleMs[], onAccumulationComplete: false as AccumulateAndCallback },
 		),
 		throttle(() => psdProcess$.pipe(log('psdProcess$'))),
-		mergeMap((s) => {
-			return sampleRate$.pipe(switchMap((sampleRate) => of(s).pipe(filter((s) => s.samples.length >= sampleRate))));
-		}),
-		concatMap(({ samples, onComplete }) => {
+		log('throttle triggered'),
+		concatMap(({ samples, onAccumulationComplete }) => {
 			console.log('calculating psd on', samples.length, 'samples');
 			return from(
 				runPSD(samples).then((psd) => {
 					console.log('triggering next PSD');
-					if (!onComplete) {
-						psdProcess.next({}); // Allow the next batch through.
-					}
+					psdProcess.next({}); // Allow the next batch through.
 					return psd;
 				}),
 			);
@@ -158,52 +156,29 @@ export type PSDWorkerOutput =
 			psd: PSDResult;
 	  };
 
+let processor: ReturnType<typeof createPSDProcessor> | null = null;
+let signalPassThroughSubject = new Subject<AccelSampleMs>();
+let signalPassThrough$ = signalPassThroughSubject.asObservable();
+let sampleRatePassThroughSubject = new Subject<number>();
+let sampleRatePassThrough$ = sampleRatePassThroughSubject.asObservable().pipe(shareReplay(1));
 export class PSDWorker implements DoWork<PSDWorkerInput, PSDWorkerOutput> {
-	private accumulationSubject = new Subject<AccumulateAndCallback>();
-	private processor: ReturnType<typeof createPSDProcessor> | null = null;
-	private psd$: Observable<{
-		type: 'psd';
-		psd: PSDResult;
-	}> | null = null;
+	private isAccumulating = false;
 	public work(input$: Observable<PSDWorkerInput>) {
-		if (this.processor == null) {
-			const signal$ = input$.pipe(
-				filter((input): input is { command: 'sampleInput'; payload: AccelSampleMs } => input.command === 'sampleInput'),
-				map((input) => input.payload),
-			);
-			this.processor = createPSDProcessor(
-				signal$,
-				this.accumulationSubject.asObservable(),
-				input$.pipe(
-					filter(
-						(input): input is { command: 'specSampleRateInput'; payload: number } =>
-							input.command === 'specSampleRateInput',
-					),
-					map((input) => input.payload),
-				),
-			);
-			console.log('processor created');
-			setTimeout(() => {
-				console.log('sending accumulation false');
-				this.accumulationSubject.next(false);
-			}, 200);
-			signal$.pipe(bufferCount(3200), take(1)).forEach((samples) => {
-				psdProcess.next({});
-			});
-		}
 		return input$.pipe(
 			mergeMap((input): Observable<PSDWorkerOutput> => {
-				const response = (): Observable<PSDWorkerOutput> => {
-					switch (input.command) {
-						case 'accumulate': {
-							console.log('accumulation command', input.payload);
+				switch (input.command) {
+					case 'accumulate': {
+						console.log('accumulation command', input.payload);
+						if (!this.isAccumulating) {
+							this.isAccumulating = true;
 							return merge(
 								of({
 									type: `accumulation_started` as const,
 								}),
 								from(
 									new Promise<PSDResult>((resolve, reject) => {
-										this.accumulationSubject.next(resolve);
+										accumulationSubject.next(resolve);
+										this.isAccumulating = false;
 									}),
 								).pipe(
 									map((result) => ({
@@ -212,26 +187,49 @@ export class PSDWorker implements DoWork<PSDWorkerInput, PSDWorkerOutput> {
 									})),
 								),
 							);
+						} else {
+							this.isAccumulating = false;
+							accumulationSubject.next(false);
+							return EMPTY;
 						}
 					}
-					return EMPTY;
-				};
-				return merge(
-					this.processor.pipe(
-						map((psd) => {
-							console.log('Sending psd', psd);
-							return {
-								type: 'psd',
-								psd,
-							} as {
-								type: 'psd';
-								psd: PSDResult;
-							};
-						}),
-						share(),
-					),
-					response(),
-				).pipe(log('response from psd'));
+					case 'sampleInput': {
+						signalPassThroughSubject.next(input.payload);
+						if (processor == null) {
+							processor = createPSDProcessor(signalPassThrough$, sampleRatePassThrough$);
+							console.log('processor created');
+							accumulationSubject.next(false);
+							// signal$.pipe(bufferCount(3200), take(1)).forEach((samples) => {
+							// 	console.log('calling next psd process');
+							// 	psdProcess.next({});
+							// });
+							return processor.pipe(
+								map((psd) => {
+									console.log('Sending psd', psd);
+									return {
+										type: 'psd',
+										psd,
+									} as {
+										type: 'psd';
+										psd: PSDResult;
+									};
+								}),
+							);
+						}
+						return EMPTY;
+					}
+					case 'specSampleRateInput': {
+						console.log('passing through sample rate', input.payload);
+						if (!this.isAccumulating) {
+							accumulationSubject.next(false);
+						}
+						sampleRatePassThroughSubject.next(input.payload);
+						return EMPTY;
+					}
+					default: {
+						return EMPTY;
+					}
+				}
 			}),
 		);
 	}

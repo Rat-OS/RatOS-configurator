@@ -4,7 +4,7 @@ import { EMPTY, Observable, Subject, firstValueFrom, from, merge, of, throwError
 import { filter, map, mergeAll, mergeMap, share } from 'rxjs/operators';
 import { createSignalBuffers, type AccelSampleMs } from '@/app/analysis/_worker/processing';
 import { createADXL345Stream } from '@/app/analysis/_worker/adxl345-stream';
-import { PSDResult, PSDWorkerInput, PSDWorkerOutput } from '@/app/analysis/_worker/psd';
+import type { PSDResult, PSDWorkerInput, PSDWorkerOutput } from '@/app/analysis/_worker/psd';
 
 export enum WorkCommand {
 	START = 'START',
@@ -169,7 +169,6 @@ export class AccelSensorWorker implements DoWork<WorkerInput, WorkerOutput> {
 											payload: output.psd,
 										};
 									}),
-									share(),
 								),
 							]).pipe(mergeAll());
 						};
@@ -217,10 +216,10 @@ export class AccelSensorWorker implements DoWork<WorkerInput, WorkerOutput> {
 						);
 					}
 					case WorkCommand.STOP_ACCUMULATION: {
-						if (this.psdWorker == null) {
+						if (psdWorker == null) {
 							throw Error(`Stream not initialized`);
 						}
-						if (this.psdWorker == null) {
+						if (psdWorker == null) {
 							throw Error(`PSD process not initialized`);
 						}
 						console.log('stopping accumulation');
@@ -230,7 +229,7 @@ export class AccelSensorWorker implements DoWork<WorkerInput, WorkerOutput> {
 					default: {
 						this.stream?.close();
 						this.stream = null;
-						console.log(input);
+						console.log('closing', input);
 						throw new Error(`Invalid command`);
 					}
 				}
