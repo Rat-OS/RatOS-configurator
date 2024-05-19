@@ -89,13 +89,16 @@ export const VAOC = () => {
 							connectionState === 'failed' ? 'animate-pulse opacity-100' : 'opacity-0',
 						)}
 					>
-						Webcam stream not found
+						<div className="flex aspect-square h-[30svh] w-[30svh] items-center justify-center">
+							Webcam stream not found
+						</div>
 					</h3>
 					<Spinner
 						noMargin={true}
+						strokeWidth={1}
 						className={twMerge(
-							'h-1/3 w-1/3 animate-spin text-inherit transition-all',
-							'text-green-500 dark:text-green-500',
+							'h-[40svh] w-[40svh] animate-spin text-inherit transition-all',
+							'text-lime-500 dark:text-lime-500',
 							(connectionState === 'connected' || connectionState === 'failed') &&
 								videoState.aspectRatio != null &&
 								'opacity-0',
