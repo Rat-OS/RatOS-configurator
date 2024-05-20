@@ -94,11 +94,11 @@ describe('configuration', async () => {
 				);
 			});
 			test.skipIf(board.isHost).concurrent('has a valid single unique udev rule', async () => {
-				const rules: string[] = [];
+				const rules: string[] = (await glob(`${board.path}/../**/*.rules`)).map((r) => r.split('/').pop() ?? '');
 				const boardFiles = await promisify(fs.readdir)(`${board.path}`);
 				const boardRules = boardFiles.filter((f) => f.substring(f.length - 6) === '.rules');
 				expect(boardRules.length).toBe(1);
-				expect(rules.filter((r) => r === boardRules[0]).length).toBe(0);
+				expect(rules.filter((r) => r === boardRules[0]).length).toBe(1);
 				rules.push(boardRules[0]);
 				expect(fs.existsSync(`${board.path}/${boardRules[0]}`)).toBeTruthy();
 				const ruleContents = await promisify(fs.readFile)(`${board.path}/${boardRules[0]}`, 'utf8');
