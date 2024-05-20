@@ -172,7 +172,7 @@ export const controllerFanOptions = (
 		(config?.controlboard?.fourPinFanConnectorCount != null && config.controlboard.fourPinFanConnectorCount > 2) ||
 		(config?.controlboard?.fourPinFanConnectorCount != null &&
 			config.controlboard.fourPinFanConnectorCount > 1 &&
-			toolheadConfigs?.some((th) => th?.hotendFan?.id !== '4pin-dedicated'))
+			!toolheadConfigs?.some((th) => th?.hotendFan?.id === '4pin-dedicated'))
 	) {
 		fans.push({
 			id: '4pin-dedicated' as const,
