@@ -169,7 +169,7 @@ export class PSDWorker implements DoWork<PSDWorkerInput, PSDWorkerOutput> {
 				switch (input.command) {
 					case 'accumulate': {
 						console.log('accumulation command', input.payload);
-						if (!this.isAccumulating) {
+						if (!this.isAccumulating && input.payload === true) {
 							this.isAccumulating = true;
 							return merge(
 								of({
