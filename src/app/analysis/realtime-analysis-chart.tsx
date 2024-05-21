@@ -9,22 +9,11 @@ import {
 	PSD_CHART_AXIS_AMPLITUDE_ID,
 	useADXLSignalChart,
 	usePSDChart,
-	ADXL_STREAM_BUFFER_SIZE,
 } from '@/app/analysis/charts';
 import { twJoin } from 'tailwind-merge';
 import { SciChartReact } from 'scichart-react';
-import {
-	useADXLFifoTensor,
-	useAccelerometerWithType,
-	useAccumulatedPSD,
-	useBufferedADXLSignal,
-	useBufferedPSD,
-	useDynamicAxisRange,
-	useRealtimeSensor,
-	useTicker,
-} from '@/app/analysis/hooks';
+import { useAccelerometerWithType, useDynamicAxisRange } from '@/app/analysis/hooks';
 import { LineAnimation, MountainAnimation, NumberRange, SciChartSurface, XyDataSeries, easing } from 'scichart';
-import { detrendSignal } from '@/app/analysis/periodogram';
 import { FullLoadScreen } from '@/components/common/full-load-screen';
 import { KlipperAccelSubscriptionResponse, MacroRecordingSettings } from '@/zods/analysis';
 import { useRecoilValue } from 'recoil';
@@ -33,10 +22,6 @@ import { toast } from 'sonner';
 import { getLogger } from '@/app/_helpers/logger';
 import { AccelerometerType, KlipperAccelSensorName } from '@/zods/hardware';
 import { z } from 'zod';
-import { useQuery } from '@tanstack/react-query';
-import { setWasmPaths } from '@tensorflow/tfjs-backend-wasm';
-import '@tensorflow/tfjs-backend-cpu';
-import { setBackend } from '@tensorflow/tfjs-core';
 import {
 	WorkerInput,
 	WorkerOutput,
@@ -48,22 +33,11 @@ import {
 	WorkerAccumulationStarted,
 } from '@/app/analysis/_worker';
 import { fromWorker } from 'observable-webworker';
-import {
-	Subject,
-	animationFrames,
-	buffer,
-	bufferTime,
-	distinctUntilChanged,
-	filter,
-	firstValueFrom,
-	map,
-	multicast,
-	share,
-	timeout,
-} from 'rxjs';
+import { Subject, animationFrames, buffer, filter, firstValueFrom, interval, map, share, timeout } from 'rxjs';
 import { getHost } from '@/helpers/util';
 import { PSDResult } from '@/app/analysis/_worker/psd';
-import { start } from 'repl';
+import { log } from '@/app/analysis/_worker/stream-utils';
+import { a } from 'vitest/dist/suite-MFRDkZcV';
 
 SciChartSurface.configure({
 	wasmUrl: '/configure/scichart2d.wasm',
@@ -79,14 +53,6 @@ const getWsURL = () => {
 		return null;
 	}
 	return `ws://${host}:7125/klippysocket`;
-};
-
-const detrendFloatSignal = (signal: Float64Array) => {
-	const mean = signal.reduce((acc, val) => acc + val, 0) / signal.length;
-	for (let i = 0; i < signal.length; i++) {
-		signal[i] -= mean;
-	}
-	return signal;
 };
 
 const input$ = new Subject<WorkerInput>();
@@ -136,24 +102,27 @@ const useWorker = (
 	onPSDResultRef.current = onPSDResult;
 
 	const startAccumulation = useCallback(async () => {
-		input$.next({ type: WorkCommand.START_ACCUMULATION });
-		return await firstValueFrom(
+		const res = firstValueFrom(
 			worker.pipe(
 				filter((output): output is WorkerAccumulationStarted => output.type === WorkResult.ACCUMULATING),
 				map(() => true),
 				timeout(5000),
 			),
 		);
+		input$.next({ type: WorkCommand.START_ACCUMULATION });
+		return await res;
 	}, []);
 	const stopAccumulation = useCallback(async () => {
-		input$.next({ type: WorkCommand.STOP_ACCUMULATION });
-		return await firstValueFrom(
+		const res = firstValueFrom(
 			worker.pipe(
 				filter((output): output is WorkerAccumulationResultOuput => output.type === WorkResult.ACCUMULATED),
 				map((output) => output.payload),
 				timeout(25000),
+				log('Accumulated'),
 			),
 		);
+		input$.next({ type: WorkCommand.STOP_ACCUMULATION });
+		return await res;
 	}, []);
 	useEffect(() => {
 		setWsUrl(getWsURL());
@@ -214,18 +183,6 @@ export const useRealtimeAnalysisChart = (
 	accelerometer?: MacroRecordingSettings['accelerometer'],
 	accelerometerType: z.infer<typeof AccelerometerType> = 'adxl345',
 ) => {
-	useQuery(['wasmBackend'], {
-		queryFn: async () => {
-			setWasmPaths({
-				'tfjs-backend-wasm.wasm': '/configure/tfjs-backend-wasm.wasm',
-				'tfjs-backend-wasm-simd.wasm': '/configure/tfjs-backend-wasm-simd.wasm',
-				'tfjs-backend-wasm-threaded-simd.wasm': '/configure/tfjs-backend-wasm-threaded-simd.wasm',
-			});
-			await setBackend('webgl');
-			return 'wasm';
-		},
-		suspense: true,
-	});
 	const [isChartEnabled, _setIsChartEnabled] = useState(false);
 	const setIsChartEnabled = useCallback((val: boolean) => {
 		_setIsChartEnabled((curVal) => {
@@ -277,6 +234,9 @@ export const useRealtimeAnalysisChart = (
 			}
 			const elapsed = new Date().getTime() - timeSinceLastPsd.current;
 			timeSinceLastPsd.current = new Date().getTime();
+			if (res.total.frequencies.reduce((acc, val) => acc + val, 0) < 200) {
+				return;
+			}
 			const animationDS = psdChart.data.current?.animationSeries;
 			if (animationDS == null) {
 				throw new Error('No animation data series');
@@ -334,20 +294,34 @@ export const useRealtimeAnalysisChart = (
 			animationDS.y.appendRange(res.y.frequencies, res.y.estimates);
 			animationDS.z.appendRange(res.z.frequencies, res.z.estimates);
 			animationDS.total.appendRange(res.total.frequencies, res.total.estimates);
-			surface.renderableSeries
-				.getById('x')
-				.runAnimation(new LineAnimation({ duration: elapsed, ease: easing.inOutCirc, dataSeries: animationDS.x }));
-			surface.renderableSeries
-				.getById('y')
-				.runAnimation(new LineAnimation({ duration: elapsed, ease: easing.inOutCirc, dataSeries: animationDS.y }));
-			surface.renderableSeries
-				.getById('z')
-				.runAnimation(new LineAnimation({ duration: elapsed, ease: easing.inOutCirc, dataSeries: animationDS.z }));
-			surface.renderableSeries
-				.getById('total')
-				.runAnimation(
-					new MountainAnimation({ duration: elapsed, ease: easing.inOutCirc, dataSeries: animationDS.total }),
-				);
+			surface.renderableSeries.getById('x').runAnimation(
+				new LineAnimation({
+					duration: elapsed,
+					ease: elapsed < 100 ? easing.linear : easing.inOutQuad,
+					dataSeries: animationDS.x,
+				}),
+			);
+			surface.renderableSeries.getById('y').runAnimation(
+				new LineAnimation({
+					duration: elapsed,
+					ease: elapsed < 100 ? easing.linear : easing.inOutQuad,
+					dataSeries: animationDS.y,
+				}),
+			);
+			surface.renderableSeries.getById('z').runAnimation(
+				new LineAnimation({
+					duration: elapsed,
+					ease: elapsed < 100 ? easing.linear : easing.inOutQuad,
+					dataSeries: animationDS.z,
+				}),
+			);
+			surface.renderableSeries.getById('total').runAnimation(
+				new MountainAnimation({
+					duration: elapsed,
+					ease: elapsed < 100 ? easing.linear : easing.inOutQuad,
+					dataSeries: animationDS.total,
+				}),
+			);
 			updatePsdChartRange(new NumberRange(res.total.powerRange.min, res.total.powerRange.max));
 		},
 		[psdChart.data, psdChart.surface, updatePsdChartRange],
@@ -355,15 +329,15 @@ export const useRealtimeAnalysisChart = (
 	const updateSignals = useCallback(
 		async ([time, x, y, z]: [Float64Array, Float64Array, Float64Array, Float64Array]) => {
 			// Center the signals by subtracting the mean
-			const dX = detrendFloatSignal(x);
-			const dY = detrendFloatSignal(y);
-			const dZ = detrendFloatSignal(z);
-			xSignalChart.data.current?.signalData.appendRange(time, dX);
-			ySignalChart.data.current?.signalData.appendRange(time, dY);
-			zSignalChart.data.current?.signalData.appendRange(time, dZ);
-			xSignalChart.data.current?.historyData.appendRange(time, dX);
-			ySignalChart.data.current?.historyData.appendRange(time, dY);
-			zSignalChart.data.current?.historyData.appendRange(time, dZ);
+			// const dX = detrendFloatSignal(x);
+			// const dY = detrendFloatSignal(y);
+			// const dZ = detrendFloatSignal(z);
+			xSignalChart.data.current?.signalData.appendRange(time, x);
+			ySignalChart.data.current?.signalData.appendRange(time, y);
+			zSignalChart.data.current?.signalData.appendRange(time, z);
+			xSignalChart.data.current?.historyData.appendRange(time, x);
+			ySignalChart.data.current?.historyData.appendRange(time, y);
+			zSignalChart.data.current?.historyData.appendRange(time, z);
 			updateSignalChartRange();
 			// updatePsd(time, dX, dY, dZ, true);
 		},
@@ -374,7 +348,7 @@ export const useRealtimeAnalysisChart = (
 	const onStreamError = useCallback(
 		(err: Error) => {
 			setIsChartEnabled(false);
-			console.log(err);
+			getLogger().error(err);
 			toast.error('Error during accelerometer data streaming', { description: err.message });
 		},
 		[setIsChartEnabled],
@@ -403,6 +377,7 @@ export const useRealtimeAnalysisChart = (
 	// 		[setIsChartEnabled],
 	// 	),
 	// });
+	console.log('rendering');
 	return useMemo(
 		() => ({
 			isChartEnabled,

@@ -7,8 +7,6 @@ import {
 	mean,
 	sub,
 	tidy,
-	setBackend,
-	ready,
 	transpose,
 	mul,
 	real,
@@ -17,7 +15,11 @@ import {
 import '@tensorflow/tfjs-backend-webgl';
 import { NumberRange } from 'scichart';
 import { PSD } from '@/zods/analysis';
-import { getLogger } from '@/app/_helpers/logger';
+
+interface TypedArrayPSD extends Omit<PSD, 'estimates' | 'frequencies'> {
+	estimates: Float64Array;
+	frequencies: Float64Array;
+}
 
 /**
  * Returns the ceil of the log2 of the absolute value of the passed number
@@ -62,7 +64,7 @@ export async function powerSpectralDensity(
 	signal: Tensor1D,
 	sampleRate: number,
 	options?: { fftSize?: number; _scaling?: string; isDetrended?: boolean },
-): Promise<PSD> {
+): Promise<TypedArrayPSD> {
 	let { fftSize, _scaling } = Object.assign(
 		{
 			fftSize: getFFTSize(sampleRate, WINDOW_T_SEC),
@@ -79,48 +81,41 @@ export async function powerSpectralDensity(
 	const win = tfSignal.hannWindow(fftSize);
 	let windowLossCompensationFactor = (await tidy(() => div(div(1.0, sum(pow(win, 2))), sampleRate)).array()) as number;
 
-	const detrended = (await (options?.isDetrended ? signal : detrendSignal(signal)).array()) as number[];
+	const detrended = options?.isDetrended ? signal : detrendSignal(signal);
 	// await setBackend('webgl');
 
-	let x = (await tidy(() => {
-		let f = tfSignal.stft(tensor1d(detrended), fftSize, Math.floor(fftSize / 2), fftSize, tfSignal.hannWindow);
-		f = mul(transpose(f, [0, 1], true), f);
-		f = mul(f, windowLossCompensationFactor);
-		f = mul(f, scaling_factor);
-		f = real(f);
-		return f;
-	}).array()) as number[][];
+	let f = tfSignal.stft(detrended, fftSize, Math.floor(fftSize / 2), fftSize, tfSignal.hannWindow);
+
+	let x = (await f.array()) as number[][];
+	f.dispose();
+	detrended.dispose();
 	win.dispose();
-	// await setBackend('wasm');
 
 	const data = x.map((series) => {
 		// Get the power of each FFT bin value
 		let powers: number[] = [];
 		let frequencies: number[] = [];
 		let maxPower = 0;
-		let peakFrequency = 0;
 		let minPower = 0;
 		let skipped = 0;
 		const fftRatio = sampleRate / fftSize;
-		for (var i = 0; i < series.length - 1; i += 1) {
-			const frequency = i * fftRatio;
+		for (var i = 0; i < series.length - 1; i += 2) {
+			const frequency = (i === 0 ? 0 : i / 2) * fftRatio;
 			if (frequency > MAX_FREQ) {
 				skipped++;
 				continue;
 			}
-			// const nextFrequency = ((i + 2) / 2) * fftRatio;
+			const nextFrequency = ((i + 2) / 2) * fftRatio;
 			// apply scaling
-			// console.log(series[i], series[i + 1]);
 			// magnitude is sqrt(real^2 + imag^2), power is magnitude^2
-			let power: number = series[i]; //series[i] ** 2 + series[i + 1] ** 2;
-			// power *= klipScale;
+			let power: number = series[i] ** 2 + series[i + 1] ** 2;
+			power *= windowLossCompensationFactor;
 			// Don't scale DC or Nyquist by 2
-			if ((_scaling == 'psd' && i === 0) || frequency < sampleRate / 2) {
-				power /= scaling_factor;
+			if (_scaling == 'psd' && i > 0 && nextFrequency < MAX_FREQ) {
+				power *= scaling_factor;
 			}
 			if (power > maxPower) {
 				maxPower = power;
-				peakFrequency = frequency;
 			}
 			if (power < minPower) {
 				minPower = power;
@@ -133,7 +128,6 @@ export async function powerSpectralDensity(
 			estimates: powers,
 			frequencies: frequencies,
 			powerRange: new NumberRange(minPower, maxPower),
-			peakFrequency: peakFrequency,
 		};
 	});
 
@@ -141,16 +135,16 @@ export async function powerSpectralDensity(
 }
 
 // Keep this async so that we can potentially move it to the GPU
-export const welch = async (PSDs: PSD[]): Promise<PSD> => {
+export const welch = async (PSDs: PSD[]): Promise<TypedArrayPSD> => {
 	if (PSDs.length == 0) throw new Error('Unable to calculate any PSD estimates');
-	if (PSDs.length == 1) {
-		getLogger().warn('Not enough data to compute more than one segment, returning single modified periodogram.');
-		return PSDs[0];
-	}
+	// if (PSDs.length == 1) {
+	// 	getLogger().warn('Not enough data to compute more than one segment, returning single modified periodogram.');
+	// 	return PSDs[0];
+	// }
 
 	// Compute average PSD
 	let num_estimates = PSDs[0].estimates.length;
-	let avg = new Array(num_estimates).fill(0);
+	let avg = new Float64Array(num_estimates).fill(0);
 	for (let p = 0; p < PSDs.length; p++) {
 		for (let i = 0; i < num_estimates; i++) {
 			avg[i] += PSDs[p].estimates[i];
@@ -170,14 +164,14 @@ export const welch = async (PSDs: PSD[]): Promise<PSD> => {
 
 	return {
 		estimates: avg,
-		frequencies: PSDs[0].frequencies,
+		frequencies: Float64Array.from(PSDs[0].frequencies),
 		powerRange: new NumberRange(minPower, maxPower),
 	};
 };
 
-export const sumPSDs = (PSDs: PSD[]): PSD => {
+export const sumPSDs = (PSDs: TypedArrayPSD[]): TypedArrayPSD => {
 	let num_estimates = PSDs[0].estimates.length;
-	let sum = new Array(num_estimates).fill(0);
+	let sum = new Float64Array(num_estimates).fill(0);
 	for (let p = 0; p < PSDs.length; p++) {
 		for (let i = 0; i < num_estimates; i++) {
 			sum[i] += PSDs[p].estimates[i];
@@ -197,7 +191,7 @@ export const sumPSDs = (PSDs: PSD[]): PSD => {
 	);
 	return {
 		estimates: sum,
-		frequencies: PSDs[0].frequencies,
+		frequencies: Float64Array.from(PSDs[0].frequencies),
 		powerRange: new NumberRange(minPower, maxPower),
 	};
 };

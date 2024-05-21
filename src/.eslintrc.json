@@ -1,8 +1,13 @@
 {
 	"plugins": ["@typescript-eslint", "unused-imports", "prettier",
     "@limegrass/import-alias"],
-	"extends": ["next/core-web-vitals", "plugin:react-hooks/recommended"],
+	"extends": ["next/core-web-vitals", "plugin:react-hooks/recommended", "plugin:rxjs/recommended"],
 	"parser": "@typescript-eslint/parser",
+	"parserOptions": {
+	  "ecmaVersion": "latest",
+	  "project": "./src/tsconfig.json",
+	  "sourceType": "module"
+	},
 	"overrides": [
 		{
 			"files": ["*.tsx", "*.ts"],

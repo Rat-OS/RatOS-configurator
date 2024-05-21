@@ -44,6 +44,21 @@ const isKlipperAccelSubscriptionData = (msg: unknown): msg is { params: KlipperA
 	);
 };
 
+const detrendFloatSignal = (signal: number[]) => {
+	const mean = signal.reduce((acc, val) => acc + val, 0) / signal.length;
+	for (let i = 0; i < signal.length; i++) {
+		signal[i] -= mean;
+	}
+	return signal;
+};
+
+const detrendBatch = (signal: [number, number, number, number][]): [number, number, number, number][] => {
+	const x = detrendFloatSignal(signal.map((s) => s[1]));
+	const y = detrendFloatSignal(signal.map((s) => s[2]));
+	const z = detrendFloatSignal(signal.map((s) => s[3]));
+	return signal.map((s, i) => [s[0], x[i], y[i], z[i]]);
+};
+
 /// JSON.parse('{"test": 1000000000.1010101010101010101010101}', (key, value, context) => {console.log(key, value, context); return value})
 // context.source = '1000000000.1010101010101010101010101'
 
@@ -103,7 +118,7 @@ export const createADXL345Stream = (url: string, sensor: KlipperAccelSensorName)
 			share(),
 			filter((msg): msg is { params: KlipperAccelSubscriptionData } => isKlipperAccelSubscriptionData(msg)),
 			map((msg) => {
-				return msg.params;
+				return { ...msg.params, data: detrendBatch(msg.params.data) };
 			}),
 			share(),
 		);
@@ -115,7 +130,6 @@ export const createADXL345Stream = (url: string, sensor: KlipperAccelSensorName)
 	return {
 		dataStream$,
 		close: () => {
-			console.log('closing stream!');
 			subject.complete.bind(subject)();
 		},
 	};
