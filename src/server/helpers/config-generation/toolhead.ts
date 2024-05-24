@@ -446,7 +446,6 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 			`variable_enable_runout_detection: True                                       # enables filament sensor runout detection `,
 			`variable_enable_clog_detection: True                                         # enables filament sensor clog detection `,
 			`variable_unload_after_runout: True                                           # unload filament after a runout has been detected`,
-			`variable_resume_after_insert: True                                           # resumes the print after inserting new filament`,
 			`variable_purge_after_load: 0`,
 			`variable_purge_before_unload: 0`,
 			`variable_extruder_load_speed: 60`,
@@ -460,6 +459,11 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 			result.push(
 				`variable_loading_position: ${this.getTool() === 0 ? parkX + 25 : parkX - 25} # filament load x position`,
 				`variable_parking_position: ${parkX} # parking x position`,
+				`variable_resume_after_insert: True                                           # resumes the print after inserting new filament`,
+			);
+		} else {
+			result.push(
+				`variable_resume_after_insert: False                                          # resumes the print after inserting new filament`,
 			);
 		}
 		result.push(
