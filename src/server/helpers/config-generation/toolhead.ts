@@ -211,6 +211,7 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 		if (toolboard.ADXL345SPI != null) {
 			result.push(''); // Add a newline for readability.
 			result.push(`[adxl345 ${this.getToolboardName()}]`);
+			result.push(`axis_map: x, z, y # Assumes back-facing vertical toolboard mounting`);
 			result.push(`cs_pin: ${this.getPinPrefix()}${toolboard.ADXL345SPI.cs_pin}`);
 			if ('hardware' in toolboard.ADXL345SPI) {
 				result.push(`spi_bus: ${toolboard.ADXL345SPI.hardware.bus}`);
@@ -223,6 +224,7 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 		if (toolboard.LIS2DW != null) {
 			result.push(''); // Add a newline for readability.
 			result.push(`[lis2dw ${this.getToolboardName()}]`);
+			result.push(`axis_map: x, z, y # Assumes back-facing vertical toolboard mounting`);
 			result.push(`cs_pin: ${this.getPinPrefix()}${toolboard.LIS2DW.cs_pin}`);
 			if ('hardware' in toolboard.LIS2DW) {
 				result.push(`spi_bus: ${toolboard.LIS2DW.hardware.bus}`);
