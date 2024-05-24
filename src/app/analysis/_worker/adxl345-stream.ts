@@ -5,15 +5,28 @@ import {
 	KlipperAccelSubscriptionResponse,
 	klipperADXL345SubscriptionResponseSchema,
 } from '@/zods/analysis';
-import { KlipperAccelSensorName } from '@/zods/hardware';
+import { KlipperAccelSensorName, KlipperAccelSensorSchema } from '@/zods/hardware';
 import BigNumber from 'bignumber.js';
 import { filter, map, share } from 'rxjs';
 import { webSocket } from 'rxjs/webSocket';
 
 let id = 0;
 
+const getSensorEndpoint = (sensor: KlipperAccelSensorSchema) => {
+	switch (sensor.type) {
+		case 'adxl345':
+			return 'adxl345/dump_adxl345';
+		case 'beacon':
+			return 'beacon/dump_accel';
+		case 'lis2dw':
+			return 'lis2dw/dump_lis2dw';
+		default:
+			throw new Error("Sensor type not supported. Must be 'adxl345', 'beacon', or 'lis2dw'");
+	}
+};
+
 type KlipperADXLRequest = JSONRPCRequest<
-	'adxl345/dump_adxl345',
+	ReturnType<typeof getSensorEndpoint>,
 	{ sensor: KlipperAccelSensorName; response_template: {} }
 >;
 
@@ -59,10 +72,7 @@ const detrendBatch = (signal: [number, number, number, number][]): [number, numb
 	return signal.map((s, i) => [s[0], x[i], y[i], z[i]]);
 };
 
-/// JSON.parse('{"test": 1000000000.1010101010101010101010101}', (key, value, context) => {console.log(key, value, context); return value})
-// context.source = '1000000000.1010101010101010101010101'
-
-export const createADXL345Stream = (url: string, sensor: KlipperAccelSensorName) => {
+export const createADXL345Stream = (url: string, sensor: KlipperAccelSensorSchema) => {
 	'use client';
 	const subject = webSocket({
 		url,
@@ -82,6 +92,7 @@ export const createADXL345Stream = (url: string, sensor: KlipperAccelSensorName)
 		},
 	});
 
+	// We don't use this yet..
 	let header: null | KlipperAccelSubscriptionResponse['header'] = null;
 
 	const dataStream$ = subject
@@ -89,9 +100,9 @@ export const createADXL345Stream = (url: string, sensor: KlipperAccelSensorName)
 			() =>
 				({
 					jsonrpc: '2.0',
-					method: 'adxl345/dump_adxl345',
+					method: getSensorEndpoint(sensor),
 					params: {
-						sensor: sensor,
+						sensor: sensor.name,
 						response_template: {},
 					},
 					id: ++id,

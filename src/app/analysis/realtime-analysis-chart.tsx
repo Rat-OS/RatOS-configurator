@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 
 import { useToolheads } from '@/hooks/useToolheadConfiguration';
 import { Card } from '@/components/common/card';
@@ -12,172 +12,23 @@ import {
 } from '@/app/analysis/charts';
 import { twJoin } from 'tailwind-merge';
 import { SciChartReact } from 'scichart-react';
-import { useAccelerometerWithType, useDynamicAxisRange } from '@/app/analysis/hooks';
+import { useDynamicAxisRange, useWorker } from '@/app/analysis/hooks';
 import { LineAnimation, MountainAnimation, NumberRange, SciChartSurface, XyDataSeries, easing } from 'scichart';
 import { FullLoadScreen } from '@/components/common/full-load-screen';
-import { KlipperAccelSubscriptionResponse, MacroRecordingSettings } from '@/zods/analysis';
+import { KlipperAccelSubscriptionResponse, MacroRecordingSettings, PSD } from '@/zods/analysis';
 import { useRecoilValue } from 'recoil';
 import { ControlboardState } from '@/recoil/printer';
 import { toast } from 'sonner';
 import { getLogger } from '@/app/_helpers/logger';
-import { AccelerometerType, KlipperAccelSensorName } from '@/zods/hardware';
+import { AccelerometerType } from '@/zods/hardware';
 import { z } from 'zod';
-import {
-	WorkerInput,
-	WorkerOutput,
-	WorkCommand,
-	WorkResult,
-	WorkerSignalOutput,
-	WorkerPSDOutput,
-	WorkerAccumulationResultOuput,
-	WorkerAccumulationStarted,
-} from '@/app/analysis/_worker';
-import { fromWorker } from 'observable-webworker';
-import { Subject, animationFrames, buffer, filter, firstValueFrom, interval, map, share, timeout } from 'rxjs';
-import { getHost } from '@/helpers/util';
 import { PSDResult } from '@/app/analysis/_worker/psd';
-import { log } from '@/app/analysis/_worker/stream-utils';
-import { a } from 'vitest/dist/suite-MFRDkZcV';
+import type { TypedArrayPSD } from '@/app/analysis/periodogram';
 
 SciChartSurface.configure({
 	wasmUrl: '/configure/scichart2d.wasm',
 	dataUrl: '/configure/scichart2d.data',
 });
-
-const getWsURL = () => {
-	const host = getHost();
-	if (host == null || host.trim() == '') {
-		return null;
-	}
-	if (typeof window == 'undefined') {
-		return null;
-	}
-	return `ws://${host}:7125/klippysocket`;
-};
-
-const input$ = new Subject<WorkerInput>();
-const worker = fromWorker<WorkerInput, WorkerOutput>(
-	() => new Worker(new URL('@/app/analysis/_worker/index', import.meta.url)),
-	input$,
-).pipe(share());
-const signal$ = worker.pipe(
-	filter((output): output is WorkerSignalOutput => output.type === WorkResult.SIGNAL),
-	map((output) => new Float64Array(output.payload)),
-	buffer(animationFrames()), // 24 updates per second
-	filter((signals) => signals.length > 0),
-	map((signals) => {
-		const time = new Float64Array(signals.length);
-		const x = new Float64Array(signals.length);
-		const y = new Float64Array(signals.length);
-		const z = new Float64Array(signals.length);
-		signals.forEach((signal, i) => {
-			time[i] = signal[0];
-			x[i] = signal[1];
-			y[i] = signal[2];
-			z[i] = signal[3];
-		});
-		return [time, x, y, z] as [Float64Array, Float64Array, Float64Array, Float64Array];
-	}),
-	share(),
-);
-const psd$ = worker.pipe(
-	filter((output): output is WorkerPSDOutput => output.type === WorkResult.PSD),
-	map((output) => output.payload),
-	share(),
-);
-const useWorker = (
-	enabled: boolean,
-	sensor: KlipperAccelSensorName,
-	onResult: ReactCallback<(signal: [Float64Array, Float64Array, Float64Array, Float64Array]) => void>,
-	onPSDResult: ReactCallback<(psd: Omit<PSDResult, 'source'>) => void>,
-	onError: ReactCallback<(err: Error) => void>,
-) => {
-	const parsedSensor = useAccelerometerWithType(sensor);
-	const [wsUrl, setWsUrl] = useState(getWsURL());
-	const [sampleRate, setSampleRate] = useState(0);
-	const [specSampleRate, setSpecSampleRate] = useState(0);
-	const onResultRef = useRef(onResult);
-	onResultRef.current = onResult;
-	const onPSDResultRef = useRef(onPSDResult);
-	onPSDResultRef.current = onPSDResult;
-
-	const startAccumulation = useCallback(async () => {
-		const res = firstValueFrom(
-			worker.pipe(
-				filter((output): output is WorkerAccumulationStarted => output.type === WorkResult.ACCUMULATING),
-				map(() => true),
-				timeout(5000),
-			),
-		);
-		input$.next({ type: WorkCommand.START_ACCUMULATION });
-		return await res;
-	}, []);
-	const stopAccumulation = useCallback(async () => {
-		const res = firstValueFrom(
-			worker.pipe(
-				filter((output): output is WorkerAccumulationResultOuput => output.type === WorkResult.ACCUMULATED),
-				map((output) => output.payload),
-				timeout(25000),
-				log('Accumulated'),
-			),
-		);
-		input$.next({ type: WorkCommand.STOP_ACCUMULATION });
-		return await res;
-	}, []);
-	useEffect(() => {
-		setWsUrl(getWsURL());
-	}, []);
-	useEffect(() => {
-		const subscriber = (signal: [Float64Array, Float64Array, Float64Array, Float64Array]) => {
-			onResultRef.current(signal);
-		};
-		const signalSub = signal$.subscribe(subscriber);
-		const psdSubscriber = (psd: Omit<PSDResult, 'source'>) => {
-			onPSDResultRef.current(psd);
-		};
-		const psdSub = psd$.subscribe(psdSubscriber);
-		return () => {
-			signalSub.unsubscribe();
-			psdSub.unsubscribe();
-		};
-	}, []);
-	useEffect(() => {
-		if (enabled && wsUrl != null) {
-			const sub = worker.subscribe({
-				next: (output) => {
-					switch (output.type) {
-						case WorkResult.STARTED:
-							break;
-						case WorkResult.STOPPED:
-							break;
-						case WorkResult.ACCUMULATING:
-							break;
-						case WorkResult.ACCUMULATED:
-							break;
-						case WorkResult.SAMPLE_RATE:
-							setSampleRate(output.payload);
-							break;
-						case WorkResult.SPEC_SAMPLE_RATE:
-							setSpecSampleRate(output.payload);
-							break;
-					}
-				},
-				error: onError,
-			});
-			input$.next({ type: WorkCommand.START, payload: { url: wsUrl, sensor: sensor } });
-			return () => {
-				input$.next({ type: WorkCommand.STOP });
-				sub.unsubscribe();
-			};
-		}
-	}, [enabled, onError, sensor, wsUrl]);
-	return {
-		sampleRate,
-		specSampleRate,
-		startAccumulation,
-		stopAccumulation,
-	};
-};
 
 export const useRealtimeAnalysisChart = (
 	accelerometer?: MacroRecordingSettings['accelerometer'],
@@ -193,7 +44,6 @@ export const useRealtimeAnalysisChart = (
 			return val;
 		});
 	}, []);
-	const [dataHeader, setDataHeader] = useState<KlipperAccelSubscriptionResponse['header'] | undefined>(undefined);
 	const toolheads = useToolheads();
 	const controlBoard = useRecoilValue(ControlboardState);
 	const adxl = accelerometer ?? toolheads[0].getYAccelerometerName();
@@ -296,29 +146,29 @@ export const useRealtimeAnalysisChart = (
 			animationDS.total.appendRange(res.total.frequencies, res.total.estimates);
 			surface.renderableSeries.getById('x').runAnimation(
 				new LineAnimation({
-					duration: elapsed,
-					ease: elapsed < 100 ? easing.linear : easing.inOutQuad,
+					duration: Math.max(elapsed, 100),
+					ease: easing.inOutQuad,
 					dataSeries: animationDS.x,
 				}),
 			);
 			surface.renderableSeries.getById('y').runAnimation(
 				new LineAnimation({
-					duration: elapsed,
-					ease: elapsed < 100 ? easing.linear : easing.inOutQuad,
+					duration: Math.max(elapsed, 100),
+					ease: easing.inOutQuad,
 					dataSeries: animationDS.y,
 				}),
 			);
 			surface.renderableSeries.getById('z').runAnimation(
 				new LineAnimation({
-					duration: elapsed,
-					ease: elapsed < 100 ? easing.linear : easing.inOutQuad,
+					duration: Math.max(elapsed, 100),
+					ease: easing.inOutQuad,
 					dataSeries: animationDS.z,
 				}),
 			);
 			surface.renderableSeries.getById('total').runAnimation(
 				new MountainAnimation({
-					duration: elapsed,
-					ease: elapsed < 100 ? easing.linear : easing.inOutQuad,
+					duration: Math.max(elapsed, 100),
+					ease: easing.inOutQuad,
 					dataSeries: animationDS.total,
 				}),
 			);
@@ -328,10 +178,6 @@ export const useRealtimeAnalysisChart = (
 	);
 	const updateSignals = useCallback(
 		async ([time, x, y, z]: [Float64Array, Float64Array, Float64Array, Float64Array]) => {
-			// Center the signals by subtracting the mean
-			// const dX = detrendFloatSignal(x);
-			// const dY = detrendFloatSignal(y);
-			// const dZ = detrendFloatSignal(z);
 			xSignalChart.data.current?.signalData.appendRange(time, x);
 			ySignalChart.data.current?.signalData.appendRange(time, y);
 			zSignalChart.data.current?.signalData.appendRange(time, z);
@@ -339,11 +185,9 @@ export const useRealtimeAnalysisChart = (
 			ySignalChart.data.current?.historyData.appendRange(time, y);
 			zSignalChart.data.current?.historyData.appendRange(time, z);
 			updateSignalChartRange();
-			// updatePsd(time, dX, dY, dZ, true);
 		},
 		[updateSignalChartRange, xSignalChart.data, ySignalChart.data, zSignalChart.data],
 	);
-	// useTicker(fifo.sampleRate.current / ADXL_STREAM_BUFFER_SIZE, isChartEnabled ? updateSignals : undefined);
 
 	const onStreamError = useCallback(
 		(err: Error) => {
@@ -353,35 +197,18 @@ export const useRealtimeAnalysisChart = (
 		},
 		[setIsChartEnabled],
 	);
-	const { startAccumulation, stopAccumulation } = useWorker(
+	const { startAccumulation, stopAccumulation, streamStarted } = useWorker(
 		isChartEnabled,
 		adxl,
 		updateSignals,
 		updatePSD,
 		onStreamError,
 	);
-	// const updatePsd = useBufferedPSD(worker.specSampleRate, psds.onData);
-
-	// useRealtimeSensor({
-	// 	sensor: adxl,
-	// 	enabled: isChartEnabled,
-	// 	onDataUpdate: fifo.onData,
-	// 	onSubscriptionSuccess: useCallback((header: KlipperAccelSubscriptionResponse['header']) => {
-	// 		setDataHeader(header);
-	// 	}, []),
-	// 	onSubscriptionFailure: useCallback(
-	// 		(err: Error) => {
-	// 			setIsChartEnabled(false);
-	// 			toast.error('Failed to subscribe to ADXL345', { description: err.message });
-	// 		},
-	// 		[setIsChartEnabled],
-	// 	),
-	// });
-	console.log('rendering');
 	return useMemo(
 		() => ({
 			isChartEnabled,
 			setIsChartEnabled,
+			streamStarted,
 			psds: {
 				startAccumulation,
 				stopAccumulation,
@@ -398,6 +225,7 @@ export const useRealtimeAnalysisChart = (
 		[
 			isChartEnabled,
 			setIsChartEnabled,
+			streamStarted,
 			startAccumulation,
 			stopAccumulation,
 			adxl,

@@ -1,6 +1,6 @@
-import { KlipperAccelSensorName } from '@/zods/hardware';
+import { KlipperAccelSensorName, KlipperAccelSensorSchema } from '@/zods/hardware';
 import { DoWork, fromWorker, runWorker } from 'observable-webworker';
-import { EMPTY, Observable, Subject, firstValueFrom, from, merge, of, throwError } from 'rxjs';
+import { EMPTY, Observable, Subject, asyncScheduler, firstValueFrom, from, of, scheduled } from 'rxjs';
 import { filter, map, mergeAll, mergeMap, share } from 'rxjs/operators';
 import { createSignalBuffers, type AccelSampleMs } from '@/app/analysis/_worker/processing';
 import { createADXL345Stream } from '@/app/analysis/_worker/adxl345-stream';
@@ -33,7 +33,7 @@ export type WorkerInput =
 			type: WorkCommand.START;
 			payload: {
 				url: string;
-				sensor: KlipperAccelSensorName;
+				sensor: KlipperAccelSensorSchema;
 			};
 	  }
 	| {
@@ -103,6 +103,9 @@ export type WorkerOutput =
 
 const mapToWorkerOutput = <T>(mapFn: (input: T) => WorkerOutput) => map(mapFn);
 
+// Here be dragons. Thou art forewarned!
+// All workers needs serious refactor
+
 const psdInput$ = new Subject<PSDWorkerInput>();
 
 const psdWorker = fromWorker<PSDWorkerInput, PSDWorkerOutput>(
@@ -128,13 +131,11 @@ export class AccelSensorWorker implements DoWork<WorkerInput, WorkerOutput> {
 	public work(input$: Observable<WorkerInput>) {
 		return input$.pipe(
 			mergeMap((input): Observable<WorkerOutput> => {
-				console.log('got input', input);
 				switch (input.type) {
 					case WorkCommand.START: {
 						if (this.stream != null) {
 							throw Error(`Stream already started`);
 						}
-						console.log('starting stream!');
 						this.stream = createADXL345Stream(input.payload.url, input.payload.sensor);
 						const setup = async (): Promise<Observable<WorkerOutput>> => {
 							if (this.stream == null) {
@@ -147,34 +148,37 @@ export class AccelSensorWorker implements DoWork<WorkerInput, WorkerOutput> {
 							this.signalProcessor.specSampleRate$.subscribe((s) =>
 								psdInput$.next({ command: 'specSampleRateInput', payload: s }),
 							);
-							const res = from([
-								of({
-									type: WorkResult.STARTED,
-									payload: this.signalProcessor.timeStamp,
-								} as WorkerOutput),
-								this.signalProcessor.timeMappedSignal$.pipe(
-									mapToWorkerOutput((data) => {
-										const sample = new Float64Array([data[0].toNumber(), ...data.slice(1)] as AccelSampleMs);
-										return {
-											type: WorkResult.SIGNAL,
-											payload: sample.buffer,
-										};
-									}),
-								),
-								this.signalProcessor.sampleRate$.pipe(
-									mapToWorkerOutput((sampleRate) => ({
-										type: WorkResult.SAMPLE_RATE,
-										payload: sampleRate,
-									})),
-								),
-								this.signalProcessor.specSampleRate$.pipe(
-									mapToWorkerOutput((specSampleRate) => ({
-										type: WorkResult.SPEC_SAMPLE_RATE,
-										payload: specSampleRate,
-									})),
-								),
-								this.psdSubscribed ? EMPTY : psdOutput$,
-							]).pipe(mergeAll());
+							const res = scheduled(
+								from([
+									of({
+										type: WorkResult.STARTED,
+										payload: this.signalProcessor.timeStamp,
+									} as WorkerOutput),
+									this.signalProcessor.timeMappedSignal$.pipe(
+										mapToWorkerOutput((data) => {
+											const sample = new Float64Array([data[0].toNumber(), ...data.slice(1)] as AccelSampleMs);
+											return {
+												type: WorkResult.SIGNAL,
+												payload: sample.buffer,
+											};
+										}),
+									),
+									this.signalProcessor.sampleRate$.pipe(
+										mapToWorkerOutput((sampleRate) => ({
+											type: WorkResult.SAMPLE_RATE,
+											payload: sampleRate,
+										})),
+									),
+									this.signalProcessor.specSampleRate$.pipe(
+										mapToWorkerOutput((specSampleRate) => ({
+											type: WorkResult.SPEC_SAMPLE_RATE,
+											payload: specSampleRate,
+										})),
+									),
+									this.psdSubscribed ? EMPTY : psdOutput$,
+								]),
+								asyncScheduler,
+							).pipe(mergeAll());
 							if (!this.psdSubscribed) {
 								this.psdSubscribed = true;
 							}
@@ -183,7 +187,6 @@ export class AccelSensorWorker implements DoWork<WorkerInput, WorkerOutput> {
 						return from(setup()).pipe(mergeAll());
 					}
 					case WorkCommand.STOP: {
-						console.log('stopping stream!');
 						if (this.stream != null) {
 							this.stream.close();
 							this.stream = null;
@@ -199,31 +202,35 @@ export class AccelSensorWorker implements DoWork<WorkerInput, WorkerOutput> {
 						if (psdWorker == null) {
 							throw Error(`PSD worker not initialized`);
 						}
-						console.log('starting accumulation');
 						psdInput$.next({ command: 'accumulate', payload: true });
-						return from([
-							of({
-								type: WorkResult.ACCUMULATING,
-							} as WorkerOutput),
-							from(
-								firstValueFrom(
-									psdWorker.pipe(
-										filter(
-											(output): output is { type: 'accumulation_finished'; psd: PSDResult } =>
-												output.type === 'accumulation_finished',
+						return scheduled(
+							from([
+								of({
+									type: WorkResult.ACCUMULATING,
+								} as WorkerOutput),
+								scheduled(
+									from(
+										firstValueFrom(
+											psdWorker.pipe(
+												filter(
+													(output): output is { type: 'accumulation_finished'; psd: PSDResult } =>
+														output.type === 'accumulation_finished',
+												),
+											),
 										),
+									).pipe(
+										mapToWorkerOutput((result) => {
+											return {
+												type: WorkResult.ACCUMULATED,
+												payload: result.psd,
+											};
+										}),
 									),
+									asyncScheduler,
 								),
-							).pipe(
-								mapToWorkerOutput((result) => {
-									console.log('Accumulation result recieved', result.psd);
-									return {
-										type: WorkResult.ACCUMULATED,
-										payload: result.psd,
-									};
-								}),
-							),
-						]).pipe(mergeAll());
+							]),
+							asyncScheduler,
+						).pipe(mergeAll());
 					}
 					case WorkCommand.STOP_ACCUMULATION: {
 						if (psdWorker == null) {
@@ -232,14 +239,12 @@ export class AccelSensorWorker implements DoWork<WorkerInput, WorkerOutput> {
 						if (psdWorker == null) {
 							throw Error(`PSD process not initialized`);
 						}
-						console.log('stopping accumulation');
 						psdInput$.next({ command: 'accumulate', payload: false });
 						return EMPTY;
 					}
 					default: {
 						this.stream?.close();
 						this.stream = null;
-						console.log('closing', input);
 						throw new Error(`Invalid command`);
 					}
 				}
@@ -264,7 +269,6 @@ export class AccelSensorWorker implements DoWork<WorkerInput, WorkerOutput> {
 				];
 			}
 			case WorkResult.ACCUMULATED: {
-				console.log('accumulated done');
 				return [
 					output.payload.x.estimates.buffer,
 					output.payload.x.frequencies.buffer,

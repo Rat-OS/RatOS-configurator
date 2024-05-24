@@ -2,6 +2,7 @@ import { KlipperAccelSubscriptionData } from '@/zods/analysis';
 import BigNumber from 'bignumber.js';
 import {
 	Observable,
+	asyncScheduler,
 	bufferTime,
 	concatMap,
 	delay,
@@ -12,9 +13,9 @@ import {
 	map,
 	mergeMap,
 	of,
+	scheduled,
 	share,
 } from 'rxjs';
-import { log } from '@/app/analysis/_worker/stream-utils';
 
 const expectedSampleRates = [100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600, 51200];
 /**
@@ -43,8 +44,8 @@ export const createSignalBuffers = async (dataStream$: Observable<KlipperAccelSu
 		y,
 		z,
 	];
-	const signal$ = dataStream$.pipe(
-		concatMap((data) => from(data.data)),
+	const signal$ = scheduled(dataStream$, asyncScheduler).pipe(
+		concatMap((data) => scheduled(from(data.data), asyncScheduler)),
 		map(subtractTimeStamp),
 		share(),
 	);
@@ -57,26 +58,25 @@ export const createSignalBuffers = async (dataStream$: Observable<KlipperAccelSu
 				: Math.floor(samples.length / samples[samples.length - 1][0].minus(samples[0][0]).shiftedBy(-3).toNumber()),
 		),
 		distinctUntilChanged(),
-		log('sampleRate$'),
 		share(),
 	);
 
-	const timeMappedSignal$ = dataStream$.pipe(
-		concatMap((data) =>
-			from(data.data).pipe(
-				map(subtractTimeStamp),
-				mergeMap((sample) => {
-					const d = sample[0]
-						.minus(subtractTimeStamp(data.data[0])[0])
-						.decimalPlaces(0, BigNumber.ROUND_FLOOR)
-						.toNumber();
-					// downscale the delay, the scheduler is not perfect as it depends on the work on the main thread.
-					const date = new Date(new Date().getTime() + d * 0.7);
-					return of(sample).pipe(delay(date));
-				}),
-			),
+	const timeMappedSignal$ = scheduled(
+		dataStream$.pipe(
+			concatMap((data) => {
+				const startTime = BigNumber(data.data[0][0]).minus(timeStamp).shiftedBy(3);
+				return scheduled(from(data.data), asyncScheduler).pipe(
+					map(subtractTimeStamp),
+					mergeMap((sample) => {
+						const d = sample[0].minus(startTime).decimalPlaces(0, BigNumber.ROUND_FLOOR).toNumber();
+						// downscale the delay, the scheduler is not perfect as it depends on the load on the worker thread.
+						return scheduled(of(sample).pipe(delay(d * 0.7)), asyncScheduler);
+					}),
+				);
+			}),
+			share(),
 		),
-		share(),
+		asyncScheduler,
 	);
 
 	const specSampleRate$ = sampleRate$.pipe(
@@ -89,7 +89,6 @@ export const createSignalBuffers = async (dataStream$: Observable<KlipperAccelSu
 			}, expectedSampleRates[0]),
 		),
 		distinctUntilChanged(),
-		log('specSampleRate$'),
 		share(),
 	);
 

@@ -95,24 +95,18 @@ importers:
       '@tanstack/react-virtual':
         specifier: ^3.0.2
         version: 3.0.2(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
-      '@tensorflow/tfjs-backend-cpu':
-        specifier: ^4.18.0
-        version: 4.18.0(@tensorflow/tfjs-core@4.18.0(encoding@0.1.13))
-      '@tensorflow/tfjs-backend-wasm':
-        specifier: ^4.18.0
-        version: 4.18.0(@tensorflow/tfjs-core@4.18.0(encoding@0.1.13))
       '@tensorflow/tfjs-backend-webgl':
-        specifier: ^4.18.0
-        version: 4.18.0(@tensorflow/tfjs-core@4.18.0(encoding@0.1.13))
+        specifier: ^4.19.0
+        version: 4.19.0(@tensorflow/tfjs-core@4.19.0(encoding@0.1.13))
       '@tensorflow/tfjs-backend-webgpu':
         specifier: ^4.19.0
-        version: 4.19.0(@tensorflow/tfjs-core@4.18.0(encoding@0.1.13))
+        version: 4.19.0(@tensorflow/tfjs-core@4.19.0(encoding@0.1.13))
       '@tensorflow/tfjs-core':
-        specifier: ^4.18.0
-        version: 4.18.0(encoding@0.1.13)
+        specifier: ^4.19.0
+        version: 4.19.0(encoding@0.1.13)
       '@tensorflow/tfjs-data':
-        specifier: ^4.18.0
-        version: 4.18.0(@tensorflow/tfjs-core@4.18.0(encoding@0.1.13))(encoding@0.1.13)(seedrandom@3.0.5)
+        specifier: ^4.19.0
+        version: 4.19.0(@tensorflow/tfjs-core@4.19.0(encoding@0.1.13))(encoding@0.1.13)(seedrandom@3.0.5)
       '@trpc/client':
         specifier: 10.45.1
         version: 10.45.1(@trpc/server@10.45.1)
@@ -279,11 +273,11 @@ importers:
         specifier: ^7.8.1
         version: 7.8.1
       scichart:
-        specifier: ^3.3.570
-        version: 3.3.570
+        specifier: ^3.3.592
+        version: 3.3.592
       scichart-react:
         specifier: ^0.1.8
-        version: 0.1.8(react@18.2.0)(scichart@3.3.570)
+        version: 0.1.8(react@18.2.0)(scichart@3.3.592)
       screenfull:
         specifier: ^6.0.2
         version: 6.0.2
@@ -1758,42 +1752,31 @@ packages:
   '@tanstack/virtual-core@3.0.0':
     resolution: {integrity: sha512-SYXOBTjJb05rXa2vl55TTwO40A6wKu0R5i1qQwhJYNDIqaIGF7D0HsLw+pJAyi2OvntlEIVusx3xtbbgSUi6zg==}
 
-  '@tensorflow/tfjs-backend-cpu@4.18.0':
-    resolution: {integrity: sha512-zk6NyGGsv0mCDnc5xWxLB5Zi8GaHVI2gg7KC0FSw/r5wW9SfA3ZIqUHVZhbIVhNqZSWy6L/+EIJa7l6q1XCkrg==}
-    engines: {yarn: '>= 1.3.2'}
-    peerDependencies:
-      '@tensorflow/tfjs-core': 4.18.0
-
   '@tensorflow/tfjs-backend-cpu@4.19.0':
     resolution: {integrity: sha512-7pT05Ea6GTXjbqRgkmayZRYvaiNl3LLk1TyfUvC8iIqMw5d7p4Wgte2pfM2gMbIZ/opOxURhFYuI0FiQvUrW6g==}
     engines: {yarn: '>= 1.3.2'}
     peerDependencies:
       '@tensorflow/tfjs-core': 4.19.0
 
-  '@tensorflow/tfjs-backend-wasm@4.18.0':
-    resolution: {integrity: sha512-lICpFht4WVAjIjCz3EdgPKrRfC5KHD3wEi+qp6uGY8mc1DBNkceC0luyJBIztTMUuieq+fjHV/fx6HyPILoiMg==}
-    peerDependencies:
-      '@tensorflow/tfjs-core': 4.18.0
-
-  '@tensorflow/tfjs-backend-webgl@4.18.0':
-    resolution: {integrity: sha512-ZLQ8MnWnIttMDqHepEzPL0Y4HkTePl8+AaYm9AcNnDUK7VF2jn+BXcTHCUOGfiwKu/OMwRc6osDrjxr0cCqNrA==}
+  '@tensorflow/tfjs-backend-webgl@4.19.0':
+    resolution: {integrity: sha512-R0DC1W65lqTOccCwxMhH+VOKCgSrhd9GEejIIGhjeXt6oZlACFnOx4SuUr/qKLCDsL5I4E9iFLxAJMmsfYvARw==}
     engines: {yarn: '>= 1.3.2'}
     peerDependencies:
-      '@tensorflow/tfjs-core': 4.18.0
+      '@tensorflow/tfjs-core': 4.19.0
 
   '@tensorflow/tfjs-backend-webgpu@4.19.0':
     resolution: {integrity: sha512-/nvbmrmDGOolsF8ediZrmvq2viG/GliAssT6NvP3V2g3MLUhPC2wyRE6QmIOGo9hqDrGJ1ZmAc37jRw24sHQwA==}
     peerDependencies:
       '@tensorflow/tfjs-core': 4.19.0
 
-  '@tensorflow/tfjs-core@4.18.0':
-    resolution: {integrity: sha512-wjyq+F8AZJjhtr5xUBAON4VrNBXr9Poows/LnRh1K7wS+w41sCk0EQfeo6NfgUZXbHE/jgcqU6+fZDUKt3qRrg==}
+  '@tensorflow/tfjs-core@4.19.0':
+    resolution: {integrity: sha512-GZ0d53PG0HGQCC7hbWv1qDnZctHYe/cafHZrBY5eNeQjQE6fBr3NsR5GfLadT0TELwmX9/nyritGDzvy6xmzHQ==}
     engines: {yarn: '>= 1.3.2'}
 
-  '@tensorflow/tfjs-data@4.18.0':
-    resolution: {integrity: sha512-JGfEwq8a0nEXwwU04/PW7O6kZ3FdqAd6ofMboM9qwGTv47QdeO/G1657sy4N21Q/qiz5qFDbGLhim3Nq9gZm9g==}
+  '@tensorflow/tfjs-data@4.19.0':
+    resolution: {integrity: sha512-n0ZgJp5UhhBatohUt9pXSCCApusK+1Flyk6yDrQYuxOTjhRppd6jYrF7LCDG3hMFi3QLGl0jab1zYrn9BwtC/w==}
     peerDependencies:
-      '@tensorflow/tfjs-core': 4.18.0
+      '@tensorflow/tfjs-core': 4.19.0
       seedrandom: ^3.0.5
 
   '@testing-library/dom@9.0.1':
@@ -1863,9 +1846,6 @@ packages:
 
   '@types/deep-equal@1.0.4':
     resolution: {integrity: sha512-tqdiS4otQP4KmY0PR3u6KbZ5EWvhNdUoS/jc93UuK23C220lOZ/9TvjfxdPcKvqwwDVtmtSCrnr0p/2dirAxkA==}
-
-  '@types/emscripten@0.0.34':
-    resolution: {integrity: sha512-QSb9ojDincskc+uKMI0KXp8e1NALFINCrMlp8VGKGcTSxeEyRTTKyjWw75NYrCZHUsVEEEpr1tYHpbtaC++/sQ==}
 
   '@types/estree@1.0.5':
     resolution: {integrity: sha512-/kYRxGDLWzHOB7q+wtSUQlFrtcdUccpfy+X+9iMBpHK8QLLhx2wIPYuS5DYtR9Wa/YlZAbIovy7qVdB1Aq6Lyw==}
@@ -4605,8 +4585,8 @@ packages:
       react: '>=16.8.0'
       scichart: '>=3.2.516'
 
-  scichart@3.3.570:
-    resolution: {integrity: sha512-hpCvkVHqM/a1Bwphr62nbTqx3UGoJCAnIllapK5Rrg/Be4rySbzWkzXMkxrVGuQl3L1tK7tjhhno43b5mi0wqA==}
+  scichart@3.3.592:
+    resolution: {integrity: sha512-gNF0QVlNoJXRsrANLSI/vOI8Al4L0nHyZCbBVgYA5W3Mepfjue1GjQxinzNlrFveSwz/QX6WMKOVa4aaWn7fHg==}
 
   screenfull@6.0.2:
     resolution: {integrity: sha512-AQdy8s4WhNvUZ6P8F6PB21tSPIYKniic+Ogx0AacBMjKP1GUHN2E9URxQHtCusiwxudnCKkdy4GrHXPPJSkCCw==}
@@ -6663,38 +6643,26 @@ snapshots:
 
   '@tanstack/virtual-core@3.0.0': {}
 
-  '@tensorflow/tfjs-backend-cpu@4.18.0(@tensorflow/tfjs-core@4.18.0(encoding@0.1.13))':
+  '@tensorflow/tfjs-backend-cpu@4.19.0(@tensorflow/tfjs-core@4.19.0(encoding@0.1.13))':
     dependencies:
-      '@tensorflow/tfjs-core': 4.18.0(encoding@0.1.13)
+      '@tensorflow/tfjs-core': 4.19.0(encoding@0.1.13)
       '@types/seedrandom': 2.4.34
       seedrandom: 3.0.5
 
-  '@tensorflow/tfjs-backend-cpu@4.19.0(@tensorflow/tfjs-core@4.18.0(encoding@0.1.13))':
+  '@tensorflow/tfjs-backend-webgl@4.19.0(@tensorflow/tfjs-core@4.19.0(encoding@0.1.13))':
     dependencies:
-      '@tensorflow/tfjs-core': 4.18.0(encoding@0.1.13)
-      '@types/seedrandom': 2.4.34
-      seedrandom: 3.0.5
-
-  '@tensorflow/tfjs-backend-wasm@4.18.0(@tensorflow/tfjs-core@4.18.0(encoding@0.1.13))':
-    dependencies:
-      '@tensorflow/tfjs-backend-cpu': 4.18.0(@tensorflow/tfjs-core@4.18.0(encoding@0.1.13))
-      '@tensorflow/tfjs-core': 4.18.0(encoding@0.1.13)
-      '@types/emscripten': 0.0.34
-
-  '@tensorflow/tfjs-backend-webgl@4.18.0(@tensorflow/tfjs-core@4.18.0(encoding@0.1.13))':
-    dependencies:
-      '@tensorflow/tfjs-backend-cpu': 4.18.0(@tensorflow/tfjs-core@4.18.0(encoding@0.1.13))
-      '@tensorflow/tfjs-core': 4.18.0(encoding@0.1.13)
+      '@tensorflow/tfjs-backend-cpu': 4.19.0(@tensorflow/tfjs-core@4.19.0(encoding@0.1.13))
+      '@tensorflow/tfjs-core': 4.19.0(encoding@0.1.13)
       '@types/offscreencanvas': 2019.3.0
       '@types/seedrandom': 2.4.34
       seedrandom: 3.0.5
 
-  '@tensorflow/tfjs-backend-webgpu@4.19.0(@tensorflow/tfjs-core@4.18.0(encoding@0.1.13))':
+  '@tensorflow/tfjs-backend-webgpu@4.19.0(@tensorflow/tfjs-core@4.19.0(encoding@0.1.13))':
     dependencies:
-      '@tensorflow/tfjs-backend-cpu': 4.19.0(@tensorflow/tfjs-core@4.18.0(encoding@0.1.13))
-      '@tensorflow/tfjs-core': 4.18.0(encoding@0.1.13)
+      '@tensorflow/tfjs-backend-cpu': 4.19.0(@tensorflow/tfjs-core@4.19.0(encoding@0.1.13))
+      '@tensorflow/tfjs-core': 4.19.0(encoding@0.1.13)
 
-  '@tensorflow/tfjs-core@4.18.0(encoding@0.1.13)':
+  '@tensorflow/tfjs-core@4.19.0(encoding@0.1.13)':
     dependencies:
       '@types/long': 4.0.2
       '@types/offscreencanvas': 2019.7.3
@@ -6706,9 +6674,9 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
-  '@tensorflow/tfjs-data@4.18.0(@tensorflow/tfjs-core@4.18.0(encoding@0.1.13))(encoding@0.1.13)(seedrandom@3.0.5)':
+  '@tensorflow/tfjs-data@4.19.0(@tensorflow/tfjs-core@4.19.0(encoding@0.1.13))(encoding@0.1.13)(seedrandom@3.0.5)':
     dependencies:
-      '@tensorflow/tfjs-core': 4.18.0(encoding@0.1.13)
+      '@tensorflow/tfjs-core': 4.19.0(encoding@0.1.13)
       '@types/node-fetch': 2.6.11
       node-fetch: 2.6.13(encoding@0.1.13)
       seedrandom: 3.0.5
@@ -6790,8 +6758,6 @@ snapshots:
   '@types/color-name@1.1.3': {}
 
   '@types/deep-equal@1.0.4': {}
-
-  '@types/emscripten@0.0.34': {}
 
   '@types/estree@1.0.5': {}
 
@@ -9864,12 +9830,12 @@ snapshots:
     dependencies:
       loose-envify: 1.4.0
 
-  scichart-react@0.1.8(react@18.2.0)(scichart@3.3.570):
+  scichart-react@0.1.8(react@18.2.0)(scichart@3.3.592):
     dependencies:
       react: 18.2.0
-      scichart: 3.3.570
+      scichart: 3.3.592
 
-  scichart@3.3.570: {}
+  scichart@3.3.592: {}
 
   screenfull@6.0.2: {}
 

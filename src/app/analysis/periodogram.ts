@@ -16,7 +16,7 @@ import '@tensorflow/tfjs-backend-webgl';
 import { NumberRange } from 'scichart';
 import { PSD } from '@/zods/analysis';
 
-interface TypedArrayPSD extends Omit<PSD, 'estimates' | 'frequencies'> {
+export interface TypedArrayPSD extends Omit<PSD, 'estimates' | 'frequencies'> {
 	estimates: Float64Array;
 	frequencies: Float64Array;
 }
@@ -83,7 +83,6 @@ export async function powerSpectralDensity(
 
 	const detrended = options?.isDetrended ? signal : detrendSignal(signal);
 	// await setBackend('webgl');
-
 	let f = tfSignal.stft(detrended, fftSize, Math.floor(fftSize / 2), fftSize, tfSignal.hannWindow);
 
 	let x = (await f.array()) as number[][];
@@ -130,8 +129,8 @@ export async function powerSpectralDensity(
 			powerRange: new NumberRange(minPower, maxPower),
 		};
 	});
-
-	return welch(data);
+	const avg = welch(data);
+	return avg;
 }
 
 // Keep this async so that we can potentially move it to the GPU

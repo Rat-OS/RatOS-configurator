@@ -11,17 +11,12 @@ import {
 	ENumericFormat,
 	easing,
 	FastMountainRenderableSeries,
-	PaletteFactory,
-	GradientParams,
-	Point,
 	ISciChart2DDefinition,
 	EAxisType,
 	ESeriesType,
 	WaveAnimation,
-	CategoryAxis,
 	GlowEffect,
 	SeriesInfo,
-	RolloverModifier,
 	CursorModifier,
 	TRolloverTooltipSvgTemplate,
 	parseColorToTArgb,
@@ -29,7 +24,6 @@ import {
 	CursorTooltipSvgAnnotation,
 	EDataSeriesType,
 	XyySeriesInfo,
-	BaseDataSeries,
 	XyyDataSeries,
 	IDataSeries,
 } from 'scichart';
@@ -501,21 +495,6 @@ export const usePSDChart = () => {
 			});
 			surface.addDeletable(totalAnimationSeries);
 			(surface.renderableSeries.asArray() as FastMountainRenderableSeries[]).forEach((rs) => {
-				if (rs.id === 'total') {
-					rs.paletteProvider = PaletteFactory.createGradient(
-						surface.webAssemblyContext2D,
-						new GradientParams(new Point(0, 0), new Point(1, 1), [
-							{ offset: 0, color: twColors.brand[400] },
-							{ offset: 0.8, color: twColors.brand[600] },
-						]),
-						{
-							enableStroke: true,
-							enableFill: true,
-							fillOpacity: 0.17,
-							pointMarkerOpacity: 0.5,
-						},
-					);
-				}
 				rs.rolloverModifierProps.tooltipColor = getAxisColorName(rs.id as ADXLAxes);
 				rs.rolloverModifierProps.tooltipTemplate = psdRolloverTooltipTemplate;
 				rs.rolloverModifierProps.tooltipTitle =
