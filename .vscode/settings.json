@@ -33,5 +33,8 @@
 	"tailwindCSS.experimental.configFile": null,
 	"[svg]": {
 		"editor.defaultFormatter": "jock.svg"
+	},
+	"[github-actions-workflow]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
 	}
 }
