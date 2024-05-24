@@ -30,6 +30,7 @@ import type {
 import { getHost } from '@/helpers/util';
 import { merge } from 'ts-deepmerge';
 import deepEqual from 'deep-equal';
+import { getLogger } from '@/app/_helpers/logger';
 
 let REQ_ID = 0;
 
@@ -105,7 +106,7 @@ export const useMoonraker = (options?: MoonrakerHookOptions) => {
 				}
 				return false;
 			} catch (e) {
-				console.warn('Filter: Failed to parse message', e, message.data);
+				getLogger().warn({ e, messageData: message.data }, 'Filter: Failed to parse message');
 			}
 			return false;
 		},
@@ -118,7 +119,7 @@ export const useMoonraker = (options?: MoonrakerHookOptions) => {
 						options.onStatusUpdate?.(res);
 					}
 				} catch (e) {
-					console.warn('OnMessage: Failed to parse message', e, message.data);
+					getLogger().warn({ e, messageData: message.data }, 'OnMessage: Failed to parse message');
 				}
 			}
 		},
@@ -249,7 +250,7 @@ export const useMoonraker = (options?: MoonrakerHookOptions) => {
 				});
 				return (result?.value ?? null) as Data;
 			} catch (e) {
-				console.log(e);
+				getLogger().warn(e);
 				return null;
 			}
 		},
@@ -458,7 +459,7 @@ export const usePrinterObjectSubscription = <
 			})
 			.catch((e) => {
 				if (e instanceof Error) {
-					console.error(e);
+					getLogger().error(e);
 				}
 			});
 		return () => {
@@ -466,7 +467,7 @@ export const usePrinterObjectSubscription = <
 				.then((sub) => sub.unsuscribe())
 				.catch((e) => {
 					if (e instanceof Error) {
-						console.error(e);
+						getLogger().error(e);
 					}
 				});
 		};

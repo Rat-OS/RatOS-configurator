@@ -31,7 +31,7 @@ const routes: NavigationItem[] = [
 	{ name: 'Setup Wizard', href: '/wizard', current: false, icon: Wand2 },
 	{ name: 'Dashboard', href: '/', current: false, icon: Monitor },
 	{ name: 'Visual Calibration', href: '/calibration', current: false, icon: Video },
-	{ name: 'Resonance Analysis', href: '/analysis', current: false, icon: AreaChart },
+	{ name: 'Resonance Analysis (BETA)', href: '/analysis', current: false, icon: AreaChart },
 	// { name: 'Boards', href: '/', current: false, icon: Cpu },
 	// { name: 'Motion', href: '/motion', current: false, icon: ArrowsPointingOutIcon, iconClass: 'rotate-45' },
 	// { name: 'Toolhead', href: '/toolhead', current: false, icon: ArrowDownOnSquareIcon },

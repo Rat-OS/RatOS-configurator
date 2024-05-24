@@ -1,16 +1,12 @@
 {
 	"plugins": ["@typescript-eslint", "unused-imports", "prettier",
     "@limegrass/import-alias"],
-	"extends": ["next/core-web-vitals", "plugin:react-hooks/recommended", "plugin:rxjs/recommended"],
-	"parser": "@typescript-eslint/parser",
-	"parserOptions": {
-	  "ecmaVersion": "latest",
-	  "project": "./src/tsconfig.json",
-	  "sourceType": "module"
-	},
+	"extends": ["next/core-web-vitals", "plugin:react-hooks/recommended"],
+	"parser": "@typescript-eslint/parser", 
 	"overrides": [
 		{
 			"files": ["*.tsx", "*.ts"],
+			"excludedFiles": "cli/*",
 			"rules": {
 				"react/no-unescaped-entities": "off",
 				"jsx-quotes": 1,

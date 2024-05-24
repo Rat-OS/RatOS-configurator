@@ -1,13 +1,8 @@
 {
 	"plugins": ["@typescript-eslint", "unused-imports", "prettier",
     "@limegrass/import-alias"],
-	"extends": ["next/core-web-vitals", "plugin:react-hooks/recommended", "plugin:rxjs/recommended"],
+	"extends": ["next/core-web-vitals", "plugin:react-hooks/recommended"],
 	"parser": "@typescript-eslint/parser",
-	"parserOptions": {
-	  "ecmaVersion": "latest",
-	  "project": "./src/cli/tsconfig.json",
-	  "sourceType": "module"
-	},
 	"overrides": [
 		{
 			"files": ["*.tsx", "*.ts"],
@@ -16,7 +11,7 @@
 				"jsx-quotes": 1,
 				// "sort-imports": 1,
 				"no-duplicate-imports": 1,
-				"@limegrass/import-alias/import-alias": ["error", { "aliasConfigPath": "./src/cli/tsconfig.json"}],
+				"@limegrass/import-alias/import-alias": ["error", { "aliasConfigPath": "./tsconfig.json"}],
 				// "unused-imports/no-unused-imports": "error",
 				"prettier/prettier": ["warn", { "endOfLine": "auto" }],
 				"react/display-name": "off",
