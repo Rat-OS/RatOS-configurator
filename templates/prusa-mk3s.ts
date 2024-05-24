@@ -88,6 +88,21 @@ variable_filament_load_length: 100
 variable_filament_load_speed: 10
 ${helper.renderUserMacroVariableOverrides()}
 
+[gcode_macro T0]
+variable_cooling_position_to_nozzle_distance: 30
+variable_tooolhead_sensor_to_extruder_gear_distance: 0
+variable_extruder_gear_to_cooling_position_distance: 30
+variable_filament_loading_nozzle_offset: 0
+variable_filament_grabbing_length: 5
+variable_filament_grabbing_speed: 1
+variable_enable_insert_detection: True
+variable_enable_runout_detection: True
+variable_enable_clog_detection: False
+variable_unload_after_runout: True
+variable_resume_after_insert: False
+variable_extruder_load_speed: 15
+variable_filament_load_speed: 5
+
 #############################################################################################################
 ### LCD
 ### Pick your LCD configuration

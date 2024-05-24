@@ -65,7 +65,7 @@ export const PrinterToolheadState = atomFamily<
 						}
 						return { ...parsedToolhead.data, toolboard: freshToolboard, toolNumber: param };
 					}
-					console.debug(
+					getLogger().debug(
 						'RecoilSync: failed to read toolhead!',
 						PrinterToolheadState(param).key,
 						parsedToolhead.error,

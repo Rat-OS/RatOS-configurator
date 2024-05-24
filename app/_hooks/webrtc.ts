@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { getLogger } from '@/app/_helpers/logger';
 
 interface WebRTCConfig {
 	iceServers?: RTCIceServer[];
@@ -135,7 +136,7 @@ export function useWebRTC(url: string, onStreamStats?: (stats: RTCInboundRtpStre
 				setConnectionState('failed');
 			}
 		} catch (e) {
-			console.error(e);
+			getLogger().error(e, "Couldn't connect to WebRTC");
 			setConnectionState('failed');
 		} finally {
 			isConnecting.current = false;

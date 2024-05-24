@@ -27,6 +27,7 @@ import {
 import { PrinterToolheadsState } from '@/recoil/toolhead';
 import { defaultControllerFan } from '@/data/fans';
 import { moonrakerWriteEffect } from '@/components/sync-with-moonraker';
+import { getLogger } from '@/app/_helpers/logger';
 
 export const PerformanceModeState = atom<boolean | null | undefined>({
 	key: 'PerformanceMode',
@@ -121,7 +122,7 @@ export const PrinterConfigurationState = selector<z.infer<typeof PartialPrinterC
 			[key in keyof PrinterConfiguration]: NonNullable<PartialPrinterConfiguration>[key] | null | undefined;
 		});
 		if (printerConfig.success === false) {
-			console.error(printerConfig.error.flatten().fieldErrors);
+			getLogger().error(printerConfig.error.flatten().fieldErrors, "Couldn't parse printer configuration");
 		}
 		return printerConfig.success ? printerConfig.data : null;
 	},

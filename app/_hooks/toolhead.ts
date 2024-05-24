@@ -10,8 +10,11 @@ export const useGcodeCommand = () => {
 			result.push(arg.toString(), command[i + 1]);
 		});
 		const gcode = result.join('') as GCode;
+		// eslint-disable-next-line no-console
+		console.log(gcode);
 		const gcodeRes = await executeGcode.mutateAsync({ script: gcode });
-		console.log(gcode, gcodeRes);
+		// eslint-disable-next-line no-console
+		console.log(gcodeRes);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 };

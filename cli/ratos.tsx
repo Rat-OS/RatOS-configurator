@@ -118,49 +118,37 @@ extensions
 	.command('list')
 	.description('List all registered extensions')
 	.action(async () => {
-		const klippyExtensions = (await client['klippy-extensions'].list.query()).map((ext) => ({
-			...ext,
-			isKinematics: ext.isKinematics ? '✓' : '✘',
-		}));
+		const klippyExtensions = await client['klippy-extensions'].list.query();
 		const moonrakerExtensions = await client['moonraker-extensions'].list.query();
 		render(
 			<Container>
-				{klippyExtensions.length ? (
-					<Box flexDirection="column">
-						<Text>
-							{klippyExtensions.length} Registered Klipper {klippyExtensions.length === 1 ? 'Extension' : 'Extensions'}
-							{klippyExtensions.length ? ':' : ''}
-						</Text>
-						<Table
-							data={klippyExtensions}
-							columns={['extensionName', 'path', 'fileName', 'isKinematics']}
-							cell={(props) => (
-								<Text
-									color={
-										props.children?.toString().includes('✓')
-											? 'green'
-											: props.children?.toString().includes('✘')
-												? 'red'
-												: 'white'
-									}
-								>
-									{props.children}
-								</Text>
-							)}
-						></Table>
-					</Box>
-				) : null}
-				{moonrakerExtensions.length ? (
-					<Box flexDirection="column">
-						<Text>
-							{moonrakerExtensions.length} Registered Moonraker{' '}
-							{klippyExtensions.length === 1 ? 'Extension' : 'Extensions'}
-							{moonrakerExtensions.length ? ':' : ''}
-						</Text>
-
-						<Table data={moonrakerExtensions}></Table>
-					</Box>
-				) : null}
+				<Box flexDirection="column" marginBottom={1}>
+					<Text>
+						{klippyExtensions.length} Registered Klipper {klippyExtensions.length === 1 ? 'Extension' : 'Extensions'}
+						{klippyExtensions.length ? ':' : ''}
+					</Text>
+					{klippyExtensions.map((ext) => (
+						<Box key={ext.extensionName} flexDirection="row" columnGap={2}>
+							<Text color={existsSync(ext.path + ext.fileName) ? 'green' : 'red'}>
+								{ext.extensionName} {'->'} {ext.path + ext.fileName}{' '}
+							</Text>
+						</Box>
+					))}
+				</Box>
+				<Box flexDirection="column">
+					<Text>
+						{moonrakerExtensions.length} Registered Moonraker{' '}
+						{moonrakerExtensions.length === 1 ? 'Extension' : 'Extensions'}
+						{moonrakerExtensions.length ? ':' : ''}
+					</Text>
+					{moonrakerExtensions.map((ext) => (
+						<Box key={ext.extensionName} flexDirection="row" columnGap={2}>
+							<Text color={existsSync(ext.path + ext.fileName) ? 'green' : 'red'}>
+								{ext.extensionName} {'->'} {ext.path + ext.fileName}{' '}
+							</Text>
+						</Box>
+					))}
+				</Box>
 			</Container>,
 		);
 	});

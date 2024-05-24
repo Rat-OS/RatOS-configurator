@@ -2,7 +2,8 @@
   "../node_modules/.pnpm/@trpc+next@10.45.1_@tanstack+react-query@4.36.1_react-dom@18.2.0_react@18.2.0__react@18.2.0___2igx4b6qzwu3mpzu3wdw7fruxy/node_modules/@trpc/next/dist/index.mjs -> react-dom/server": {
     "id": 40569,
     "files": [
-      "static/chunks/569.45bcca8bdd08266f.js"
+      "static/chunks/fa86fe2e-969b4a65910cb7ad.js",
+      "static/chunks/3692.ffafe43b788f421f.js"
     ]
   }
 }

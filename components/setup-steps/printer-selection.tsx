@@ -30,6 +30,7 @@ import {
 	StealthchopState,
 } from '@/hooks/usePrinterConfiguration';
 import { AnimatedContainer } from '@/components/common/animated-container';
+import { getLogger } from '@/app/_helpers/logger';
 
 interface SelectablePrinter<Option extends SelectableOption = SelectableOption>
 	extends SelectableCardWithOptions<Option> {
@@ -122,7 +123,7 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 			async (card: SelectedCard<Unpacked<typeof cards>>, option: SelectableOption | null) => {
 				const printer = card.printer;
 				if (printer == null) {
-					console.error('No printer found matching the criteria');
+					getLogger().error(card, 'No printer found matching the criteria');
 					return;
 				}
 				const oldToolheads = await snapshot.getPromise(PrinterToolheadsState);

@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { getHost } from '@/helpers/util';
 import { MoonrakerDBItemResponse } from '@/moonraker/types';
 

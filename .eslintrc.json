@@ -2,10 +2,11 @@
 	"plugins": ["@typescript-eslint", "unused-imports", "prettier",
     "@limegrass/import-alias"],
 	"extends": ["next/core-web-vitals", "plugin:react-hooks/recommended"],
-	"parser": "@typescript-eslint/parser",
+	"parser": "@typescript-eslint/parser", 
 	"overrides": [
 		{
 			"files": ["*.tsx", "*.ts"],
+			"excludedFiles": "cli/*",
 			"rules": {
 				"react/no-unescaped-entities": "off",
 				"jsx-quotes": 1,
@@ -14,7 +15,8 @@
 				"@limegrass/import-alias/import-alias": ["error", { "aliasConfigPath": "./src/tsconfig.json"}],
 				// "unused-imports/no-unused-imports": "error",
 				"prettier/prettier": ["warn", { "endOfLine": "auto" }],
-				"react/display-name": "off"
+				"react/display-name": "off",
+				"no-console": "error"
 			}
 		}
 	],

@@ -211,6 +211,7 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 		if (toolboard.ADXL345SPI != null) {
 			result.push(''); // Add a newline for readability.
 			result.push(`[adxl345 ${this.getToolboardName()}]`);
+			result.push(`axis_map: x, z, y # Assumes back-facing vertical toolboard mounting`);
 			result.push(`cs_pin: ${this.getPinPrefix()}${toolboard.ADXL345SPI.cs_pin}`);
 			if ('hardware' in toolboard.ADXL345SPI) {
 				result.push(`spi_bus: ${toolboard.ADXL345SPI.hardware.bus}`);
@@ -223,6 +224,7 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 		if (toolboard.LIS2DW != null) {
 			result.push(''); // Add a newline for readability.
 			result.push(`[lis2dw ${this.getToolboardName()}]`);
+			result.push(`axis_map: x, z, y # Assumes back-facing vertical toolboard mounting`);
 			result.push(`cs_pin: ${this.getPinPrefix()}${toolboard.LIS2DW.cs_pin}`);
 			if ('hardware' in toolboard.LIS2DW) {
 				result.push(`spi_bus: ${toolboard.LIS2DW.hardware.bus}`);
@@ -243,7 +245,6 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 		return result.join('\n');
 	}
 	public renderHotend() {
-		// Todo parse modify and output hotend config
 		let result: string[] = [];
 		let hotend = readInclude(`hotends/${this.getHotend().id}.cfg`);
 		hotend = stripCommentLines(hotend);
@@ -447,7 +448,6 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 			`variable_enable_runout_detection: True                                       # enables filament sensor runout detection `,
 			`variable_enable_clog_detection: True                                         # enables filament sensor clog detection `,
 			`variable_unload_after_runout: True                                           # unload filament after a runout has been detected`,
-			`variable_resume_after_insert: True                                           # resumes the print after inserting new filament`,
 			`variable_purge_after_load: 0`,
 			`variable_purge_before_unload: 0`,
 			`variable_extruder_load_speed: 60`,
@@ -461,6 +461,11 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 			result.push(
 				`variable_loading_position: ${this.getTool() === 0 ? parkX + 25 : parkX - 25} # filament load x position`,
 				`variable_parking_position: ${parkX} # parking x position`,
+				`variable_resume_after_insert: True                                           # resumes the print after inserting new filament`,
+			);
+		} else {
+			result.push(
+				`variable_resume_after_insert: False                                          # resumes the print after inserting new filament`,
 			);
 		}
 		result.push(

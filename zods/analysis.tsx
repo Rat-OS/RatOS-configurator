@@ -20,6 +20,7 @@ export const klipperADXL345SubscriptionResponseSchema = z.object({
 export const klipperADXL345SubscriptionDataSchema = z.object({
 	data: z.array(z.tuple([z.number(), z.number(), z.number(), z.number()])),
 	overflows: z.number().optional(),
+	errors: z.number().optional(),
 });
 
 export const psdSchema = z.object({
@@ -36,12 +37,6 @@ export const accumulatedPSDSchema = z.object({
 	y: psdSchema,
 	z: psdSchema,
 	total: psdSchema,
-	source: z.object({
-		x: z.array(psdSchema),
-		y: z.array(psdSchema),
-		z: z.array(psdSchema),
-		total: z.array(psdSchema),
-	}),
 });
 
 // Macro data structure
@@ -83,9 +78,7 @@ export const macroRecordingSchema = z.object({
 	name: z.string(),
 });
 
-export const macroRecordingSchemaWithoutSourcePSDs = macroRecordingSchema.extend({
-	psd: accumulatedPSDSchema.omit({ source: true }),
-});
+export const macroRecordingSchemaWithoutSourcePSDs = macroRecordingSchema;
 
 export const macroSequenceSchema = z.object({
 	id: macroSequenceIDSchema,

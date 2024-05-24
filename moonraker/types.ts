@@ -3,7 +3,7 @@ import { CameraOption } from '@/app/calibration/helpers';
 
 export type MoonrakerStatus = 'connected' | 'connecting' | 'not-running';
 
-export interface InFlightRequestCallbacks<R = MoonrakerResponseSuccess['result']> {
+export interface InFlightRequestCallbacks<R = JSONRPCResponseSuccess['result']> {
 	[id: number]: (err: Error | null, result: R | null) => unknown;
 }
 
@@ -11,14 +11,21 @@ export interface InFlightRequestTimeouts {
 	[id: number]: number;
 }
 
-export type MoonrakerResponseSuccess = {
+export type JSONRPCResponseSuccess = {
 	method: string;
 	params: unknown[];
 	result?: unknown;
 	id: number;
 };
 
-export type MoonrakerResponseError = {
+export type JSONRPCRequest<Methods = unknown, Params extends object = {}> = {
+	jsonrpc: '2.0';
+	method: Methods;
+	params: Params;
+	id: number;
+};
+
+export type JSONRPCResponseError = {
 	error: {
 		code: number;
 		message: string;
@@ -26,7 +33,7 @@ export type MoonrakerResponseError = {
 	id: number;
 };
 
-export type MoonrakerResponse = MoonrakerResponseSuccess | MoonrakerResponseError;
+export type JSONRPCResponse = JSONRPCResponseSuccess | JSONRPCResponseError;
 export type MoonrakerDBItemResponse<Data = unknown> = {
 	key: string;
 	namespace: string;
