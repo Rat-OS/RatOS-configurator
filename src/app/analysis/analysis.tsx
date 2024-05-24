@@ -65,21 +65,31 @@ const useOscillator = (G: ReturnType<typeof useGcodeCommand>, isEnabled: boolean
 		if (frequencyRef.current <= 0) {
 			return;
 		}
+		if (isOscillating.current) {
+			return;
+		}
 		// time to do a full oscillation (250ms t_seq)
 		const oscTime = 500 / frequencyRef.current;
 		// aim for TARGET_OSC_TIME to allow for relatively fast updates
 		const macroTime = Math.floor(Math.max(250, TARGET_OSC_TIME - (TARGET_OSC_TIME % oscTime)));
-		isOscillating.current = true;
 		const direction = axisRef.current === 'a' ? '1,1' : axisRef.current === 'b' ? '1,-1' : axisRef.current;
 		const beforeGcode = new Date().getTime();
 		try {
+			if (!isEnabledRef.current) {
+				isOscillating.current = false;
+				return;
+			}
+			isOscillating.current = true;
 			await G`
 			OSCILLATE FREQ=${frequencyRef.current} TIME=${macroTime / 1000} AXIS=${direction}
 			`;
-			const gcodeDuration = new Date().getTime() - beforeGcode;
 			isOscillating.current = false;
-			if (frequencyRef.current > 0 && isEnabledRef.current && gcodeDuration > macroTime / 2) {
-				oscillate();
+			const gcodeDuration = new Date().getTime() - beforeGcode;
+			if (frequencyRef.current > 0 && gcodeDuration > macroTime) {
+				// If the gcode took longer than the macro time, we need to start it again
+				setTimeout(() => {
+					oscillate();
+				}, 1);
 			} else {
 				setTimeout(() => {
 					oscillate();
@@ -128,12 +138,15 @@ export const Analysis = () => {
 	const {
 		isChartEnabled,
 		setIsChartEnabled,
+		streamStarted,
 		chartProps,
 		psds,
 		currentAccelerometer,
 		currentAccelerometerHardwareName,
 	} = useRealtimeAnalysisChart(adxl);
 	const { mutateAsync: mutateRecordingAsync } = trpc.analysis.saveRecording.useMutation(macroRecordingMutationOptions);
+	const isChartEnabledRef = useRef(isChartEnabled);
+	isChartEnabledRef.current = isChartEnabled;
 
 	const [isRecording, setIsRecording] = useState(false);
 	const [isMacroRunning, setIsMacroRunning] = useState(false);
@@ -148,9 +161,11 @@ export const Analysis = () => {
 		<Params extends readonly unknown[]>(macro: (...args: [AbortSignal, ...Params]) => Promise<any>, ...args: Params) =>
 			async () => {
 				abortController.current = new AbortController();
+				const wasStreaming = isChartEnabledRef.current;
 				setFrequency(0);
 				setIsMacroRunning(true);
 				setIsChartEnabled(true);
+				await streamStarted();
 				try {
 					await macro(abortController.current.signal, ...args);
 				} catch (e) {
@@ -173,11 +188,13 @@ export const Analysis = () => {
 				} finally {
 					setIsMacroRunning(false);
 					setIsRecording(false);
-					setIsChartEnabled(false);
+					if (!wasStreaming) {
+						setIsChartEnabled(false);
+					}
 					currentMacro.current = null;
 				}
 			},
-		[setFrequency, setIsChartEnabled],
+		[setFrequency, setIsChartEnabled, streamStarted],
 	);
 
 	const MacroIcon = useMemo(
@@ -204,6 +221,7 @@ export const Analysis = () => {
 					}
 					const startTs = new Date().getTime();
 					setAdxl(sequence.recording?.accelerometer);
+					await streamStarted();
 					if (sequence.recording?.capturePSD) {
 						await psds.startAccumulation();
 						setIsRecording(true);
@@ -265,7 +283,16 @@ export const Analysis = () => {
 					});
 				}
 			}),
-		[G, mutateRecordingAsync, psds, currentAccelerometer, currentAccelerometerHardwareName, router, runMacro],
+		[
+			runMacro,
+			streamStarted,
+			G,
+			psds,
+			mutateRecordingAsync,
+			currentAccelerometer,
+			currentAccelerometerHardwareName,
+			router,
+		],
 	);
 
 	useTopMenu(

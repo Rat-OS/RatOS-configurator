@@ -11,17 +11,12 @@ import {
 	ENumericFormat,
 	easing,
 	FastMountainRenderableSeries,
-	PaletteFactory,
-	GradientParams,
-	Point,
 	ISciChart2DDefinition,
 	EAxisType,
 	ESeriesType,
 	WaveAnimation,
-	CategoryAxis,
 	GlowEffect,
 	SeriesInfo,
-	RolloverModifier,
 	CursorModifier,
 	TRolloverTooltipSvgTemplate,
 	parseColorToTArgb,
@@ -29,7 +24,6 @@ import {
 	CursorTooltipSvgAnnotation,
 	EDataSeriesType,
 	XyySeriesInfo,
-	BaseDataSeries,
 	XyyDataSeries,
 	IDataSeries,
 } from 'scichart';
@@ -100,7 +94,7 @@ export const useADXLSignalChart = (axis: ADXLAxes) => {
 			(surface: SciChartSurface) => {
 				const color = getAxisColor(axis);
 				// Category axis as the actual time doesn't matter (samples are evenly spaced).
-				const xAxis = new CategoryAxis(surface.webAssemblyContext2D, {
+				const xAxis = new NumericAxis(surface.webAssemblyContext2D, {
 					id: SIGNAL_CHART_AXIS_SIGNAL_ID + axis,
 					autoRange: EAutoRange.Always,
 					maxAutoTicks: ADXL_STREAM_BUFFER_SIZE,
@@ -114,7 +108,7 @@ export const useADXLSignalChart = (axis: ADXLAxes) => {
 				surface.xAxes.add(xAxis);
 
 				// Category axis as the actual time doesn't matter (samples are evenly spaced).
-				const xHistoryAxis = new CategoryAxis(surface.webAssemblyContext2D, {
+				const xHistoryAxis = new NumericAxis(surface.webAssemblyContext2D, {
 					id: SIGNAL_CHART_AXIS_HISTORY_ID + axis,
 					autoRange: EAutoRange.Always,
 					drawLabels: false,
@@ -125,7 +119,7 @@ export const useADXLSignalChart = (axis: ADXLAxes) => {
 
 				const yAxis = new NumericAxis(surface.webAssemblyContext2D, {
 					autoRange: EAutoRange.Never,
-					visibleRange: new NumberRange(-1000, 1000),
+					visibleRange: new NumberRange(-5000, 5000),
 					drawLabels: false,
 					id: SIGNAL_CHART_AXIS_AMPLITUDE_ID + axis,
 					drawMinorTickLines: false,
@@ -170,10 +164,6 @@ export const useADXLSignalChart = (axis: ADXLAxes) => {
 					isSorted: true,
 					dataSeriesName: axis.toLocaleUpperCase() + ' History',
 					dataIsSortedInX: true,
-					xValues: Array(ADXL_STREAM_BUFFER_SIZE * historyCount)
-						.fill(0)
-						.map((_, i) => i),
-					yValues: Array(ADXL_STREAM_BUFFER_SIZE * historyCount).fill(0),
 				});
 
 				// Line series to render the historical signal data (last 200 buffers)
@@ -505,21 +495,6 @@ export const usePSDChart = () => {
 			});
 			surface.addDeletable(totalAnimationSeries);
 			(surface.renderableSeries.asArray() as FastMountainRenderableSeries[]).forEach((rs) => {
-				if (rs.id === 'total') {
-					rs.paletteProvider = PaletteFactory.createGradient(
-						surface.webAssemblyContext2D,
-						new GradientParams(new Point(0, 0), new Point(1, 1), [
-							{ offset: 0, color: twColors.brand[400] },
-							{ offset: 0.8, color: twColors.brand[600] },
-						]),
-						{
-							enableStroke: true,
-							enableFill: true,
-							fillOpacity: 0.17,
-							pointMarkerOpacity: 0.5,
-						},
-					);
-				}
 				rs.rolloverModifierProps.tooltipColor = getAxisColorName(rs.id as ADXLAxes);
 				rs.rolloverModifierProps.tooltipTemplate = psdRolloverTooltipTemplate;
 				rs.rolloverModifierProps.tooltipTitle =

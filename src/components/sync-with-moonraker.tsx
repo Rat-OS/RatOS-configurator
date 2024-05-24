@@ -22,13 +22,13 @@ export const DispatchSaveAtomEvent = (itemKey: string, value: unknown) => {
 export const moonrakerWriteEffect = <T extends any = unknown>(): AtomEffect<T> => {
 	return (params) => {
 		params.onSet((newValue) => {
-			getLogger().debug(
-				{
-					key: params.node.key,
-					value: newValue,
-				},
-				`RatOS Atom Sync Effect: new value was saved to moonraker "${params.trigger}"`,
-			);
+			// getLogger().debug(
+			// 	{
+			// 		key: params.node.key,
+			// 		value: newValue,
+			// 	},
+			// 	`RatOS Atom Sync Effect: new value was saved to moonraker "${params.trigger}"`,
+			// );
 			DispatchSaveAtomEvent(params.node.key, newValue == null ? 'null' : newValue); // Moonraker doesn't save null values..
 		});
 	};

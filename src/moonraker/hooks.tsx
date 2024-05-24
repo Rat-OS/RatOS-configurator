@@ -6,7 +6,7 @@ import { migrateToLatest } from '@/moonraker/migrations';
 import type {
 	InFlightRequestCallbacks,
 	InFlightRequestTimeouts,
-	MoonrakerResponse,
+	JSONRPCResponse,
 	MoonrakerStatus,
 	MoonrakerSaveItemFn,
 	MoonrakerNamespaces,
@@ -25,7 +25,7 @@ import type {
 	PrinterObjectKeys,
 	PrinterObjectsMoonrakerQueryParams,
 	PrinterObjectResult,
-	MoonrakerResponseSuccess,
+	JSONRPCResponseSuccess,
 } from '@/moonraker/types';
 import { getHost } from '@/helpers/util';
 import { merge } from 'ts-deepmerge';
@@ -61,7 +61,7 @@ export const useMoonraker = (options?: MoonrakerHookOptions) => {
 	}, []);
 
 	const containsSubscriptionUpdate = useCallback(
-		(jsonMessage: MoonrakerResponse): jsonMessage is MoonrakerResponseSuccess => {
+		(jsonMessage: JSONRPCResponse): jsonMessage is JSONRPCResponseSuccess => {
 			if ('error' in jsonMessage) {
 				return false;
 			}
@@ -86,13 +86,13 @@ export const useMoonraker = (options?: MoonrakerHookOptions) => {
 		[],
 	);
 
-	const { lastJsonMessage, sendJsonMessage, readyState } = useWebSocket<MoonrakerResponse>(wsUrl, {
+	const { lastJsonMessage, sendJsonMessage, readyState } = useWebSocket<JSONRPCResponse>(wsUrl, {
 		filter: (message) => {
 			if (moonrakerStatus !== 'connected') {
 				return true;
 			}
 			try {
-				const parsed = JSON.parse(message.data) as MoonrakerResponse;
+				const parsed = JSON.parse(message.data) as JSONRPCResponse;
 				if (inFlightRequests.current[parsed.id] != null) {
 					return true;
 				}
@@ -112,7 +112,7 @@ export const useMoonraker = (options?: MoonrakerHookOptions) => {
 		onMessage: (message) => {
 			if (options?.onStatusUpdate) {
 				try {
-					const parsed = JSON.parse(message.data) as MoonrakerResponse;
+					const parsed = JSON.parse(message.data) as JSONRPCResponse;
 					if (containsSubscriptionUpdate(parsed)) {
 						const res = parsed.params[0] as MoonrakerStatusUpdate;
 						options.onStatusUpdate?.(res);

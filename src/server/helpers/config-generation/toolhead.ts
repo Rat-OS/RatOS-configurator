@@ -243,7 +243,6 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 		return result.join('\n');
 	}
 	public renderHotend() {
-		// Todo parse modify and output hotend config
 		let result: string[] = [];
 		let hotend = readInclude(`hotends/${this.getHotend().id}.cfg`);
 		hotend = stripCommentLines(hotend);

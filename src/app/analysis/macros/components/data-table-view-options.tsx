@@ -57,7 +57,6 @@ export function DataTableViewOptions<TData>({ table }: DataTableViewOptionsProps
 							.filter((column) => column.getCanGroup())
 							.map((column) => {
 								const header = table.getHeaderGroups()[0].headers.find((h) => h.id === column.id);
-								console.log(table.getFlatHeaders());
 								if (typeof column.columnDef.header === 'function' && header == null) {
 									return null;
 								}

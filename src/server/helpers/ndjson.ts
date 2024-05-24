@@ -190,7 +190,6 @@ const _baseObjectStorage = <
 			return input;
 		});
 		if (!found) {
-			console.log('what in the fuck', results, obj);
 			return { updateCount: 0, result: await insert(obj) };
 		}
 		if (results.linesChanged > 1) {
