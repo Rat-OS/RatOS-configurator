@@ -7,6 +7,7 @@ import { runSudoScript } from '@/server/helpers/run-script';
 import {
 	AutoFlashableBoard,
 	Board,
+	BoardID,
 	BoardPath,
 	BoardWithDetectionStatus,
 	ToolboardWithDetectionStatus,
@@ -31,6 +32,7 @@ import { queryPrinterState } from '@/server/helpers/klipper';
 const inputSchema = z.object({
 	boardPath: z.string().optional(),
 	toolhead: SerializedToolheadConfiguration.optional(),
+	controlboard: BoardID.optional(),
 });
 
 const detect = (board: Board, toolhead?: ToolheadHelper<any>) => {
@@ -141,7 +143,13 @@ const mcuMiddleware = middleware(async ({ ctx, next, meta, rawInput }) => {
 		try {
 			toolhead =
 				parsedInput.success && parsedInput.data.toolhead
-					? new ToolheadHelper(await deserializeToolheadConfiguration(parsedInput.data.toolhead, {}, boards))
+					? new ToolheadHelper(
+							await deserializeToolheadConfiguration(
+								parsedInput.data.toolhead,
+								{ controlboard: parsedInput.data.controlboard },
+								boards,
+							),
+						)
 					: undefined;
 			boards = await updateDetectionStatus(boards, toolhead);
 		} catch (e) {
@@ -213,6 +221,7 @@ export const mcuRouter = router({
 					})
 					.optional(),
 				toolhead: SerializedToolheadConfiguration.optional(),
+				controlboard: BoardID.optional(),
 			}),
 		)
 		.output(z.array(BoardWithDetectionStatus))
