@@ -1,6 +1,0 @@
-{
-	"type": "module",
-	"scripts": {
-		"benchmark": "pnpx tsx ./bignumber.ts"
-	}
-}
