@@ -13,7 +13,7 @@ import CountUp from 'react-countup';
 
 const secondaryNavigation = [
 	{ name: 'History', href: '#', current: true },
-	{ name: 'Console', href: '#', current: false },
+	// { name: 'Console', href: '#', current: false },
 ];
 
 export default function Page() {
