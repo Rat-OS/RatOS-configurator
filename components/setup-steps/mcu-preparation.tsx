@@ -76,6 +76,7 @@ export const MCUPreparation: React.FC<StepScreenProps & ExtraProps> = (props) =>
 						: (selectedPrinter?.driverCountRequired ?? 0) - (selectedPrinter?.defaults.toolheads.length ?? 1),
 			},
 			toolhead: toolhead?.serialize(),
+			controlboard: _controlBoard?.id,
 		},
 		{ keepPreviousData: true },
 	);

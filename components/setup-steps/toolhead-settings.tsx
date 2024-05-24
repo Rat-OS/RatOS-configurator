@@ -112,8 +112,10 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 						type="number"
 						label="Nozzle Diameter"
 						error={errors?.fieldErrors.nozzle?.join('\n')}
-						value={toolhead.getNozzle().diameter}
-						onChange={(value) => setToolheadField('nozzle', { ...toolhead.getNozzle(), diameter: value })}
+						defaultValue={toolhead.getNozzle().diameter}
+						onBlur={(e) =>
+							setToolheadField('nozzle', { ...toolhead.getNozzle(), diameter: parseFloat(e.target.value) })
+						}
 						inputMode="decimal"
 						step={0.1}
 						min={0.2}
