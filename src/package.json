@@ -78,7 +78,7 @@
 		"file-type": "^17.1.6",
 		"framer-motion": "^11.0.8",
 		"glob": "^10.3.10",
-		"ink": "^4.4.1",
+		"ink": "^5.0.0",
 		"ink-progress-bar": "^3.0.0",
 		"ink-spinner": "^5.0.0",
 		"ink-table": "^3.1.0",
