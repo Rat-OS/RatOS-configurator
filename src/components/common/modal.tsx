@@ -24,10 +24,12 @@ import {
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { Spinner } from '@/components/common/spinner';
 import { Check } from 'lucide-react';
+import { twJoin } from 'tailwind-merge';
 
 interface ModalProps extends React.PropsWithChildren {
 	title: string;
 	body: string;
+	wide?: boolean;
 	content?: React.ReactNode;
 	success?: boolean;
 	buttonLabel: string;
@@ -37,7 +39,7 @@ interface ModalProps extends React.PropsWithChildren {
 
 export function Modal(props: ModalProps) {
 	const { onClick, onClose } = props;
-	const [open, setOpen] = useState(true);
+	const [open, setOpen] = useState(props.children == null);
 	const [isCompletingClick, setIsCompletingClick] = useState(false);
 	const onButtonClick = useCallback(async () => {
 		const clickRes = onClick?.();
@@ -75,7 +77,7 @@ export function Modal(props: ModalProps) {
 				}}
 			>
 				{props.children && <DialogTrigger asChild>{props.children}</DialogTrigger>}
-				<DialogContent className="max-w-[600px] grid-cols-1">
+				<DialogContent className={twJoin(props.wide ? 'max-w-6xl' : 'max-w-[600px]', 'grid-cols-1')}>
 					<div className="flex items-center gap-4">
 						{success}
 						<DialogHeader>
