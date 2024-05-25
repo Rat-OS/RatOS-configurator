@@ -15,7 +15,7 @@ ${helper.renderBoards()}
 ### BASE SETUP
 #############################################################################################################
 ${helper.renderBase()}
-[include RatOS/printers/v-chonk/caramba.cfg]
+[include RatOS/printers/v-chonk/v-chonk.cfg]
 [include RatOS/printers/v-chonk/macros.cfg]
 
 # Extruder
