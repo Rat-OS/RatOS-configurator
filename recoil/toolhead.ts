@@ -126,7 +126,6 @@ export const LoadablePrinterToolheadsState = selector<(ToolheadConfiguration<any
 	key: 'LoadablePrinterToolheadsState',
 	get: async ({ get }) => {
 		const loadable = get(noWait(PrinterToolheadsState));
-		getLogger().debug('LoadableToolheadState', loadable);
 		return {
 			hasValue: () => loadable.contents,
 			hasError: () => [],

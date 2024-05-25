@@ -144,8 +144,9 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 					<DropdownWithPrinterQuery
 						label="Probe"
 						query="probes"
+						canClear={toolhead.getTool() === 1}
 						error={errors?.fieldErrors.probe?.join('\n')}
-						onSelect={(value) => setToolheadField('probe', value)}
+						onSelect={(value) => setToolheadField('probe', value ?? undefined)}
 						value={toolhead.getProbe()}
 					/>
 				</div>

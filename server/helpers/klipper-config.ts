@@ -885,6 +885,16 @@ export const constructKlipperConfigHelpers = async (
 			}
 			return result.join('\n');
 		},
+		renderZOffsetGuidance(additionalLinePrefix: string = '') {
+			const result: string[] = [];
+			if (config.toolheads.some((th) => th.probe?.id === 'beacon')) {
+				result.push(`Z-offset calibration: Follow along from step 6 in the official beacon guide`);
+				result.push(`${additionalLinePrefix}https://docs.beacon3d.com/quickstart/#6-calibrate-beacon`);
+			} else {
+				result.push(`Z-offset calibration: https://www.klipper3d.org/Probe_Calibrate.html#calibrating-probe-z-offset`);
+			}
+			return result.join('\n');
+		},
 		renderEndstopSection(pretunedSensorlessConfig?: string) {
 			const result: string[] = [];
 			const toolheads = utils.getToolheads();

@@ -15,6 +15,7 @@ import { z } from 'zod';
 import { getLogger } from '@/server/helpers/logger';
 import { PinoLogEvent } from '@/zods/util';
 import { analysisRouter } from '@/server/routers/analysis';
+import { getDebugZipFiles } from '@/pages/api/debug-zip';
 
 export const appRouter = router({
 	clientLog: publicProcedure
@@ -77,6 +78,9 @@ export const appRouter = router({
 		return {
 			result: 'success',
 		};
+	}),
+	debugFileList: publicProcedure.query(async () => {
+		return await getDebugZipFiles();
 	}),
 	mcu: mcuRouter,
 	printer: printerRouter,

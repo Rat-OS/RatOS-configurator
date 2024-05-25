@@ -17,6 +17,8 @@ import { useMoonraker } from '@/moonraker/hooks';
 import { Board } from '@/zods/boards';
 import { ToolheadHelper } from '@/helpers/toolhead';
 import { ErrorMessage } from '@/components/common/error-message';
+import { Banner } from '@/components/common/banner';
+import { Sunset } from 'lucide-react';
 
 interface SDCardFlashingProps {
 	board: Board;
@@ -123,7 +125,12 @@ export const SDCardFlashing: React.FC<SDCardFlashingProps> = (props) => {
 			{shutdownModalVisible ? (
 				<Modal
 					title="Shutdown RatOS?"
-					body={`You raspberry pi will shutdown and this page will become unresponsive until it's powered back on. Do not remove power before the green light on the Rasperry Pi has stopped blinking.`}
+					body={`You raspberry pi will shutdown and this page will become unresponsive until it's powered back on.`}
+					content={
+						<Banner color="yellow" title="Premature power removal can cause SD card corruption" Icon={Sunset}>
+							Do not remove power before the green light on the Rasperry Pi has stopped blinking.
+						</Banner>
+					}
 					buttonLabel="Shutdown"
 					onClick={shutdown}
 					onClose={() => setTimeout(() => setShutdownModalVisible(false), 500)}

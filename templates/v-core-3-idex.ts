@@ -97,9 +97,7 @@ ${helper.renderUserMacroVariableOverrides()}
 ###
 ### It is recommended that you follow these steps to properly calibrate your printer:
 ### 0) Sanity check and PID Tuning: https://www.klipper3d.org/Config_checks.html
-### 1) Z-offset calibration: https://www.klipper3d.org/Probe_Calibrate.html#calibrating-probe-z-offset
-###    BEACON NOTE: Follow along from step 6 in the official beacon guide instead
-###    https://docs.beacon3d.com/quickstart/#6-calibrate-beacon
+### 1) ${helper.renderZOffsetGuidance('###    ')}
 ### 2) Pressure Advance: https://www.klipper3d.org/Pressure_Advance.html
 ### 3) Skew Correction: https://www.klipper3d.org/Skew_Correction.html
 ### 4) Resonance Compensation: https://www.klipper3d.org/Resonance_Compensation.html
@@ -109,6 +107,7 @@ ${helper.renderUserMacroVariableOverrides()}
 ### configuration.
 ### You can run SHAPER_CALIBRATE to automatically calibrate your input shaper configuration, if you just want
 ### to get started.
+### Additionally, you can use the Realtime Analysis Tool to analyze your printer's performance in real-time.
 ### Read more about klipper here: https://www.klipper3d.org/Overview.html
 #############################################################################################################
 
