@@ -1,7 +1,6 @@
 'use client';
 /* This example requires Tailwind CSS v2.0+ */
 import React, { Fragment, useCallback, useState } from 'react';
-import { CheckIcon } from '@heroicons/react/24/outline';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -24,6 +23,7 @@ import {
 } from '@/components/ui/drawer';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { Spinner } from '@/components/common/spinner';
+import { Check } from 'lucide-react';
 
 interface ModalProps extends React.PropsWithChildren {
 	title: string;
@@ -56,8 +56,8 @@ export function Modal(props: ModalProps) {
 	}, [onClose]);
 
 	const success = props.success ? (
-		<div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full  bg-green-100 dark:bg-green-700">
-			<CheckIcon className="h-6 w-6 text-green-600 dark:text-green-100" aria-hidden="true" />
+		<div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-lime-100 dark:bg-lime-700">
+			<Check className="h-6 w-6 text-lime-600 dark:text-lime-100" aria-hidden="true" />
 		</div>
 	) : null;
 	const isDesktop = useMediaQuery('(min-width: 768px)');
@@ -75,14 +75,17 @@ export function Modal(props: ModalProps) {
 				}}
 			>
 				{props.children && <DialogTrigger asChild>{props.children}</DialogTrigger>}
-				<DialogContent className="grid-cols-1 sm:max-w-[425px]">
-					<DialogHeader>
-						<DialogTitle>{props.title}</DialogTitle>
-						<DialogDescription>{props.body}</DialogDescription>
-					</DialogHeader>
+				<DialogContent className="max-w-[600px] grid-cols-1">
+					<div className="flex items-center gap-4">
+						{success}
+						<DialogHeader>
+							<DialogTitle>{props.title}</DialogTitle>
+							<DialogDescription>{props.body}</DialogDescription>
+						</DialogHeader>
+					</div>
 					{props.content && <div className="col-span-2 grid gap-2">{props.content}</div>}
-					<div className="col-span-2 grid gap-2">
-						<Button variant="primary" onClick={onButtonClick}>
+					<div className="col-span-2 grid grid-cols-2 gap-2">
+						<Button variant="info" onClick={onButtonClick}>
 							{props.buttonLabel} {isCompletingClick && <Spinner noMargin={true} />}
 						</Button>
 						<Button variant="outline" onClick={onDialogClose}>
@@ -95,18 +98,28 @@ export function Modal(props: ModalProps) {
 	}
 
 	return (
-		<Drawer open={open} onOpenChange={setOpen}>
+		<Drawer
+			open={open}
+			onOpenChange={(val) => {
+				if (!val) {
+					onDialogClose();
+				} else {
+					setOpen(val);
+				}
+			}}
+		>
 			{props.children && <DrawerTrigger asChild>{props.children}</DrawerTrigger>}
 			<DrawerContent>
-				{success}
-				<DrawerHeader className="text-left">
-					<DrawerTitle>{props.title}</DrawerTitle>
-					<DrawerDescription>{props.body}</DrawerDescription>
+				<DrawerHeader className="flex items-center gap-4 text-left">
+					{success}
+					<div>
+						<DrawerTitle>{props.title}</DrawerTitle>
+						<DrawerDescription>{props.body}</DrawerDescription>
+					</div>
 				</DrawerHeader>
-				{props.content}
-
+				{props.content && <div className="col-span-2 grid gap-2 px-4 pb-2">{props.content}</div>}
 				<DrawerFooter className="pt-2">
-					<Button variant="outline" onClick={onButtonClick}>
+					<Button variant="info" onClick={onButtonClick}>
 						{props.buttonLabel} {isCompletingClick && <Spinner noMargin={true} />}
 					</Button>
 					<DrawerClose asChild>

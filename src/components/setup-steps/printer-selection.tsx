@@ -243,6 +243,7 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 					title="Are you sure?"
 					buttonLabel={`Select ${pendingSelection.current?.card.printer.name}`}
 					onClick={() => onSelectPrinter(pendingSelection.current!.card, pendingSelection.current!.option)}
+					success={true}
 					body="Selecting a new printer will reset your configurator settings."
 					content={
 						<AnimatedContainer>
