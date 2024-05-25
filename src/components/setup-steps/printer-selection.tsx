@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import Image from 'next/image';
 import { StepNavButtons } from '@/components/step-nav-buttons';
 import { StepScreenProps } from '@/hooks/useSteps';
@@ -31,6 +31,9 @@ import {
 } from '@/hooks/usePrinterConfiguration';
 import { AnimatedContainer } from '@/components/common/animated-container';
 import { getLogger } from '@/app/_helpers/logger';
+import { Modal } from '@/components/common/modal';
+import { Banner } from '@/components/common/banner';
+import { ShieldCheck } from 'lucide-react';
 
 interface SelectablePrinter<Option extends SelectableOption = SelectableOption>
 	extends SelectableCardWithOptions<Option> {
@@ -40,6 +43,7 @@ interface SelectablePrinter<Option extends SelectableOption = SelectableOption>
 export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 	const printerQuery = trpc.printer.printers.useQuery();
 	const boardQuery = trpc.mcu.boards.useQuery({});
+	const lastSavedSettingsQuery = trpc.printer.getSavedConfig.useQuery();
 	const selectedPrinter = useRecoilValue(LoadablePrinterState);
 	const selectedPrinterOption = useRecoilValue(PrinterSizeState);
 
@@ -126,12 +130,10 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 					getLogger().error(card, 'No printer found matching the criteria');
 					return;
 				}
-				const oldToolheads = await snapshot.getPromise(PrinterToolheadsState);
-				const oldControllerBoard = await snapshot.getPromise(ControlboardState);
-				oldToolheads.forEach((th) => {
-					reset(PrinterToolheadState(th.toolNumber));
-				});
-				set(PrinterState, printer);
+				const oldPrinter = await snapshot.getPromise(PrinterState);
+				if (oldPrinter?.id !== printer.id) {
+					set(PrinterState, printer);
+				}
 				if (Object.values(printer.sizes).length > 1) {
 					if (option == null || typeof option.id !== 'string') {
 						throw new Error('An option must be selected for printers that come in different size configurations');
@@ -140,6 +142,15 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 				} else {
 					set(PrinterSizeState, printer.sizes[Object.keys(printer.sizes)[0]]);
 				}
+				if (oldPrinter?.id === printer.id) {
+					// Don't reset if the printer is the same
+					return;
+				}
+				const oldToolheads = await snapshot.getPromise(PrinterToolheadsState);
+				const oldControllerBoard = await snapshot.getPromise(ControlboardState);
+				oldToolheads.forEach((th) => {
+					reset(PrinterToolheadState(th.toolNumber));
+				});
 				set(
 					PrinterToolheadsState,
 					printer.defaults.toolheads.map((th) => ({ ...th, toolNumber: new ToolheadHelper(th).getTool() })),
@@ -162,6 +173,37 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 		[printerQuery.data],
 	);
 
+	const pendingSelection = useRef<{
+		card: SelectedCard<Unpacked<typeof cards>>;
+		option: SelectableOption | null;
+	} | null>(null);
+	const [isModalVisible, setIsModalVisible] = useState(false);
+	const beforeSelectPrinter = useCallback(
+		(card: SelectedCard<Unpacked<typeof cards>>, option: SelectableOption | null) => {
+			if (selectedPrinter == null) {
+				onSelectPrinter(card, option);
+				setIsModalVisible(false);
+				return;
+			}
+			const printer = card.printer;
+			if (printer == null) {
+				getLogger().error(card, 'No printer found matching the criteria');
+				setIsModalVisible(false);
+				return;
+			}
+			if (selectedPrinter.id === printer.id) {
+				if (selectedPrinterOption === option) {
+					return;
+				}
+				onSelectPrinter(card, option);
+				return;
+			}
+			pendingSelection.current = { card, option };
+			setIsModalVisible(true);
+		},
+		[onSelectPrinter, selectedPrinter, selectedPrinterOption],
+	);
+
 	const errors = printerQuery.error ? [printerQuery.error?.message] : [];
 
 	return (
@@ -180,7 +222,7 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 					</p>
 					<CardSelectorWithOptions
 						cards={cards}
-						onSelect={onSelectPrinter}
+						onSelect={beforeSelectPrinter}
 						value={selectedCard}
 						optionValue={selectedPrinterOptionFromCard}
 					/>
@@ -190,12 +232,36 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 					</p>
 					<CardSelectorWithOptions
 						cards={unofficialPrinters}
-						onSelect={onSelectPrinter}
+						onSelect={beforeSelectPrinter}
 						value={selectedCard}
 						optionValue={selectedPrinterOptionFromCard}
 					/>
 				</ShowWhenReady>
 			</div>
+			{isModalVisible && (
+				<Modal
+					title="Are you sure?"
+					buttonLabel={`Select ${pendingSelection.current?.card.printer.name}`}
+					onClick={() => onSelectPrinter(pendingSelection.current!.card, pendingSelection.current!.option)}
+					body="Selecting a new printer will reset your configurator settings."
+					content={
+						<AnimatedContainer>
+							{lastSavedSettingsQuery.data && (
+								<Banner color="sky" Icon={ShieldCheck} title="Your existing configuration is safe!">
+									Your klipper configuration will be safe until you explicitly save a new hardware configuration at the
+									end of the wizard.
+								</Banner>
+							)}
+						</AnimatedContainer>
+					}
+					onClose={() =>
+						setTimeout(() => {
+							setIsModalVisible(false);
+							pendingSelection.current = null;
+						}, 500)
+					}
+				/>
+			)}
 			<StepNavButtons
 				left={{ onClick: props.previousScreen }}
 				right={{

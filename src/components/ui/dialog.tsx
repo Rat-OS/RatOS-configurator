@@ -4,7 +4,7 @@ import * as React from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { Cross2Icon } from '@radix-ui/react-icons';
 
-import { cn, setDisplayName } from '@/helpers/utils';
+import { cn } from '@/helpers/utils';
 
 const Dialog = DialogPrimitive.Root;
 
@@ -27,7 +27,7 @@ const DialogOverlay = React.forwardRef<
 		{...props}
 	/>
 ));
-setDisplayName(DialogOverlay, DialogPrimitive.Overlay.displayName);
+(DialogOverlay as any).displayName = DialogPrimitive.Overlay.displayName;
 
 const DialogContent = React.forwardRef<
 	React.ElementRef<typeof DialogPrimitive.Content>,
@@ -51,17 +51,17 @@ const DialogContent = React.forwardRef<
 		</DialogPrimitive.Content>
 	</DialogPortal>
 ));
-setDisplayName(DialogContent, DialogPrimitive.Content.displayName);
+(DialogContent as any).displayName = DialogPrimitive.Content.displayName;
 
 const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
 	<div className={cn('flex flex-col space-y-1.5 text-center sm:text-left', className)} {...props} />
 );
-DialogHeader.displayName = 'DialogHeader';
+(DialogHeader as any).displayName = 'DialogHeader';
 
 const DialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
 	<div className={cn('flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2', className)} {...props} />
 );
-DialogFooter.displayName = 'DialogFooter';
+(DialogFooter as any).displayName = 'DialogFooter';
 
 const DialogTitle = React.forwardRef<
 	React.ElementRef<typeof DialogPrimitive.Title>,
@@ -73,7 +73,7 @@ const DialogTitle = React.forwardRef<
 		{...props}
 	/>
 ));
-setDisplayName(DialogTitle, DialogPrimitive.Title.displayName);
+(DialogTitle as any).displayName = DialogPrimitive.Title.displayName;
 
 const DialogDescription = React.forwardRef<
 	React.ElementRef<typeof DialogPrimitive.Description>,
@@ -81,7 +81,7 @@ const DialogDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
 	<DialogPrimitive.Description ref={ref} className={cn('text-sm text-muted-foreground', className)} {...props} />
 ));
-setDisplayName(DialogDescription, DialogPrimitive.Description.displayName);
+(DialogDescription as any).displayName = DialogPrimitive.Description.displayName;
 
 export {
 	Dialog,

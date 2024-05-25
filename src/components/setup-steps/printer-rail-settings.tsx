@@ -23,6 +23,7 @@ import { trpc } from '@/utils/trpc';
 import { twMerge } from 'tailwind-merge';
 import { z } from 'zod';
 import { AnimatePresence, motion } from 'framer-motion';
+import { Card } from '@/components/common/card';
 
 const railArray = z.array(BasePrinterRail);
 
@@ -296,13 +297,13 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 	return (
 		<AnimatePresence>
 			{props.isVisible && (
-				<motion.div
+				<Card
 					key={props.printerRail.axis}
 					exit={{ opacity: 0, scale: 0.9, y: -40 }}
 					initial={{ opacity: 0, scale: 0.9, y: 40 }}
 					animate={{ opacity: 1, scale: 1, y: 0 }}
 					className={twMerge(
-						'break-inside-avoid-column rounded-md border border-zinc-300 p-4 shadow-lg dark:border-zinc-700',
+						'break-inside-avoid-column p-4',
 						errorCount > 0 && badgeBorderColorStyle({ color: 'red' }),
 						errorCount > 0 && badgeBackgroundColorStyle({ color: 'red' }),
 					)}
@@ -404,7 +405,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 								</Banner>
 							)}
 					</div>
-				</motion.div>
+				</Card>
 			)}
 		</AnimatePresence>
 	);

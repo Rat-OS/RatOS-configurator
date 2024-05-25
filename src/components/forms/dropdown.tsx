@@ -18,6 +18,7 @@ import { PopoverAnchor } from '@radix-ui/react-popover';
 import { AnimatedContainer } from '@/components/common/animated-container';
 import { AnimatePresence } from 'framer-motion';
 import deepEqual from 'deep-equal';
+import { X } from 'lucide-react';
 
 type Option = {
 	id: number | string;
@@ -26,15 +27,16 @@ type Option = {
 	badge?: BadgeProps | BadgeProps[];
 };
 
-interface DropdownProps<DropdownOption extends Option = Option> {
+interface DropdownProps<DropdownOption extends Option = Option, CanClear extends boolean = false> {
 	options: DropdownOption[];
 	value: DropdownOption | null | undefined;
 	help?: React.ReactNode;
-	onSelect?: (option: DropdownOption) => void;
+	onSelect?: (option: CanClear extends true ? DropdownOption | null : DropdownOption) => void;
 	isFetching?: boolean;
 	label: string;
 	error?: string;
 	sort?: boolean;
+	canClear?: CanClear;
 	disabled?: boolean;
 	badge?: BadgeProps | BadgeProps[];
 	onShown?: () => void;
@@ -73,8 +75,11 @@ export const useDropdownPrinterQueryState = <T extends DropdownQueryKeys = Dropd
 	};
 };
 
-export const DropdownWithPrinterQuery = <T extends DropdownQueryKeys = DropdownQueryKeys>(
-	props: Omit<DropdownProps<DropdownQueryOutput<T>[number]>, 'options' | 'onShown'> & {
+export const DropdownWithPrinterQuery = <
+	T extends DropdownQueryKeys = DropdownQueryKeys,
+	CanClear extends boolean = false,
+>(
+	props: Omit<DropdownProps<DropdownQueryOutput<T>[number], CanClear>, 'options' | 'onShown'> & {
 		query: T;
 		vars?: DropdownQueryInput<T>;
 		serializedPrinterConfiguration?: string;
@@ -102,7 +107,9 @@ const badgeDescription = (badge: Option['badge']) => {
 	return badge.children;
 };
 
-export const Dropdown = <DropdownOption extends Option = Option>(props: DropdownProps<DropdownOption>) => {
+export const Dropdown = <DropdownOption extends Option = Option, CanClear extends boolean = false>(
+	props: DropdownProps<DropdownOption, CanClear>,
+) => {
 	const { onSelect, value } = props;
 	const [open, setOpen] = React.useState(false);
 
@@ -156,6 +163,23 @@ export const Dropdown = <DropdownOption extends Option = Option>(props: Dropdown
 				>
 					<span className="flex flex-1 items-center justify-start gap-2 text-left">
 						<span className="min-w-0 flex-1 items-center truncate">{value?.title ?? 'Pick from the list...'}</span>
+						{props.canClear && !props.disabled && (
+							<span
+								onClick={(e) => {
+									e.preventDefault();
+									e.stopPropagation();
+									if (props.canClear === true) {
+										onSelect?.(null as CanClear extends true ? DropdownOption | null : DropdownOption);
+									}
+								}}
+								className={twJoin(
+									valueBadges == null || valueBadges.length === 0 ? '-mr-3' : 'mr-0',
+									'flex h-4 w-4 items-center space-x-1 text-zinc-400',
+								)}
+							>
+								<X />
+							</span>
+						)}
 						<span className={twJoin('flex items-center space-x-1', !props.disabled && '-mr-2')}>
 							{valueBadges &&
 								valueBadges.map((badge, i) => (
