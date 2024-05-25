@@ -3,9 +3,14 @@
 import { Button } from '@/components/common/button';
 import { Card } from '@/components/common/card';
 import { ErrorMessage } from '@/components/common/error-message';
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { getLogger } from '@/app/_helpers/logger';
 import Link from 'next/link';
+import { AnimatedContainer } from '@/components/common/animated-container';
+import { Modal } from '@/components/common/modal';
+import { Spinner } from '@/components/common/spinner';
+import { trpc } from '@/utils/trpc';
+import { FileClock, FileCode } from 'lucide-react';
 
 export default function Error({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
 	useEffect(() => {
@@ -34,16 +39,37 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
 					>
 						Try again
 					</Button>
-					<Button
-						variant="indeterminate"
-						href={'/api/debug-zip'}
-						onClick={
-							// Attempt to recover by trying to re-render the segment
-							() => reset()
+					<Modal
+						onClick={() => (window.location.href = '/configure/api/debug-zip')}
+						title="This archive may contain sensitive information"
+						wide={true}
+						body="Please inspect the contents of the zip before posting it publically. Make sure you use Moonraker Secrets if configuring moonraker for third party services."
+						content={
+							<AnimatedContainer>
+								<h3 className="mb-1 font-medium tracking-tight">The following files will be zipped</h3>
+								<ul className="grid gap-1 pb-2 text-muted-foreground">
+									<Suspense fallback={<Spinner />}>
+										{trpc.debugFileList.useSuspenseQuery()[0].map((file) => {
+											return (
+												<li key={file.path + file.name} className="flex items-center gap-2 text-sm">
+													{file.name.endsWith('.log') && (
+														<FileClock className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+													)}
+													{file.name.endsWith('.cfg') && (
+														<FileCode className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+													)}
+													<span>{file.orgPath + '/' + file.name}</span>
+												</li>
+											);
+										})}
+									</Suspense>
+								</ul>
+							</AnimatedContainer>
 						}
+						buttonLabel="I understand"
 					>
-						Download Debug Info
-					</Button>
+						<Button variant="indeterminate">Download Debug Info</Button>
+					</Modal>
 				</div>
 			</Card>
 		</div>
