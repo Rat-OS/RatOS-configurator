@@ -360,19 +360,20 @@ export const constructKlipperConfigExtrasGenerator = (config: PrinterConfigurati
 		generateSaveVariables(options?: VAOCControlPoints) {
 			const environment = serverSchema.parse(process.env);
 			const vars: string[] = [`[Variables]`];
-			const isIdex = utils.getToolheads().some((th) => th.getMotionAxis() === PrinterAxis.dual_carriage);
-			if (isIdex) {
-				vars.push(
-					`idex_applied_offset = 1`,
-					`idex_xcontrolpoint = ${options?.xcontrolpoint ?? config.size.x / 2}`,
-					`idex_xoffset = 0.0`,
-					`idex_ycontrolpoint = ${options?.ycontrolpoint ?? 50}`,
-					`idex_yoffset = 0.0`,
-					`idex_zcontrolpoint = ${options?.zcontrolpoint ?? 50}`,
-					`idex_zoffset = 0.0`,
-					`idex_zoffsetcontrolpoint = ${options?.zoffsetcontrolpoint ?? 25}`,
-				);
-			}
+			// const isIdex = utils.getToolheads().some((th) => th.getMotionAxis() === PrinterAxis.dual_carriage);
+			vars.push(
+				`idex_applied_offset = 1`,
+				`idex_xcontrolpoint = ${options?.xcontrolpoint ?? config.size.x / 2}`,
+				`idex_xoffset = 0.0`,
+				`idex_ycontrolpoint = ${options?.ycontrolpoint ?? 50}`,
+				`idex_yoffset = 0.0`,
+				`idex_zcontrolpoint = ${options?.zcontrolpoint ?? 50}`,
+				`idex_zoffset = 0.0`,
+				`idex_zoffsetcontrolpoint = ${options?.zoffsetcontrolpoint ?? 25}`,
+				`nozzle_expansion_applied_offset = 0`,
+				`nozzle_expansion_coefficient_t0 = 0.06`,
+				`nozzle_expansion_coefficient_t1 = 0.06`,
+			);
 			return [
 				{
 					fileName: 'ratos-variables.cfg',
