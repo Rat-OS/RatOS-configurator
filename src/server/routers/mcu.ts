@@ -249,7 +249,7 @@ export const mcuRouter = router({
 			}
 			return detect(ctx.board, ctx.toolhead);
 		}),
-	unidentifiedDevices: mcuProcedure.query(async ({ ctx }) => {
+	unidentifiedDevices: mcuProcedure.input(inputSchema).query(async ({ ctx }) => {
 		const detected = ctx.boards
 			.filter((b) => b.detected)
 			.map((b) => fs.realpathSync(getBoardSerialPath(b, ctx.toolhead)));
