@@ -34,7 +34,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 			enabled: selectedBoardToFlash !== null,
 		},
 	);
-	const unidentifiedBoards = trpc.mcu.unidentifiedDevices.useQuery();
+	const unidentifiedBoards = trpc.mcu.unidentifiedDevices.useQuery({ toolhead: toolhead?.serialize() });
 	const boardVersion = trpc.mcu.boardVersion.useQuery(
 		{ boardPath: selectedBoardToFlash?.path ?? '', toolhead: toolhead?.serialize() },
 		{
