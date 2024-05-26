@@ -63,7 +63,12 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 	}
 
 	return (
-		<div className={twMerge(badgeBorderColorStyle({ color: 'gray' }), 'col-span-1 rounded-md border p-4 shadow-lg')}>
+		<div
+			className={twMerge(
+				badgeBorderColorStyle({ color: 'gray' }),
+				'col-span-1 rounded-md border p-4 shadow-lg @container',
+			)}
+		>
 			<div
 				className={twMerge(
 					badgeBackgroundColorStyle({ color: 'gray' }),
@@ -79,7 +84,7 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 					Configure the hardware installed on {toolhead.getDescription().toLocaleLowerCase()}
 				</p>
 			</div>
-			<div className="grid grid-cols-1 gap-4 pt-4 sm:grid-cols-2">
+			<div className="grid grid-cols-1 gap-4 pt-4 @sm:grid-cols-2">
 				<div>
 					<DropdownWithPrinterQuery
 						query="hotends"
@@ -151,7 +156,7 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 					/>
 				</div>
 			</div>
-			<div className="mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 dark:border-zinc-700 sm:grid-cols-2">
+			<div className="mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 @sm:grid-cols-2 dark:border-zinc-700">
 				<div>
 					<DropdownWithPrinterQuery
 						vars={{ toolOrAxis: toolhead.getTool(), config: {} }}
@@ -175,7 +180,7 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 					/>
 				</div>
 			</div>
-			<div className="mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 dark:border-zinc-700 sm:grid-cols-2">
+			<div className="mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 @sm:grid-cols-2 dark:border-zinc-700">
 				<div>
 					<DropdownWithPrinterQuery
 						vars={{ toolOrAxis: toolhead.getTool(), config: {} }}
@@ -208,7 +213,7 @@ export const ToolheadSettings: React.FC<ToolheadSettingsProps> = (props) => {
 					this and come back later if you change your mind.
 				</p>
 			</div>
-			<div className="mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 dark:border-zinc-700 sm:grid-cols-2">
+			<div className="mt-4 grid grid-cols-1 gap-4 border-t border-zinc-100 pt-4 @sm:grid-cols-2 dark:border-zinc-700">
 				<div>
 					<DropdownWithPrinterQuery
 						vars={{ toolOrAxis: toolhead.getTool(), config: {} }}

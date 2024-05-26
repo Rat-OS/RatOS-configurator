@@ -249,8 +249,10 @@ export const mcuRouter = router({
 			}
 			return detect(ctx.board, ctx.toolhead);
 		}),
-	unidentifiedDevices: mcuProcedure.query(async ({ ctx }) => {
-		const detected = ctx.boards.filter((b) => b.detected).map((b) => fs.realpathSync(getBoardSerialPath(b)));
+	unidentifiedDevices: mcuProcedure.input(inputSchema).query(async ({ ctx }) => {
+		const detected = ctx.boards
+			.filter((b) => b.detected)
+			.map((b) => fs.realpathSync(getBoardSerialPath(b, ctx.toolhead)));
 		return (await glob('/dev/serial/by-id/usb-Klipper*')).filter((d) => !detected.includes(fs.realpathSync(d)));
 	}),
 	boardVersion: mcuProcedure
