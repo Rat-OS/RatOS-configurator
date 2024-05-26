@@ -161,7 +161,7 @@ export const Dropdown = <DropdownOption extends Option = Option, CanClear extend
 					aria-expanded={open}
 					className={twJoin('w-full justify-between bg-zinc-800 px-2', inputClass)}
 				>
-					<span className="flex flex-1 items-center justify-start gap-2 text-left">
+					<span className="flex min-w-0 flex-1 items-center justify-start gap-2 text-left">
 						<span className="min-w-0 flex-1 items-center truncate">{value?.title ?? 'Pick from the list...'}</span>
 						{props.canClear && !props.disabled && (
 							<span
