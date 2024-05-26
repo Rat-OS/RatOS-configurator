@@ -63,6 +63,8 @@ ${helper.renderMacros()}
 [gcode_macro RatOS]
 ${helper.renderMacroVariableOverrides()}
 
+# Save variables
+${helper.renderSaveVariables()}
 `;
 
 export const initialPrinterCfg = (config: PrinterConfiguration, helper: KlipperConfigHelper) => `
