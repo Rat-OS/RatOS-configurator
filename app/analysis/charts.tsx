@@ -164,6 +164,10 @@ export const useADXLSignalChart = (axis: ADXLAxes) => {
 					isSorted: true,
 					dataSeriesName: axis.toLocaleUpperCase() + ' History',
 					dataIsSortedInX: true,
+					xValues: Array(ADXL_STREAM_BUFFER_SIZE * historyCount)
+						.fill(0)
+						.map((_, i) => i * 3.2),
+					yValues: Array(ADXL_STREAM_BUFFER_SIZE * historyCount).fill(0),
 				});
 
 				// Line series to render the historical signal data (last 200 buffers)

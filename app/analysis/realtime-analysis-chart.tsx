@@ -256,7 +256,7 @@ export const RealtimeAnalysisChart: React.FC<RealtimeAnalysisChartProps> = React
 						<SciChartReact
 							{...xSignalChart.forwardProps}
 							className="flex-1 rounded-lg"
-							fallback={<FullLoadScreen className="ml-[150px] bg-zinc-900" />}
+							fallback={<FullLoadScreen className="ml-[150px]" />}
 						/>
 					</Card>
 					<Card className="flex max-h-32 min-h-32 overflow-hidden @screen-lg:max-h-72 @screen-lg:min-h-72">
@@ -269,7 +269,7 @@ export const RealtimeAnalysisChart: React.FC<RealtimeAnalysisChartProps> = React
 						<SciChartReact
 							{...ySignalChart.forwardProps}
 							className="flex-1 rounded-lg"
-							fallback={<FullLoadScreen className="ml-[150px] bg-zinc-900" />}
+							fallback={<FullLoadScreen className="ml-[150px]" />}
 						/>
 					</Card>
 					<Card className="flex max-h-32 min-h-32 overflow-hidden @screen-lg:max-h-72 @screen-lg:min-h-72">
@@ -282,7 +282,7 @@ export const RealtimeAnalysisChart: React.FC<RealtimeAnalysisChartProps> = React
 						<SciChartReact
 							{...zSignalChart.forwardProps}
 							className="flex-1 rounded-lg"
-							fallback={<FullLoadScreen className="ml-[150px] bg-zinc-900" />}
+							fallback={<FullLoadScreen className="ml-[150px]" />}
 						/>
 					</Card>
 				</div>
@@ -290,7 +290,7 @@ export const RealtimeAnalysisChart: React.FC<RealtimeAnalysisChartProps> = React
 					<SciChartReact
 						{...psdChart.forwardProps}
 						className="flex-1"
-						fallback={<FullLoadScreen className="ml-[150px] bg-zinc-900" />}
+						fallback={<FullLoadScreen className="ml-[150px]" />}
 					/>
 				</Card>
 			</div>

@@ -61,6 +61,14 @@ ${helper.renderMacros()}
 # Macro variable overrides
 [gcode_macro RatOS]
 ${helper.renderMacroVariableOverrides()}
+
+# Save variables
+${helper.renderSaveVariables({
+	xcontrolpoint: config.size.x / 2 - 37,
+	ycontrolpoint: config.size.y + 32,
+	zcontrolpoint: 10,
+	zoffsetcontrolpoint: 0,
+})}
 `;
 
 export const initialPrinterCfg = (config: PrinterConfiguration, helper: KlipperConfigHelper) => `

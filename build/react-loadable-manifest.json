@@ -1,4 +1,14 @@
 {
+  "../app/analysis/_worker/psd.ts -> @tensorflow/tfjs-backend-webgl": {
+    "id": 83675,
+    "files": []
+  },
+  "../app/analysis/_worker/psd.ts -> @tensorflow/tfjs-backend-webgpu": {
+    "id": 17754,
+    "files": [
+      "static/chunks/7754.a1decb8ef56ba7aa.js"
+    ]
+  },
   "../node_modules/.pnpm/@trpc+next@10.45.1_@tanstack+react-query@4.36.1_react-dom@18.2.0_react@18.2.0__react@18.2.0___2igx4b6qzwu3mpzu3wdw7fruxy/node_modules/@trpc/next/dist/index.mjs -> react-dom/server": {
     "id": 40569,
     "files": [

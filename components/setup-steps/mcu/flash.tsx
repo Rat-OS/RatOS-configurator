@@ -220,7 +220,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 			<Card className="flex flex-col justify-between">
 				<CardHeader>
 					<CardTitle className="flex items-center justify-between gap-2">
-						Automated flashing
+						Flash unidentified board
 						{!unidentifiedPathStrategyEnabled && (
 							<Badge color="yellow" className="mr-1">
 								Unavailable
@@ -229,7 +229,8 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 					</CardTitle>
 					<CardDescription>
 						If RatOS detects any boards that are already running klipper but not managed by RatOS, their device path
-						will be listed here. If you're unsure what to pick, choose one of the other methods.
+						will be listed here. These will flash automatically, but make sure you pick the right one. If you're unsure
+						what to pick, choose one of the other methods.
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="text-right xl:text-left">

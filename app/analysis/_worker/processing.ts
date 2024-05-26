@@ -11,7 +11,6 @@ import {
 	firstValueFrom,
 	from,
 	map,
-	mergeMap,
 	of,
 	scheduled,
 	share,
@@ -38,6 +37,7 @@ export const createSignalBuffers = async (dataStream$: Observable<KlipperAccelSu
 			}),
 		),
 	);
+	const realTimeStamp = new Date().getTime();
 	const subtractTimeStamp = ([time, x, y, z]: AccelSample): BigNumberAccelSample => [
 		BigNumber(time).minus(timeStamp).shiftedBy(3),
 		x,
@@ -61,22 +61,16 @@ export const createSignalBuffers = async (dataStream$: Observable<KlipperAccelSu
 		share(),
 	);
 
-	const timeMappedSignal$ = scheduled(
-		dataStream$.pipe(
-			concatMap((data) => {
-				const startTime = BigNumber(data.data[0][0]).minus(timeStamp).shiftedBy(3);
-				return scheduled(from(data.data), asyncScheduler).pipe(
-					map(subtractTimeStamp),
-					mergeMap((sample) => {
-						const d = sample[0].minus(startTime).decimalPlaces(0, BigNumber.ROUND_FLOOR).toNumber();
-						// downscale the delay, the scheduler is not perfect as it depends on the load on the worker thread.
-						return scheduled(of(sample).pipe(delay(d * 0.7)), asyncScheduler);
-					}),
-				);
-			}),
-			share(),
-		),
-		asyncScheduler,
+	const timeMappedSignal$ = signal$.pipe(
+		concatMap((sample) => {
+			const offsetFromRealtime = new Date().getTime() - realTimeStamp;
+			const offsetFromTimestamp = sample[0].toNumber();
+			if (offsetFromRealtime < offsetFromTimestamp) {
+				return scheduled(of(sample).pipe(delay(offsetFromTimestamp - offsetFromRealtime)), asyncScheduler);
+			}
+			return of(sample);
+		}),
+		share(),
 	);
 
 	const specSampleRate$ = sampleRate$.pipe(
