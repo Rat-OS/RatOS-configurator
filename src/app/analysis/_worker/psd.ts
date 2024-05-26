@@ -103,8 +103,6 @@ const runPSD = async (samples: AccelSampleMs[], includeSource: boolean = false):
 
 export type AccumulateAndCallback = false | ((psd: Awaited<ReturnType<typeof runPSD>>) => void);
 
-let psdId = 0;
-
 const createPSDProcessor = async (
 	signal$: Observable<AccelSampleMs>,
 	specSampleRate$: Observable<number>,
@@ -162,7 +160,6 @@ const createPSDProcessor = async (
 			if (first) {
 				first = false;
 			}
-			const id = psdId++;
 			return scheduled(
 				from(
 					runPSD(samples).then((psd) => {
