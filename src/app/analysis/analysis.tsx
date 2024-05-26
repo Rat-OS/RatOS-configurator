@@ -523,5 +523,19 @@ export const Analysis = () => {
 		),
 	);
 
+	// if (navigator.userAgent.toLowerCase().includes('firefox')) {
+	// 	return (
+	// 		<div className="absolute inset-0 flex items-center justify-center">
+	// 			<div className="max-w-4xl">
+	// 				<h3 className="text-4xl font-bold">This tool is currently not supported in Firefox</h3>
+	// 				<p className="text-xl font-medium text-muted-foreground">
+	// 					Unfortunately firefox performs extremely poorly for unknown reasons, please use a different browser (known
+	// 					good ones include Google Chrome, Microsoft Edge and Safari on iOS).
+	// 				</p>
+	// 			</div>
+	// 		</div>
+	// 	);
+	// }
+
 	return <RealtimeAnalysisChart {...chartProps} />;
 };

@@ -36,7 +36,7 @@ import {
 	WorkerAccumulationStarted,
 } from '@/app/analysis/_worker';
 import { fromWorker } from 'observable-webworker';
-import { Subject, bufferTime, filter, firstValueFrom, map, share, timeout } from 'rxjs';
+import { Subject, animationFrames, buffer, bufferTime, filter, firstValueFrom, map, share, timeout } from 'rxjs';
 import { getHost } from '@/helpers/util';
 import { PSDResult } from '@/app/analysis/_worker/psd';
 import { TypedArrayPSD } from '@/app/analysis/periodogram';
@@ -70,7 +70,7 @@ const worker = fromWorker<WorkerInput, WorkerOutput>(
 const signal$ = worker.pipe(
 	filter((output): output is WorkerSignalOutput => output.type === WorkResult.SIGNAL),
 	map((output) => new Float64Array(output.payload)),
-	bufferTime(1000 / 60),
+	buffer(animationFrames()),
 	filter((signals) => signals.length > 0),
 	map((signals) => {
 		const time = new Float64Array(signals.length);
@@ -288,7 +288,7 @@ export const useChart = <T,>(
 						};
 						chart = await build2DChart(rootElement, def);
 					} else {
-						chart = await SciChartSurface.create(rootElement, {
+						chart = await SciChartSurface.createSingle(rootElement, {
 							theme: theme,
 							padding: new Thickness(0, 0, 0, indent ? 300 : 0),
 						});

@@ -133,9 +133,16 @@ export async function powerSpectralDensity(
 	return avg;
 }
 
+export class WelchError extends Error {
+	constructor(msg: string) {
+		super(msg);
+		this.name = 'WelchError';
+	}
+}
+
 // Keep this async so that we can potentially move it to the GPU
 export const welch = async (PSDs: PSD[]): Promise<TypedArrayPSD> => {
-	if (PSDs.length == 0) throw new Error('Unable to calculate any PSD estimates');
+	if (PSDs.length == 0) throw new WelchError('Unable to calculate any PSD estimates');
 	// if (PSDs.length == 1) {
 	// 	getLogger().warn('Not enough data to compute more than one segment, returning single modified periodogram.');
 	// 	return PSDs[0];
