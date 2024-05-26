@@ -99,15 +99,16 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 						<AnimatePresence>
 							{serializedPrinterConfiguration?.toolheads?.map((th, i) =>
 								th == null || th.axis == null ? null : (
-									<React.Suspense fallback={<Spinner />} key={i}>
-										<motion.div
-											exit={{ opacity: 0, scale: 0.9, y: -40 }}
-											initial={{ opacity: 0, scale: 0.9, y: 40 }}
-											animate={{ opacity: 1, scale: 1, y: 0 }}
-										>
+									<motion.div
+										key={i}
+										exit={{ opacity: 0, scale: 0.9, y: -40 }}
+										initial={{ opacity: 0, scale: 0.9, y: 40 }}
+										animate={{ opacity: 1, scale: 1, y: 0 }}
+									>
+										<React.Suspense fallback={<Spinner />}>
 											<ToolheadSettings toolOrAxis={th.axis} />
-										</motion.div>
-									</React.Suspense>
+										</React.Suspense>
+									</motion.div>
 								),
 							)}
 						</AnimatePresence>
