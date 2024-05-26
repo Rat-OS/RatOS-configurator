@@ -103,11 +103,15 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 				id: ap,
 				details: (
 					<div className="gap-4 md:grid md:grid-cols-2">
-						<div className="md:col-span-1">
-							<span className="font-semibold">Signal Strength:</span> {parseSignal(apList[ap].signal)}
+						<div className="md:col-span-1 2xl:flex 2xl:flex-col">
+							<span className="font-semibold">Signal Strength:</span>{' '}
+							<span className="whitespace-nowrap font-medium">{parseSignal(apList[ap].signal)}</span>
 						</div>
-						<div className="md:col-span-1">
-							<span className="font-semibold">Frequency:</span> {Math.round(apList[ap].frequency / 100) / 10}GHz
+						<div className="md:col-span-1 2xl:flex 2xl:flex-col">
+							<span className="font-semibold">Frequency:</span>{' '}
+							<span className="whitespace-nowrap font-medium text-zinc-300">
+								{Math.round(apList[ap].frequency / 100) / 10}GHz
+							</span>
 						</div>
 					</div>
 				),

@@ -30,14 +30,14 @@ const makeSteps = (toolheads: ToolheadConfiguration<any>[], isConfigValid: boole
 		{
 			id: getNextIndex(),
 			name: 'Network connectivity',
-			description: 'Setup Wifi or Ethernet',
+			description: 'Setup Wifi or Ethernet connectivity',
 			href: '#',
 			renderScreen: (screenProps) => <WifiSetup {...screenProps} key={screenProps.key} />,
 		},
 		{
 			id: getNextIndex(),
 			name: 'Printer Selection',
-			description: 'Select your printer',
+			description: 'Select the printer you want to configure',
 			href: '#',
 			renderScreen: (screenProps) => <PrinterSelection {...screenProps} key={screenProps.key} />,
 		},
@@ -45,7 +45,7 @@ const makeSteps = (toolheads: ToolheadConfiguration<any>[], isConfigValid: boole
 			id: getNextIndex(),
 			name: 'Control board preparation',
 			canBeSkippedTo: isConfigValid,
-			description: 'Firmware flashing and connectivity',
+			description: 'Connect to and flash your control board',
 			href: '#',
 			renderScreen: (screenProps) => <MCUPreparation {...screenProps} key={screenProps.key} />,
 		},
@@ -56,7 +56,7 @@ const makeSteps = (toolheads: ToolheadConfiguration<any>[], isConfigValid: boole
 			id: getNextIndex(),
 			name: `${th.getToolCommand()} Toolboard Preparation`,
 			canBeSkippedTo: isConfigValid,
-			description: `Firmware flashing and connectivity for toolboard on ${th.getDescription().toLocaleLowerCase()}`,
+			description: `Connect to and flash an optional toolboard located on ${th.getDescription().toLocaleLowerCase()}`,
 			href: '#',
 			renderScreen: (screenProps) => (
 				<MCUPreparation {...screenProps} key={screenProps.key} toolOrAxis={toolhead.axis} />
@@ -67,7 +67,7 @@ const makeSteps = (toolheads: ToolheadConfiguration<any>[], isConfigValid: boole
 		id: getNextIndex(),
 		name: 'Hardware Selection',
 		canBeSkippedTo: isConfigValid,
-		description: 'Select your printer',
+		description: 'Tell RatOS about that hardware you have installed on your printer',
 		href: '#',
 		renderScreen: (screenProps) => <HardwareSelection {...screenProps} key={screenProps.key} />,
 	});

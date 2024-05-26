@@ -147,7 +147,6 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 					return;
 				}
 				const oldToolheads = await snapshot.getPromise(PrinterToolheadsState);
-				const oldControllerBoard = await snapshot.getPromise(ControlboardState);
 				oldToolheads.forEach((th) => {
 					reset(PrinterToolheadState(th.toolNumber));
 				});
@@ -161,7 +160,7 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 				reset(ControllerFanState);
 				reset(PrinterRailsState);
 				const defaultBoard = boardQuery.data?.find((b) => b.id === printer.defaults.board);
-				if (oldControllerBoard == null && defaultBoard != null) {
+				if (defaultBoard != null) {
 					set(ControlboardState, defaultBoard);
 				}
 				if (printer.defaults.controllerFan) {

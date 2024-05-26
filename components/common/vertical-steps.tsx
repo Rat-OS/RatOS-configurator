@@ -1,7 +1,7 @@
-import { CheckIcon } from '@heroicons/react/24/solid';
 import React from 'react';
 import { twJoin, twMerge } from 'tailwind-merge';
 import { StepScreen, StepScreenProps } from '@/hooks/useSteps';
+import { Check } from 'lucide-react';
 
 interface StepProps {
 	steps: StepScreen[];
@@ -34,7 +34,11 @@ export const VerticalSteps: React.FC<StepProps> = (props) => {
 									>
 										<span className="flex h-9 items-center">
 											<span className="relative z-10 flex h-8 w-8 items-center justify-center rounded-full bg-brand-600 dark:bg-brand-500">
-												<CheckIcon className="h-5 w-5 text-brand-100 dark:text-brand-900" aria-hidden="true" />
+												<Check
+													className="h-5 w-5 text-brand-100 dark:text-brand-900"
+													strokeWidth={3}
+													aria-hidden="true"
+												/>
 											</span>
 										</span>
 										<span className="ml-4 flex min-w-0 flex-col">

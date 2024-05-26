@@ -316,7 +316,7 @@ export const BoardID = z.string().brand('BoardID');
 export const BoardPath = z.string().brand('BoardPath');
 export const BoardSerialPath = z.string().brand('BoardSerialPath');
 
-const integratedDrivers = z.record(z.nativeEnum(PrinterAxis), z.string());
+const integratedDrivers = z.record(z.nativeEnum(PrinterAxis).or(z.string()), z.string());
 const motorSlots = z.record(MotorSlotKey, MotorSlot);
 
 export const Board = z
@@ -325,6 +325,9 @@ export const Board = z
 		isToolboard: z.boolean().optional(),
 		isHost: z.boolean().optional(),
 		serialPath: BoardSerialPath.optional(),
+		boardImageFileName: z.string().optional(),
+		manualFileName: z.string().optional(),
+		wireDiagramFileName: z.string().optional(),
 		name: z.string(),
 		manufacturer: z.string(),
 		firmwareBinaryName: z.string(),

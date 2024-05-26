@@ -2,15 +2,14 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { RadioGroup } from '@headlessui/react';
 import { twJoin } from 'tailwind-merge';
-import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { motion } from 'framer-motion';
 
 export interface SelectableCard {
 	id: string | number;
-	name: string;
-	right?: React.ReactNode | null;
-	left?: React.ReactNode | null;
-	details: React.ReactNode | string;
+	name: React.ReactNode;
+	right?: React.ReactNode;
+	left?: React.ReactNode;
+	details: React.ReactNode;
 }
 
 interface CardSelectorProps<Selectable extends SelectableCard = SelectableCard> {
@@ -44,8 +43,7 @@ export const CardSelector = <Selectable extends SelectableCard = SelectableCard>
 
 	return (
 		<RadioGroup value={selected} onChange={onSelect}>
-			<RadioGroup.Label className="sr-only">Selector</RadioGroup.Label>
-			<motion.div className="space-y-4">
+			<motion.div className="grid grid-cols-1 gap-4 2xl:grid-cols-2">
 				{props.cards.map((card, i) => (
 					<RadioGroup.Option
 						key={card.id}
@@ -53,28 +51,33 @@ export const CardSelector = <Selectable extends SelectableCard = SelectableCard>
 						className={({ checked, active }) =>
 							twJoin(
 								checked ? 'border-transparent' : 'border-zinc-300 dark:border-zinc-700',
-								active ? 'ring-2 ring-brand-600' : '',
-								'relative flex cursor-pointer items-center justify-between rounded-lg border bg-white px-4 py-4 shadow-sm focus:outline-none dark:bg-zinc-900',
+								active ? 'ring-2 ring-brand-600 dark:ring-brand-500' : '',
+								'relative flex cursor-pointer items-stretch rounded-lg border bg-white px-4 py-4 shadow-sm focus:outline-none dark:bg-zinc-800/70',
 							)
 						}
 					>
 						{({ active, checked }) => (
 							<>
-								{card.left && (
-									<RadioGroup.Description as="div" className="mr-4 mt-2 flex text-sm sm:mt-0 sm:block sm:text-left">
-										{card.left}
-									</RadioGroup.Description>
-								)}
-								<div className="flex-1">
-									<RadioGroup.Label
-										as="p"
-										className="mb-1 flex items-center space-x-2 text-sm font-bold text-zinc-900 dark:text-zinc-100"
-									>
-										{props.title ? props.title(card) : card.name}
-									</RadioGroup.Label>
-									<RadioGroup.Description as="div" className="text-xs text-zinc-500 dark:text-zinc-400">
-										<div className="sm:inline">{card.details}</div>
-									</RadioGroup.Description>
+								<div className="flex flex-1 flex-col items-stretch justify-between gap-4">
+									{card.left && (
+										<RadioGroup.Description as="div" className="mr-4 mt-2 flex text-sm sm:mt-0 sm:block sm:text-left">
+											{card.left}
+										</RadioGroup.Description>
+									)}
+									<div className="flex flex-shrink-0 flex-col">
+										<RadioGroup.Label
+											as="p"
+											className="flex items-center space-x-2 text-sm font-bold text-zinc-900 dark:text-zinc-100"
+										>
+											{props.title ? props.title(card) : card.name}
+										</RadioGroup.Label>
+										<RadioGroup.Description
+											as="div"
+											className="mt-1 flex-1 text-xs font-medium text-zinc-500 dark:text-zinc-400"
+										>
+											<div className="sm:inline">{card.details}</div>
+										</RadioGroup.Description>
+									</div>
 								</div>
 								{card.right && (
 									<RadioGroup.Description as="div" className="ml-4 mt-2 flex text-sm sm:mt-0 sm:block sm:text-right">

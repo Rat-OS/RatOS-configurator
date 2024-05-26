@@ -4,6 +4,7 @@ import React from 'react';
 import { Button } from '@/components/common/button';
 import { Spinner } from '@/components/common/spinner';
 import { ChevronLeft, ChevronRight, ChevronsRight } from 'lucide-react';
+import { twJoin } from 'tailwind-merge';
 
 export interface StepNavButton {
 	label?: string;
@@ -14,18 +15,19 @@ export interface StepNavButton {
 }
 
 interface StepNavButtonsProps {
+	inTitle?: boolean;
 	right: StepNavButton;
-	left: StepNavButton;
+	left?: StepNavButton;
 	skip?: Omit<StepNavButton, 'isLoading'>;
 }
 
 export const StepNavButtons: React.FC<StepNavButtonsProps> = (props) => {
-	const leftIcon = props.left.isLoading ? (
+	const leftIcon = props.left?.isLoading ? (
 		<Spinner noMargin={true} className="dark:text-black" />
 	) : (
 		<ChevronLeft className="-ml-2 h-5 w-5" aria-hidden="true" />
 	);
-	const left = props.left.onClick ? (
+	const left = props.left?.onClick ? (
 		<div className="flex flex-1 justify-start">
 			<Button
 				variant="indeterminate"
@@ -47,7 +49,7 @@ export const StepNavButtons: React.FC<StepNavButtonsProps> = (props) => {
 	);
 
 	const right = props.right.onClick ? (
-		<div className="flex flex-1 justify-end space-x-4">
+		<div className="flex flex-1 justify-end gap-4">
 			{props.skip && (
 				<Button
 					variant="indeterminate"
@@ -73,9 +75,12 @@ export const StepNavButtons: React.FC<StepNavButtonsProps> = (props) => {
 	) : null;
 
 	return (
-		<div className="px-8 pb-5">
+		<div className={twJoin(props.inTitle ? '' : 'px-8 pb-5')}>
 			<nav
-				className="flex items-center justify-between border-t border-zinc-200 py-3 dark:border-zinc-700"
+				className={twJoin(
+					'flex items-center justify-between border-zinc-200 py-3 dark:border-zinc-700',
+					props.inTitle ? '' : ' border-t',
+				)}
 				aria-label="Pagination"
 			>
 				{left}

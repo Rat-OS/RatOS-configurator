@@ -49,11 +49,19 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 	const [performanceMode, setPerformanceMode] = useState(!!props.performanceMode);
 	const setPrinterRail = useSetRecoilState(PrinterRailState(props.printerRail.axis));
 	const printerRails = useRecoilValue(PrinterRailsState);
+	const [motorSlot, setMotorSlot] = useState(
+		props.printerRail.motorSlot && props.selectedBoard?.motorSlots?.[props.printerRail.motorSlot]
+			? props.printerRail.motorSlot
+			: undefined,
+	);
 	const integratedDriver =
 		board?.integratedDrivers &&
-		board.integratedDrivers[
-			props.printerRail.axis.startsWith('extruder') ? PrinterAxis.extruder : props.printerRail.axis
-		];
+		(board.integratedDrivers[
+			motorSlot ?? props.printerRail.axis.startsWith('extruder') ? PrinterAxis.extruder : props.printerRail.axis
+		] ??
+			board.integratedDrivers[
+				props.printerRail.axis.startsWith('extruder') ? PrinterAxis.extruder : props.printerRail.axis
+			]);
 	const [driver, setDriver] = useState(
 		integratedDriver != null
 			? deserializeDriver(integratedDriver) ?? props.printerRail.driver
@@ -64,19 +72,6 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 		performanceMode
 			? props.printerRailDefault.performanceMode?.homingSpeed ?? props.printerRailDefault.homingSpeed
 			: props.printerRailDefault.homingSpeed,
-	);
-	const [motorSlot, setMotorSlot] = useState(
-		props.printerRail.motorSlot && props.selectedBoard?.motorSlots?.[props.printerRail.motorSlot]
-			? props.printerRail.motorSlot
-			: undefined,
-	);
-	const guessMotorSlot = trpc.mcu.reversePinLookup.useQuery(
-		{
-			axis: props.printerRail.axis,
-			canUseExtruderlessConfigs: canBeExtruderlessBoard,
-			boardPath: board?.path ?? '',
-		},
-		{ enabled: !!board },
 	);
 	const errorCount =
 		props.errors == null
@@ -111,6 +106,14 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 		[printerRails, props.printerRail.axis, toolheads],
 	);
 
+	const guessMotorSlot = trpc.mcu.reversePinLookup.useQuery(
+		{
+			axis: props.printerRail.axis,
+			canUseExtruderlessConfigs: canBeExtruderlessBoard,
+			boardPath: board?.path ?? '',
+		},
+		{ enabled: !!board },
+	);
 	useEffect(() => {
 		if (guessMotorSlot.data && motorSlot == null && board?.motorSlots?.[guessMotorSlot.data] != null) {
 			setMotorSlot(guessMotorSlot.data);
