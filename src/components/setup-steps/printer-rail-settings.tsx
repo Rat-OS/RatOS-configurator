@@ -54,14 +54,14 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 			? props.printerRail.motorSlot
 			: undefined,
 	);
-	const integratedDriver =
-		board?.integratedDrivers &&
-		(board.integratedDrivers[
-			motorSlot ?? props.printerRail.axis.startsWith('extruder') ? PrinterAxis.extruder : props.printerRail.axis
-		] ??
+	const integratedDriver = board?.integratedDrivers
+		? board.integratedDrivers[
+				motorSlot ?? (props.printerRail.axis.startsWith('extruder') ? PrinterAxis.extruder : props.printerRail.axis)
+			] ??
 			board.integratedDrivers[
 				props.printerRail.axis.startsWith('extruder') ? PrinterAxis.extruder : props.printerRail.axis
-			]);
+			]
+		: null;
 	const [driver, setDriver] = useState(
 		integratedDriver != null
 			? deserializeDriver(integratedDriver) ?? props.printerRail.driver

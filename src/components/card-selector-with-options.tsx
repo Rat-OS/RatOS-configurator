@@ -92,8 +92,7 @@ export const CardSelectorWithOptions = <
 						className={({ checked, active }) =>
 							twJoin(
 								checked ? 'border-transparent' : 'border-zinc-300 dark:border-zinc-700',
-								active ? 'ring-2 ring-brand-600 dark:ring-brand-500' : '',
-								'relative flex cursor-pointer items-stretch rounded-lg border bg-white px-4 py-4 shadow-sm focus:outline-none dark:bg-zinc-800/70',
+								'relative flex cursor-pointer items-stretch rounded-lg border bg-white px-4 py-4 shadow-sm  focus:outline-none active:ring-0 dark:bg-zinc-800/70',
 							)
 						}
 					>
@@ -146,9 +145,8 @@ export const CardSelectorWithOptions = <
 								</div>
 								<div
 									className={twJoin(
-										active ? 'border' : 'border-2',
 										checked ? 'border-brand-600' : 'border-transparent',
-										'pointer-events-none absolute -inset-px rounded-lg',
+										'pointer-events-none absolute -inset-px rounded-lg border-2',
 									)}
 									aria-hidden="true"
 								/>
