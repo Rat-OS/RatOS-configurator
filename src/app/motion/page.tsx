@@ -3,6 +3,8 @@ import React from 'react';
 import { Motion } from '@/app/motion/motion';
 import { Spinner } from '@/components/common/spinner';
 import { useIsClient } from '@/hooks/isClient';
+import { NoSSR } from '@/components/common/no-ssr';
+import { PrinterStateHeader } from '@/components/common/printer-state-header';
 
 const LoadScreen: React.FC = () => {
 	return (
@@ -25,10 +27,16 @@ const LoadScreen: React.FC = () => {
 export default function Page() {
 	const isClient = useIsClient();
 	return isClient ? (
-		<div className="mx-auto mt-8 grid grid-cols-1 gap-6 @container">
-			<div className="relative rounded-lg bg-white shadow dark:bg-zinc-900">
+		<div className="mt-8 grid grid-cols-1 gap-6 @container">
+			<PrinterStateHeader
+				title="Motion Settings"
+				description="You can change your motion settings below, be aware that any change will require the config to be regenerated"
+			/>
+			<div className="mx-auto max-w-7xl px-4">
 				<React.Suspense fallback={<LoadScreen />}>
-					<Motion />
+					<NoSSR fallback={<LoadScreen />}>
+						<Motion />
+					</NoSSR>
 				</React.Suspense>
 			</div>
 		</div>
