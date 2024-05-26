@@ -304,7 +304,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 		}
 	}, [parsedPrinterConfiguration, saveConfigurationMutation, filesToOverwrite, filesToIgnore, props.nextScreen]);
 
-	const client = trpc.useContext().client;
+	const client = trpc.useUtils().client;
 	const filesToWrite = useQuery({
 		queryKey: ['filesToWrite', serializedPrinterConfiguration],
 		queryFn: async () => {

@@ -24,6 +24,7 @@ import { twMerge } from 'tailwind-merge';
 import { z } from 'zod';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Card } from '@/components/common/card';
+import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const railArray = z.array(BasePrinterRail);
 
@@ -306,30 +307,18 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 					initial={{ opacity: 0, scale: 0.9, y: 40 }}
 					animate={{ opacity: 1, scale: 1, y: 0 }}
 					className={twMerge(
-						'break-inside-avoid-column p-4',
+						'break-inside-avoid-column',
 						errorCount > 0 && badgeBorderColorStyle({ color: 'red' }),
 						errorCount > 0 && badgeBackgroundColorStyle({ color: 'red' }),
 					)}
 				>
-					<div className="">
-						<h3
-							className={twMerge(
-								'text-sm font-bold leading-6 text-zinc-700 dark:text-zinc-300',
-								errorCount > 0 && 'text-red-900/80 dark:text-red-100',
-							)}
-						>
-							{railName}
-						</h3>
-						<p
-							className={twMerge(
-								'text-sm text-zinc-500 dark:text-zinc-400',
-								errorCount > 0 && 'text-red-800/80 dark:text-red-100/60',
-							)}
-						>
+					<CardHeader className="">
+						<CardTitle className={twMerge(errorCount > 0 && 'text-red-900/80 dark:text-red-100')}>{railName}</CardTitle>
+						<CardDescription className={twMerge(errorCount > 0 && 'text-red-800/80 dark:text-red-100/60')}>
 							{props.printerRail.axisDescription}
-						</p>
-					</div>
-					<div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+						</CardDescription>
+					</CardHeader>
+					<CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 						{motorSlotOptions && (
 							<div className="col-span-2">
 								<Dropdown
@@ -338,6 +327,9 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 									error={props.errors?.motorSlot?._errors.join('\n')}
 									onSelect={(ms) => {
 										setMotorSlot(ms.id);
+										if (board?.integratedDrivers?.[ms.id] != null) {
+											setDriver(deserializeDriver(board.integratedDrivers[ms.id]) ?? driver);
+										}
 									}}
 									value={motorSlot ? motorSlotOptions.find((ms) => ms.id === motorSlot) : undefined}
 									badge={motorSlotBadge}
@@ -407,7 +399,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 									to apply the preset automatically.
 								</Banner>
 							)}
-					</div>
+					</CardContent>
 				</Card>
 			)}
 		</AnimatePresence>
