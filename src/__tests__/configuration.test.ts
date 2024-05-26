@@ -116,6 +116,15 @@ describe('configuration', async () => {
 				expect(ruleContents.includes(symlink)).toBeTruthy();
 				expect(ruleContents.includes(devlink)).toBeTruthy();
 			});
+			test.skipIf(board.boardImageFileName == null).concurrent('has a valid board image', async () => {
+				expect(fs.existsSync(path.join(board.path, board.boardImageFileName ?? ''))).toBeTruthy();
+			});
+			test.skipIf(board.manualFileName == null).concurrent('has a valid manual', async () => {
+				expect(fs.existsSync(path.join(board.path, board.manualFileName ?? ''))).toBeTruthy();
+			});
+			test.skipIf(board.wireDiagramFileName == null).concurrent('has a valid wire diagram', async () => {
+				expect(fs.existsSync(path.join(board.path, board.wireDiagramFileName ?? ''))).toBeTruthy();
+			});
 			test.concurrent('has alphanumeric firmwareBinaryName', async () => {
 				expect(board.firmwareBinaryName).toMatch(/^[a-zA-Z0-9\.\-_]+$/);
 			});

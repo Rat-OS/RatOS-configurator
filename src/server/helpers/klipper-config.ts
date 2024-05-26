@@ -776,7 +776,7 @@ export const constructKlipperConfigHelpers = async (
 			let result: string[] = [];
 			if (config.controlboard.hasQuirksFiles) {
 				result.push('# Include controlboard quirk file');
-				if (utils.getToolhead(PrinterAxis.extruder) != null) {
+				if (utils.getToolhead(PrinterAxis.extruder)?.getToolboard() != null) {
 					result.push(`[include RatOS/boards/${config.controlboard.id}/quirks-toolboard.cfg]`);
 				} else {
 					result.push(`[include RatOS/boards/${config.controlboard.id}/quirks.cfg]`);

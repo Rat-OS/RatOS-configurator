@@ -2,7 +2,7 @@ import { useDebounce } from '@/app/_hooks/debounce';
 import useResizeObserver from '@react-hook/resize-observer';
 import { motion } from 'framer-motion';
 import { useState, useRef, PropsWithChildren, useCallback, useLayoutEffect, useEffect } from 'react';
-import { twJoin } from 'tailwind-merge';
+import { twJoin, twMerge } from 'tailwind-merge';
 
 export const AnimatedContainer = (props: PropsWithChildren<{ containerClassName?: string; className?: string }>) => {
 	const [height, setHeight] = useState(0);
@@ -37,7 +37,7 @@ export const AnimatedContainer = (props: PropsWithChildren<{ containerClassName?
 
 	return (
 		<motion.div
-			className={twJoin(props.containerClassName, isOverflowVisible ? 'overflow-visible' : 'overflow-hidden')}
+			className={twMerge(isOverflowVisible ? 'overflow-visible' : 'overflow-hidden', props.containerClassName)}
 			style={{ height }}
 			onAnimationComplete={onComplete}
 			onAnimationStart={onStart}

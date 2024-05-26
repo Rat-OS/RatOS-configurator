@@ -11,7 +11,10 @@ import { PrinterDefinitionWithResolvedToolheads } from '@/zods/printer';
 import { ToolOrAxis } from '@/zods/toolhead';
 import { ToolheadHelper } from '@/helpers/toolhead';
 import { useToolheadConfiguration } from '@/hooks/useToolheadConfiguration';
-import { Cpu } from 'lucide-react';
+import Image from 'next/image';
+import { Cpu, FileQuestion, MemoryStick, Usb, Zap, ZapOff } from 'lucide-react';
+import { Badge } from '@/components/common/badge';
+import { deserializeDriver } from '@/utils/serialization';
 
 export interface SelectableBoard extends SelectableCard {
 	board: BoardWithDetectionStatus;
@@ -81,26 +84,109 @@ export const MCUPreparation: React.FC<StepScreenProps & ExtraProps> = (props) =>
 		{ keepPreviousData: true },
 	);
 
+	const selectedControlboard = boardsQuery.data?.find((c) => c.id == _controlBoard?.id) ?? null;
+	const selectedToolboard = boardsQuery.data?.find((c) => c.id == toolhead?.getToolboard()?.id) ?? null;
+
+	const isToolboardRequired = useCallback(
+		(controlboard: BoardWithDetectionStatus | null = selectedControlboard) => {
+			return selectedPrinter != null && (controlboard?.driverCount ?? 0) < selectedPrinter.driverCountRequired;
+		},
+		[selectedControlboard, selectedPrinter],
+	);
+
 	const cards: SelectableBoard[] = useMemo(() => {
 		if (boardsQuery.isError || boardsQuery.data == null) return [];
 		return boardsQuery.data
 			.filter((b) => b.isToolboard == (toolhead != null ? true : null))
-			.map((b) => ({
-				id: b.id,
-				board: b,
-				name: `${b.manufacturer} ${b.name}`,
-				details: (
-					<span>
-						<span className="font-semibold">Automatic flashing:</span>{' '}
-						{b.flashScript && !b.disableAutoFlash ? 'Yes' : 'No'}
-					</span>
-				),
-				right: <Cpu className="h-8 w-8 text-zinc-500" />,
-			}));
-	}, [boardsQuery.isError, boardsQuery.data, toolhead]);
+			.map((b) => {
+				let boardDescription = ``;
+				if (b.integratedDrivers && Object.keys(b.integratedDrivers).length) {
+					const integratedDrivers = Object.entries(b.integratedDrivers).reduce(
+						(acc, [key, val]) => {
+							const driver = deserializeDriver(val)?.title;
+							if (!driver) {
+								return acc;
+							}
+							if (acc[driver] == null) {
+								acc[driver] = 0;
+							}
+							acc[driver] += 1;
+							return acc;
+						},
+						{} as { [key: string]: number },
+					);
+					const countedDrivers = Object.entries(integratedDrivers).map(
+						([key, val]) => `${val == 1 ? 'an' : val} integrated ${key} driver${val > 1 ? 's' : ''}`,
+					);
+					boardDescription = `A ${b.isToolboard ? 'tool board' : 'control board'} with ${
+						countedDrivers.length > 1
+							? countedDrivers.slice(0, -1).join(', ') + ' and ' + countedDrivers[countedDrivers.length - 1]
+							: countedDrivers.join('')
+					} ${b.driverCount > Object.keys(b.integratedDrivers).length ? `(${b.driverCount} total driver${b.driverCount > 1 ? 's' : ''})` : ``} and`;
+				} else {
+					boardDescription = `${b.driverCount}-driver ${b.isToolboard ? 'tool board' : 'control board'} with`;
+				}
+				boardDescription += ` ${b.flashScript && !b.disableAutoFlash ? 'support for automatic flashing' : 'manual flashing'}.`;
+				const voltages =
+					b.driverVoltages.length > 1
+						? `${b.driverVoltages.slice(0, -1).join('V, ')}V and ${b.driverVoltages[b.driverVoltages.length - 1]}V`
+						: `${b.driverVoltages[0]}V`;
+				if (b.driverVoltages.length > 1 || b.driverVoltages[0] != 24) {
+					// TODO: This is definitely not true in all cases..
+					boardDescription += ` Supports running steppers at ${voltages}${b.driverVoltages.length > 1 ? ' via a dedicated motor power input port' : ''}.`;
+				}
 
-	const selectedControlboard = boardsQuery.data?.find((c) => c.id == _controlBoard?.id) ?? null;
-	const selectedToolboard = boardsQuery.data?.find((c) => c.id == toolhead?.getToolboard()?.id) ?? null;
+				const boardImgUri = b.boardImageFileName
+					? '/configure/api/mcu-image?boardId=' + encodeURIComponent(b.id)
+					: '/configure/img/missing-board-img.webp';
+				return {
+					id: b.id,
+					board: b,
+					name: (
+						<h3 className="flex gap-2">
+							{b.name}
+							{!toolhead && isToolboardRequired(b) && (
+								<Badge color="yellow" size="sm">
+									Toolboard required
+								</Badge>
+							)}
+						</h3>
+					),
+					details: (
+						<div className="flex-col justify-between">
+							<p className="mt-1 flex-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">{boardDescription}</p>
+							<div className="mt-4 flex gap-2">
+								<Badge color={b.detected ? 'lime' : 'gray'} size="sm">
+									<Usb className="h-4 w-4" />
+								</Badge>
+								<Badge
+									size="md"
+									color={b.flashScript && !b.disableAutoFlash ? 'lime' : 'rose'}
+									title="Automatic flashing"
+								>
+									{b.flashScript && !b.disableAutoFlash ? <Zap className="h-4 w-4" /> : <ZapOff className="h-4 w-4" />}
+								</Badge>
+								<Badge color="gray" size="sm" className="text-base/5">
+									<MemoryStick className="h-4 w-4" />
+									{b.driverCount}
+								</Badge>
+							</div>
+						</div>
+					),
+					right: (
+						<div className="relative">
+							<Image
+								src={boardImgUri}
+								className="aspect-auto rounded-lg object-contain object-right"
+								width={100}
+								height={100}
+								alt={`${b.manufacturer} ${b.name}`}
+							/>
+						</div>
+					),
+				};
+			});
+	}, [boardsQuery.isError, boardsQuery.data, toolhead, isToolboardRequired]);
 
 	const setSelectedBoard = useCallback(
 		(newBoard: SelectableBoard | null) => {

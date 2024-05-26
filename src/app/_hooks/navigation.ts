@@ -2,7 +2,7 @@
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useCallback } from 'react';
 import type { Route } from 'next';
-import { AreaChart, LucideProps, Monitor, Video, Wand, Wand2 } from 'lucide-react';
+import { AreaChart, LucideProps, Monitor, Move3D, Video, Wand, Wand2 } from 'lucide-react';
 
 export const useLocalPathname = () => {
 	const pathname = (usePathname() ?? '/').replace('/configure', '') as Route;
@@ -30,10 +30,10 @@ export type NavigationItem = {
 const routes: NavigationItem[] = [
 	{ name: 'Setup Wizard', href: '/wizard', current: false, icon: Wand2 },
 	{ name: 'Dashboard', href: '/', current: false, icon: Monitor },
+	{ name: 'Motion', href: '/motion', current: false, icon: Move3D },
 	{ name: 'Visual Calibration (BETA)', href: '/calibration', current: false, icon: Video },
 	{ name: 'Realtime Analysis (BETA)', href: '/analysis', current: false, icon: AreaChart },
 	// { name: 'Boards', href: '/', current: false, icon: Cpu },
-	// { name: 'Motion', href: '/motion', current: false, icon: ArrowsPointingOutIcon, iconClass: 'rotate-45' },
 	// { name: 'Toolhead', href: '/toolhead', current: false, icon: ArrowDownOnSquareIcon },
 ];
 

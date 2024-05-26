@@ -23,6 +23,8 @@ import { Accelerometer } from '@/zods/hardware';
 import { z } from 'zod';
 import { serializePrinterConfiguration } from '@/hooks/usePrinterConfiguration';
 import { glob } from 'glob';
+import { serverSchema } from '@/env/schema.mjs';
+import { existsSync } from 'fs';
 
 const serializedConfigFromDefaults = (printer: PrinterDefinition): SerializedPrinterConfiguration => {
 	return SerializedPrinterConfiguration.strip().parse({
@@ -557,6 +559,27 @@ describe('server', async () => {
 							`Found stringified object ${noUndefined + 1}:\n${annotatedLines.slice(Math.max(noUndefined - 4, 0), Math.min(annotatedLines.length, noUndefined + 5)).join('\n')}`,
 						);
 					}
+				});
+				test('contain valid includes', async () => {
+					const includes = splitRes.filter((l) => l.includes('[include '));
+					const invalidIncludes = includes.filter((l) => !l.includes('[include RatOS'));
+					const env = serverSchema.parse(process.env);
+					includes
+						.filter((l) => l.includes('[include RatOS/'))
+						.forEach((l) => {
+							try {
+								expect(
+									existsSync(path.join(env.RATOS_CONFIGURATION_PATH, l.split('[include RatOS/')[1].replace(']', ''))),
+								).toBeTruthy();
+							} catch (e) {
+								const index = splitRes.findIndex((line) => line === l);
+								throw new Error(
+									`Found non existing include ${l}:\n${annotatedLines
+										.slice(Math.max(index - 4, 0), Math.min(index + 5, splitRes.length))
+										.join('\n')}`,
+								);
+							}
+						});
 				});
 				test.runIf(res.fileName === 'printer.cfg').concurrent('contains position_min/max/endstop for x/y', async () => {
 					const xSections: number[] = [];
