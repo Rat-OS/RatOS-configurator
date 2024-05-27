@@ -1,0 +1,26 @@
+
+# dependencies
+node_modules
+.pnp
+.pnp.js
+
+# testing
+coverage
+
+# local env files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+
+# cache
+build/cache/*
+
+# vscode (should use parent dir folder)
+.vscode
