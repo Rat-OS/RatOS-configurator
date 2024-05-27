@@ -23,6 +23,8 @@ maybe_truncate_log()
 verify_ready
 verify_users
 maybe_truncate_log
+update_npm
+update_pnpm
 install_hooks
 ensure_service_permission
 ensure_sudo_command_whitelisting

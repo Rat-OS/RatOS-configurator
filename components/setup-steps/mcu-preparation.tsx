@@ -43,7 +43,7 @@ const MCUSteps: StepScreen<ExtraStepProps>[] = [
 		description: (screenProps) =>
 			`Pick the ${
 				screenProps.toolhead
-					? `toolboard for ${screenProps.toolhead.getDescription()}.`
+					? `toolboard for ${screenProps.toolhead.getDescription()}. If you don't use a toolboard you can skip this step.`
 					: 'control board. Toolboard(s) can be added in a later step.'
 			}`,
 		href: '#',
