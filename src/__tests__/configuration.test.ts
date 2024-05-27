@@ -249,6 +249,7 @@ describe('configuration', async () => {
 				controlboard: defaultBoard,
 				toolheads: toolheads,
 				rails: defaultRails,
+				bedMargin: printer.bedMargin,
 				size: printer.sizes?.[0],
 				performanceMode: false,
 				standstillStealth: false,

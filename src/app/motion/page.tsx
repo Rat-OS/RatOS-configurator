@@ -32,7 +32,7 @@ export default function Page() {
 				title="Motion Settings"
 				description="You can change your motion settings below, be aware that any change will require the config to be regenerated"
 			/>
-			<div className="mx-auto max-w-7xl px-4">
+			<div className="mx-auto w-full max-w-7xl px-4">
 				<React.Suspense fallback={<LoadScreen />}>
 					<NoSSR fallback={<LoadScreen />}>
 						<Motion />

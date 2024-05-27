@@ -262,6 +262,7 @@ export const deserializePartialPrinterConfiguration = async (
 		controllerFan: controllerFanOptions({ controlboard }).find((f) => f.id === config?.controllerFan),
 		controlboard: controlboard,
 		performanceMode: config?.performanceMode,
+		bedMargin: config?.bedMargin,
 		stealthchop: config?.stealthchop,
 		standstillStealth: config?.standstillStealth,
 		rails: config?.rails?.map((r) => deserializePrinterRail(r)),
@@ -273,17 +274,19 @@ export const deserializePrinterConfiguration = async (
 ): Promise<PrinterConfiguration> => {
 	const boards = await getBoards();
 	const controlboard = boards.find((b) => b.id === config?.controlboard);
+	const printer = (await getPrinters()).find((p) => p.id === config?.printer);
 	const toolheads =
 		config.toolheads == null
 			? undefined
 			: await Promise.all(config.toolheads.map((th) => deserializeToolheadConfiguration(th, config, boards)));
 	return PrinterConfiguration.parse({
 		toolheads: toolheads,
-		printer: (await getPrinters()).find((p) => p.id === config?.printer),
+		printer: printer,
 		size: config?.size,
 		controllerFan: controllerFanOptions({ controlboard }).find((f) => f.id === config?.controllerFan),
 		controlboard: controlboard,
 		performanceMode: config?.performanceMode,
+		bedMargin: config?.bedMargin,
 		stealthchop: config?.stealthchop,
 		standstillStealth: config?.standstillStealth,
 		rails: config?.rails.map((r) => deserializePrinterRail(r)),
@@ -322,12 +325,15 @@ export type FilesToWriteWithState = (Omit<Unpacked<FilesToWrite>, 'content'> & {
 
 export const portModifications = async (file: string, content: string) => {
 	if (existsSync(file)) {
-		const klipperSectionLine = await searchFileByLine(
-			file,
-			'#*# <---------------------- SAVE_CONFIG ---------------------->',
-		);
-		if (klipperSectionLine !== false) {
-			content += '\n\n' + (await extractLinesFromFile(file, klipperSectionLine)) + '\n';
+		const ratosInclude = await searchFileByLine(file, 'RatOS.cfg');
+		const splitContent = content.split('\n');
+		const newRatosInclude = splitContent.findIndex((c) => c.includes('[include RatOS.cfg]'));
+		if (ratosInclude !== false) {
+			content =
+				splitContent.slice(0, newRatosInclude + 1).join('\n') +
+				'\n' +
+				(await extractLinesFromFile(file, ratosInclude + 1)) +
+				'\n';
 		}
 	}
 	return content;

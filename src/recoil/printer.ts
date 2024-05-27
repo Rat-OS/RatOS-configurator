@@ -102,6 +102,19 @@ export const PrinterSizeState = atom<z.output<typeof PrinterSize> | null>({
 	],
 });
 
+export const PrinterBedMarginState = atom<z.infer<
+	typeof PrinterDefinitionWithResolvedToolheads.shape.bedMargin
+> | null>({
+	key: 'PrinterBedMargin',
+	default: null,
+	effects: [
+		moonrakerWriteEffect(),
+		syncEffect({
+			refine: getRefineCheckerForZodSchema(PrinterDefinitionWithResolvedToolheads.shape.bedMargin.nullable()),
+		}),
+	],
+});
+
 export const ControlboardState = atom<Board | null>({
 	key: 'Controlboard',
 	default: null,

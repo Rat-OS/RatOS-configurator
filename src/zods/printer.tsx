@@ -59,8 +59,8 @@ export const PrinterDefinition = z
 				x: z.tuple([z.number().default(0), z.number().default(0)]),
 				y: z.tuple([z.number().default(0), z.number().default(0)]),
 			})
-			.describe('Margin of available movement around the bed for this printer')
-			.default({ x: [0, 0], y: [0, 0] }),
+			.default({ x: [0, 0], y: [0, 0] })
+			.describe('Margin of available movement around the bed for this printer'),
 		speedLimits: z
 			.object({
 				basic: SpeedLimits,

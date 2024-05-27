@@ -11,6 +11,7 @@ import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { FireIcon } from '@heroicons/react/24/solid';
 import {
 	BasePrinterRail,
+	Limits,
 	PrinterAxis,
 	PrinterRailDefinition,
 	getSupportedVoltages,
@@ -20,11 +21,14 @@ import { deserializeDriver, serializePrinterRail } from '@/utils/serialization';
 import { PrinterRailState, PrinterRailsState } from '@/recoil/printer';
 import { useToolheads } from '@/hooks/useToolheadConfiguration';
 import { trpc } from '@/utils/trpc';
-import { twMerge } from 'tailwind-merge';
+import { twJoin, twMerge } from 'tailwind-merge';
 import { z } from 'zod';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Card } from '@/components/common/card';
 import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { PrinterSizeDefinition } from '@/zods/printer';
+import { usePrinterDimensions } from '@/hooks/usePrinterConfiguration';
+import { Toggle } from '@/components/forms/toggle';
 
 const railArray = z.array(BasePrinterRail);
 
@@ -33,6 +37,8 @@ interface PrinterRailSettingsProps {
 	printerRail: Zod.infer<typeof BasePrinterRail>;
 	printerRailDefault: Zod.infer<typeof PrinterRailDefinition>;
 	performanceMode?: boolean | null;
+	showPositions?: boolean;
+	showStepperDirection?: boolean;
 	errors?: z.inferFormattedError<typeof BasePrinterRail>;
 	/**
 	 * This component should always be rendered to ensure the settings are updated when
@@ -50,6 +56,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 	const [performanceMode, setPerformanceMode] = useState(!!props.performanceMode);
 	const setPrinterRail = useSetRecoilState(PrinterRailState(props.printerRail.axis));
 	const printerRails = useRecoilValue(PrinterRailsState);
+	const dimensions = usePrinterDimensions();
 	const [motorSlot, setMotorSlot] = useState(
 		props.printerRail.motorSlot && props.selectedBoard?.motorSlots?.[props.printerRail.motorSlot]
 			? props.printerRail.motorSlot
@@ -232,28 +239,6 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 		}
 	}, [supportedVoltages, voltage, recommendedPreset]);
 
-	useEffect(() => {
-		const newState = {
-			axis: props.printerRail.axis,
-			axisDescription: props.printerRail.axisDescription,
-			rotationDistance: props.printerRail.rotationDistance,
-			homingSpeed: homingSpeed,
-			motorSlot: motorSlot,
-			driver,
-			voltage: voltage.id,
-			stepper,
-			current,
-		};
-		const serializedNew = serializePrinterRail(newState);
-		const serializedOld = serializePrinterRail(props.printerRail);
-		const isDirty = Object.keys(serializedNew).some((key) => {
-			return serializedNew[key as keyof typeof serializedNew] !== serializedOld[key as keyof typeof serializedNew];
-		});
-		if (isDirty) {
-			setPrinterRail(serializedNew);
-		}
-	}, [current, driver, props.printerRail, homingSpeed, setPrinterRail, stepper, voltage.id, motorSlot]);
-
 	const isRecommendedPresetCompatible = recommendedPreset && recommendedPreset.run_current === current;
 	const railName =
 		props.printerRail.axis === 'extruder'
@@ -298,6 +283,99 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 			(props.printerRailDefault.axis.startsWith('x') || props.printerRailDefault.axis.startsWith('y')) && !hasDiagPin;
 		return !hasDiagPin && disabled ? ({ children: 'No diag pin', color: 'red' } satisfies BadgeProps) : undefined;
 	}, [board, motorSlot, props.printerRailDefault.axis]);
+
+	// Limits and directionality
+	let initialMin = undefined;
+	let initialMax = undefined;
+	let initialEndstop = undefined;
+
+	switch (props.printerRail.axis) {
+		case PrinterAxis.x:
+			initialMin = props.printerRail.axisMinimum ?? 0 - dimensions.margin.x[0];
+			initialMax = props.printerRail.axisMaximum ?? dimensions.x + dimensions.margin.x[1];
+			initialEndstop =
+				props.printerRailDefault.endstopPosition === 'min'
+					? 0 - dimensions.margin.x[0]
+					: dimensions.x + dimensions.margin.x[1];
+			break;
+		case PrinterAxis.y:
+			initialMin = props.printerRail.axisMinimum ?? 0 - dimensions.margin.y[0];
+			initialMax = props.printerRail.axisMaximum ?? dimensions.y + dimensions.margin.y[1];
+			initialEndstop =
+				props.printerRailDefault.endstopPosition === 'min'
+					? 0 - dimensions.margin.y[0]
+					: dimensions.y + dimensions.margin.y[1];
+			break;
+		case PrinterAxis.z:
+			initialMin = props.printerRail.axisMinimum ?? 0;
+			initialMax = props.printerRail.axisMaximum ?? dimensions.z;
+			break;
+		case PrinterAxis.dual_carriage:
+			initialMin = props.printerRail.axisMinimum ?? 0 - dimensions.margin.x[0];
+			initialMax = props.printerRail.axisMaximum ?? dimensions.x + dimensions.margin.x[1];
+			initialEndstop =
+				props.printerRailDefault.endstopPosition === 'min'
+					? 0 - dimensions.margin.x[0]
+					: dimensions.x + dimensions.margin.x[1];
+			break;
+	}
+
+	const [axisMinimum, setAxisMinimum] = useState(initialMin);
+	const [axisMaximum, setAxisMaximum] = useState(initialMax);
+	const [axisEndstop, setAxisEndstop] = useState(initialEndstop);
+	const [invertStepperDirection, setInvertStepperDirection] = useState(props.printerRail.invertStepperDirection);
+
+	const limitsValidation = Limits.safeParse({
+		min: axisMinimum,
+		max: axisMaximum,
+		endstop: axisEndstop,
+	});
+
+	useEffect(() => {
+		const newState = {
+			axis: props.printerRail.axis,
+			...(limitsValidation.success
+				? { axisMinimum, axisMaximum, axisEndstop }
+				: {
+						axisMinimum: props.printerRail.axisMinimum,
+						axisMaximum: props.printerRail.axisMaximum,
+						axisEndstop: props.printerRail.axisEndstop,
+					}),
+			invertStepperDirection: invertStepperDirection,
+			axisDescription: props.printerRail.axisDescription,
+			rotationDistance: props.printerRail.rotationDistance,
+			homingSpeed: homingSpeed,
+			motorSlot: motorSlot,
+			driver,
+			voltage: voltage.id,
+			stepper,
+			current,
+		};
+		const serializedNew = serializePrinterRail(newState);
+		const serializedOld = serializePrinterRail(props.printerRail);
+		const isDirty = Object.keys(serializedNew).some((key) => {
+			return serializedNew[key as keyof typeof serializedNew] !== serializedOld[key as keyof typeof serializedNew];
+		});
+		if (isDirty) {
+			setPrinterRail(serializedNew);
+		}
+	}, [
+		current,
+		driver,
+		props.printerRail,
+		homingSpeed,
+		setPrinterRail,
+		stepper,
+		voltage.id,
+		motorSlot,
+		axisEndstop,
+		axisMaximum,
+		axisMinimum,
+		invertStepperDirection,
+		limitsValidation.success,
+	]);
+
+	const axisCols = axisMinimum != null && axisMaximum != null && axisEndstop != null ? 3 : 2;
 	return (
 		<AnimatePresence>
 			{props.isVisible && (
@@ -307,7 +385,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 					initial={{ opacity: 0, scale: 0.9, y: 40 }}
 					animate={{ opacity: 1, scale: 1, y: 0 }}
 					className={twMerge(
-						'break-inside-avoid-column',
+						'break-inside-avoid-column @container',
 						errorCount > 0 && badgeBorderColorStyle({ color: 'red' }),
 						errorCount > 0 && badgeBackgroundColorStyle({ color: 'red' }),
 					)}
@@ -318,9 +396,80 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 							{props.printerRail.axisDescription}
 						</CardDescription>
 					</CardHeader>
-					<CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+					<CardContent className="grid grid-cols-1 gap-4 @xs:grid-cols-2">
+						{props.showPositions && (
+							<div className={twJoin('col-span-full grid grid-cols-2 gap-4', axisCols === 3 && '@xs:grid-cols-3')}>
+								{axisMinimum != null && (
+									<div>
+										<TextInput
+											type="number"
+											label="Minimum Position"
+											error={
+												limitsValidation.success ? undefined : limitsValidation.error.formErrors.fieldErrors.min?.[0]
+											}
+											value={axisMinimum ?? undefined}
+											onChange={(val) => setAxisMinimum(parseInt(val + '', 10))}
+											inputMode="decimal"
+											step="any"
+											min={-1 * dimensions.margin.x[0]}
+										/>
+									</div>
+								)}
+								{axisMaximum != null && (
+									<div>
+										<TextInput
+											type="number"
+											label="Maximum Position"
+											error={
+												limitsValidation.success ? undefined : limitsValidation.error.formErrors.fieldErrors.max?.[0]
+											}
+											value={axisMaximum ?? undefined}
+											onChange={(val) => setAxisMaximum(parseInt(val + '', 10))}
+											inputMode="decimal"
+											step="any"
+											max={dimensions.x + dimensions.margin.x[1]}
+										/>
+									</div>
+								)}
+								{axisEndstop != null && (
+									<div className={twJoin(axisCols === 3 ? 'col-span-full @xs:col-span-1' : 'col-span-1')}>
+										<TextInput
+											type="number"
+											label="Endstop Position"
+											error={
+												limitsValidation.success
+													? undefined
+													: limitsValidation.error.formErrors.fieldErrors.endstop?.[0]
+											}
+											value={axisEndstop ?? undefined}
+											onChange={(val) => setAxisEndstop(parseInt(val + '', 10))}
+											inputMode="decimal"
+											step="any"
+											min={axisMinimum}
+											max={axisMaximum}
+										/>
+									</div>
+								)}
+								<div className="col-span-full h-px bg-zinc-100/10" />
+							</div>
+						)}
+						{props.showStepperDirection && (
+							<>
+								{invertStepperDirection != null && (
+									<div className="col-span-full">
+										<Toggle
+											label="Invert Stepper Direction"
+											description="Enabling this will make the stepper motor turn in the opposite direction."
+											onChange={setInvertStepperDirection}
+											value={!!invertStepperDirection}
+										/>
+									</div>
+								)}
+								<div className="col-span-full h-px w-full bg-zinc-100/10" />
+							</>
+						)}
 						{motorSlotOptions && (
-							<div className="col-span-2">
+							<div className="col-span-full">
 								<Dropdown
 									label="Motor Slot"
 									options={motorSlotOptions}
@@ -336,7 +485,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 								/>
 							</div>
 						)}
-						<div className="col-span-2">
+						<div className="col-span-full">
 							<Dropdown
 								label="Driver"
 								options={supportedDrivers}
@@ -351,7 +500,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 								].filter(Boolean)}
 							/>
 						</div>
-						<div className="col-span-2">
+						<div className="col-span-full">
 							<Dropdown label="Stepper" options={steppers} onSelect={setStepper} value={stepper} />
 						</div>
 						<div className="col-span-1">
@@ -370,13 +519,13 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 							/>
 						</div>
 						{stepper.maxPeakCurrent / 1.41 < current && (
-							<Banner Icon={FireIcon} color="yellow" title="Stepper overcurrent!" className="col-span-2">
+							<Banner Icon={FireIcon} color="yellow" title="Stepper overcurrent!" className="col-span-full">
 								Your stepper motor is rated for {Math.floor((stepper.maxPeakCurrent * 100) / 1.41) / 100}A RMS, but you
 								are using {current}A.
 							</Banner>
 						)}
 						{matchingPreset != null && (
-							<Banner Icon={LightBulbIcon} color="brand" title="Driver tuning applied!" className="col-span-2">
+							<Banner Icon={LightBulbIcon} color="brand" title="Driver tuning applied!" className="col-span-full">
 								RatOS preset applied automatically.
 							</Banner>
 						)}
@@ -387,7 +536,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 									Icon={BoltIcon}
 									color="sky"
 									title="Recommended tuning preset available at different current"
-									className="col-span-2"
+									className="col-span-full"
 								>
 									RatOS has a recommended preset for your current settings at {recommendedPreset.run_current}A. You can{' '}
 									<span

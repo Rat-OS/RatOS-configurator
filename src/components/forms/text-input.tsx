@@ -10,6 +10,7 @@ interface TextInputProps<T extends string | number>
 	extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
 	error?: string;
 	label: string;
+	description?: string;
 	help?: string;
 	value?: T;
 	onChange?: (val: T) => void;
@@ -74,6 +75,7 @@ export const TextInput = <T extends string | number>(props: TextInputProps<T>) =
 	return (
 		<div>
 			<Label className="block text-sm font-semibold leading-6 text-zinc-700 dark:text-zinc-300">{props.label}</Label>
+			{props.description && <p className="text-sm text-zinc-500 dark:text-zinc-400">{props.description}</p>}
 			<div className="relative rounded-md shadow-sm">
 				<Input
 					{...props}

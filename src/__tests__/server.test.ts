@@ -43,6 +43,7 @@ const serializedConfigFromDefaults = (printer: PrinterDefinition): SerializedPri
 			}
 			return t;
 		}),
+		bedMargin: printer.bedMargin,
 		size: printer.sizes[Object.keys(printer.sizes)[0] as keyof typeof printer.sizes],
 		controlboard: printer.defaults.board,
 		printer: printer.id,

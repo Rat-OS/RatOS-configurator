@@ -173,10 +173,10 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 						</div>
 					</div>
 				</AnimatedContainer>
-				<div>
+				<div className="@container">
 					{selectedPrinter && (
 						<LayoutGroup id="rails">
-							<AnimatedContainer className="grid gap-4 py-4 sm:grid-cols-2">
+							<AnimatedContainer className="grid grid-cols-1 gap-4 py-4 @xl:grid-cols-2">
 								{selectedPrinterRails.map((rail, ri) => {
 									const defaultRail = selectedPrinter.defaults.rails.find((r) => r.axis === rail.axis);
 									if (defaultRail == null) {

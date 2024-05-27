@@ -139,7 +139,7 @@ export const BasePrinterRail = z.object({
 	driver: Driver.describe('Stepper driver used on this axis'),
 	voltage: Voltage.default(StepperVoltage['24V']).describe('Voltage of the stepper driver'),
 	stepper: Stepper.describe('Stepper motor connected to this axis'),
-	invertStepperDirection: z.boolean().default(false).describe('Invert the default direction of the stepper motor'),
+	invertStepperDirection: z.boolean().default(false).describe('Invert the direction of the stepper motor'),
 	axisMinimum: z.number().optional().describe('Minimum position of the axis in mm'),
 	axisMaximum: z.number().optional().describe('Maximum position of the axis in mm'),
 	axisEndstop: z.number().optional().describe('Endstop position of the axis in mm'),
@@ -162,8 +162,13 @@ export const BasePrinterRail = z.object({
 		),
 });
 
-export const PrinterRailDefinition = BasePrinterRail.extend({
+export const PrinterRailDefinition = BasePrinterRail.omit({
+	axisMaximum: true,
+	axisMinimum: true,
+	axisEndstop: true,
+}).extend({
 	motorSlot: z.undefined(),
+	endstopPosition: z.union([z.literal('max'), z.literal('min')]).default('min'),
 	performanceMode: z
 		.object({
 			current: z.number().min(0),
@@ -184,16 +189,81 @@ export const PrinterRail = BasePrinterRail
 	// 	(data) => data.current <= data.stepper.maxPeakCurrent / 1.41,
 	// 	'Current must be less than max peak current of the stepper divided by 1.41',
 	// )
-	.refine((data) => data.current <= data.driver.maxCurrent, 'Current must be less than max current of the driver');
+	.refine((data) => data.current <= data.driver.maxCurrent, 'Current must be less than max current of the driver')
+	.superRefine((arg, ctx) => {
+		if (arg.axisMinimum != null && arg.axisMaximum != null && arg.axisMinimum > arg.axisMaximum) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.too_big,
+				maximum: arg.axisMaximum,
+				inclusive: true,
+				message: `Minimum position must be less than maximum position (${arg.axisMaximum})`,
+				path: ['axisMinimum'],
+				type: 'number',
+			});
+		}
+		if (arg.axisEndstop != null && arg.axisMinimum != null && arg.axisEndstop < arg.axisMinimum) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.too_small,
+				minimum: arg.axisMinimum,
+				inclusive: true,
+				message: `Endstop position must be between minimum (${arg.axisMinimum}) and maximum position (${arg.axisMaximum})`,
+				path: ['axisEndstop'],
+				type: 'number',
+			});
+		}
+		if (arg.axisEndstop != null && arg.axisMaximum != null && arg.axisEndstop > arg.axisMaximum) {
+			ctx.addIssue({
+				maximum: arg.axisMaximum,
+				inclusive: true,
+				code: z.ZodIssueCode.too_big,
+				message: `Endstop position must be between minimum (${arg.axisMinimum}) and maximum position (${arg.axisMaximum})`,
+				path: ['axisEndstop'],
+				type: 'number',
+			});
+		}
+	});
 
 export const SerializedPrinterRail = BasePrinterRail.extend({
 	driver: Driver.shape.id,
 	stepper: Stepper.shape.id,
 });
 
-export const Limits = z.object({
-	min: z.number(),
-	max: z.number(),
-	endstop: z.number(),
-});
+export const Limits = z
+	.object({
+		min: z.number(),
+		max: z.number(),
+		endstop: z.number(),
+	})
+	.superRefine((arg, ctx) => {
+		if (arg.min > arg.max) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.too_big,
+				maximum: arg.max,
+				inclusive: true,
+				message: 'Minimum must be less than maximum',
+				path: ['min'],
+				type: 'number',
+			});
+		}
+		if (arg.endstop < arg.min) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.too_small,
+				minimum: arg.min,
+				inclusive: true,
+				message: 'Endstop must be between minimum and maximum',
+				path: ['endstop'],
+				type: 'number',
+			});
+		}
+		if (arg.endstop > arg.max) {
+			ctx.addIssue({
+				maximum: arg.max,
+				inclusive: true,
+				code: z.ZodIssueCode.too_big,
+				message: 'Endstop must be between minimum and maximum',
+				path: ['endstop'],
+				type: 'number',
+			});
+		}
+	});
 export type Limits = z.infer<typeof Limits>;

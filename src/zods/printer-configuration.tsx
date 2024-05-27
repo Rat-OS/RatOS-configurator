@@ -13,9 +13,20 @@ import { z } from 'zod';
 
 export const PrinterSize = z.union([PrinterSizeDefinition, z.number(), z.string()]).nullable().optional();
 
+export const PrinterDimensions = z.object({
+	x: z.number().min(0),
+	y: z.number().min(0),
+	z: z.number().min(0),
+	margin: z.object({
+		x: z.tuple([z.number().default(0), z.number().default(0)]),
+		y: z.tuple([z.number().default(0), z.number().default(0)]),
+	}),
+});
+
 const BasePrinterConfiguration = z
 	.object({
 		printer: PrinterDefinition,
+		bedMargin: PrinterDefinition.shape.bedMargin,
 		controlboard: Board,
 		toolheads: z.array(ToolheadConfiguration).min(1).max(2),
 		size: PrinterSize,
@@ -40,7 +51,13 @@ const BasePrinterConfiguration = z
 			}
 			data.size = size;
 		}
-		return data as Omit<typeof data, 'size'> & { size: z.output<typeof PrinterSizeDefinition> };
+		if (data.bedMargin == null) {
+			data.bedMargin = data.printer.bedMargin;
+		}
+		return data as Omit<typeof data, 'size' | 'bedMargin'> & {
+			size: z.output<typeof PrinterSizeDefinition>;
+			bedMargin: z.output<typeof PrinterDefinition.shape.bedMargin>;
+		};
 	});
 
 export const PrinterConfiguration = BasePrinterConfiguration.superRefine((arg, ctx) => {

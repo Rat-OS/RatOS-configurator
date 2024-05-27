@@ -12,7 +12,7 @@ interface ToggleProps {
 
 export const Toggle: React.FC<ToggleProps> = (props) => {
 	return (
-		<Switch.Group as="div" className="flex items-center justify-between gap-x-2">
+		<Switch.Group as="div" className="flex items-center justify-between gap-x-4">
 			<span className="flex flex-grow flex-col">
 				<Switch.Label
 					as="span"
