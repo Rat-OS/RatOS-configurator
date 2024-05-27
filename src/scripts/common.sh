@@ -13,6 +13,18 @@ report_status()
     echo -e "\n\n###### $1"
 }
 
+update_npm()
+{
+    report_status "Updating npm..."
+    npm install -g npm
+}
+
+update_pnpm()
+{
+    report_status "Updating pnpm..."
+    npm install -g pnpm
+}
+
 pnpm_install() {
     pushd "$SRC_DIR" || exit 1
 	if [ "$EUID" -eq 0 ]; then
