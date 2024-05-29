@@ -31,14 +31,14 @@ declare namespace __next_route_internal_types__ {
   type StaticRoutes = 
     | `/api/dfu-image`
     | `/api/download-firmware`
-    | `/api/mcu-image`
     | `/api/printer-image`
+    | `/api/mcu-image`
     | `/`
     | `/calibration`
     | `/motion`
-    | `/wizard`
     | `/toolhead`
     | `/analysis`
+    | `/wizard`
     | `/analysis/macros`
     | `/analysis/macros/new`
   type DynamicRoutes<T extends string = string> = 
