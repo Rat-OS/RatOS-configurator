@@ -11,9 +11,8 @@ export const queryPrinterState = async (): Promise<
 	} catch (e) {
 		if (
 			e instanceof Error &&
-			e.cause ===
-				(MoonrakerPrinterStateErrorEnum.MOONRAKER_OFFLINE ||
-					e.cause === MoonrakerPrinterStateErrorEnum.MOONRAKER_INTERNAL_ERROR)
+			(e.cause === MoonrakerPrinterStateErrorEnum.MOONRAKER_OFFLINE ||
+				e.cause === MoonrakerPrinterStateErrorEnum.MOONRAKER_INTERNAL_ERROR)
 		) {
 			return 'error';
 		} else if (e instanceof ZodError) {
