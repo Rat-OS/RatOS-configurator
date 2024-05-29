@@ -44,7 +44,7 @@ export const parseMoonrakerHTTPResponse = async <T extends z.ZodType<z.output<ty
 		}
 		const toThrow = new Error('Error fetching moonraker response');
 		toThrow.cause = MoonrakerPrinterStateErrorEnum.MOONRAKER_OFFLINE;
-		throw new Error('Error fetching moonraker response');
+		throw toThrow;
 	}
 	const jsonResult = await response.json();
 	try {
