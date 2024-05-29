@@ -27,7 +27,7 @@ const LoadScreen: React.FC = () => {
 export default function Page() {
 	const isClient = useIsClient();
 	return isClient ? (
-		<div className="mt-8 grid grid-cols-1 gap-6 @container">
+		<div className="grid grid-cols-1 gap-6 @container">
 			<PrinterStateHeader
 				title="Motion Settings"
 				description="You can change your motion settings below, be aware that any change will require the config to be regenerated"

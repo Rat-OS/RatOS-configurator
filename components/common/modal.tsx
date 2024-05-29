@@ -24,7 +24,9 @@ import {
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { Spinner } from '@/components/common/spinner';
 import { Check } from 'lucide-react';
-import { twJoin } from 'tailwind-merge';
+import { twJoin, twMerge } from 'tailwind-merge';
+import { toast } from 'sonner';
+import { ButtonVariantProps } from '@/components/common/button';
 
 interface ModalProps extends React.PropsWithChildren {
 	title: string;
@@ -33,24 +35,61 @@ interface ModalProps extends React.PropsWithChildren {
 	content?: React.ReactNode;
 	success?: boolean;
 	buttonLabel: string;
+	buttonVariant?: ButtonVariantProps['variant'];
+	secondButtonLabel?: string;
+	secondButtonVariant?: ButtonVariantProps['variant'];
 	onClick?: () => any | Promise<any>;
+	onClickSecondButton?: () => any | Promise<any>;
 	onClose?: () => void;
 }
 
 export function Modal(props: ModalProps) {
-	const { onClick, onClose } = props;
+	const { onClick, onClose, onClickSecondButton } = props;
 	const [open, setOpen] = useState(props.children == null);
-	const [isCompletingClick, setIsCompletingClick] = useState(false);
+	const [isCompletingClick, setIsCompletingClick] = useState<1 | 2 | false>(false);
 	const onButtonClick = useCallback(async () => {
 		const clickRes = onClick?.();
 		if (clickRes instanceof Promise) {
-			setIsCompletingClick(true);
-			await clickRes;
-			setIsCompletingClick(false);
+			setIsCompletingClick(1);
+			try {
+				await clickRes;
+				onClose?.();
+				setOpen(false);
+			} catch (e) {
+				if (e instanceof Error) {
+					toast.error(e.message);
+				}
+				throw e;
+			} finally {
+				setIsCompletingClick(false);
+			}
+		} else {
+			onClose?.();
+			setOpen(false);
 		}
-		onClose?.();
-		setOpen(false);
 	}, [onClick, onClose]);
+
+	const _onClickSecondButton = useCallback(async () => {
+		const clickRes = onClickSecondButton?.();
+		if (clickRes instanceof Promise) {
+			setIsCompletingClick(2);
+			try {
+				await clickRes;
+				onClose?.();
+				setOpen(false);
+			} catch (e) {
+				if (e instanceof Error) {
+					toast.error(e.message);
+				}
+				throw e;
+			} finally {
+				setIsCompletingClick(false);
+			}
+		} else {
+			onClose?.();
+			setOpen(false);
+		}
+	}, [onClickSecondButton, onClose]);
 
 	const onDialogClose = useCallback(() => {
 		onClose?.();
@@ -86,10 +125,20 @@ export function Modal(props: ModalProps) {
 						</DialogHeader>
 					</div>
 					{props.content && <div className="col-span-2 grid gap-2">{props.content}</div>}
-					<div className="col-span-2 grid grid-cols-2 gap-2">
-						<Button variant="info" onClick={onButtonClick}>
+					<div
+						className={twJoin(
+							'col-span-2 grid gap-2',
+							props.secondButtonLabel && props.onClickSecondButton ? 'grid-cols-3' : 'grid-cols-2',
+						)}
+					>
+						<Button variant={props.buttonVariant ?? 'info'} onClick={onButtonClick}>
 							{props.buttonLabel} {isCompletingClick && <Spinner noMargin={true} />}
 						</Button>
+						{props.secondButtonLabel && props.onClickSecondButton && (
+							<Button variant={props.secondButtonVariant ?? 'indeterminate'} onClick={_onClickSecondButton}>
+								{props.secondButtonLabel}
+							</Button>
+						)}
 						<Button variant="outline" onClick={onDialogClose}>
 							Cancel
 						</Button>
