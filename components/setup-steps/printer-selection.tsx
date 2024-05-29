@@ -124,7 +124,7 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 
 	const onSelectPrinter = useRecoilCallback(
 		({ set, reset, snapshot }) =>
-			async (card: SelectedCard<Unpacked<typeof cards>>, option: SelectableOption | null) => {
+			async (card: SelectedCard<Unpacked<typeof cards>>, option: SelectableOption | null, merge: boolean) => {
 				const printer = card.printer;
 				if (printer == null) {
 					getLogger().error(card, 'No printer found matching the criteria');
@@ -147,26 +147,40 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 					return;
 				}
 				const oldToolheads = await snapshot.getPromise(PrinterToolheadsState);
-				oldToolheads.forEach((th) => {
-					reset(PrinterToolheadState(th.toolNumber));
-				});
-				set(
-					PrinterToolheadsState,
-					printer.defaults.toolheads.map((th) => ({ ...th, toolNumber: new ToolheadHelper(th).getTool() })),
-				);
-				reset(PerformanceModeState);
-				reset(StealthchopState);
-				reset(StandstillStealthState);
-				reset(ControllerFanState);
-				reset(PrinterRailsState);
-				const defaultBoard = boardQuery.data?.find((b) => b.id === printer.defaults.board);
-				if (defaultBoard != null) {
-					set(ControlboardState, defaultBoard);
-				}
-				if (printer.defaults.controllerFan) {
-					set(ControllerFanState, { id: printer.defaults.controllerFan, title: printer.defaults.controllerFan });
-				} else {
+				if (!merge) {
+					oldToolheads.forEach((th) => {
+						reset(PrinterToolheadState(th.toolNumber));
+					});
+					set(
+						PrinterToolheadsState,
+						printer.defaults.toolheads.map((th) => ({ ...th, toolNumber: new ToolheadHelper(th).getTool() })),
+					);
+					reset(PerformanceModeState);
+					reset(StealthchopState);
+					reset(StandstillStealthState);
 					reset(ControllerFanState);
+					reset(PrinterRailsState);
+					const defaultBoard = boardQuery.data?.find((b) => b.id === printer.defaults.board);
+					if (defaultBoard != null) {
+						set(ControlboardState, defaultBoard);
+					}
+					if (printer.defaults.controllerFan) {
+						set(ControllerFanState, { id: printer.defaults.controllerFan, title: printer.defaults.controllerFan });
+					} else {
+						reset(ControllerFanState);
+					}
+				} else {
+					if (oldToolheads.length > printer.defaults.toolheads.length) {
+						oldToolheads.slice(printer.defaults.toolheads.length).forEach((th) => {
+							reset(PrinterToolheadState(th.toolNumber));
+						});
+					}
+					if (oldToolheads.length < printer.defaults.toolheads.length) {
+						printer.defaults.toolheads.slice(oldToolheads.length).forEach((th) => {
+							const toolNumber = new ToolheadHelper(th).getTool();
+							set(PrinterToolheadState(toolNumber), { ...oldToolheads[0], toolNumber });
+						});
+					}
 				}
 			},
 		[printerQuery.data],
@@ -180,7 +194,7 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 	const beforeSelectPrinter = useCallback(
 		(card: SelectedCard<Unpacked<typeof cards>>, option: SelectableOption | null) => {
 			if (selectedPrinter == null) {
-				onSelectPrinter(card, option);
+				onSelectPrinter(card, option, false);
 				setIsModalVisible(false);
 				return;
 			}
@@ -194,7 +208,7 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 				if (selectedPrinterOption === option) {
 					return;
 				}
-				onSelectPrinter(card, option);
+				onSelectPrinter(card, option, true);
 				return;
 			}
 			pendingSelection.current = { card, option };
@@ -239,17 +253,20 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 			</div>
 			{isModalVisible && (
 				<Modal
-					title="Are you sure?"
-					buttonLabel={`Select ${pendingSelection.current?.card.printer.name}`}
-					onClick={() => onSelectPrinter(pendingSelection.current!.card, pendingSelection.current!.option)}
-					success={true}
-					body="Selecting a new printer will reset your configurator settings."
+					title="How do you want to proceed?"
+					buttonLabel={`Reuse configuration`}
+					secondButtonLabel="Start fresh"
+					onClickSecondButton={() =>
+						onSelectPrinter(pendingSelection.current!.card, pendingSelection.current!.option, false)
+					}
+					onClick={() => onSelectPrinter(pendingSelection.current!.card, pendingSelection.current!.option, true)}
+					body={`You already configured a printer, do you want to reuse your existing hardware configuration or start fresh from the ${pendingSelection.current?.card.printer.name} defaults?`}
 					content={
 						<AnimatedContainer>
 							{lastSavedSettingsQuery.data && (
-								<Banner color="sky" Icon={ShieldCheck} title="Your existing configuration is safe!">
-									Your klipper configuration will be safe until you explicitly save a new hardware configuration at the
-									end of the wizard.
+								<Banner color="sky" Icon={ShieldCheck} title="Your klipper configuration is safe!">
+									Your existing klipper configuration will be safe until you explicitly save a new hardware
+									configuration at the end of the wizard.
 								</Banner>
 							)}
 						</AnimatedContainer>
