@@ -383,12 +383,12 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 				result.push(`cycle_time:  0.00004`);
 				break;
 			case '4pin-dedicated':
-				this.requireControlboardPin('4p_fan_part_cooling_tach_pin');
+				this.requireControlboardPin('4p_toolhead_cooling_tach_pin');
 				result.push(`# 4-pin fan connected to a dedicated 4-pin fan header on the controller board`);
-				result.push(`pin: ${this.controlboardPins?.['4p_fan_part_cooling_tach_pin']}`);
+				result.push(`pin: ${this.controlboardPins?.['4p_toolhead_cooling_tach_pin']}`);
 				result.push(`cycle_time:  0.00004`);
-				if (this.controlboardPins?.['4p_fan_part_cooling_tach_pin'] != null) {
-					result.push(`tachometer_pin: ^${this.controlboardPins?.['4p_fan_part_cooling_tach_pin']}`);
+				if (this.controlboardPins?.['4p_toolhead_cooling_tach_pin'] != null) {
+					result.push(`tachometer_pin: ^${this.controlboardPins?.['4p_toolhead_cooling_tach_pin']}`);
 					result.push(`tachometer_poll_interval: 0.0005`);
 				}
 				break;
