@@ -1,3 +1,4 @@
+'use client';
 import { XMarkIcon, Bars3Icon, BookOpenIcon } from '@heroicons/react/24/outline';
 import { motion } from 'framer-motion';
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
@@ -8,7 +9,8 @@ import { Signal, useNewSignal, useSignal } from '@/app/_helpers/signal';
 import * as Menu from '@/components/ui/menubar';
 import Link from 'next/link';
 import { CircleHelp, ExternalLink } from 'lucide-react';
-import { HelpActions } from '@/components/common/help-actions';
+import { useHelpActions } from '@/components/common/help-actions';
+import { NoSSR } from '@/components/common/no-ssr';
 
 type MenuId = Nominal<string, 'MenuId'>;
 type MenuEntryRenderer = (menu: typeof Menu) => React.ReactNode;
@@ -88,6 +90,7 @@ export const TopMenu: React.FC<TopMenuProps> = ({ sidebarOpen, setSidebarOpen, m
 			setMenu(Array.from(menus.current.values()));
 		}, [menus]),
 	);
+	const helpActions = useHelpActions();
 	return (
 		<motion.div
 			className={twJoin(
@@ -115,7 +118,7 @@ export const TopMenu: React.FC<TopMenuProps> = ({ sidebarOpen, setSidebarOpen, m
 								<Menu.MenubarIcon Icon={CircleHelp} /> <span className="hidden lg:inline">Help</span>
 							</Menu.MenubarTrigger>
 							<Menu.MenubarContent onCloseAutoFocus={(e) => e.preventDefault()}>
-								<HelpActions />
+								{helpActions.menuItems}
 								<Menu.MenubarSeparator />
 								<Menu.MenubarItem asChild={true} className="gap-2">
 									<Link href="https://os.ratrig.com/docs/introduction" target="_blank" rel="noreferrer">
@@ -145,6 +148,7 @@ export const TopMenu: React.FC<TopMenuProps> = ({ sidebarOpen, setSidebarOpen, m
 						</Menu.MenubarMenu>
 					</Menu.Menubar>
 				</div>
+				{helpActions.modals}
 			</div>
 		</motion.div>
 	);

@@ -4,7 +4,7 @@ import { Badge } from '@/components/common/badge';
 import { useMainsailQuery } from '@/hooks/useMainsail';
 import { useMoonrakerQuery, usePrinterObjectQuery } from '@/moonraker/hooks';
 import { trpc } from '@/utils/trpc';
-import React, { useMemo } from 'react';
+import React, { Fragment, useMemo } from 'react';
 import { KlippyStateBadge } from '@/components/klippy-state-badge';
 import { MoonrakerStateBadge } from '@/components/moonraker-state-badge';
 import { LoadablePrinterState } from '@/recoil/printer';
@@ -30,12 +30,10 @@ export const PrinterHeader: React.FC<PrinterHeaderProps> = (props) => {
 						<h1 className="flex gap-x-3 text-base leading-7">
 							{props.breadcrumb?.map((bc, index) => {
 								return (
-									<>
-										<span className="font-semibold text-white" key={index}>
-											{bc}
-										</span>
+									<Fragment key={index}>
+										<span className="font-semibold text-white">{bc}</span>
 										{index < (props.breadcrumb?.length ?? 0) - 1 && <span className="text-zinc-400">/</span>}
-									</>
+									</Fragment>
 								);
 							})}
 						</h1>
