@@ -3,7 +3,7 @@ import { ReadAtomInterface, syncEffect } from 'recoil-sync';
 import { z } from 'zod';
 import { getRefineCheckerForZodSchema } from 'zod-refine';
 import { trpcClient } from '@/helpers/trpc';
-import { BoardPath, Toolboard } from '@/zods/boards';
+import { BoardID, BoardPath, Toolboard } from '@/zods/boards';
 import { PrinterAxis } from '@/zods/motion';
 import {
 	BaseToolheadConfiguration,
@@ -53,10 +53,10 @@ export const PrinterToolheadState = atomFamily<
 						let freshToolboard = parsedToolhead.data.toolboard;
 						if (freshToolboard) {
 							if (freshToolboard != null) {
-								const toolboardPath = z.object({ path: BoardPath }).safeParse(freshToolboard);
+								const toolboardPath = z.object({ id: BoardID }).safeParse(freshToolboard);
 								if (toolboardPath.success) {
 									const boardReq = await trpcClient.mcu.boards.query({ boardFilters: { toolboard: true } });
-									const maybeToolboard = boardReq.find((b) => b.path === toolboardPath.data.path);
+									const maybeToolboard = boardReq.find((b) => b.id === toolboardPath.data.id);
 									if (maybeToolboard) {
 										freshToolboard = Toolboard.parse(maybeToolboard);
 									}

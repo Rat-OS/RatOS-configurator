@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { getRefineCheckerForZodSchema } from 'zod-refine';
 import { deserializePrinterRail, serializePrinterRail } from '@/utils/serialization';
 import { SerializedPrinterRail, PrinterAxis, PrinterRail } from '@/zods/motion';
-import { Board, BoardPath } from '@/zods/boards';
+import { Board, BoardID, BoardPath } from '@/zods/boards';
 import { moonrakerWriteEffect } from '@/components/sync-with-moonraker';
 import { PrinterSize } from '@/zods/printer-configuration';
 
@@ -111,10 +111,10 @@ export const ControlboardState = atom<Board | null>({
 			read: async ({ read }) => {
 				const board = await read(ControlboardState.key);
 				if (board != null) {
-					const boardId = z.object({ path: BoardPath }).safeParse(board);
+					const boardId = z.object({ id: BoardID }).safeParse(board);
 					if (boardId.success) {
 						const boardReq = await trpcClient.mcu.boards.query({ boardFilters: { toolboard: false } });
-						const newBoard = boardReq.find((b) => b.path === boardId.data.path);
+						const newBoard = boardReq.find((b) => b.id === boardId.data.id);
 						return newBoard ?? null;
 					}
 				}

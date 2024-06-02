@@ -99,7 +99,7 @@ export const PrinterConfigurationState = selector<z.infer<typeof PartialPrinterC
 			}),
 		);
 
-		const printerConfig = PartialPrinterConfiguration.safeParse({
+		const input = {
 			printer:
 				printer == null
 					? null
@@ -117,12 +117,17 @@ export const PrinterConfigurationState = selector<z.infer<typeof PartialPrinterC
 			rails,
 			controlboard,
 			controllerFan,
-			toolheads,
+			toolheads: toolheads.length > 0 ? toolheads : undefined,
 		} satisfies {
 			[key in keyof PrinterConfiguration]: NonNullable<PartialPrinterConfiguration>[key] | null | undefined;
-		});
+		};
+
+		const printerConfig = PartialPrinterConfiguration.safeParse(input);
 		if (printerConfig.success === false) {
-			getLogger().error(printerConfig.error.flatten().fieldErrors, "Couldn't parse printer configuration");
+			getLogger().error(
+				{ errors: printerConfig.error.flatten().fieldErrors, data: input },
+				"Couldn't parse printer configuration",
+			);
 		}
 		return printerConfig.success ? printerConfig.data : null;
 	},

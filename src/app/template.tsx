@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, Fragment } from 'react';
+import { useState, Fragment, Suspense } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { twJoin, twMerge } from 'tailwind-merge';
+import { twJoin } from 'tailwind-merge';
 import logoWhite from '@/public/logo-white.svg';
 import Image from 'next/image';
 import { trpc } from '@/utils/trpc';
@@ -11,59 +11,28 @@ import { SyncWithMoonraker } from '@/components/sync-with-moonraker';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import { HeroPattern } from '@/components/common/patterns';
 import { SidebarNav } from '@/app/sidebar-nav';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/common/button';
 import { MenuBarProvider, TopMenu, useMenuBarProvider } from '@/app/topmenu';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster } from '@/components/ui/sonner';
 import { scrollClasses } from '@/components/common/scroll-container';
+import { NoSSR } from '@/components/common/no-ssr';
 
-const getCurrentTheme = () => {
-	if (typeof window !== 'undefined') {
-		if (window.localStorage.theme === 'light') {
-			return 'light' as const;
-		}
-	}
-	return 'dark' as const;
-};
 // Create a client
 const queryClient = new QueryClient();
 
 function Template({ children }: { children: React.ReactNode }) {
-	// const [theme, setTheme] = useState<'dark' | 'light' | null>(null);
 	const [sidebarOpen, setSidebarOpen] = useState(false);
 	const menu = useMenuBarProvider();
-
-	// const onThemeChange = () => {
-	// 	if (getCurrentTheme() === 'dark') {
-	// 		document.documentElement.classList.add('dark', 'scrollbar-thumb-zinc-600');
-	// 	} else {
-	// 		document.documentElement.classList.remove('dark', 'scrollbar-thumb-zinc-400');
-	// 	}
-	// };
-
-	// useEffect(() => {
-	// 	setTheme(getCurrentTheme());
-	// }, []);
-
-	// useEffect(() => {
-	// 	onThemeChange();
-	// }, [theme]);
-
-	// const setDarkMode = () => {
-	// 	window.localStorage.theme = 'dark';
-	// 	setTheme('dark');
-	// };
-
-	// const setLightMode = () => {
-	// 	window.localStorage.theme = 'light';
-	// 	setTheme('light');
-	// };
-
-	// const setOSDefault = () => {
-	// 	window.localStorage.removeItem('theme');
-	// };
-
+	const topMenuFallback = (
+		<div
+			className={twJoin(
+				'fixed inset-0 z-50 flex h-14 items-center justify-between gap-12 transition lg:left-72 lg:z-30',
+				'border-b border-zinc-900/10 backdrop-blur-sm dark:border-white/10 dark:backdrop-blur lg:left-72',
+				!sidebarOpen && 'backdrop-blur-sm dark:backdrop-blur lg:left-72',
+				sidebarOpen ? 'bg-background' : 'bg-background/80 dark:bg-background/50',
+			)}
+		/>
+	);
 	return (
 		<QueryClientProvider client={queryClient}>
 			<RecoilRoot>
@@ -131,7 +100,11 @@ function Template({ children }: { children: React.ReactNode }) {
 									</div>
 								</div>
 								{/* Top menu */}
-								<TopMenu setSidebarOpen={setSidebarOpen} sidebarOpen={sidebarOpen} {...menu.topMenuProps} />
+								<NoSSR fallback={topMenuFallback}>
+									<Suspense fallback={topMenuFallback}>
+										<TopMenu setSidebarOpen={setSidebarOpen} sidebarOpen={sidebarOpen} {...menu.topMenuProps} />
+									</Suspense>
+								</NoSSR>
 							</div>
 							<Toaster />
 						</MenuBarProvider>

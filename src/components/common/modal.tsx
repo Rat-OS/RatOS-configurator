@@ -23,20 +23,24 @@ import {
 } from '@/components/ui/drawer';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { Spinner } from '@/components/common/spinner';
-import { Check } from 'lucide-react';
+import { Check, Cross } from 'lucide-react';
 import { twJoin, twMerge } from 'tailwind-merge';
 import { toast } from 'sonner';
 import { ButtonVariantProps } from '@/components/common/button';
+import { AnimatedContainer } from '@/components/common/animated-container';
 
-interface ModalProps extends React.PropsWithChildren {
+export interface ModalProps extends React.PropsWithChildren {
 	title: string;
 	body: string;
 	wide?: boolean;
+	isLoading?: boolean;
 	content?: React.ReactNode;
 	success?: boolean;
-	buttonLabel: string;
+	buttonLabel?: string;
 	buttonVariant?: ButtonVariantProps['variant'];
 	secondButtonLabel?: string;
+	dismissText?: string;
+	dismissVariant?: ButtonVariantProps['variant'];
 	secondButtonVariant?: ButtonVariantProps['variant'];
 	onClick?: () => any | Promise<any>;
 	onClickSecondButton?: () => any | Promise<any>;
@@ -96,9 +100,17 @@ export function Modal(props: ModalProps) {
 		setOpen(false);
 	}, [onClose]);
 
-	const success = props.success ? (
+	const success = props.isLoading ? (
+		<div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-700">
+			<Spinner className="h-6 w-6" noMargin={true} aria-hidden="true" />
+		</div>
+	) : props.success === true ? (
 		<div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-lime-100 dark:bg-lime-700">
 			<Check className="h-6 w-6 text-lime-600 dark:text-lime-100" aria-hidden="true" />
+		</div>
+	) : props.success === false ? (
+		<div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-rose-100 dark:bg-rose-700">
+			<Cross className="h-6 w-6 text-rose-600 dark:text-rose-100" aria-hidden="true" />
 		</div>
 	) : null;
 	const isDesktop = useMediaQuery('(min-width: 768px)');
@@ -124,23 +136,32 @@ export function Modal(props: ModalProps) {
 							<DialogDescription>{props.body}</DialogDescription>
 						</DialogHeader>
 					</div>
-					{props.content && <div className="col-span-2 grid gap-2">{props.content}</div>}
+					<AnimatedContainer containerClassName="col-span-2 grid gap-2 overflow-hidden">
+						{props.content}
+					</AnimatedContainer>
 					<div
 						className={twJoin(
 							'col-span-2 grid gap-2',
-							props.secondButtonLabel && props.onClickSecondButton ? 'grid-cols-3' : 'grid-cols-2',
+							props.secondButtonLabel && props.onClickSecondButton
+								? 'grid-cols-3'
+								: props.buttonLabel && props.onClick
+									? 'grid-cols-2'
+									: 'grid-cols-1',
 						)}
 					>
-						<Button variant={props.buttonVariant ?? 'info'} onClick={onButtonClick}>
-							{props.buttonLabel} {isCompletingClick && <Spinner noMargin={true} />}
-						</Button>
-						{props.secondButtonLabel && props.onClickSecondButton && (
-							<Button variant={props.secondButtonVariant ?? 'indeterminate'} onClick={_onClickSecondButton}>
-								{props.secondButtonLabel}
+						{props.buttonLabel && props.onClick && (
+							<Button variant={props.buttonVariant ?? 'info'} onClick={onButtonClick}>
+								{props.buttonLabel} {isCompletingClick === 1 && <Spinner className="inline-block" noMargin={true} />}
 							</Button>
 						)}
-						<Button variant="outline" onClick={onDialogClose}>
-							Cancel
+						{props.secondButtonLabel && props.onClickSecondButton && (
+							<Button variant={props.secondButtonVariant ?? 'indeterminate'} onClick={_onClickSecondButton}>
+								{props.secondButtonLabel}{' '}
+								{isCompletingClick === 2 && <Spinner className="inline-block" noMargin={true} />}
+							</Button>
+						)}
+						<Button variant={props.dismissVariant ?? 'outline'} onClick={onDialogClose}>
+							{props.dismissText ?? 'Cancel'}
 						</Button>
 					</div>
 				</DialogContent>
@@ -170,12 +191,20 @@ export function Modal(props: ModalProps) {
 				</DrawerHeader>
 				{props.content && <div className="col-span-2 grid gap-2 px-4 pb-2">{props.content}</div>}
 				<DrawerFooter className="pt-2">
-					<Button variant="info" onClick={onButtonClick}>
-						{props.buttonLabel} {isCompletingClick && <Spinner noMargin={true} />}
-					</Button>
+					{props.buttonLabel && props.onClick && (
+						<Button variant={props.buttonVariant ?? 'info'} onClick={onButtonClick}>
+							{props.buttonLabel} {isCompletingClick === 1 && <Spinner className="inline-block" noMargin={true} />}
+						</Button>
+					)}
+					{props.secondButtonLabel && props.onClickSecondButton && (
+						<Button variant={props.secondButtonVariant ?? 'indeterminate'} onClick={_onClickSecondButton}>
+							{props.secondButtonLabel}{' '}
+							{isCompletingClick === 2 && <Spinner className="inline-block" noMargin={true} />}
+						</Button>
+					)}
 					<DrawerClose asChild>
-						<Button variant="outline" onClick={onDialogClose}>
-							Cancel
+						<Button variant={props.dismissVariant ?? 'outline'} onClick={onDialogClose}>
+							{props.dismissText ?? 'Cancel'}
 						</Button>
 					</DrawerClose>
 				</DrawerFooter>
