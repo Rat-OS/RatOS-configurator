@@ -40,7 +40,7 @@ export function useNewSignal<T = void>(): Signal<T> {
 	}, []);
 }
 
-export function useSignal<T = void>(signal: Signal<T>, listener: SignalListener<T>): void {
+export function useSignal<T = void>(signal: Signal<T>, listener: ReactCallback<SignalListener<T>>): void {
 	useEffect(() => {
 		const unsubscribe = signal(listener);
 		return unsubscribe;

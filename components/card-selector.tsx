@@ -65,7 +65,7 @@ export const CardSelector = <Selectable extends SelectableCard = SelectableCard>
 									)}
 									<div className="flex flex-shrink-0 flex-col">
 										<RadioGroup.Label
-											as="p"
+											as="div"
 											className="flex items-center space-x-2 text-sm font-bold text-zinc-900 dark:text-zinc-100"
 										>
 											{props.title ? props.title(card) : card.name}

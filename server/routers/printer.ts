@@ -50,7 +50,8 @@ import { access, copyFile, readFile, unlink, writeFile } from 'fs/promises';
 import { exec } from 'child_process';
 import objectHash from 'object-hash';
 import { getDefaultNozzle } from '@/data/nozzles';
-import { extractLinesFromFile, searchFileByLine } from '@/server/helpers/file-operations';
+import { extractLinesFromFile, getScriptRoot, searchFileByLine } from '@/server/helpers/file-operations';
+import { runSudoScript } from '@/server/helpers/run-script';
 
 function isNodeError(error: any): error is NodeJS.ErrnoException {
 	return error instanceof Error;
@@ -914,6 +915,16 @@ export const printerRouter = router({
 			klipperRestart();
 			return configResult;
 		}),
+	flashBeacon: publicProcedure.mutation(async () => {
+		const environment = serverSchema.parse(process.env);
+		const res = await runSudoScript(
+			path.relative(getScriptRoot(), path.join(environment.RATOS_CONFIGURATION_PATH, 'scripts', 'beacon-update.sh')),
+		);
+		if (res.stderr) {
+			throw new Error(res.stderr);
+		}
+		return res.stdout;
+	}),
 });
 
 export type PrinterRouterLike = RouterLike<typeof printerRouter>;
