@@ -12,7 +12,7 @@ import { DFUFlash } from '@/components/setup-steps/mcu/dfu-flash';
 import { SDCardFlashing } from '@/components/setup-steps/mcu/sd-card-flash';
 import { Card } from '@/components/common/card';
 import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChevronRight, FileQuestion, MemoryStick, ToyBrick, Zap } from 'lucide-react';
+import { ChevronRight, FileQuestion, MemoryStick, RefreshCcw, ToyBrick, Zap } from 'lucide-react';
 import { Badge } from '@/components/common/badge';
 
 export const MCUFlashing = (props: MCUStepScreenProps) => {
@@ -57,6 +57,10 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 		boardVersion.remove();
 	}, [boardVersion, boardDetected]);
 
+	const recheck = useCallback(() => {
+		boardVersion.refetch();
+	}, [boardVersion]);
+
 	let rightButton: StepNavButton = {
 		onClick: props.nextScreen,
 		label: 'Next',
@@ -80,12 +84,18 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 					{selectedBoard?.name} detected but is unresponsive.
 				</h3>
 				<p>
-					Klipper doesn't seem to be running on your board, which may indicate faulty firmware or a faulty board. Please
-					check your board and try flashing it again.
+					Klipper doesn't seem to be running on your board, which may indicate faulty firmware or a faulty board. Try
+					hitting the reset button on your board, and click "Check Again" below.
 				</p>
-				<p>
+				<p>If it keeps failing, please check your board and try flashing it again.</p>
+				<p className="flex justify-start gap-4">
+					<Button variant="indeterminate" onClick={recheck}>
+						<RefreshCcw className="h-5 w-5" />
+						<span>Check again</span>
+					</Button>
 					<Button variant="indeterminate" onClick={reflash}>
-						<span>Flash again</span> <ArrowPathIcon className="inline h-5 w-5" />
+						<Zap className="h-5 w-5" />
+						<span>Flash again</span>
 					</Button>
 				</p>
 			</Fragment>
