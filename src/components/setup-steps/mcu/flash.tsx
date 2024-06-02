@@ -136,7 +136,14 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 		const dfu = (
 			<Card className="flex flex-col justify-between">
 				<CardHeader>
-					<CardTitle>Manual flashing using DFU</CardTitle>
+					<CardTitle className="flex items-center justify-between gap-2">
+						Manual flashing using DFU
+						{!dfuStrategyEnabled ? (
+							<Badge color="yellow">Unavailable</Badge>
+						) : !pathStrategyEnabled && dfuStrategyEnabled ? (
+							<Badge color="lime">Recommended</Badge>
+						) : null}
+					</CardTitle>
 					<CardDescription>
 						Flash the board by manually placing a boot jumper or clicking boot and reset buttons on your board.
 						Instructions will be provided on the next page.
@@ -187,15 +194,7 @@ export const MCUFlashing = (props: MCUStepScreenProps) => {
 				<CardHeader>
 					<CardTitle className="flex items-center justify-between gap-2">
 						Automated flashing
-						{!pathStrategyEnabled ? (
-							<Badge color="yellow" className="mr-1">
-								Unavailable
-							</Badge>
-						) : (
-							<Badge color="lime" className="mr-1">
-								Recommended
-							</Badge>
-						)}
+						{!pathStrategyEnabled ? <Badge color="yellow">Unavailable</Badge> : <Badge color="lime">Recommended</Badge>}
 					</CardTitle>
 					<CardDescription>
 						If RatOS has already detected your board, it can be flashed automatically. This is the fastest and easiest
