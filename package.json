@@ -106,6 +106,7 @@
 		"react-hook-form": "^7.51.2",
 		"react-hotkeys-hook": "^4.5.0",
 		"react-resizable-panels": "^2.0.16",
+		"react-use-localstorage": "^3.5.3",
 		"react-use-websocket": "^4.5.0",
 		"read-package-up": "^11.0.0",
 		"recoil": "^0.7.7",
