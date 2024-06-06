@@ -3,13 +3,9 @@ import React, { useCallback } from 'react';
 import { twJoin, twMerge } from 'tailwind-merge';
 import { Spinner } from '@/components/common/spinner';
 import { useDebounce } from '@/app/_hooks/debounce';
+import { LucideProps } from 'lucide-react';
 
-type Icon = React.FC<
-	React.SVGProps<SVGSVGElement> & {
-		title?: string | undefined;
-		titleId?: string | undefined;
-	}
->;
+type Icon = React.FC<LucideProps>;
 
 export type ToolbarButton = {
 	id: string;

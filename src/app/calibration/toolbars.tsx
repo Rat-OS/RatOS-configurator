@@ -22,12 +22,25 @@ import CountUp from 'react-countup';
 import { VaocSettings, VaocSettingsDialog } from '@/app/calibration/vaoc-settings-dialog';
 import { StreamSettingsDialog } from '@/app/calibration/stream-settings-dialog';
 import { EnterFullscreenIcon, ExitFullscreenIcon } from '@/app/calibration/icons';
+import {
+	ArrowDownToLine,
+	Camera,
+	Cog,
+	Flashlight,
+	FlashlightOff,
+	Focus,
+	Play,
+	ScanSearch,
+	Square,
+	SunSnow,
+} from 'lucide-react';
+import { toast } from 'sonner';
 
 type ToolbarsProps = {
 	setIsLockingCoordinates: React.Dispatch<React.SetStateAction<boolean>>;
 	isLockingCoordinates: boolean;
 	setCanMove: React.Dispatch<React.SetStateAction<boolean>>;
-	setZoom: React.Dispatch<React.SetStateAction<number>>;
+	setZoom: ReactCallback<(updater: (val: number) => number) => void>;
 	canMove: boolean;
 	zoom: number;
 	fps: number;
@@ -58,11 +71,6 @@ const useToolbarState = (props: { zoom: number }) => {
 		clearTempZoomExpand();
 	}, [clearTempZoomExpand]);
 
-	const { hasZOffsetProbe } = usePrinterObjectSubscription((res) => {
-		return { hasZOffsetProbe: res.configfile.settings.z_offset_probe != null };
-	}, 'configfile') ?? { hasZOffsetProbe: false };
-	const [isZOffsetProbeVisible, setIsZOffsetProbeVisible] = useState(false);
-
 	const live_position = usePrinterObjectSubscription((res) => {
 		return {
 			x: res.motion_report.live_position?.[0],
@@ -82,6 +90,11 @@ const useToolbarState = (props: { zoom: number }) => {
 	const { isVaocStarted } = usePrinterObjectSubscription((res) => {
 		return { isVaocStarted: res['gcode_macro _VAOC'].is_started };
 	}, 'gcode_macro _VAOC') ?? { isVaocStarted: false };
+
+	const { hasZOffsetProbe } = usePrinterObjectSubscription((res) => {
+		return { hasZOffsetProbe: res.configfile.settings.z_offset_probe != null };
+	}, 'configfile') ?? { hasZOffsetProbe: false };
+	const isZOffsetProbeVisible = hasZOffsetProbe && isVaocStarted;
 
 	return {
 		live_position,
@@ -105,7 +118,6 @@ const useToolbarState = (props: { zoom: number }) => {
 		toggleIsZoomExpanded,
 		hasZOffsetProbe,
 		isZOffsetProbeVisible,
-		setIsZOffsetProbeVisible,
 		isCameraControlsVisible,
 		setIsCameraControlsVisible,
 	};
@@ -116,8 +128,6 @@ export const Toolbars: React.FC<ToolbarsProps> = (props) => {
 		canMove,
 		isLockingCoordinates,
 		zoom,
-		setIsLockingCoordinates,
-		setCanMove,
 		setZoom,
 		fps,
 		url,
@@ -147,18 +157,56 @@ export const Toolbars: React.FC<ToolbarsProps> = (props) => {
 		isVaocStarted,
 		isZoomExpanded,
 		toggleIsZoomExpanded,
-		hasZOffsetProbe,
 		isZOffsetProbeVisible,
-		setIsZOffsetProbeVisible,
 		isCameraControlsVisible,
 		setIsCameraControlsVisible,
 	} = useToolbarState({ zoom });
 	const G = useGcodeCommand();
+	const handleCommandError = useCallback(
+		async (
+			fn: () => Promise<void>,
+			opts?: {
+				success?: () => Promise<void>;
+				error?: () => Promise<void>;
+				always?: () => Promise<void>;
+				title?: string;
+				fallbackDescription?: string;
+			},
+		) => {
+			try {
+				const res = await fn();
+				if (opts?.success) {
+					await opts?.success?.();
+				}
+				return res;
+			} catch (e) {
+				let message = opts?.fallbackDescription ?? 'Unknown error occured. Please try again.';
+				if (e instanceof Error) {
+					message = e.message;
+				}
+				toast.error(opts?.title ?? `Couldn't execute VAOC command`, {
+					description: `
+				<div>
+					<pre class="text-wrap mt-4 text-rose-400 font-medium whitespace-pre-wrap">${message}</pre>
+				</div>
+				`,
+				});
+				if (opts?.error) {
+					await opts?.error?.();
+				}
+			} finally {
+				if (opts?.always) {
+					await opts?.always();
+				}
+			}
+		},
+		[],
+	);
 	const [isLoadingTool] = useChangeEffect([isLockingCoordinates], 200, true);
 
 	const topLeftControls: ToolbarButton[] = [
 		{
-			icon: isVaocStarted ? StopIcon : PlayIcon,
+			icon: isVaocStarted ? Square : Play,
 			id: 'start/stop',
 			name: isVaocStarted ? undefined : 'Start Calibration',
 			title: isVaocStarted ? 'Stop calibration' : 'Start calibration',
@@ -170,8 +218,14 @@ export const Toolbars: React.FC<ToolbarsProps> = (props) => {
 					props.toggleFullscreen?.(false);
 				}
 				setIsStartingVaoc(true);
-				await (isVaocStarted ? G`_VAOC_END` : G`_VAOC_START`);
-				setIsStartingVaoc(false);
+				const wasStarted = isVaocStarted;
+				handleCommandError(() => (isVaocStarted ? G`_VAOC_END` : G`_VAOC_START`), {
+					always: async () => {
+						setIsStartingVaoc(false);
+					},
+					title: `Couldn't ${wasStarted ? 'stop' : 'start'} VAOC`,
+					fallbackDescription: `Unknown error occured while ${wasStarted ? 'stopping' : 'starting'} VAOC. Please try again.`,
+				});
 			},
 			isActive: isVaocStarted,
 		},
@@ -181,8 +235,7 @@ export const Toolbars: React.FC<ToolbarsProps> = (props) => {
 			hidden: !isVaocStarted,
 			title: 'Switch to tool 0 (T0)',
 			onClick: async () => {
-				setCanMove(false);
-				await G`_VAOC_LOAD_TOOL T=0`;
+				await handleCommandError(() => G`_VAOC_LOAD_TOOL T=0`);
 			},
 			isActive: tool === 'T0',
 		},
@@ -192,15 +245,14 @@ export const Toolbars: React.FC<ToolbarsProps> = (props) => {
 			hidden: !isVaocStarted,
 			title: 'Switch to tool 1 (T1)',
 			onClick: async () => {
-				setCanMove(false);
-				await G`_VAOC_LOAD_TOOL T=1`;
+				await handleCommandError(() => G`_VAOC_LOAD_TOOL T=1`);
 			},
 			isActive: tool === 'T1',
 		},
 	];
 	const topRightControls: ToolbarButton[] = [
 		{
-			icon: MagnifyingGlassIcon,
+			icon: ScanSearch,
 			id: 'zoom',
 			title: `${isZoomExpanded ? 'Hide' : 'Show'} zoom controls`,
 			subButtonPosition: 'before',
@@ -219,13 +271,16 @@ export const Toolbars: React.FC<ToolbarsProps> = (props) => {
 			isActive: isZoomExpanded,
 		},
 		{
-			icon: LightBulbIcon,
+			icon: light ? FlashlightOff : Flashlight,
 			id: 'light',
 			title: `${light ? 'Turn off' : 'Turn on'} the LEDs`,
 			onClick: async () => {
 				const newVal = !light;
-				await G`_VAOC_SWITCH_LED STATE=${newVal ? 1 : 0}`;
-				setLight(newVal);
+				await handleCommandError(() => G`_VAOC_SWITCH_LED STATE=${newVal ? 1 : 0}`, {
+					success: async () => {
+						setLight(newVal);
+					},
+				});
 			},
 			isActive: light,
 		},
@@ -249,7 +304,7 @@ export const Toolbars: React.FC<ToolbarsProps> = (props) => {
 			title: `Set zoom to 1X (100%)`,
 			className: 'font-mono',
 			onClick: () => {
-				setZoom(1);
+				setZoom(() => 1);
 			},
 			isActive: false,
 		},
@@ -260,7 +315,7 @@ export const Toolbars: React.FC<ToolbarsProps> = (props) => {
 			title: `Set zoom to 2X (200%)`,
 			className: 'font-mono',
 			onClick: () => {
-				setZoom(2);
+				setZoom(() => 2);
 			},
 			isActive: false,
 		},
@@ -271,7 +326,7 @@ export const Toolbars: React.FC<ToolbarsProps> = (props) => {
 			title: `Set zoom to 4X (400%)`,
 			className: 'font-mono',
 			onClick: () => {
-				setZoom(4);
+				setZoom(() => 4);
 			},
 			isActive: false,
 		},
@@ -281,7 +336,7 @@ export const Toolbars: React.FC<ToolbarsProps> = (props) => {
 			[
 				{
 					name: 'Settings',
-					icon: CogIcon,
+					icon: Cog,
 					id: 'settings',
 					title: 'Show camera settings dialog',
 					onClick: () => {
@@ -290,88 +345,34 @@ export const Toolbars: React.FC<ToolbarsProps> = (props) => {
 					isActive: isSettingsVisible,
 				},
 				{
-					name: tool === 'T0' ? 'Set reference' : 'Set offset',
-					icon: MapPinIcon,
-					isLoading: isLoadingTool,
+					name: 'Calibrate Thermal Expansion',
+					icon: SunSnow,
 					hidden: !isVaocStarted,
-					id: 'reference',
-					title: `Set the ${tool === 'T0' ? 'T0 reference point' : 'T1 offset'}`,
+					id: 'calibrate-thermal-expansion',
+					title: `Calibrates the thermal expansion coefficient for both toolheads`,
 					onClick: async () => {
-						setIsZOffsetProbeVisible(hasZOffsetProbe ? true : false);
-						setIsLockingCoordinates(true);
-						await G`_VAOC_SET_TOOL`;
-						setIsLockingCoordinates(false);
-						setCanMove(false);
-					},
-					isActive: isLoadingTool,
-				},
-				{
-					name: canMove ? (
-						<span className="font-mono">
-							{(live_position?.x ?? 0).toFixed(2)}, {(live_position?.y ?? 0).toFixed(2)}
-						</span>
-					) : (
-						'Move'
-					),
-					icon: ArrowsPointingOutIcon,
-					hidden: !isVaocStarted,
-					id: 'move',
-					title: `${canMove ? 'Disable' : 'Enable'} drag and drop calibration`,
-					onClick: () => {
-						if (!canMove) {
-							setIsFocusVisible(true);
-							setIsExposureVisible(false);
-							setIsColorVisible(false);
-							setIsAdvancedVisible(false);
-							setIsCameraControlsVisible(true);
-						} else {
-							setIsFocusVisible(false);
-							setIsExposureVisible(false);
-							setIsColorVisible(false);
-							setIsAdvancedVisible(false);
-							setIsCameraControlsVisible(false);
-						}
-						setCanMove((m) => !m);
+						await handleCommandError(() => G`_VAOC_CALIBRATE_TEMP_OFFSET`);
 					},
 					isActive: canMove,
 				},
 				{
-					name: 'Z-Probe',
-					icon: ArrowDownTrayIcon,
-					title: 'Probe the z endstop to set the Z offset',
+					name: 'Calibrate Z-offsets',
+					icon: ArrowDownToLine,
+					title: 'Probe the z endstop to set the Z offset for both hotends',
 					id: 'z-probe',
-					hidden: !isVaocStarted || !hasZOffsetProbe || !isZOffsetProbeVisible,
+					hidden: !isZOffsetProbeVisible,
 					onClick: async () => {
-						await G`_VAOC_PROBE_Z_OFFSET`;
+						await handleCommandError(() => G`_VAOC_CALIBRATE_Z_OFFSET`);
 					},
 					isActive: false,
 				},
 			] satisfies ToolbarButton[],
-		[
-			isSettingsVisible,
-			tool,
-			isLoadingTool,
-			isVaocStarted,
-			canMove,
-			live_position,
-			hasZOffsetProbe,
-			isZOffsetProbeVisible,
-			setIsSettingsVisible,
-			setIsZOffsetProbeVisible,
-			setIsLockingCoordinates,
-			G,
-			setCanMove,
-			setIsFocusVisible,
-			setIsExposureVisible,
-			setIsColorVisible,
-			setIsAdvancedVisible,
-			setIsCameraControlsVisible,
-		],
+		[isSettingsVisible, isVaocStarted, canMove, isZOffsetProbeVisible, setIsSettingsVisible, handleCommandError, G],
 	);
 	const cameraControls = useMemo(() => {
 		const controls: ToolbarButton[] = [
 			{
-				icon: CameraIcon,
+				icon: Camera,
 				name: (
 					<span>
 						{fps == null ? (
@@ -412,7 +413,7 @@ export const Toolbars: React.FC<ToolbarsProps> = (props) => {
 	const cameraControlsSubButtons = useMemo(() => {
 		const controls: ToolbarButtonWithParent[] = [
 			{
-				icon: ViewfinderCircleIcon,
+				icon: Focus,
 				id: 'focus',
 				parent: 'settings',
 				hidden: isColorVisible || isAdvancedVisible || isExposureVisible,
