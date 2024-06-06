@@ -221,6 +221,7 @@ export const Toolbars: React.FC<ToolbarsProps> = (props) => {
 				setIsStartingVaoc(true);
 				const wasStarted = isVaocStarted;
 				if (wasStarted) {
+					setIsLockingCoordinates(true);
 					await handleCommandError(() => G`_VAOC_SET_TOOL`, {
 						always: async () => {
 							setIsLockingCoordinates(false);
