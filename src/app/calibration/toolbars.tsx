@@ -430,16 +430,35 @@ export const Toolbars: React.FC<ToolbarsProps> = (props) => {
 						setIsExposureVisible(false);
 						setIsColorVisible(false);
 						setIsAdvancedVisible(false);
+					} else {
+						setIsFocusVisible(false);
 					}
 					setIsCameraControlsVisible((vis) => !vis);
 				},
 				isActive: isCameraControlsVisible,
+			},
+			{
+				icon: Focus,
+				id: 'focus',
+				hidden: false,
+				name: 'Z Focus',
+				title: `${isFocusVisible ? 'Hide' : 'Show'} focus controls`,
+				children: <FocusControls isVisible={isFocusVisible} toggle={setIsFocusVisible} />,
+				onClick: () => {
+					setIsFocusVisible((vis) => !vis);
+					setIsCameraControlsVisible(false);
+					setIsExposureVisible(false);
+					setIsColorVisible(false);
+					setIsAdvancedVisible(false);
+				},
+				isActive: isFocusVisible,
 			},
 		];
 		return controls;
 	}, [
 		fps,
 		isCameraControlsVisible,
+		isFocusVisible,
 		setIsAdvancedVisible,
 		setIsCameraControlsVisible,
 		setIsColorVisible,
@@ -448,22 +467,6 @@ export const Toolbars: React.FC<ToolbarsProps> = (props) => {
 	]);
 	const cameraControlsSubButtons = useMemo(() => {
 		const controls: ToolbarButtonWithParent[] = [
-			{
-				icon: Focus,
-				id: 'focus',
-				parent: 'settings',
-				hidden: isColorVisible || isAdvancedVisible || isExposureVisible,
-				name: 'Z Focus',
-				title: `${isFocusVisible ? 'Hide' : 'Show'} focus controls`,
-				children: <FocusControls isVisible={isFocusVisible} toggle={setIsFocusVisible} />,
-				onClick: () => {
-					setIsFocusVisible((vis) => !vis);
-					setIsExposureVisible(false);
-					setIsColorVisible(false);
-					setIsAdvancedVisible(false);
-				},
-				isActive: isFocusVisible,
-			},
 			{
 				icon: ExposureIcon as any,
 				id: 'exposure',
