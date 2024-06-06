@@ -30,6 +30,7 @@ export const VAOC = () => {
 	const gestureState = useGestures({
 		setZoom: uiState.setZoom,
 		canMove: uiState.canMove,
+		setIsLockingCoordinates: uiState.setIsLockingCoordinates,
 		gestureRef: videoRef,
 		isConnected,
 		toMillimeters: spatialMapping.toMillimeters,
