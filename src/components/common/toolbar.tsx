@@ -43,7 +43,7 @@ const Button = (button: React.PropsWithChildren<ToolbarButton>) => {
 		}
 	}, [_setIsLoading, button]);
 	return (
-		<li key={button.id} className={twJoin('flex')}>
+		<li key={button.id} className={twJoin('relative flex')}>
 			{button.subButtonPosition === 'before' && (
 				<ol ref={animateRef} className="flex divide-x divide-zinc-200 dark:divide-zinc-800">
 					{button.children}
