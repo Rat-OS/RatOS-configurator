@@ -158,17 +158,30 @@ export const MCUPreparation: React.FC<StepScreenProps & ExtraProps> = (props) =>
 						<div className="flex-col justify-between">
 							<p className="mt-1 flex-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">{boardDescription}</p>
 							<div className="mt-4 flex gap-2">
-								<Badge color={b.detected ? 'lime' : 'gray'} size="sm">
+								<Badge
+									color={b.detected ? 'lime' : 'gray'}
+									size="sm"
+									title={b.detected ? `Board is currently connected via USB` : `Board is not detected`}
+								>
 									<Usb className="h-4 w-4" />
 								</Badge>
 								<Badge
 									size="md"
 									color={b.flashScript && !b.disableAutoFlash ? 'lime' : 'rose'}
-									title="Automatic flashing"
+									title={
+										b.flashScript && !b.disableAutoFlash
+											? 'This board supports automatic flashing'
+											: "This board doesn't support automatic flashing"
+									}
 								>
 									{b.flashScript && !b.disableAutoFlash ? <Zap className="h-4 w-4" /> : <ZapOff className="h-4 w-4" />}
 								</Badge>
-								<Badge color="gray" size="sm" className="text-base/5">
+								<Badge
+									color="gray"
+									size="sm"
+									className="text-base/5"
+									title={`There are ${b.driverCount} stepper driver(s) available on this board`}
+								>
 									<MemoryStick className="h-4 w-4" />
 									{b.driverCount}
 								</Badge>

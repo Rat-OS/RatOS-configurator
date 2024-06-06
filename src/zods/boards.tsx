@@ -327,7 +327,7 @@ export const Board = z
 		serialPath: BoardSerialPath.optional(),
 		boardImageFileName: z.string().optional(),
 		manualFileName: z.string().optional(),
-		wireDiagramFileName: z.string().optional(),
+		wireDiagramFileName: z.string().nullable(),
 		name: z.string(),
 		manufacturer: z.string(),
 		firmwareBinaryName: z.string(),

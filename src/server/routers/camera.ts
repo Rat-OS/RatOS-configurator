@@ -23,3 +23,14 @@
 // resolution: 1472x1088
 // max_fps: 30
 // custom_flags: --camera-height=2464 --camera-width=3280 --camera-video.height=1232 --camera-snapshot.height=1232 --camera-format=YUYV
+
+// [cam 1]
+// mode: camera-streamer                              # ustreamer - Provides mjpg and snapshots. (All devices)
+//                                                    # camera-streamer - Provides webrtc, mjpg and snapshots. (rpi + Raspi OS based only)
+// enable_rtsp: false                                 # If camera-streamer is used, this enables also usage of an rtsp server
+// rtsp_port: 8554                                    # Set different ports for each device!
+// port: 8080                                         # HTTP/MJPG Stream/Snapshot Port
+// device: /base/soc/i2c0mux/i2c@1/imx219@10          # See Log for available ...
+// resolution: 192x1080                               # widthxheight format
+// max_fps: 40                                        # If Hardware Supports this it will be forced, otherwise ignored/coerced.
+// custom_flags: --camera-height=1080 --camera-width=1920 --camera-video.height=1080 --camera-snapshot.height=1080 --camera-format=YUYV

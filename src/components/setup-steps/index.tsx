@@ -14,6 +14,7 @@ import { WizardComplete } from '@/components/setup-steps/wizard-complete';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useLocalPathname } from '@/app/_hooks/navigation';
 import { Card } from '@/components/common/card';
+import { ElectronicsWiring } from '@/components/setup-steps/mcu/wiring';
 
 interface WizardProps {
 	isConnectedToWifi?: boolean;
@@ -62,6 +63,14 @@ const makeSteps = (toolheads: ToolheadConfiguration<any>[], isConfigValid: boole
 				<MCUPreparation {...screenProps} key={screenProps.key} toolOrAxis={toolhead.axis} />
 			),
 		});
+	});
+	result.push({
+		id: getNextIndex(),
+		name: 'Wiring',
+		canBeSkippedTo: isConfigValid,
+		description: 'Follow the wiring guide to finish your wiring',
+		href: '#',
+		renderScreen: (screenProps) => <ElectronicsWiring {...screenProps} key={screenProps.key} />,
 	});
 	result.push({
 		id: getNextIndex(),

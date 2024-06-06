@@ -1,3 +1,5 @@
+'use client';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { VariantProps, cva } from 'class-variance-authority';
 import { twMerge } from 'tailwind-merge';
 import { z } from 'zod';
@@ -174,10 +176,18 @@ export type BadgeProps = JSX.IntrinsicElements['span'] &
 	};
 
 export const Badge: React.FC<BadgeProps> = (props) => {
-	const { size, color, className, children, ...forwardProps } = props;
-	return (
+	const { size, color, className, children, title, ...forwardProps } = props;
+	const badge = (
 		<span className={twMerge(badgeStyle({ size, color }), className)} {...forwardProps}>
 			{children}
 		</span>
+	);
+	return title ? (
+		<Tooltip>
+			<TooltipTrigger asChild>{badge}</TooltipTrigger>
+			<TooltipContent>{props.title}</TooltipContent>
+		</Tooltip>
+	) : (
+		badge
 	);
 };
