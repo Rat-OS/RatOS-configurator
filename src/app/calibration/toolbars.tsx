@@ -206,6 +206,7 @@ export const Toolbars: React.FC<ToolbarsProps> = (props) => {
 		[],
 	);
 	const [isLoadingTool] = useChangeEffect([isLockingCoordinates], 200, true);
+	const [isCalibratingExpansion, setIsCalibratingExpansion] = useState(false);
 	const [showCleanNozzleConfirmation, setShowCleanNozzleConfirmation] = useState(false);
 
 	const topLeftControls: ToolbarButton[] = [
@@ -372,6 +373,7 @@ export const Toolbars: React.FC<ToolbarsProps> = (props) => {
 					name: 'Calibrate Thermal Expansion',
 					icon: SunSnow,
 					hidden: !isVaocStarted,
+					isLoading: showCleanNozzleConfirmation || isCalibratingExpansion,
 					id: 'calibrate-thermal-expansion',
 					title: `Calibrates the thermal expansion coefficient for both toolheads`,
 					onClick: async () => {
@@ -391,7 +393,17 @@ export const Toolbars: React.FC<ToolbarsProps> = (props) => {
 					isActive: false,
 				},
 			] satisfies ToolbarButton[],
-		[isSettingsVisible, isVaocStarted, canMove, isZOffsetProbeVisible, setIsSettingsVisible, handleCommandError, G],
+		[
+			isSettingsVisible,
+			isVaocStarted,
+			showCleanNozzleConfirmation,
+			isCalibratingExpansion,
+			canMove,
+			isZOffsetProbeVisible,
+			setIsSettingsVisible,
+			handleCommandError,
+			G,
+		],
 	);
 	const cameraControls = useMemo(() => {
 		const controls: ToolbarButton[] = [
@@ -523,7 +535,14 @@ export const Toolbars: React.FC<ToolbarsProps> = (props) => {
 			buttonLabel="They're clean, i promise!"
 			dismissText="Abort"
 			onClick={async () => {
-				await handleCommandError(() => G`_VAOC_CALIBRATE_TEMP_OFFSET`);
+				setIsCalibratingExpansion(true);
+				await handleCommandError(() => G`_VAOC_CALIBRATE_TEMP_OFFSET`, {
+					title: `Failed thermal expansion calibration`,
+					fallbackDescription: `Unknown error occured while calibrating thermal expansion. Please try again.`,
+					always: async () => {
+						setIsCalibratingExpansion(false);
+					},
+				});
 			}}
 			onClose={() => {
 				setTimeout(() => setShowCleanNozzleConfirmation(false), 200);
