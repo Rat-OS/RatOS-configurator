@@ -35,6 +35,8 @@ import {
 	SunSnow,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { Modal } from '@/components/common/modal';
+import { WarningMessage } from '@/components/warning-message';
 
 type ToolbarsProps = {
 	setIsLockingCoordinates: React.Dispatch<React.SetStateAction<boolean>>;
@@ -204,6 +206,7 @@ export const Toolbars: React.FC<ToolbarsProps> = (props) => {
 		[],
 	);
 	const [isLoadingTool] = useChangeEffect([isLockingCoordinates], 200, true);
+	const [showCleanNozzleConfirmation, setShowCleanNozzleConfirmation] = useState(false);
 
 	const topLeftControls: ToolbarButton[] = [
 		{
@@ -372,7 +375,7 @@ export const Toolbars: React.FC<ToolbarsProps> = (props) => {
 					id: 'calibrate-thermal-expansion',
 					title: `Calibrates the thermal expansion coefficient for both toolheads`,
 					onClick: async () => {
-						await handleCommandError(() => G`_VAOC_CALIBRATE_TEMP_OFFSET`);
+						setShowCleanNozzleConfirmation(true);
 					},
 					isActive: canMove,
 				},
@@ -507,6 +510,27 @@ export const Toolbars: React.FC<ToolbarsProps> = (props) => {
 		setIsAdvancedVisible,
 	]);
 
+	const confirmCleanNozzleModal = showCleanNozzleConfirmation ? (
+		<Modal
+			title="Make sure nozzles are clean"
+			body="Clean nozzles and empty meltzones are important for accuracy"
+			content={
+				<WarningMessage title="Important for accuracy">
+					Before proceeding, make sure that the nozzle is clean on both toolheads and that no filament is left in the
+					meltzone. Oozing filament or dirty nozzles will cause inaccurate results.
+				</WarningMessage>
+			}
+			buttonLabel="They're clean, i promise!"
+			dismissText="Abort"
+			onClick={async () => {
+				await handleCommandError(() => G`_VAOC_CALIBRATE_TEMP_OFFSET`);
+			}}
+			onClose={() => {
+				setTimeout(() => setShowCleanNozzleConfirmation(false), 200);
+			}}
+		/>
+	) : null;
+
 	return (
 		<>
 			<Toolbar className="pointer-events-auto absolute left-5 top-5" buttons={topLeftControls} />
@@ -533,6 +557,7 @@ export const Toolbars: React.FC<ToolbarsProps> = (props) => {
 				className="pointer-events-auto"
 				{...{ url, isConnected, isExposureVisible, isColorVisible, isAdvancedVisible }}
 			/>
+			{confirmCleanNozzleModal}
 		</>
 	);
 };
