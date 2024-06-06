@@ -127,6 +127,7 @@ export const Toolbars: React.FC<ToolbarsProps> = (props) => {
 	const {
 		canMove,
 		isLockingCoordinates,
+		setIsLockingCoordinates,
 		zoom,
 		setZoom,
 		fps,
@@ -235,6 +236,12 @@ export const Toolbars: React.FC<ToolbarsProps> = (props) => {
 			hidden: !isVaocStarted,
 			title: 'Switch to tool 0 (T0)',
 			onClick: async () => {
+				setIsLockingCoordinates(true);
+				await handleCommandError(() => G`_VAOC_SET_TOOL`, {
+					always: async () => {
+						setIsLockingCoordinates(false);
+					},
+				});
 				await handleCommandError(() => G`_VAOC_LOAD_TOOL T=0`);
 			},
 			isActive: tool === 'T0',
@@ -245,6 +252,12 @@ export const Toolbars: React.FC<ToolbarsProps> = (props) => {
 			hidden: !isVaocStarted,
 			title: 'Switch to tool 1 (T1)',
 			onClick: async () => {
+				setIsLockingCoordinates(true);
+				await handleCommandError(() => G`_VAOC_SET_TOOL`, {
+					always: async () => {
+						setIsLockingCoordinates(false);
+					},
+				});
 				await handleCommandError(() => G`_VAOC_LOAD_TOOL T=1`);
 			},
 			isActive: tool === 'T1',

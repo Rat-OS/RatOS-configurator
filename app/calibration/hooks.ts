@@ -196,7 +196,6 @@ type GesturesProps = {
 	gestureRef: React.RefObject<HTMLElement>;
 	zoom: number;
 	setZoom: ReactCallback<(updater: (prev: number) => number) => void>;
-	setIsLockingCoordinates: React.Dispatch<React.SetStateAction<boolean>>;
 	isConnected: boolean;
 	canMove: boolean;
 	toScreen: (val: number) => number;
@@ -204,7 +203,7 @@ type GesturesProps = {
 };
 
 export const useGestures = (props: GesturesProps) => {
-	const { gestureRef, setZoom, isConnected, canMove, toScreen, toMillimeters, zoom, setIsLockingCoordinates } = props;
+	const { gestureRef, setZoom, isConnected, canMove, toScreen, toMillimeters, zoom } = props;
 	const [dragOffset, setDragOffset] = useState<[number, number] | null>(null);
 	const [dragOutside, setDragOutside] = useState<{ x: false | number; y: false | number }>({ x: false, y: false });
 	const G = useGcodeCommand();
@@ -218,9 +217,7 @@ export const useGestures = (props: GesturesProps) => {
 				} else {
 					const x = toMillimeters(dragOffset?.[0] ?? 0);
 					const y = toMillimeters(dragOffset?.[1] ?? 0) * -1;
-					setIsLockingCoordinates(true);
 					G`_VAOC_MOVE X=${x} Y=${y}`;
-					setIsLockingCoordinates(false);
 					setDragOffset(null);
 					setDragOutside({ x: false, y: false });
 				}
