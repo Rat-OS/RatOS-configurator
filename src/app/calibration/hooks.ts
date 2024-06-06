@@ -1,4 +1,6 @@
+'use client';
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import useLocalStorage from 'react-use-localstorage';
 import { CameraOption, parseOptions } from '@/app/calibration/helpers';
 import {
 	useMoonrakerQuery,
@@ -28,6 +30,9 @@ const getCameraUrl = () => {
 };
 
 export const useUIState = () => {
+	if (typeof window === 'undefined') {
+		throw new Error("Can't use useUIState on the server");
+	}
 	// Container and frame sizing
 	const [containerAspectRatio, setContainerAspectRatio] = useState<number>(0.1);
 	const windowSize = useWindowSize();
@@ -90,9 +95,20 @@ export const useUIState = () => {
 	}, []);
 
 	// UI toggles
-	const [canMove, setCanMove] = useState(false);
+	const [canMove, setCanMove] = useState(true);
 	const [isLockingCoordinates, setIsLockingCoordinates] = useState(false);
-	const [zoom, setZoom] = useState(1);
+	const [_zoom, _setZoom] = useLocalStorage('VAOC_UI_STATE_ZOOM', '1.00');
+	const zoomRef = useRef(parseFloat(_zoom));
+	zoomRef.current = parseFloat(_zoom);
+	const zoom = parseFloat(_zoom);
+	const setZoom = useCallback(
+		(updater: (prev: number) => number) => {
+			const newZoom = updater(zoomRef.current);
+			zoomRef.current = newZoom;
+			_setZoom(newZoom.toFixed(2));
+		},
+		[_setZoom],
+	);
 	return {
 		containerAspectRatio,
 		setContainerAspectRatio,
@@ -179,7 +195,7 @@ export const usePrinterState = () => {};
 type GesturesProps = {
 	gestureRef: React.RefObject<HTMLElement>;
 	zoom: number;
-	setZoom: React.Dispatch<React.SetStateAction<number>>;
+	setZoom: ReactCallback<(updater: (prev: number) => number) => void>;
 	isConnected: boolean;
 	canMove: boolean;
 	toScreen: (val: number) => number;

@@ -260,6 +260,9 @@ importers:
       react-resizable-panels:
         specifier: ^2.0.16
         version: 2.0.16(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      react-use-localstorage:
+        specifier: ^3.5.3
+        version: 3.5.3(react@18.2.0)
       react-use-websocket:
         specifier: ^4.5.0
         version: 4.5.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -4364,6 +4367,11 @@ packages:
     peerDependenciesMeta:
       '@types/react':
         optional: true
+
+  react-use-localstorage@3.5.3:
+    resolution: {integrity: sha512-1oNvJmo72G4v5P9ytJZZTb6ywD3UzWBiainTtfbNlb+U08hc+SOD5HqgiLTKUF0MxGcIR9JSnZGmBttNLXaQYA==}
+    peerDependencies:
+      react: '>=16.8.1'
 
   react-use-websocket@4.5.0:
     resolution: {integrity: sha512-oxYVLWM3Lv0InCfjW7hG/Hk0hkE0P1SiLd5/I3d5x0W4riAnDUkD4VEu7qNVAqxNjBF3nU7k0jLMOetLXpwfsA==}
@@ -9499,6 +9507,10 @@ snapshots:
       tslib: 2.6.2
     optionalDependencies:
       '@types/react': 18.2.21
+
+  react-use-localstorage@3.5.3(react@18.2.0):
+    dependencies:
+      react: 18.2.0
 
   react-use-websocket@4.5.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
     dependencies:
