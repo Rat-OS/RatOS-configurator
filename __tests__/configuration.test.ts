@@ -29,6 +29,8 @@ import { ServerCache } from '@/server/helpers/cache';
 import { glob } from 'glob';
 import { readFile } from 'fs/promises';
 import { PrinterAxis } from '@/zods/motion';
+import { MotorSlotPins } from '@/zods/boards';
+import { z } from 'zod';
 
 describe('configuration', async () => {
 	ServerCache.flushAll();
@@ -115,6 +117,79 @@ describe('configuration', async () => {
 				expect(ruleContents.includes(attr)).toBeTruthy();
 				expect(ruleContents.includes(symlink)).toBeTruthy();
 				expect(ruleContents.includes(devlink)).toBeTruthy();
+			});
+			test.skipIf(board.motorSlots == null).concurrent('has valid motor slot pins', async () => {
+				if (board.motorSlots == null) {
+					throw new Error('motorSlots should not be null for this test');
+				}
+				const slotNames = Object.keys(board.motorSlots);
+				const requiredUniquePins: string[] = [];
+				slotNames.forEach((slot) => {
+					const pinAliases = Object.keys(board.motorSlots[slot] as { [key: string]: string }).filter(
+						(key: string): key is keyof z.infer<typeof MotorSlotPins> => key !== 'title',
+					);
+					const filteredSlot = Object.fromEntries(pinAliases.map((alias) => [alias, board.motorSlots[slot][alias]]));
+					const pins = pinAliases.map((alias) => (board.motorSlots[slot] as { [key: string]: string })[alias]);
+					pins.forEach((pin) => {
+						if (pin == 'null') {
+							return;
+						}
+						expect(pin).toMatch(/^[a-zA-Z0-9\.]+$/);
+						const usedForAliases = pinAliases.filter((alias) => filteredSlot[alias] === pin);
+						// check that the pin is only used for a specific purpose.
+						const stepEnableDir = usedForAliases.filter(
+							(alias) => ['enable_pin', 'step_pin', 'dir_pin'].indexOf(alias) > -1,
+						).length;
+						const uartCs = Math.min(
+							usedForAliases.filter((alias) => ['uart_pin', 'cs_pin'].indexOf(alias) > -1).length,
+							1,
+						);
+						const endstopDiag = Math.min(
+							usedForAliases.filter((alias) => ['endstop_pin', 'diag_pin'].indexOf(alias) > -1).length,
+							1,
+						);
+						const others = usedForAliases.filter(
+							(alias) =>
+								['enable_pin', 'step_pin', 'dir_pin', 'uart_pin', 'cs_pin', 'endstop_pin', 'diag_pin'].indexOf(
+									alias,
+								) === -1,
+						).length;
+						expect(
+							stepEnableDir + uartCs + endstopDiag + others,
+							`Pin ${pin} is used for several purposes in slot ${slot} (${usedForAliases.join(', ')})`,
+						).toBe(1);
+						// Check if non-unique pins are used for other purposes in other slots
+						const shouldBeUniqueAcrossSlots = usedForAliases.filter(
+							(alias) =>
+								['step_pin', 'dir_pin', 'cs_pin', 'uart_address', 'diag_pin', 'endstop_pin'].indexOf(alias) > -1,
+						).length;
+						if (!shouldBeUniqueAcrossSlots) {
+							usedForAliases.forEach((orgAlias) => {
+								slotNames
+									.filter((s) => s !== slot)
+									.forEach((otherSlot) => {
+										if (!shouldBeUniqueAcrossSlots) {
+											const otherPins = Object.keys(board.motorSlots[otherSlot] as { [key: string]: string })
+												.filter((alias) => alias !== orgAlias)
+												.map((alias) => (board.motorSlots[otherSlot] as { [key: string]: string })[alias]);
+											expect(
+												otherPins.includes(pin),
+												`${orgAlias} ${pin} on slot ${slot} is used for a different purpose in slot ${otherSlot}`,
+											).toBeFalsy();
+										} else {
+											const otherPins = Object.keys(board.motorSlots[otherSlot] as { [key: string]: string }).map(
+												(alias) => (board.motorSlots[otherSlot] as { [key: string]: string })[alias],
+											);
+											expect(
+												otherPins.includes(pin),
+												`${orgAlias} ${pin} on slot ${slot} should be unique accross slots but is also used in slot ${otherSlot}`,
+											).toBeFalsy();
+										}
+									});
+							});
+						}
+					});
+				});
 			});
 			test.skipIf(board.boardImageFileName == null).concurrent('has a valid board image', async () => {
 				expect(fs.existsSync(path.join(board.path, board.boardImageFileName ?? ''))).toBeTruthy();
