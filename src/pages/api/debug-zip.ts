@@ -13,7 +13,7 @@ export const getDebugZipFiles = async () => {
 	}
 	const environment = serverSchema.parse(process.env);
 
-	let ratosFiles: string[] = await glob([`${environment.RATOS_DATA_DIR}/**/*.+(cfg|json)`]);
+	let ratosFiles: string[] = await glob([`${environment.RATOS_DATA_DIR}/*.+(cfg|json)`]);
 	ratosFiles = ratosFiles
 		.filter((file, index) => ratosFiles.indexOf(file) === index)
 		.filter((f) => {
