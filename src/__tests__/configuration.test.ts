@@ -154,34 +154,37 @@ describe('configuration', async () => {
 									alias,
 								) === -1,
 						).length;
-						const shouldBeUniqueAcrossSlots = usedForAliases.filter(
-							(alias) => ['step_pin', 'dir_pin', 'cs_pin', 'uart_address'].indexOf(alias) > -1,
-						).length;
 						expect(
 							stepEnableDir + uartCs + endstopDiag + others,
 							`Pin ${pin} is used for several purposes in slot ${slot} (${usedForAliases.join(', ')})`,
 						).toBe(1);
-						if (shouldBeUniqueAcrossSlots + endstopDiag) {
-							if (requiredUniquePins.filter((p) => p === pin).length > 1) {
-								throw new Error(
-									`Pin ${pin} is used in multiple slots and has to be unique across slots to be used for ${usedForAliases.join(' and ')}`,
-								);
-							}
-							requiredUniquePins.push(pin);
-						}
 						// Check if non-unique pins are used for other purposes in other slots
+						const shouldBeUniqueAcrossSlots = usedForAliases.filter(
+							(alias) =>
+								['step_pin', 'dir_pin', 'cs_pin', 'uart_address', 'diag_pin', 'endstop_pin'].indexOf(alias) > -1,
+						).length;
 						if (!shouldBeUniqueAcrossSlots) {
 							usedForAliases.forEach((orgAlias) => {
 								slotNames
 									.filter((s) => s !== slot)
 									.forEach((otherSlot) => {
-										const otherPins = Object.keys(board.motorSlots[otherSlot] as { [key: string]: string })
-											.filter((alias) => alias !== orgAlias)
-											.map((alias) => (board.motorSlots[otherSlot] as { [key: string]: string })[alias]);
-										expect(
-											otherPins.includes(pin),
-											`${orgAlias} ${pin} on slot ${slot} is used for a different purpose in slot ${otherSlot}`,
-										).toBeFalsy();
+										if (!shouldBeUniqueAcrossSlots) {
+											const otherPins = Object.keys(board.motorSlots[otherSlot] as { [key: string]: string })
+												.filter((alias) => alias !== orgAlias)
+												.map((alias) => (board.motorSlots[otherSlot] as { [key: string]: string })[alias]);
+											expect(
+												otherPins.includes(pin),
+												`${orgAlias} ${pin} on slot ${slot} is used for a different purpose in slot ${otherSlot}`,
+											).toBeFalsy();
+										} else {
+											const otherPins = Object.keys(board.motorSlots[otherSlot] as { [key: string]: string }).map(
+												(alias) => (board.motorSlots[otherSlot] as { [key: string]: string })[alias],
+											);
+											expect(
+												otherPins.includes(pin),
+												`${orgAlias} ${pin} on slot ${slot} should be unique accross slots but is also used in slot ${otherSlot}`,
+											).toBeFalsy();
+										}
 									});
 							});
 						}
