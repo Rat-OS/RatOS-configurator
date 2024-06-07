@@ -29,6 +29,8 @@ import { ServerCache } from '@/server/helpers/cache';
 import { glob } from 'glob';
 import { readFile } from 'fs/promises';
 import { PrinterAxis } from '@/zods/motion';
+import { MotorSlotPins } from '@/zods/boards';
+import { z } from 'zod';
 
 describe('configuration', async () => {
 	ServerCache.flushAll();
@@ -115,6 +117,60 @@ describe('configuration', async () => {
 				expect(ruleContents.includes(attr)).toBeTruthy();
 				expect(ruleContents.includes(symlink)).toBeTruthy();
 				expect(ruleContents.includes(devlink)).toBeTruthy();
+			});
+			test.skipIf(board.motorSlots == null).concurrent('has valid motor slot pins', async () => {
+				if (board.motorSlots == null) {
+					throw new Error('motorSlots should not be null for this test');
+				}
+				const slotNames = Object.keys(board.motorSlots);
+				const requiredUniquePins: string[] = [];
+				slotNames.forEach((slot) => {
+					const pinAliases = Object.keys(board.motorSlots[slot] as { [key: string]: string }).filter(
+						(key: string): key is keyof z.infer<typeof MotorSlotPins> => key !== 'title',
+					);
+					const filteredSlot = Object.fromEntries(pinAliases.map((alias) => [alias, board.motorSlots[slot][alias]]));
+					const pins = pinAliases.map((alias) => (board.motorSlots[slot] as { [key: string]: string })[alias]);
+					pins.forEach((pin) => {
+						if (pin == 'null') {
+							return;
+						}
+						expect(pin).toMatch(/^[a-zA-Z0-9\.]+$/);
+						const usedForAliases = pinAliases.filter((alias) => filteredSlot[alias] === pin);
+						// check that the pin is only used for a specific purpose.
+						const stepEnableDir = usedForAliases.filter(
+							(alias) => ['enable_pin', 'step_pin', 'dir_pin'].indexOf(alias) > -1,
+						).length;
+						const uartCs = Math.min(
+							usedForAliases.filter((alias) => ['uart_pin', 'cs_pin'].indexOf(alias) > -1).length,
+							1,
+						);
+						const endstopDiag = Math.min(
+							usedForAliases.filter((alias) => ['endstop_pin', 'diag_pin'].indexOf(alias) > -1).length,
+							1,
+						);
+						const others = usedForAliases.filter(
+							(alias) =>
+								['enable_pin', 'step_pin', 'dir_pin', 'uart_pin', 'cs_pin', 'endstop_pin', 'diag_pin'].indexOf(
+									alias,
+								) === -1,
+						).length;
+						const shouldBeUniqueAcrossSlots = usedForAliases.filter(
+							(alias) => ['step_pin', 'dir_pin', 'cs_pin', 'uart_address'].indexOf(alias) > -1,
+						).length;
+						expect(
+							stepEnableDir + uartCs + endstopDiag + others,
+							`Pin ${pin} is used for several purposes in slot ${slot} (${usedForAliases.join(', ')})`,
+						).toBe(1);
+						if (shouldBeUniqueAcrossSlots + endstopDiag) {
+							if (requiredUniquePins.filter((p) => p === pin).length > 1) {
+								throw new Error(
+									`Pin ${pin} is used in multiple slots and has to be unique across slots to be used for ${usedForAliases.join(' and ')}`,
+								);
+							}
+							requiredUniquePins.push(pin);
+						}
+					});
+				});
 			});
 			test.skipIf(board.boardImageFileName == null).concurrent('has a valid board image', async () => {
 				expect(fs.existsSync(path.join(board.path, board.boardImageFileName ?? ''))).toBeTruthy();
