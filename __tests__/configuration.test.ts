@@ -124,6 +124,7 @@ describe('configuration', async () => {
 				}
 				const slotNames = Object.keys(board.motorSlots);
 				const requiredUniquePins: string[] = [];
+				const enablePins: string[] = [];
 				slotNames.forEach((slot) => {
 					const pinAliases = Object.keys(board.motorSlots[slot] as { [key: string]: string }).filter(
 						(key: string): key is keyof z.infer<typeof MotorSlotPins> => key !== 'title',
@@ -168,6 +169,33 @@ describe('configuration', async () => {
 								);
 							}
 							requiredUniquePins.push(pin);
+						}
+						// Check enable pins aren't used for anything else
+						if (usedForAliases.includes('enable_pin')) {
+							enablePins.push(pin);
+							slotNames
+								.filter((s) => s !== slot)
+								.forEach((otherSlot) => {
+									const otherPins = Object.keys(board.motorSlots[otherSlot] as { [key: string]: string })
+										.filter((alias) => alias !== 'enable_pin')
+										.map((alias) => (board.motorSlots[otherSlot] as { [key: string]: string })[alias]);
+									expect(
+										otherPins.includes(pin),
+										`Enable pin ${pin} on slot ${slot} is used for a different purpose in slot ${otherSlot}`,
+									).toBeFalsy();
+								});
+						}
+						if (usedForAliases.filter((alias) => alias !== 'enable_pin').length > 0) {
+							const otherFunctions = usedForAliases.filter((alias) => alias === 'enable_pin');
+							expect(
+								otherFunctions.length,
+								`Enable pin ${pin} is used for other purposes in slot ${slot} (${usedForAliases.join(', ')})`,
+							).toBe(0);
+							if (enablePins.includes(pin)) {
+								throw new Error(
+									`Enable pin ${pin} is used for other purposes in slot ${slot} (${usedForAliases.join(', ')})`,
+								);
+							}
 						}
 					});
 				});
