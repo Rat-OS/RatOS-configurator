@@ -30,8 +30,8 @@ declare namespace __next_route_internal_types__ {
 
   type StaticRoutes = 
     | `/api/dfu-image`
-    | `/api/download-firmware`
     | `/api/mcu-image`
+    | `/api/download-firmware`
     | `/api/printer-image`
     | `/`
     | `/calibration`
