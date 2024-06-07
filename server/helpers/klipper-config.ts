@@ -125,13 +125,13 @@ export const constructKlipperConfigUtils = async (config: PrinterConfiguration) 
 			const pinName =
 				this.printerAxisToPinAliasPrefix(axis) + '_' + (alias.startsWith('_') ? alias.substring(1) : alias);
 			let pinValue = null;
-			if (this.isExtruderToolheadAxis(axis) && enabledMaps.includes('toolboard')) {
-				const th = this.getToolhead(axis);
+			const rail = this.getRail(axis);
+			const th = this.isExtruderToolheadAxis(axis) ? this.getToolhead(axis) : null;
+			if (this.isExtruderToolheadAxis(axis) && enabledMaps.includes('toolboard') && th?.hasToolboard()) {
 				pinValue = includePrefix
 					? th.getToolheadPin(axis, alias)
 					: th.getPinFromToolboardAlias(pinName as keyof ToolboardPins<true>);
 			} else if (enabledMaps.includes('controlboard')) {
-				const rail = this.getRail(axis);
 				const slotPin = alias.startsWith('_') ? alias.substring(1) : alias;
 				if (
 					config.controlboard.motorSlots != null &&
@@ -278,11 +278,8 @@ export const constructKlipperConfigUtils = async (config: PrinterConfiguration) 
 				throw new Error(`No rail found for axis ${axis}`);
 			}
 			const section = [`# ${rail.axisDescription}`];
-			if (this.isExtruderToolheadAxis(rail.axis)) {
-				const toolhead = this.getToolhead(rail.axis);
-				if (toolhead == null) {
-					throw new Error(`No toolhead found for ${rail.axis}`);
-				}
+			const toolhead = this.isExtruderToolheadAxis(rail.axis) ? this.getToolhead(rail.axis) : null;
+			if (toolhead?.hasToolboard()) {
 				section.push(`# Connected to ${(toolhead.getToolboard() || config.controlboard).name}`);
 			} else if (rail.motorSlot && config.controlboard.motorSlots) {
 				section.push(
