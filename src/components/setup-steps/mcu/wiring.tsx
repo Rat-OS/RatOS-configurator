@@ -54,7 +54,7 @@ export const ElectronicsWiring = (props: StepScreenProps) => {
 				<h3 className="font-display font-bold tracking-tight text-zinc-300">Control board wiring</h3>
 				<Lightbox id="controlboard" aspect={aspect.current}>
 					<div
-						className="flex h-full max-h-full w-full max-w-full items-center justify-center"
+						className="flex h-full max-h-full w-full max-w-full select-none items-center justify-center"
 						dangerouslySetInnerHTML={{ __html: controlboardSvg?.data }}
 					/>
 				</Lightbox>
