@@ -14,7 +14,7 @@ const transition = {
 
 const wheelScale = 3;
 
-export const Lightbox: React.FC<React.PropsWithChildren<{ id?: string; aspect: number }>> = ({
+export const Lightbox: React.FC<React.PropsWithChildren<{ id?: string; aspect: number | null }>> = ({
 	id,
 	children,
 	aspect,
@@ -66,16 +66,15 @@ export const Lightbox: React.FC<React.PropsWithChildren<{ id?: string; aspect: n
 					clamp();
 				}
 			},
-			onWheel: ({ event, offset: [x, y] }) => {
+			onWheel: ({ event, offset: [x, y], memo = containerRef.current!.getBoundingClientRect() }) => {
 				const newZoom = Math.min(Math.max((y + 100 * wheelScale) / (100 * wheelScale), 1), 3);
 				const imgCenterOffset = {
 					x: offsetX.get(),
 					y: offsetY.get(),
 				};
-
 				const originOffset = {
-					x: imgCenterOffset.x + (1 + containerRef.current!.clientWidth / 2) - event.clientX,
-					y: imgCenterOffset.y + (1 + containerRef.current!.clientHeight / 2) - event.clientY,
+					x: imgCenterOffset.x + (memo.x + containerRef.current!.clientWidth / 2) - event.clientX,
+					y: imgCenterOffset.y + (memo.y + containerRef.current!.clientHeight / 2) - event.clientY,
 				};
 				const adjustment = {
 					x: originOffset.x * (prevZoom.current / newZoom - 1),
@@ -88,8 +87,9 @@ export const Lightbox: React.FC<React.PropsWithChildren<{ id?: string; aspect: n
 				prevZoom.current = newZoom;
 				zoom.set(newZoom);
 				clamp(absolute.x, absolute.y);
+				return memo;
 			},
-			onPinch: ({ origin: [ox, oy], offset: [s] }) => {
+			onPinch: ({ origin: [ox, oy], offset: [s], memo = containerRef.current!.getBoundingClientRect() }) => {
 				const newZoom = Math.min(Math.max(s, 1), 6);
 				const imgCenterOffset = {
 					x: offsetX.get(),
@@ -97,8 +97,8 @@ export const Lightbox: React.FC<React.PropsWithChildren<{ id?: string; aspect: n
 				};
 
 				const originOffset = {
-					x: imgCenterOffset.x + (1 + containerRef.current!.clientWidth / 2) - ox,
-					y: imgCenterOffset.y + (1 + containerRef.current!.clientHeight / 2) - oy,
+					x: imgCenterOffset.x + (memo.x + containerRef.current!.clientWidth / 2) - ox,
+					y: imgCenterOffset.y + (memo.x + containerRef.current!.clientHeight / 2) - oy,
 				};
 				const adjustment = {
 					x: originOffset.x * (prevZoom.current / newZoom - 1),
@@ -111,6 +111,7 @@ export const Lightbox: React.FC<React.PropsWithChildren<{ id?: string; aspect: n
 				prevZoom.current = newZoom;
 				zoom.set(newZoom);
 				clamp(absolute.x, absolute.y);
+				return memo;
 			},
 		},
 		{
@@ -136,11 +137,13 @@ export const Lightbox: React.FC<React.PropsWithChildren<{ id?: string; aspect: n
 
 	const content = (
 		<motion.div
-			className="relative z-[60] flex h-full max-h-full max-w-full items-center"
+			className="relative flex h-full max-h-full max-w-full items-center"
 			key={`content-${id}`}
 			transition={transition}
 			style={{
-				aspectRatio: aspect,
+				aspectRatio:
+					aspect ??
+					(containerRef.current ? containerRef.current.clientWidth / containerRef.current.clientHeight : undefined),
 				touchAction: 'none',
 			}}
 			ref={ref}
@@ -157,7 +160,7 @@ export const Lightbox: React.FC<React.PropsWithChildren<{ id?: string; aspect: n
 					right: right,
 					bottom: bottom,
 				}}
-				className="absolute z-[60] flex w-full max-w-full items-center justify-center [&_text]:fill-zinc-300 [&_text]:text-center [&_text]:text-2xl [&_text]:font-semibold [&_text]:capitalize [&_text]:tracking-tight"
+				className="absolute flex w-full max-w-full items-center justify-center outline-none outline-offset-0 [&_text]:fill-zinc-300 [&_text]:text-center [&_text]:text-2xl [&_text]:font-semibold [&_text]:capitalize [&_text]:tracking-tight"
 			>
 				{children}
 			</motion.div>
@@ -177,21 +180,31 @@ export const Lightbox: React.FC<React.PropsWithChildren<{ id?: string; aspect: n
 			}}
 		>
 			<motion.div
-				className="z-60 relative flex w-full cursor-pointer items-center justify-center"
+				className="z-60 relative flex h-auto w-auto cursor-pointer items-center justify-center"
 				onClick={() => setOpen(true)}
-				style={{ aspectRatio: aspect }}
+				style={{
+					aspectRatio:
+						aspect ??
+						(containerRef.current ? containerRef.current.clientWidth / containerRef.current.clientHeight : undefined),
+				}}
 				key={`container-${id}`}
 			>
 				{!isOpen && content}
 			</motion.div>
 			<DialogContent
-				className="flex h-full max-h-full w-full max-w-full items-center justify-center bg-transparent"
+				className="flex max-h-full max-w-full items-center justify-center border-none border-transparent bg-transparent p-0 outline-transparent ring-transparent ring-offset-transparent data-[state=closed]:fade-out-100 data-[state=open]:fade-in-100 focus:border-none focus:outline-none focus:ring-0 focus-visible:border-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
 				key={`dialog-${id}`}
-				style={{ touchAction: 'none' }}
+				fixedCloseButton={true}
+				style={{
+					touchAction: 'none',
+					aspectRatio:
+						aspect ??
+						(containerRef.current ? containerRef.current.clientWidth / containerRef.current.clientHeight : undefined),
+				}}
 				ref={containerRef}
 				// onClick={() => setOpen(false)}
 			>
-				{isOpen && content}
+				{content}
 			</DialogContent>
 		</Dialog>
 	);

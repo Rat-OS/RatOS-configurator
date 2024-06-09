@@ -68,7 +68,7 @@ const makeSteps = (toolheads: ToolheadConfiguration<any>[], isConfigValid: boole
 		id: getNextIndex(),
 		name: 'Wiring',
 		canBeSkippedTo: isConfigValid,
-		description: 'Follow the wiring guide to finish your wiring',
+		description: 'Follow the wiring diagrams to finish your wiring',
 		href: '#',
 		renderScreen: (screenProps) => <ElectronicsWiring {...screenProps} key={screenProps.key} />,
 	});

@@ -31,8 +31,8 @@ const DialogOverlay = React.forwardRef<
 
 const DialogContent = React.forwardRef<
 	React.ElementRef<typeof DialogPrimitive.Content>,
-	React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+	React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & { fixedCloseButton?: boolean }
+>(({ className, children, fixedCloseButton, ...props }, ref) => (
 	<DialogPortal>
 		<DialogOverlay />
 		<DialogPrimitive.Content
@@ -44,11 +44,19 @@ const DialogContent = React.forwardRef<
 			{...props}
 		>
 			{children}
-			<DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity data-[state=open]:bg-accent data-[state=open]:text-muted-foreground hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
-				<Cross2Icon className="h-4 w-4" />
+			{!fixedCloseButton && (
+				<DialogPrimitive.Close className="absolute right-4 top-4 z-[70] rounded-sm opacity-70 ring-offset-background transition-opacity data-[state=open]:bg-accent data-[state=open]:text-muted-foreground hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
+					<Cross2Icon className="z-[70] h-4 w-4" />
+					<span className="sr-only">Close</span>
+				</DialogPrimitive.Close>
+			)}
+		</DialogPrimitive.Content>
+		{fixedCloseButton && (
+			<DialogPrimitive.Close className="pointer-events-auto fixed right-4 top-4 z-[70] cursor-pointer rounded-sm opacity-70 ring-offset-background transition-opacity data-[state=open]:bg-accent data-[state=open]:text-muted-foreground hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
+				<Cross2Icon className="z-[70] h-8 w-8" />
 				<span className="sr-only">Close</span>
 			</DialogPrimitive.Close>
-		</DialogPrimitive.Content>
+		)}
 	</DialogPortal>
 ));
 (DialogContent as any).displayName = DialogPrimitive.Content.displayName;
