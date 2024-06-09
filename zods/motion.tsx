@@ -47,23 +47,66 @@ export const matchesDefaultRail = (
 
 export const Voltage = z.nativeEnum(StepperVoltage);
 
-export const Driver = z.object({
-	id: z.string(),
-	title: z.string(),
-	type: z.enum(['TMC2209', 'TMC2226', 'TMC5160', 'TMC2130', 'TMC2240']),
-	protocol: z.enum(['SPI', 'UART']),
-	senseResistor: z.number().min(0),
-	coolingCurrentThreshold: z.number(),
-	voltages: Voltage.array(),
-	maxCurrent: z.number().min(0),
-	external: z.boolean().optional(),
-});
+export const DriverID = z.string();
+
+export const Driver = z
+	.object({
+		id: DriverID,
+		title: z.string(),
+		protocol: z.enum(['SPI', 'UART']),
+		coolingCurrentThreshold: z.number(),
+		voltages: Voltage.array(),
+		maxCurrent: z.number().min(0),
+		external: z.boolean().optional(),
+	})
+	.and(
+		z
+			.object({
+				type: z.enum(['TMC2209', 'TMC2226', 'TMC5160', 'TMC2130']),
+				senseResistor: z.number().min(0),
+			})
+			.or(
+				z.object({
+					type: z.enum(['TMC2240']),
+				}),
+			),
+	);
 
 const BaseStepperPreset = z.object({
 	voltage: Voltage,
 	run_current: z.number(),
-	driver: Driver.shape.id,
-	sense_resistor: z.number(),
+	driver: DriverID,
+});
+
+const BaseSPIStepperPreset = BaseStepperPreset.extend({
+	driver_MSLUT0: z.number().optional(),
+	driver_MSLUT1: z.number().optional(),
+	driver_MSLUT2: z.number().optional(),
+	driver_MSLUT3: z.number().optional(),
+	driver_MSLUT4: z.number().optional(),
+	driver_MSLUT5: z.number().optional(),
+	driver_MSLUT6: z.number().optional(),
+	driver_MSLUT7: z.number().optional(),
+	driver_W0: z.number().optional(),
+	driver_W1: z.number().optional(),
+	driver_W2: z.number().optional(),
+	driver_W3: z.number().optional(),
+	driver_X1: z.number().optional(),
+	driver_X2: z.number().optional(),
+	driver_X3: z.number().optional(),
+	driver_START_SIN: z.number().optional(),
+	driver_START_SIN90: z.number().optional(),
+	driver_IHOLDDELAY: z.number().optional(),
+	driver_TPOWERDOWN: z.number().optional(),
+	driver_TBL: z.number().optional(),
+	driver_TOFF: z.number().optional(),
+	driver_HEND: z.number().optional(),
+	driver_HSTRT: z.number().optional(),
+	driver_PWM_AUTOSCALE: z.boolean().optional(),
+	driver_PWM_FREQ: z.number().optional(),
+	driver_PWM_GRAD: z.number().optional(),
+	driver_PWM_AMPL: z.number().optional(),
+	driver_SGT: z.number().optional(),
 });
 
 export const Stepper = z.object({
@@ -74,36 +117,12 @@ export const Stepper = z.object({
 	presets: z
 		.array(
 			z.discriminatedUnion('driver', [
-				BaseStepperPreset.extend({
-					driver: z.enum(['TMC2130', 'TMC5160', 'TMC2240']),
-					driver_MSLUT0: z.number().optional(),
-					driver_MSLUT1: z.number().optional(),
-					driver_MSLUT2: z.number().optional(),
-					driver_MSLUT3: z.number().optional(),
-					driver_MSLUT4: z.number().optional(),
-					driver_MSLUT5: z.number().optional(),
-					driver_MSLUT6: z.number().optional(),
-					driver_MSLUT7: z.number().optional(),
-					driver_W0: z.number().optional(),
-					driver_W1: z.number().optional(),
-					driver_W2: z.number().optional(),
-					driver_W3: z.number().optional(),
-					driver_X1: z.number().optional(),
-					driver_X2: z.number().optional(),
-					driver_X3: z.number().optional(),
-					driver_START_SIN: z.number().optional(),
-					driver_START_SIN90: z.number().optional(),
-					driver_IHOLDDELAY: z.number().optional(),
-					driver_TPOWERDOWN: z.number().optional(),
-					driver_TBL: z.number().optional(),
-					driver_TOFF: z.number().optional(),
-					driver_HEND: z.number().optional(),
-					driver_HSTRT: z.number().optional(),
-					driver_PWM_AUTOSCALE: z.boolean().optional(),
-					driver_PWM_FREQ: z.number().optional(),
-					driver_PWM_GRAD: z.number().optional(),
-					driver_PWM_AMPL: z.number().optional(),
-					driver_SGT: z.number().optional(),
+				BaseSPIStepperPreset.extend({
+					driver: z.enum(['TMC2130', 'TMC5160']),
+					sense_resistor: z.number(),
+				}),
+				BaseSPIStepperPreset.extend({
+					driver: z.enum(['TMC2240']),
 				}),
 				BaseStepperPreset.extend({
 					driver: z.enum(['TMC2209']),
@@ -111,6 +130,7 @@ export const Stepper = z.object({
 					driver_TOFF: z.number().optional(),
 					driver_HEND: z.number().optional(),
 					driver_HSTRT: z.number().optional(),
+					sense_resistor: z.number(),
 				}),
 			]),
 		)
@@ -174,7 +194,7 @@ export const PrinterRailDefinition = BasePrinterRail.extend({
 });
 
 export const SerializedPrinterRailDefinition = PrinterRailDefinition.extend({
-	driver: Driver.shape.id,
+	driver: DriverID,
 	stepper: Stepper.shape.id,
 });
 
@@ -187,7 +207,7 @@ export const PrinterRail = BasePrinterRail
 	.refine((data) => data.current <= data.driver.maxCurrent, 'Current must be less than max current of the driver');
 
 export const SerializedPrinterRail = BasePrinterRail.extend({
-	driver: Driver.shape.id,
+	driver: DriverID,
 	stepper: Stepper.shape.id,
 });
 

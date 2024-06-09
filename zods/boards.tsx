@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { PrinterAxis, Voltage } from '@/zods/motion';
+import { DriverID, PrinterAxis, Voltage } from '@/zods/motion';
 
 // Complete map of all available RatOS pin aliases.
 export const AllPins = {
@@ -316,7 +316,7 @@ export const BoardID = z.string().brand('BoardID');
 export const BoardPath = z.string().brand('BoardPath');
 export const BoardSerialPath = z.string().brand('BoardSerialPath');
 
-const integratedDrivers = z.record(z.nativeEnum(PrinterAxis).or(z.string()), z.string());
+const integratedDrivers = z.record(z.nativeEnum(PrinterAxis).or(z.string()), DriverID);
 const motorSlots = z.record(MotorSlotKey, MotorSlot);
 
 export const Board = z
