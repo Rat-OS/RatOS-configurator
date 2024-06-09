@@ -9,6 +9,7 @@ import {
 	SerializedPrinterRailDefinition,
 	Stepper,
 	PrinterAxis,
+	DriverID,
 } from '@/zods/motion';
 import { Steppers } from '@/data/steppers';
 import {
@@ -21,7 +22,7 @@ import {
 import { PartialPrinterConfiguration } from '@/zods/printer-configuration';
 import { ToolheadHelper } from '@/helpers/toolhead';
 
-export const deserializeDriver = (driverId: z.input<typeof Driver.shape.id>): z.infer<typeof Driver> | null => {
+export const deserializeDriver = (driverId: z.input<typeof DriverID>): z.infer<typeof Driver> | null => {
 	return Drivers.find((d) => d.id === driverId) ?? null;
 };
 

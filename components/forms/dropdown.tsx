@@ -141,7 +141,6 @@ export const Dropdown = <DropdownOption extends Option = Option, CanClear extend
 			{props.help}
 		</div>
 	) : null;
-
 	return (
 		<Popover open={open} onOpenChange={setOpen}>
 			<Label
@@ -154,10 +153,11 @@ export const Dropdown = <DropdownOption extends Option = Option, CanClear extend
 			</Label>
 			{help}
 			{props.onShown && <OnDropdownOpened open={open} onShown={props.onShown} />}
-			<PopoverTrigger asChild>
+			<PopoverTrigger asChild disabled={props.disabled}>
 				<Button
 					variant="outline"
 					role="combobox"
+					disabled={props.disabled}
 					aria-expanded={open}
 					className={twJoin('w-full justify-between bg-zinc-800 px-2', inputClass)}
 				>

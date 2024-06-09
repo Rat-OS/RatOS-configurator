@@ -124,6 +124,15 @@ export const Drivers = z.array(Driver).parse([
 		maxCurrent: 4.7,
 	},
 	{
+		id: 'BTT-TMC2240-10',
+		title: 'BTT TMC2240 v1.0',
+		type: 'TMC2240',
+		protocol: 'SPI',
+		coolingCurrentThreshold: 1.1,
+		voltages: [24, 36],
+		maxCurrent: 2.1,
+	},
+	{
 		id: 'MELLOW-FLY-HV-TMC5160-PRO-12',
 		title: 'Mellow FLY HV TMC5160 Pro v1.2',
 		type: 'TMC5160',
