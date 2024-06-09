@@ -47,7 +47,7 @@ export const matchesDefaultRail = (
 
 export const Voltage = z.nativeEnum(StepperVoltage);
 
-export const DriverID = z.string().brand('StepperDriverID');
+export const DriverID = z.string();
 
 export const Driver = z
 	.object({
