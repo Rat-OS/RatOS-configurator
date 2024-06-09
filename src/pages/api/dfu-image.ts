@@ -1,12 +1,10 @@
 import { GenericErrorResponse } from '@/pages/api/types';
-import fs from 'fs';
-import { promisify } from 'util';
+import { createReadStream } from 'fs';
 import path from 'path';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getBoards } from '@/server/routers/mcu';
-import { fileTypeFromBuffer } from 'file-type';
 
-type DfuImageSuccessResponseData = Buffer;
+type DfuImageSuccessResponseData = ReturnType<typeof createReadStream>;
 
 interface DfuImageErrorResponseData extends GenericErrorResponse {}
 
@@ -34,18 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 		}
 		const imgPath = path.join(board.path, board.dfu.dfuBootImage);
 		try {
-			const buf = await promisify(fs.readFile)(imgPath);
-			const fileType = await fileTypeFromBuffer(buf);
-			if (fileType == null) {
-				return res.status(500).json({
-					result: 'error',
-					data: {
-						message: 'File is not a valid image.',
-					},
-				});
-			}
-			res.setHeader('Content-Type', fileType.mime);
-			return res.status(200).send(buf);
+			return res.status(200).send(createReadStream(imgPath));
 		} catch (e) {
 			return res.status(200).json({
 				result: 'error',

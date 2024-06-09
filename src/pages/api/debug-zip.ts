@@ -79,7 +79,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			});
 
 			try {
-				const buf = zip.generateNodeStream({ type: 'nodebuffer', streamFiles: true });
 				res.setHeader('Content-Type', 'application/x-zip');
 				res.setHeader('Content-Disposition', `attachment; filename=ratos-debug.zip`);
 				return res
