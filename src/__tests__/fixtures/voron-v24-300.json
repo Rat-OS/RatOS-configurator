@@ -1,0 +1,108 @@
+{
+	"printer": "voron-v24",
+	"controlboard": "btt-octopus-11",
+	"toolheads": [
+		{
+			"thermistor": "ATC Semitec 104NT-4-R025H42G",
+			"toolboard": "btt-sb-2240-10-stm",
+			"xEndstop": "endstop",
+			"yEndstop": "endstop",
+			"extruder": "clockwork-2",
+			"hotend": "dragon-high-flow",
+			"partFan": "4pin",
+			"hotendFan": "2pin",
+			"probe": "probe",
+			"axis": "x",
+			"toolNumber": 0,
+			"xAccelerometer": "toolboard",
+			"yAccelerometer": "toolboard"
+		}
+	],
+	"size": 300,
+	"controllerFan": "2pin",
+	"performanceMode": true,
+	"stealthchop": false,
+	"standstillStealth": false,
+	"rails": [
+		{
+			"axis": "x",
+			"axisDescription": "The A motor in the CoreXY system located on the right side of the printer",
+			"current": 0.8,
+			"performanceMode": {
+				"current": 1.3
+			},
+			"homingSpeed": 50,
+			"rotationDistance": 40,
+			"driver": "BTT-TMC2209-13",
+			"stepper": "LDO-42STH48-2004MAH"
+		},
+		{
+			"axis": "y",
+			"axisDescription": "The B motor in the CoreXY system located on the left side of the printer",
+			"current": 0.8,
+			"performanceMode": {
+				"current": 1.3
+			},
+			"homingSpeed": 50,
+			"rotationDistance": 40,
+			"driver": "BTT-TMC2209-13",
+			"stepper": "LDO-42STH48-2004MAH"
+		},
+		{
+			"axis": "z",
+			"axisDescription": "The Z motor located on the front left of the bottom of the printer",
+			"current": 0.8,
+			"performanceMode": {
+				"current": 1.3
+			},
+			"driver": "BTT-TMC2209-13",
+			"stepper": "LDO-42STH48-2004AC",
+			"rotationDistance": 40,
+			"gearRatio": "80:16"
+		},
+		{
+			"axis": "z1",
+			"axisDescription": "The Z motor located on the rear left of the bottom of the printer",
+			"current": 0.8,
+			"performanceMode": {
+				"current": 1.3
+			},
+			"driver": "BTT-TMC2209-13",
+			"stepper": "LDO-42STH48-2004AC",
+			"rotationDistance": 40,
+			"gearRatio": "80:16"
+		},
+		{
+			"axis": "z2",
+			"axisDescription": "The Z motor located on the rear right of the bottom of the printer",
+			"current": 0.8,
+			"performanceMode": {
+				"current": 1.3
+			},
+			"driver": "BTT-TMC2209-13",
+			"stepper": "LDO-42STH48-2004AC",
+			"rotationDistance": 40,
+			"gearRatio": "80:16"
+		},
+		{
+			"axis": "z3",
+			"axisDescription": "The Z motor located on the front right of the bottom of the printer",
+			"current": 0.8,
+			"performanceMode": {
+				"current": 1.3
+			},
+			"driver": "BTT-TMC2209-13",
+			"stepper": "LDO-42STH48-2004AC",
+			"rotationDistance": 40,
+			"gearRatio": "80:16"
+		},
+		{
+			"axis": "extruder",
+			"axisDescription": "The extruder motor used for your toolhead",
+			"current": 0.707,
+			"driver": "BTT-TMC2240-10",
+			"stepper": "LDO-36STH20-1004AHG",
+			"rotationDistance": 0
+		}
+	]
+}

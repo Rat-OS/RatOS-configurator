@@ -16,7 +16,7 @@ export const findPreset = (
 			(p) =>
 				p.driver === driver.type &&
 				p.voltage === voltage &&
-				p.sense_resistor === driver.senseResistor &&
+				(driver.type === 'TMC2240' || ('sense_resistor' in p && p.sense_resistor === driver.senseResistor)) &&
 				(current == null || p.run_current === current),
 		);
 };
