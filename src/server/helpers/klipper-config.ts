@@ -1049,18 +1049,18 @@ export const constructKlipperConfigHelpers = async (
 			switch (config.controllerFan.id) {
 				case '2pin':
 					utils.requireControlboardPin('fan_controller_board_pin');
-					result.push(`# 2-pin fan connected to the controller board`);
+					result.push(`# 2-pin fan connected to 2-pin header on ${config.controlboard.name} - input voltage pwm`);
 					result.push(`pin: ${utils.getControlboardPins().fan_controller_board_pin}`);
 					break;
 				case '4pin':
 					utils.requireControlboardPin('fan_controller_board_pin');
-					result.push(`# 4-pin fan connected to the controller board`);
+					result.push(`# 4-pin fan connected to 2-pin header on ${config.controlboard.name} - digital pwm`);
 					result.push(`pin: !${utils.getControlboardPins().fan_controller_board_pin}`);
 					result.push(`cycle_time:  0.00004`);
 					break;
 				case '4pin-dedicated':
 					utils.requireControlboardPin('4p_controller_board_pin');
-					result.push(`# 4-pin fan connected to a dedicated 4-pin fan header on the controller board`);
+					result.push(`# 4-pin fan connected to 4-pin header on ${config.controlboard.name} - digital pwm`);
 					result.push(`pin: ${utils.getControlboardPins()['4p_controller_board_pin']}`);
 					result.push(`cycle_time:  0.00004`);
 					if (utils.getControlboardPins()['4p_controller_board_tach_pin'] != null) {
@@ -1089,7 +1089,7 @@ export const constructKlipperConfigHelpers = async (
 			result.push(
 				utils
 					.getToolheads()
-					.map((th) => th.renderPartFan(multipleToolheadPartFans))
+					.map((th) => th.renderPartFan(multipleToolheadPartFans, config.controlboard))
 					.join('\n'),
 			);
 			// Hotend fan
@@ -1098,7 +1098,7 @@ export const constructKlipperConfigHelpers = async (
 			result.push(
 				utils
 					.getToolheads()
-					.map((th) => th.renderHotendFan())
+					.map((th) => th.renderHotendFan(config.controlboard))
 					.join('\n'),
 			);
 			// Controller fan

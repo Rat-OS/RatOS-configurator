@@ -364,7 +364,7 @@ describe('server', async () => {
 				const sectionIndex = debugLines.findIndex((l) => l.includes('[heater_fan toolhead_cooling_fan]'));
 				const commentIndex = debugLines
 					.slice(sectionIndex > -1 ? sectionIndex : 0)
-					.findIndex((l) => l.includes('# 2-pin fan connected to the toolboard on T0 (toolboard_t0)'));
+					.findIndex((l) => l.includes(`# 2-pin fan connected to 2-pin header on T0 (EBB42 v1.2) - input voltage pwm`));
 				const pinIndex = debugLines
 					.slice(sectionIndex > -1 ? sectionIndex : 0)
 					.findIndex((l) => l.includes('pin: toolboard_t0:PA1'));
@@ -376,7 +376,7 @@ describe('server', async () => {
 				const sectionIndex = debugLines.findIndex((l) => l.includes('[fan]'));
 				const commentIndex = debugLines
 					.slice(sectionIndex > -1 ? sectionIndex : 0)
-					.findIndex((l) => l.includes('# 4-pin fan connected to the toolboard on T0 (toolboard_t0)'));
+					.findIndex((l) => l.includes(`# 4-pin fan connected to 2-pin header on T0 (EBB42 v1.2) - digital pwm`));
 				const pinIndex = debugLines
 					.slice(sectionIndex > -1 ? sectionIndex : 0)
 					.findIndex((l) => l.includes('pin: !toolboard_t0:PA0'));
