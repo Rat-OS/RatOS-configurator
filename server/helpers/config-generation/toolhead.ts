@@ -16,6 +16,7 @@ import { PrinterAxis } from '@/zods/motion';
 import { PrinterConfiguration } from '@/zods/printer-configuration';
 import type { RenderPinsFn } from '@/server/helpers/klipper-config';
 import { getLogger } from '@/server/helpers/logger';
+import { Board } from '@/zods/boards';
 
 export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelper<IsToolboard> {
 	private toolboardPins: PinMapZodFromBoard<IsToolboard, false> | null;
@@ -307,7 +308,7 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 		result.push(extruder.trim());
 		return result.join('\n');
 	}
-	public renderPartFan(multipleToolheadPartFans: boolean = false) {
+	public renderPartFan(multipleToolheadPartFans: boolean = false, controlboard: Board) {
 		let result: string[] = [];
 		if (multipleToolheadPartFans) {
 			const fanName = `part_fan_${this.getShortToolName()}`;
@@ -318,18 +319,18 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 		switch (this.getPartFan().id) {
 			case '2pin':
 				this.requireControlboardPin('fan_part_cooling_pin');
-				result.push(`# 2-pin fan connected to the controller board`);
+				result.push(`# 2-pin fan connected to 2-pin header on ${controlboard.name} - input voltage pwm`);
 				result.push(`pin: ${this.controlboardPins?.fan_part_cooling_pin}`);
 				break;
 			case '4pin':
 				this.requireControlboardPin('fan_part_cooling_pin');
-				result.push(`# 4-pin fan connected to the controller board`);
+				result.push(`# 4-pin fan connected to 2-pin header on ${controlboard.name} - digital pwm`);
 				result.push(`pin: !${this.controlboardPins?.fan_part_cooling_pin}`);
 				result.push(`cycle_time:  0.00004`);
 				break;
 			case '4pin-dedicated':
 				this.requireControlboardPin('4p_fan_part_cooling_pin');
-				result.push(`# 4-pin fan connected to a dedicated 4-pin fan header on the controller board`);
+				result.push(`# 4-pin fan connected to 4-pin header on ${controlboard.name} - digital pwm`);
 				result.push(`pin: ${this.controlboardPins?.['4p_fan_part_cooling_pin']}`);
 				result.push(`cycle_time:  0.00004`);
 				if (this.controlboardPins?.['4p_fan_part_cooling_tach_pin'] != null) {
@@ -339,19 +340,23 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 				break;
 			case '2pin-toolboard':
 				this.requireToolboardPin('fan_part_cooling_pin');
-				result.push(`# 2-pin fan connected to the toolboard on T${this.getTool()} (${this.getToolboardName()})`);
+				result.push(
+					`# 2-pin fan connected to 2-pin header on T${this.getTool()} (${this.getToolboard()?.name}) - input voltage pwm`,
+				);
 				result.push(`pin: ${this.getPinPrefix()}${this.toolboardPins?.fan_part_cooling_pin}`);
 				break;
 			case '4pin-toolboard':
 				this.requireToolboardPin('fan_part_cooling_pin');
-				result.push(`# 4-pin fan connected to the toolboard on T${this.getTool()} (${this.getToolboardName()})`);
+				result.push(
+					`# 4-pin fan connected to 2-pin header on T${this.getTool()} (${this.getToolboard()?.name}) - digital pwm`,
+				);
 				result.push(`pin: !${this.getPinPrefix()}${this.toolboardPins?.fan_part_cooling_pin}`);
 				result.push(`cycle_time:  0.00004`);
 				break;
 			case '4pin-dedicated-toolboard':
 				this.requireToolboardPin('4p_fan_part_cooling_pin');
 				result.push(
-					`# 4-pin fan connected to a dedicated 4-pin fan header on the toolboard on T${this.getTool()} (${this.getToolboardName()})`,
+					`# 4-pin fan connected to 4-pin header on T${this.getTool()} (${this.getToolboard()?.name}) - digital pwm`,
 				);
 				result.push(`pin: ${this.getPinPrefix()}${this.toolboardPins?.['4p_fan_part_cooling_pin']}`);
 				result.push(`cycle_time:  0.00004`);
@@ -365,7 +370,7 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 		}
 		return result.join('\n');
 	}
-	public renderHotendFan() {
+	public renderHotendFan(controlboard: Board) {
 		let result: string[] = [
 			`[heater_fan toolhead_cooling_fan${this.getTool() > 0 ? `_${this.getShortToolName()}` : ''}]`,
 			`heater: ${this.getExtruderAxis().toLocaleLowerCase()}`,
@@ -373,18 +378,18 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 		switch (this.getHotendFan().id) {
 			case '2pin':
 				this.requireControlboardPin('fan_toolhead_cooling_pin');
-				result.push(`# 2-pin fan connected to the controller board`);
+				result.push(`# 2-pin fan connected to 2-pin header on ${controlboard.name} - input voltage pwm`);
 				result.push(`pin: ${this.controlboardPins?.fan_toolhead_cooling_pin}`);
 				break;
 			case '4pin':
 				this.requireControlboardPin('fan_toolhead_cooling_pin');
-				result.push(`# 4-pin fan connected to the controller board`);
+				result.push(`# 4-pin fan connected to 2-pin header on ${controlboard.name} - digital pwm`);
 				result.push(`pin: !${this.controlboardPins?.fan_toolhead_cooling_pin}`);
 				result.push(`cycle_time:  0.00004`);
 				break;
 			case '4pin-dedicated':
 				this.requireControlboardPin('4p_toolhead_cooling_tach_pin');
-				result.push(`# 4-pin fan connected to a dedicated 4-pin fan header on the controller board`);
+				result.push(`# 4-pin fan connected to 4-pin header on ${controlboard.name} - digital pwm`);
 				result.push(`pin: ${this.controlboardPins?.['4p_toolhead_cooling_tach_pin']}`);
 				result.push(`cycle_time:  0.00004`);
 				if (this.controlboardPins?.['4p_toolhead_cooling_tach_pin'] != null) {
@@ -394,19 +399,23 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 				break;
 			case '2pin-toolboard':
 				this.requireToolboardPin('fan_toolhead_cooling_pin');
-				result.push(`# 2-pin fan connected to the toolboard on T${this.getTool()} (${this.getToolboardName()})`);
+				result.push(
+					`# 2-pin fan connected to 2-pin header on T${this.getTool()} (${this.getToolboard()?.name}) - input voltage pwm`,
+				);
 				result.push(`pin: ${this.getPinPrefix()}${this.toolboardPins?.fan_toolhead_cooling_pin}`);
 				break;
 			case '4pin-toolboard':
 				this.requireToolboardPin('fan_toolhead_cooling_pin');
-				result.push(`# 4-pin fan connected to the toolboard on T${this.getTool()} (${this.getToolboardName()})`);
+				result.push(
+					`# 4-pin fan connected to 2-pin header on T${this.getTool()} (${this.getToolboard()?.name}) - digital pwm`,
+				);
 				result.push(`pin: !${this.getPinPrefix()}${this.toolboardPins?.fan_toolhead_cooling_pin}`);
 				result.push(`cycle_time:  0.00004`);
 				break;
 			case '4pin-dedicated-toolboard':
 				this.requireToolboardPin('4p_toolhead_cooling_pin');
 				result.push(
-					`# 4-pin fan connected to a dedicated 4-pin fan header on the toolboard on T${this.getTool()} (${this.getToolboardName()})`,
+					`# 4-pin fan connected to 4-pin header on T${this.getTool()} (${this.getToolboard()?.name}) - digital pwm`,
 				);
 				result.push(`pin: ${this.getPinPrefix()}${this.toolboardPins?.['4p_toolhead_cooling_pin']}`);
 				result.push(`cycle_time:  0.00004`);
