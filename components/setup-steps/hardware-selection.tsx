@@ -68,7 +68,7 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 	}, [parsedPrinterConfiguration]);
 	return (
 		<div>
-			<div className="p-8">
+			<div className="p-4 @sm:p-8">
 				<div className="mb-5 border-b border-zinc-200 pb-5 dark:border-zinc-700">
 					<h3 className="text-lg font-medium leading-6 text-zinc-900 dark:text-zinc-100">
 						Select your printer hardware
@@ -100,7 +100,7 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 							{serializedPrinterConfiguration?.toolheads?.map((th, i) =>
 								th == null || th.axis == null ? null : (
 									<motion.div
-										key={i}
+										key={th.description}
 										exit={{ opacity: 0, scale: 0.9, y: -40 }}
 										initial={{ opacity: 0, scale: 0.9, y: 40 }}
 										animate={{ opacity: 1, scale: 1, y: 0 }}

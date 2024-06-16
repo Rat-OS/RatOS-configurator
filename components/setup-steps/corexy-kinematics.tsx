@@ -14,7 +14,7 @@ const XDirectionState = atom({
 
 const CenterKinematics: StepComponent = (props) => {
 	return (
-		<div className="p-8">
+		<div className="@sm:p-8 p-4">
 			<div className="mb-5 border-b border-zinc-200 pb-5">
 				<h3 className="text-lg font-medium leading-6 text-zinc-900">Manually center printer X, Y and Z axes</h3>
 				<p className="mt-2 max-w-4xl text-sm text-zinc-500">
@@ -37,7 +37,7 @@ const CenterKinematics: StepComponent = (props) => {
 
 const MoveY: StepComponent = (props) => {
 	return (
-		<div className="p-8">
+		<div className="@sm:p-8 p-4">
 			<div className="mb-5 border-b border-zinc-200 pb-5">
 				<h3 className="text-lg font-medium leading-6 text-zinc-900">Did the toolhead move towards the back?</h3>
 				<p className="mt-2 max-w-4xl text-sm text-zinc-500">
@@ -91,7 +91,7 @@ const MoveX: StepComponent = (props) => {
 	}, [setXDirection]);
 
 	return (
-		<div className="p-8">
+		<div className="@sm:p-8 p-4">
 			<div className="mb-5 border-b border-zinc-200 pb-5">
 				<h3 className="text-lg font-medium leading-6 text-zinc-900">Did the toolhead move to the right?</h3>
 				<p className="mt-2 max-w-4xl text-sm text-zinc-500">The toolhead should now have moved 50mm to the right.</p>

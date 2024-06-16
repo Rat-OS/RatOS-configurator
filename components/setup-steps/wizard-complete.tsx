@@ -382,7 +382,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 
 	return (
 		<>
-			<div className="p-8">
+			<div className="@sm:p-8 p-4">
 				{' '}
 				<div className="mb-5 border-b border-zinc-200 pb-5 dark:border-zinc-700">
 					<h3 className="text-lg font-medium leading-6 text-zinc-900 dark:text-zinc-100">{props.name}</h3>
@@ -615,7 +615,7 @@ export const ProceedToMainsail: React.FC<StepScreenProps> = (props) => {
 	};
 	return (
 		<>
-			<div className="p-8">
+			<div className="@sm:p-8 p-4">
 				{' '}
 				<div className="mb-5 border-b border-zinc-200 pb-5 dark:border-zinc-700">
 					<h3 className="text-lg font-medium leading-6 text-zinc-900 dark:text-zinc-100">{props.name}</h3>
