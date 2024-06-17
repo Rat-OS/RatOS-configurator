@@ -791,7 +791,7 @@ export const constructKlipperConfigHelpers = async (
 		},
 		renderHotend() {
 			let result: string[] = utils.getToolheads().map((th) => {
-				return th.renderHotend();
+				return th.renderHotend(config.controlboard);
 			});
 			return result.join('\n');
 		},

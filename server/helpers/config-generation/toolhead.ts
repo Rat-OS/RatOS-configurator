@@ -245,7 +245,7 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 		}
 		return result.join('\n');
 	}
-	public renderHotend() {
+	public renderHotend(controlboard: Board) {
 		let result: string[] = [];
 		let hotend = readInclude(`hotends/${this.getHotend().id}.cfg`);
 		hotend = stripCommentLines(hotend);
@@ -261,22 +261,17 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 			'sensor_pin',
 			`sensor_pin: ${this.getToolheadPin(this.getExtruderAxis(), '_sensor_pin')}`,
 		);
-		if (this.getThermistor() === 'PT1000' && this.getToolboard()?.alternativePT1000Resistor != null) {
-			if (hotend.split('\n').some((line) => line.trim().startsWith('pullup_resistor'))) {
-				hotend = replaceLinesStartingWith(
-					hotend,
-					'pullup_resistor',
-					`pullup_resistor: ${this.getToolboard()?.alternativePT1000Resistor}`,
-				);
-			} else {
-				hotend = replaceLinesStartingWith(
-					hotend,
-					'sensor_type',
-					`sensor_type: ${this.getThermistor()}\npullup_resistor: ${this.getToolboard()?.alternativePT1000Resistor}`,
-				);
-			}
+		const altPullup = this.getToolboard()?.alternativePT1000Resistor ?? controlboard.alternativePT1000Resistor;
+		const stdPullup = this.getToolboard()?.thermistorPullup ?? controlboard.thermistorPullup;
+		const actualPullup = this.getThermistor() === 'PT1000' && altPullup != null ? altPullup : stdPullup;
+		if (hotend.split('\n').some((line) => line.trim().startsWith('pullup_resistor'))) {
+			hotend = replaceLinesStartingWith(hotend, 'pullup_resistor', `pullup_resistor: ${actualPullup}`);
 		} else {
-			hotend = replaceLinesStartingWith(hotend, 'sensor_type', `sensor_type: ${this.getThermistor()}`);
+			hotend = replaceLinesStartingWith(
+				hotend,
+				'sensor_type',
+				`sensor_type: ${this.getThermistor()}\npullup_resistor: ${actualPullup}`,
+			);
 		}
 		if (hotend.split('\n').some((line) => line.trim().startsWith('nozzle_diameter'))) {
 			hotend = replaceLinesStartingWith(hotend, 'nozzle_diameter', `nozzle_diameter: ${this.getNozzle().diameter}`);

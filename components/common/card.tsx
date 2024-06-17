@@ -2,6 +2,7 @@
 import { cva } from 'class-variance-authority';
 import React from 'react';
 import { type MotionProps, motion } from 'framer-motion';
+import { twMerge } from 'tailwind-merge';
 
 const cardVariants = cva([
 	'relative rounded-lg bg-white dark:bg-zinc-900/60 @container',
@@ -18,7 +19,7 @@ type CardProps = React.PropsWithChildren<
 
 export const Card: React.FC<CardProps> = (props) => {
 	return (
-		<motion.div {...props} className={cardVariants({ className: props.className })}>
+		<motion.div {...props} className={twMerge(cardVariants(), props.className)}>
 			{props.children}
 		</motion.div>
 	);
