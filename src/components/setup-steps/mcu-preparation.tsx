@@ -15,6 +15,8 @@ import Image from 'next/image';
 import { Cpu, FileQuestion, MemoryStick, Usb, Zap, ZapOff } from 'lucide-react';
 import { Badge } from '@/components/common/badge';
 import { deserializeDriver } from '@/utils/serialization';
+import { useRecoilCallback } from 'recoil';
+import { ControlboardState, PrinterRailsState } from '@/recoil/printer';
 
 export interface SelectableBoard extends SelectableCard {
 	board: BoardWithDetectionStatus;
@@ -24,7 +26,7 @@ interface ExtraStepProps {
 	selectedControlboard: BoardWithDetectionStatus | null;
 	selectedToolboard: BoardWithDetectionStatus | null;
 	cards: SelectableBoard[];
-	setSelectedBoard: (board: SelectableBoard | null) => void;
+	setSelectedBoard: (board: SelectableBoard | null) => Promise<void>;
 	selectedPrinter: PrinterDefinitionWithResolvedToolheads | null;
 	toolhead: ToolheadHelper<any> | null;
 }
@@ -188,17 +190,23 @@ export const MCUPreparation: React.FC<StepScreenProps & ExtraProps> = (props) =>
 			});
 	}, [boardsQuery.isError, boardsQuery.data, toolhead, isToolboardRequired]);
 
-	const setSelectedBoard = useCallback(
-		(newBoard: SelectableBoard | null) => {
-			if (toolhead) {
-				setToolhead({
-					...toolhead.getConfig(),
-					toolboard: newBoard == null ? null : Toolboard.parse(newBoard.board),
-				});
-			} else if (newBoard != null) {
-				_setControlboard(Board.parse(newBoard.board));
-			}
-		},
+	const setSelectedBoard = useRecoilCallback(
+		({ reset, snapshot }) =>
+			async (newBoard: SelectableBoard | null) => {
+				if (toolhead) {
+					setToolhead({
+						...toolhead.getConfig(),
+						toolboard: newBoard == null ? null : Toolboard.parse(newBoard.board),
+					});
+				} else if (newBoard != null) {
+					_setControlboard(Board.parse(newBoard.board));
+					// reset rail slot assignment if we switch control boards
+					const oldBoard = await snapshot.getPromise(ControlboardState);
+					if (oldBoard != null && oldBoard.id != newBoard.board.id) {
+						reset(PrinterRailsState);
+					}
+				}
+			},
 		[_setControlboard, setToolhead, toolhead],
 	);
 
