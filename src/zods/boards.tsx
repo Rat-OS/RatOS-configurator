@@ -328,6 +328,7 @@ export const Board = z
 		boardImageFileName: z.string().optional(),
 		manualFileName: z.string().optional(),
 		wireDiagramFileName: z.string().nullable(),
+		fanWiringDiagramFileName: z.string().optional(),
 		name: z.string(),
 		manufacturer: z.string(),
 		firmwareBinaryName: z.string(),

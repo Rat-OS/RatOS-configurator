@@ -160,7 +160,7 @@ export const Lightbox: React.FC<React.PropsWithChildren<{ id?: string; aspect: n
 					right: right,
 					bottom: bottom,
 				}}
-				className="absolute flex w-full max-w-full items-center justify-center outline-none outline-offset-0 [&_text]:fill-zinc-300 [&_text]:text-center [&_text]:text-2xl [&_text]:font-semibold [&_text]:capitalize [&_text]:tracking-tight"
+				className="absolute flex w-full max-w-full items-center justify-center outline-none outline-offset-0"
 			>
 				{children}
 			</motion.div>
