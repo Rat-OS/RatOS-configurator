@@ -4,13 +4,23 @@ import { Driver } from '@/zods/motion';
 export const Drivers = z.array(Driver).parse([
 	{
 		id: 'LDO-TMC2209',
-		title: 'TMC2209',
+		title: 'LDO TMC2209',
 		type: 'TMC2209',
 		protocol: 'UART',
 		senseResistor: 0.11,
 		coolingCurrentThreshold: 1.1,
 		voltages: [24],
 		maxCurrent: 2.0,
+	},
+	{
+		id: 'LDO-TMC5160-HV',
+		title: 'LDO TMC5160 HV',
+		type: 'TMC5160',
+		protocol: 'SPI',
+		senseResistor: 0.075,
+		voltages: [24, 36, 48],
+		maxCurrent: 3,
+		coolingCurrentThreshold: 1.5,
 	},
 	{
 		id: 'BTT-KRAKEN-2160-PLUS',

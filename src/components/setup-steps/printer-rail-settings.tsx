@@ -1,6 +1,6 @@
 import { Dropdown } from '@/components/forms/dropdown';
 import { Board } from '@/zods/boards';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { startTransition, useCallback, useEffect, useMemo, useState } from 'react';
 import { Drivers } from '@/data/drivers';
 import { findPreset, Steppers } from '@/data/steppers';
 import { BadgeProps, badgeBackgroundColorStyle, badgeBorderColorStyle } from '@/components/common/badge';
@@ -117,7 +117,9 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 	);
 	useEffect(() => {
 		if (guessMotorSlot.data && motorSlot == null && board?.motorSlots?.[guessMotorSlot.data] != null) {
-			setMotorSlot(guessMotorSlot.data);
+			startTransition(() => {
+				setMotorSlot(guessMotorSlot.data ? guessMotorSlot.data : undefined);
+			});
 		}
 	}, [board, guessMotorSlot.data, motorSlot, props.printerRailDefault.axis]);
 
@@ -250,7 +252,9 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 			return serializedNew[key as keyof typeof serializedNew] !== serializedOld[key as keyof typeof serializedNew];
 		});
 		if (isDirty) {
-			setPrinterRail(serializedNew);
+			startTransition(() => {
+				setPrinterRail(serializedNew);
+			});
 		}
 	}, [current, driver, props.printerRail, homingSpeed, setPrinterRail, stepper, voltage.id, motorSlot]);
 
@@ -310,6 +314,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 						'break-inside-avoid-column',
 						errorCount > 0 && badgeBorderColorStyle({ color: 'red' }),
 						errorCount > 0 && badgeBackgroundColorStyle({ color: 'red' }),
+						errorCount > 0 && 'ring-1',
 					)}
 				>
 					<CardHeader className="">

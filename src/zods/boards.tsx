@@ -343,6 +343,7 @@ export const Board = z
 		fourPinFanConnectorCount: z.number().optional(),
 		driverVoltages: Voltage.array().default([24]),
 		hasMcuTempSensor: z.boolean().default(true),
+		thermistorPullup: z.number().default(4700),
 		alternativePT1000Resistor: z.number().optional(),
 		motorSlots: z.record(MotorSlotKey, MotorSlot).optional(),
 		outputPins: z

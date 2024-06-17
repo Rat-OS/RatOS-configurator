@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { startTransition, useEffect, useState } from 'react';
 import { StepNavButtons } from '@/components/step-nav-buttons';
 import { StepScreenProps } from '@/hooks/useSteps';
 import { DropdownWithPrinterQuery } from '@/components/forms/dropdown';
@@ -62,7 +62,9 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 	useEffect(() => {
 		if (parsedPrinterConfiguration.success === false) {
 			if (parsedPrinterConfiguration.error.errors.some((e) => e.path[0] === 'rails')) {
-				setAdvancedSteppers(true);
+				startTransition(() => {
+					setAdvancedSteppers(true);
+				});
 			}
 		}
 	}, [parsedPrinterConfiguration]);
@@ -86,7 +88,7 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 										className="mt-2"
 										key={e}
 										exit={{ opacity: 0, scale: 0.9, y: -40 }}
-										initial={{ opacity: 0, scale: 0.9, y: 40 }}
+										initial={{ opacity: 1, scale: 1, y: 0 }}
 										animate={{ opacity: 1, scale: 1, y: 0 }}
 									>
 										{e}
@@ -95,14 +97,14 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 							</AnimatePresence>
 						</ErrorMessage>
 					)}
-					<AnimatedContainer className="space-y-4">
+					{serializedPrinterConfiguration?.toolheads != null && (
 						<AnimatePresence>
 							{serializedPrinterConfiguration?.toolheads?.map((th, i) =>
 								th == null || th.axis == null ? null : (
 									<motion.div
-										key={i}
+										key={th.axis}
 										exit={{ opacity: 0, scale: 0.9, y: -40 }}
-										initial={{ opacity: 0, scale: 0.9, y: 40 }}
+										initial={{ opacity: 1, scale: 1, y: 0 }}
 										animate={{ opacity: 1, scale: 1, y: 0 }}
 									>
 										<React.Suspense fallback={<Spinner />}>
@@ -112,7 +114,7 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 								),
 							)}
 						</AnimatePresence>
-					</AnimatedContainer>
+					)}
 					<div className="mt-4 border-t border-zinc-100 pt-8 dark:border-zinc-700">
 						<div className="flex">
 							<h3 className="flex-1 text-base font-medium leading-7 text-zinc-900 dark:text-zinc-100">Electronics</h3>
@@ -195,15 +197,17 @@ export const HardwareSelection: React.FC<StepScreenProps> = (props) => {
 													return acc + count;
 												}, 0);
 									return (
-										<PrinterRailSettings
-											key={rail.axis}
-											errors={railErrors[ri]}
-											selectedBoard={selectedBoard}
-											printerRail={rail}
-											printerRailDefault={deserializePrinterRailDefinition(defaultRail)}
-											performanceMode={performanceMode}
-											isVisible={advancedSteppers || errorCount > 0}
-										/>
+										<React.Suspense fallback={<Spinner />} key={rail.axis}>
+											<PrinterRailSettings
+												key={rail.axis}
+												errors={railErrors[ri]}
+												selectedBoard={selectedBoard}
+												printerRail={rail}
+												printerRailDefault={deserializePrinterRailDefinition(defaultRail)}
+												performanceMode={performanceMode}
+												isVisible={advancedSteppers || errorCount > 0}
+											/>
+										</React.Suspense>
 									);
 								})}
 							</AnimatedContainer>
