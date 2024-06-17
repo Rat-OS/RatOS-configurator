@@ -10,7 +10,7 @@ import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
 import { Lightbox } from '@/components/ui/lightbox';
 import { motion } from 'framer-motion';
-import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToolheads } from '@/hooks/useToolheadConfiguration';
 import { Board, BoardID } from '@/zods/boards';
 import { Card } from '@/components/common/card';
@@ -21,6 +21,9 @@ import { twJoin } from 'tailwind-merge';
 import { Modal } from '@/components/common/modal';
 import { DialogContent } from '@radix-ui/react-dialog';
 import { DialogDescription } from '@/components/ui/dialog';
+
+const SVGClassNames =
+	'pointer-events-none flex h-full max-h-full w-full max-w-full select-none items-center justify-center [&_svg>rect]:fill-transparent [&_text]:text-center [&_text]:font-medium [&_text]:capitalize [&_text]:tracking-tighter';
 
 const fetchWiringDiagram = async (board: Board | null) => {
 	if (board == null) {
@@ -63,12 +66,7 @@ const fetchWiringDiagram = async (board: Board | null) => {
 			aspect,
 			key: board.id,
 			board: board,
-			img: (
-				<div
-					className="pointer-events-none flex h-full max-h-full w-full max-w-full select-none items-center justify-center [&_svg>rect]:fill-transparent [&_text]:text-center [&_text]:text-2xl [&_text]:font-semibold [&_text]:capitalize [&_text]:tracking-tight"
-					dangerouslySetInnerHTML={{ __html: updatedSvgString }}
-				/>
-			),
+			img: <div className={SVGClassNames} dangerouslySetInnerHTML={{ __html: updatedSvgString }} />,
 		};
 	} else if (diagramFileName != null) {
 		const img = new window.Image();
@@ -136,12 +134,7 @@ const fetchFanDiagram = async (board: Board | null) => {
 			aspect,
 			key: board.id,
 			board: board,
-			img: (
-				<div
-					className="pointer-events-none flex h-full max-h-full w-full max-w-full select-none items-center justify-center [&_svg>rect]:fill-transparent [&_text]:text-center [&_text]:text-2xl [&_text]:font-semibold [&_text]:capitalize [&_text]:tracking-tight"
-					dangerouslySetInnerHTML={{ __html: updatedSvgString }}
-				/>
-			),
+			img: <div className={SVGClassNames} dangerouslySetInnerHTML={{ __html: updatedSvgString }} />,
 		};
 	} else if (diagramFileName != null) {
 		const img = new window.Image();
@@ -256,9 +249,9 @@ export const ElectronicsWiring = (props: StepScreenProps) => {
 				</DialogDescription>
 			}
 		>
-			<Button variant="warning" size="sm" className="justify-start text-sm" title={`A guide to wiring diagrams`}>
+			<Button variant="warning" className="flex-1 px-4" title={`A guide to wiring diagrams`}>
 				<CircleAlert className="size-4" />
-				General Information
+				Information
 			</Button>
 		</Modal>
 	);
@@ -266,47 +259,40 @@ export const ElectronicsWiring = (props: StepScreenProps) => {
 	if (controlboardImage.data) {
 		content.push(
 			<Card className="flex flex-col justify-stretch" key={controlboardImage.data.key}>
-				<CardHeader>
+				<CardHeader className="border-b border-border">
 					<CardTitle className="font-display font-bold tracking-tight text-zinc-300">
 						{controlboardImage.data.board.name} wiring
 					</CardTitle>
+					<CardDescription>The controlboard, which is connected to the RatOS host computer via USB</CardDescription>
 				</CardHeader>
-				<CardContent className="grid flex-1 grid-cols-2 gap-4">
-					<div className="flex flex-col justify-between">
-						<CardDescription>The controlboard, which is connected to the RatOS host computer via USB</CardDescription>
-						<div className="mt-4 grid gap-2 whitespace-nowrap">
-							{generalInfo}
-							<Button
-								variant="primary"
-								size="sm"
-								className="justify-start text-sm"
-								title={`Open the manual for the board`}
-							>
-								<Book className="size-4" />
-								Manual
-							</Button>
-							<Button
-								variant="indeterminate"
-								size="sm"
-								className="justify-start text-sm"
-								title={`Open the manual for the board`}
-							>
-								<ExternalLink className="size-4" />
-								RatOS Docs
-							</Button>
-						</div>
-					</div>
-					<div className="mt-1 flex flex-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
-						<Lightbox id="controlboard" aspect={controlboardImage.data.aspect}>
-							{controlboardImage.data.img}
+				<CardContent
+					className={twJoin(
+						'grid flex-1 grid-cols-2 gap-4 border-b border-border',
+						controlboardFanImage.data != null ? 'grid-cols-2' : 'grid-cols-1',
+					)}
+				>
+					<Lightbox id="controlboard" aspect={controlboardImage.data.aspect}>
+						{controlboardImage.data.img}
+					</Lightbox>
+					{controlboardFanImage.data != null && (
+						<Lightbox id="controlboard-fans" aspect={controlboardFanImage.data.aspect}>
+							{controlboardFanImage.data.img}
 						</Lightbox>
-						{controlboardFanImage.data != null && (
-							<Lightbox id="controlboard-fans" aspect={controlboardFanImage.data.aspect}>
-								{controlboardFanImage.data.img}
-							</Lightbox>
-						)}
-					</div>
+					)}
 				</CardContent>
+				<CardFooter className="grid gap-4">
+					<div className="flex flex-wrap gap-4 whitespace-nowrap">
+						{generalInfo}
+						<Button variant="primary" className="flex-1 px-4" title={`Open the manual for the board`}>
+							<Book className="size-4" />
+							Manual
+						</Button>
+						<Button variant="indeterminate" className="flex-1 px-4" title={`Open the manual for the board`}>
+							<ExternalLink className="size-4" />
+							RatOS Docs
+						</Button>
+					</div>
+				</CardFooter>
 			</Card>,
 		);
 	}
@@ -314,45 +300,42 @@ export const ElectronicsWiring = (props: StepScreenProps) => {
 		toolheadImages.data.map((wiring, i) => {
 			content.push(
 				<Card className="flex flex-col justify-between" key={wiring.key + i}>
-					<CardHeader key={wiring.key + i}>
+					<CardHeader className="border-b border-border">
 						<CardTitle className="font-display font-bold tracking-tight text-zinc-300">
 							{wiring.board.name} wiring on Toolhead {wiring.toolhead.getToolCommand()}
 						</CardTitle>
+						<CardDescription>
+							The toolboard on {wiring.toolhead.getDescription()}, which is connected to the RatOS host computer via USB
+						</CardDescription>
 					</CardHeader>
-					<CardContent className="grid flex-1 grid-cols-2 gap-4">
-						<div className="flex flex-col justify-between">
-							<CardDescription>
-								The toolboard on {wiring.toolhead.getDescription()}, which is connected to the RatOS host computer via
-								USB
-							</CardDescription>
-							<div className="mt-4 grid gap-2 whitespace-nowrap">
-								{generalInfo}
-								<Button
-									variant="primary"
-									size="sm"
-									className="justify-start text-sm"
-									title={`Open the manual for the board`}
-								>
-									<Book className="size-4" />
-									Manual
-								</Button>
-								<Button
-									variant="indeterminate"
-									size="sm"
-									className="justify-start text-sm"
-									title={`Open the manual for the board`}
-								>
-									<ExternalLink className="size-4" />
-									RatOS Docs
-								</Button>
-							</div>
-						</div>
-						<div className="mt-1 flex-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
-							<Lightbox key={i} id={`toolhead-${i}`} aspect={wiring.aspect}>
-								{wiring.img}
+					<CardContent
+						className={twJoin(
+							'grid flex-1 grid-cols-2 gap-4 border-b border-border',
+							toolheadFanImages.data?.[i] != null ? 'grid-cols-2' : 'grid-cols-1',
+						)}
+					>
+						<Lightbox key={i} id={`toolhead-${i}`} aspect={wiring.aspect}>
+							{wiring.img}
+						</Lightbox>
+						{toolheadFanImages.data != null && toolheadFanImages.data[i] != null && (
+							<Lightbox key={i} id={`toolhead-fans-${i}`} aspect={toolheadFanImages.data[i].aspect}>
+								{toolheadFanImages.data[i].img}
 							</Lightbox>
-						</div>
+						)}
 					</CardContent>
+					<CardFooter className="grid gap-4">
+						<div className="flex flex-wrap gap-4 whitespace-nowrap">
+							{generalInfo}
+							<Button variant="primary" className="flex-1 px-4" title={`Open the manual for the board`}>
+								<Book className="size-4" />
+								Manual
+							</Button>
+							<Button variant="indeterminate" className="flex-1 px-4" title={`Open the manual for the board`}>
+								<ExternalLink className="size-4" />
+								RatOS Docs
+							</Button>
+						</div>
+					</CardFooter>
 				</Card>,
 			);
 		});
@@ -374,12 +357,7 @@ export const ElectronicsWiring = (props: StepScreenProps) => {
 					<h3 className="text-lg font-medium leading-6 text-zinc-900 dark:text-zinc-100">{props.name}</h3>
 					<p className="mt-2 max-w-4xl text-sm text-zinc-500 dark:text-zinc-400">{props.description}</p>
 				</div>
-				<div
-					className={twJoin(
-						'grid gap-4 text-zinc-700 dark:text-zinc-300',
-						content.length > 1 ? '@2xl:grid-cols-2' : 'grid-cols-1',
-					)}
-				>
+				<div className={twJoin('grid gap-4 text-zinc-700 dark:text-zinc-300', 'grid-cols-1')}>
 					{props.children}
 					{content}
 				</div>
