@@ -318,7 +318,7 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 
 	return (
 		<Fragment>
-			<div className="p-8">
+			<div className="@sm:p-8 p-4">
 				<div className="mb-5 flex border-b border-zinc-200 pb-5 dark:border-zinc-700">
 					<div className="flex-1">
 						<h3 className="text-lg font-medium leading-6 text-zinc-900 dark:text-zinc-100">Configure Wifi Setup</h3>

@@ -34,6 +34,7 @@ import { getLogger } from '@/app/_helpers/logger';
 import { Modal } from '@/components/common/modal';
 import { Banner } from '@/components/common/banner';
 import { ShieldCheck } from 'lucide-react';
+import { deserializePrinterRail } from '@/utils/serialization';
 
 interface SelectablePrinter<Option extends SelectableOption = SelectableOption>
 	extends SelectableCardWithOptions<Option> {
@@ -147,6 +148,7 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 					return;
 				}
 				const oldToolheads = await snapshot.getPromise(PrinterToolheadsState);
+				const oldRails = await snapshot.getPromise(PrinterRailsState);
 				if (!merge) {
 					oldToolheads.forEach((th) => {
 						reset(PrinterToolheadState(th.toolNumber));
@@ -181,6 +183,29 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 							set(PrinterToolheadState(toolNumber), { ...oldToolheads[0], toolNumber });
 						});
 					}
+					set(
+						PrinterRailsState,
+						oldRails.map((r) => {
+							const serializedNewRail = printer.defaults.rails.find((rail) => rail.axis === r.axis);
+							if (serializedNewRail != null) {
+								const newRail = deserializePrinterRail(serializedNewRail);
+								return {
+									...newRail,
+									driver: r.driver,
+									current: r.current,
+									motorSlot: r.motorSlot,
+									voltage: r.voltage,
+									microstepping: r.microstepping,
+									invertStepperDirection: r.invertStepperDirection,
+									stepper: r.stepper,
+									axisMaximum: r.axisMaximum,
+									axisMinimum: r.axisMinimum,
+									axisEndstop: r.axisEndstop,
+								};
+							}
+							return r;
+						}),
+					);
 				}
 			},
 		[printerQuery.data],
@@ -221,7 +246,7 @@ export const PrinterSelection: React.FC<StepScreenProps> = (props) => {
 
 	return (
 		<>
-			<div className="p-8">
+			<div className="@sm:p-8 p-4">
 				<div className="mb-5 border-b border-zinc-200 pb-5 dark:border-zinc-700">
 					<h3 className="text-lg font-medium leading-6 text-zinc-900 dark:text-zinc-100">Select your printer</h3>
 					<p className="mt-2 max-w-4xl text-sm text-zinc-500 dark:text-zinc-400">

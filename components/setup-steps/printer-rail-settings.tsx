@@ -318,9 +318,9 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 							{props.printerRail.axisDescription}
 						</CardDescription>
 					</CardHeader>
-					<CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+					<CardContent className="@2xs:grid-cols-2 grid grid-cols-1 gap-4">
 						{motorSlotOptions && (
-							<div className="col-span-2">
+							<div className="col-span-full">
 								<Dropdown
 									label="Motor Slot"
 									options={motorSlotOptions}
@@ -336,7 +336,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 								/>
 							</div>
 						)}
-						<div className="col-span-2">
+						<div className="col-span-full">
 							<Dropdown
 								label="Driver"
 								options={supportedDrivers}
@@ -351,7 +351,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 								].filter(Boolean)}
 							/>
 						</div>
-						<div className="col-span-2">
+						<div className="col-span-full">
 							<Dropdown label="Stepper" options={steppers} onSelect={setStepper} value={stepper} />
 						</div>
 						<div className="col-span-1">
@@ -370,13 +370,13 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 							/>
 						</div>
 						{stepper.maxPeakCurrent / 1.41 < current && (
-							<Banner Icon={FireIcon} color="yellow" title="Stepper overcurrent!" className="col-span-2">
+							<Banner Icon={FireIcon} color="yellow" title="Stepper overcurrent!" className="col-span-full">
 								Your stepper motor is rated for {Math.floor((stepper.maxPeakCurrent * 100) / 1.41) / 100}A RMS, but you
 								are using {current}A.
 							</Banner>
 						)}
 						{matchingPreset != null && (
-							<Banner Icon={LightBulbIcon} color="brand" title="Driver tuning applied!" className="col-span-2">
+							<Banner Icon={LightBulbIcon} color="brand" title="Driver tuning applied!" className="col-span-full">
 								RatOS preset applied automatically.
 							</Banner>
 						)}
@@ -387,7 +387,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 									Icon={BoltIcon}
 									color="sky"
 									title="Recommended tuning preset available at different current"
-									className="col-span-2"
+									className="col-span-full"
 								>
 									RatOS has a recommended preset for your current settings at {recommendedPreset.run_current}A. You can{' '}
 									<span

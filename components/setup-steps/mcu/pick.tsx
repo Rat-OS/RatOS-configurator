@@ -95,7 +95,7 @@ export const MCUPicker: React.FC<MCUStepScreenProps> = (props) => {
 
 	return (
 		<Fragment>
-			<div className="p-8">
+			<div className="@sm:p-8 p-4">
 				{' '}
 				<div className="mb-5 flex border-b border-zinc-200 pb-2 dark:border-zinc-700">
 					<div className="flex-1">
