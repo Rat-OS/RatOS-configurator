@@ -151,7 +151,7 @@ ${helper.renderUserStepperSections({
 		rotationComment: '4 for TR8*4 lead screws',
 	},
 	extruder: {
-		directionInverted: true,
+		directionInverted: false,
 		additionalLines: [
 			'#pressure_advance: 0.05 # Check https://www.klipper3d.org/Pressure_Advance.html for pressure advance tuning.',
 			'control: pid',
