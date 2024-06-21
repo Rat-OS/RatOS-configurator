@@ -1,26 +1,21 @@
 'use client';
-import { MCUStepScreenProps } from '@/components/setup-steps/mcu-preparation';
 import { StepNavButton, StepNavButtons } from '@/components/step-nav-buttons';
 import { StepScreenProps } from '@/hooks/useSteps';
 import { ControlboardState } from '@/recoil/printer';
-import { PrinterToolheadsState } from '@/recoil/toolhead';
-import React, { useRef, useState } from 'react';
+import React from 'react';
 import { useRecoilValue } from 'recoil';
-import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
 import { Lightbox } from '@/components/ui/lightbox';
-import { motion } from 'framer-motion';
 import { CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToolheads } from '@/hooks/useToolheadConfiguration';
-import { Board, BoardID } from '@/zods/boards';
+import { Board } from '@/zods/boards';
 import { Card } from '@/components/common/card';
-import { Badge } from '@/components/common/badge';
 import { Book, CircleAlert, ExternalLink, RectangleHorizontal, Square } from 'lucide-react';
 import { Button } from '@/components/common/button';
 import { twJoin } from 'tailwind-merge';
 import { Modal } from '@/components/common/modal';
-import { DialogContent } from '@radix-ui/react-dialog';
 import { DialogDescription } from '@/components/ui/dialog';
+import { PDFModal } from '@/components/common/pdf-modal';
 
 const SVGClassNames =
 	'pointer-events-none flex h-full max-h-full w-full max-w-full select-none items-center justify-center [&_svg>rect]:fill-transparent [&_text]:text-center [&_text]:font-medium [&_text]:capitalize [&_text]:tracking-tighter';
@@ -283,10 +278,14 @@ export const ElectronicsWiring = (props: StepScreenProps) => {
 				<CardFooter className="grid gap-4">
 					<div className="flex flex-wrap gap-4 whitespace-nowrap">
 						{generalInfo}
-						<Button variant="primary" className="flex-1 px-4" title={`Open the manual for the board`}>
-							<Book className="size-4" />
-							Manual
-						</Button>
+						{controlboard?.manualFileName?.endsWith('.pdf') && (
+							<PDFModal file={`/configure/api/mcu-manual?boardId=${controlboard.id}`}>
+								<Button variant="primary" className="flex-1 px-4" title={`Open the manual for the board`}>
+									<Book className="size-4" />
+									Manual
+								</Button>
+							</PDFModal>
+						)}
 						<Button variant="indeterminate" className="flex-1 px-4" title={`Open the manual for the board`}>
 							<ExternalLink className="size-4" />
 							RatOS Docs

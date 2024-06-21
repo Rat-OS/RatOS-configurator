@@ -15,6 +15,10 @@ export default defineNextConfig({
 	distDir: 'build',
 	cleanDistDir: true,
 	basePath: '/configure',
+	webpack: (config) => {
+		config.resolve.alias.canvas = false;
+		return config;
+	},
 	eslint: {
 		dirs: ["pages", "app", "server", "recoil", "data", "helpers", "hooks", "moonraker", "__tests__", "cli", "components", "templates", "utils", "zods"],
 	},
