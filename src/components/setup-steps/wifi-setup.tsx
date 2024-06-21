@@ -86,8 +86,9 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 		[apList, selectedNetwork],
 	);
 
-	const selectedNetworkSSID =
-		selectedNetwork?.ssid == null || selectedNetwork?.ssid.trim() === '' ? overrideSSID : selectedNetwork?.ssid;
+	const isHiddenSSID = selectedNetwork?.ssid == null || selectedNetwork?.ssid.trim() === '';
+
+	const selectedNetworkSSID = isHiddenSSID ? overrideSSID : selectedNetwork?.ssid;
 
 	const hostnameValidation = hostnameInput.safeParse({ hostname });
 	const passwordValidation = joinInput.safeParse({
@@ -95,7 +96,7 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 		ssid: selectedNetworkSSID,
 		country: selectedNetwork?.country,
 		frequencies,
-		hidden: selectedNetwork?.ssid == null || selectedNetwork?.ssid.trim() === '',
+		hidden: isHiddenSSID,
 	});
 
 	const cards: SelectableNetwork[] = useMemo(() => {
@@ -206,7 +207,7 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 			/>
 		) : selectedNetwork ? (
 			<div className="grid gap-4">
-				{selectedNetwork.ssid == null ? (
+				{isHiddenSSID ? (
 					<div className="mb-4">
 						<InfoMessage title="Hidden SSID">
 							You have selected a hidden SSID. Please enter the SSID and password manually.
@@ -225,7 +226,7 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 						</div>
 					</div>
 				)}
-				{(selectedNetwork?.ssid == null || selectedNetwork?.ssid.trim() === '') && (
+				{isHiddenSSID && (
 					<TextInput
 						label="SSID"
 						type="text"
