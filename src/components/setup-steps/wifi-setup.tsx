@@ -85,13 +85,17 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 				.join(' '),
 		[apList, selectedNetwork],
 	);
+
+	const selectedNetworkSSID =
+		selectedNetwork?.ssid == null || selectedNetwork?.ssid.trim() === '' ? overrideSSID : selectedNetwork?.ssid;
+
 	const hostnameValidation = hostnameInput.safeParse({ hostname });
 	const passwordValidation = joinInput.safeParse({
 		passphrase: password,
-		ssid: selectedNetwork?.ssid ?? overrideSSID,
+		ssid: selectedNetworkSSID,
 		country: selectedNetwork?.country,
 		frequencies,
-		hidden: selectedNetwork?.ssid == null,
+		hidden: selectedNetwork?.ssid == null || selectedNetwork?.ssid.trim() === '',
 	});
 
 	const cards: SelectableNetwork[] = useMemo(() => {
@@ -221,23 +225,22 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 						</div>
 					</div>
 				)}
-				{selectedNetwork.ssid == null ||
-					(selectedNetwork.ssid.trim() === '' && (
-						<TextInput
-							label="SSID"
-							type="text"
-							key="ssid"
-							value={overrideSSID ?? ''}
-							error={
-								wifiMutation.isError
-									? wifiMutation.error.message
-									: passwordValidation.success
-										? undefined
-										: passwordValidation.error.formErrors.fieldErrors.ssid?.join('\n')
-							}
-							onChange={setOverrideSSID}
-						/>
-					))}
+				{(selectedNetwork?.ssid == null || selectedNetwork?.ssid.trim() === '') && (
+					<TextInput
+						label="SSID"
+						type="text"
+						key="ssid"
+						value={overrideSSID ?? ''}
+						error={
+							wifiMutation.isError
+								? wifiMutation.error.message
+								: passwordValidation.success
+									? undefined
+									: passwordValidation.error.formErrors.fieldErrors.ssid?.join('\n')
+						}
+						onChange={setOverrideSSID}
+					/>
+				)}
 				<TextInput
 					label={selectedNetwork.security.toLocaleUpperCase() + ' Password'}
 					type="password"
@@ -318,7 +321,7 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 
 	return (
 		<Fragment>
-			<div className="@sm:p-8 p-4">
+			<div className="p-4 @sm:p-8">
 				<div className="mb-5 flex border-b border-zinc-200 pb-5 dark:border-zinc-700">
 					<div className="flex-1">
 						<h3 className="text-lg font-medium leading-6 text-zinc-900 dark:text-zinc-100">Configure Wifi Setup</h3>
