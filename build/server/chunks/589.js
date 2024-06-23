@@ -56,6 +56,12 @@ ${r.renderFans()}
 #############################################################################################################
 ${r.renderMacros()}
 
+[gcode_macro T0]
+variable_has_oozeguard: True
+
+[gcode_macro T1]
+variable_has_oozeguard: True
+
 # Macro variable overrides
 [gcode_macro RatOS]
 ${r.renderMacroVariableOverrides()}
