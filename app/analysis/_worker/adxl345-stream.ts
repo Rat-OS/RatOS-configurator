@@ -1,6 +1,7 @@
 import { getLogger } from '@/app/_helpers/logger';
 import { JSONRPCRequest, JSONRPCResponseSuccess } from '@/moonraker/types';
 import {
+	BeaconAccelSubscriptionData,
 	KlipperAccelSubscriptionData,
 	KlipperAccelSubscriptionResponse,
 	klipperADXL345SubscriptionResponseSchema,
@@ -50,10 +51,19 @@ const isKlipperAccelSubscriptionData = (msg: unknown): msg is { params: KlipperA
 		isSuccessResponse(msg) &&
 		msg.params != null &&
 		'data' in msg.params &&
-		msg.params != null &&
 		Array.isArray(msg.params.data) &&
 		Array.isArray(msg.params.data[0]) &&
 		msg.params.data[0].length === 4
+	);
+};
+
+const isBeaconAccelSubscriptionData = (msg: unknown): msg is { params: BeaconAccelSubscriptionData } => {
+	return (
+		isSuccessResponse(msg) &&
+		msg.params != null &&
+		Array.isArray(msg.params) &&
+		Array.isArray(msg.params[0]) &&
+		msg.params[0].length === 4
 	);
 };
 
@@ -115,7 +125,7 @@ export const createADXL345Stream = (url: string, sensor: KlipperAccelSensorSchem
 					header = msg.result.header;
 					return false;
 				}
-				if (isKlipperAccelSubscriptionData(msg)) {
+				if (isKlipperAccelSubscriptionData(msg) || isBeaconAccelSubscriptionData(msg)) {
 					return true;
 				}
 				if (!isSuccessResponse(msg)) {
@@ -127,9 +137,18 @@ export const createADXL345Stream = (url: string, sensor: KlipperAccelSensorSchem
 		)
 		.pipe(
 			share(),
-			filter((msg): msg is { params: KlipperAccelSubscriptionData } => isKlipperAccelSubscriptionData(msg)),
+			filter(
+				(msg): msg is { params: KlipperAccelSubscriptionData | BeaconAccelSubscriptionData } =>
+					isKlipperAccelSubscriptionData(msg) || isBeaconAccelSubscriptionData(msg),
+			),
 			map((msg) => {
-				return { ...msg.params, data: detrendBatch(msg.params.data) };
+				if (isBeaconAccelSubscriptionData(msg)) {
+					return { overflows: 0, errors: 0, data: detrendBatch(msg.params) };
+				}
+				if (isKlipperAccelSubscriptionData(msg)) {
+					return { ...msg.params, data: detrendBatch(msg.params.data) };
+				}
+				throw new Error('Got invalid data from klipper accelerometer subscription.');
 			}),
 			share(),
 		);

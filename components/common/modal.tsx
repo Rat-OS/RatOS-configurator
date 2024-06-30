@@ -128,20 +128,23 @@ export function Modal(props: ModalProps) {
 				}}
 			>
 				{props.children && <DialogTrigger asChild>{props.children}</DialogTrigger>}
-				<DialogContent className={twJoin(props.wide ? 'max-w-6xl' : 'max-w-[600px]', 'grid-cols-1')}>
-					<div className="flex items-center gap-4">
+				<DialogContent className={twJoin(props.wide ? 'max-w-6xl' : 'max-w-[600px]', 'flex max-h-[90vh] flex-col')}>
+					<div className="flex flex-grow-0 items-center gap-4">
 						{success}
 						<DialogHeader>
 							<DialogTitle>{props.title}</DialogTitle>
 							<DialogDescription>{props.body}</DialogDescription>
 						</DialogHeader>
 					</div>
-					<AnimatedContainer containerClassName="col-span-2 grid gap-2 overflow-hidden">
+					<AnimatedContainer
+						containerClassName="flex-1 flex"
+						className="scrollable -mr-4 grid flex-1 gap-2 overflow-hidden overflow-y-scroll pr-1.5"
+					>
 						{props.content}
 					</AnimatedContainer>
 					<div
 						className={twJoin(
-							'col-span-2 grid gap-2',
+							'col-span-2 grid flex-grow-0 gap-2',
 							props.secondButtonLabel && props.onClickSecondButton
 								? 'grid-cols-3'
 								: props.buttonLabel && props.onClick

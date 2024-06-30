@@ -4,7 +4,6 @@ import { twJoin } from 'tailwind-merge';
 import { inter } from '@/app/fonts';
 import '@/styles/globals.css';
 import { headers } from 'next/headers';
-import { scrollClasses } from '@/components/common/scroll-container';
 import { type Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -19,7 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 	headers().get('x-configurator');
 	return (
 		<html
-			className={twJoin('dark h-full overflow-y-scroll', scrollClasses, inter.variable, inter.className)}
+			className={twJoin('scrollable dark h-full overflow-y-scroll', inter.variable, inter.className)}
 			suppressHydrationWarning
 		>
 			<body className="h-full bg-zinc-100 antialiased dark:bg-background" style={{ marginRight: '0 !important' }}>
