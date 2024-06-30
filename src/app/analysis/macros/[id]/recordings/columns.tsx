@@ -11,7 +11,7 @@ import React from 'react';
 import { ColumnCapabilities } from '@/app/analysis/macros/components/data-table-toolbar';
 import * as luxon from 'luxon';
 import { MacroRecordingDataTableRowActions } from '@/app/analysis/macros/[id]/recordings/recording-row-actions';
-import { ArrowDownToDot, Cpu, Server } from 'lucide-react';
+import { ArrowDownToDot, Cpu, Server, Target } from 'lucide-react';
 import { KlipperAccelSensorName } from '@/zods/hardware';
 import { RecordingBulkActions } from '@/app/analysis/macros/[id]/recordings/recordings-bulk-actions';
 import Link from 'next/link';
@@ -128,8 +128,16 @@ export const columns: (ColumnDef<MacroRecordingWithoutSourcePSDs> & ColumnCapabi
 						labels.push({
 							accel: r.original.accelerometer,
 							label: `${r.original.recordingHardwareName} T1`,
-							color: 'blue',
+							color: 'pink',
 							icon: ArrowDownToDot,
+						});
+						break;
+					case 'beacon':
+						labels.push({
+							accel: r.original.accelerometer,
+							label: r.original.recordingHardwareName,
+							color: 'green',
+							icon: Target,
 						});
 						break;
 				}
@@ -164,6 +172,7 @@ export const columns: (ColumnDef<MacroRecordingWithoutSourcePSDs> & ColumnCapabi
 				{ label: 'Host', value: 'rpi', icon: Server },
 				{ label: 'Tool Board T0', value: 'toolboard_t0', icon: ArrowDownToDot },
 				{ label: 'Tool Board T1', value: 'toolboard_t1', icon: ArrowDownToDot },
+				{ label: 'Beacon', value: 'beacon', icon: Target },
 			];
 		},
 	},

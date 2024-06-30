@@ -6,6 +6,9 @@ export const aDXL345ResponseHeaderSchema = z.union([
 	z.literal('x_acceleration'),
 	z.literal('y_acceleration'),
 	z.literal('z_acceleration'),
+	z.literal('x'), // Beacon returns x, y, z
+	z.literal('y'), // Beacon returns x, y, z
+	z.literal('z'), // Beacon returns x, y, z
 ]);
 
 export const klipperADXL345SubscriptionResponseSchema = z.object({
@@ -22,6 +25,8 @@ export const klipperADXL345SubscriptionDataSchema = z.object({
 	overflows: z.number().optional(),
 	errors: z.number().optional(),
 });
+
+export const beaconAccelSubscriptionDataSchema = z.array(z.tuple([z.number(), z.number(), z.number(), z.number()]));
 
 export const psdSchema = z.object({
 	frequencies: z.array(z.number()),
@@ -110,6 +115,7 @@ export type KlipperAccelResponseHeader = z.infer<typeof aDXL345ResponseHeaderSch
 export type KlipperAccelSubscriptionResponse = z.infer<typeof klipperADXL345SubscriptionResponseSchema>;
 
 export type KlipperAccelSubscriptionData = z.infer<typeof klipperADXL345SubscriptionDataSchema>;
+export type BeaconAccelSubscriptionData = z.infer<typeof beaconAccelSubscriptionDataSchema>;
 
 export type PSD = z.infer<typeof psdSchema>;
 

@@ -30,7 +30,7 @@ export const analysisRouter = router({
 		});
 	}),
 	updateMacro: publicProcedure.input(createMacroSchema).mutation(async ({ input }) => {
-		const file = path.join(recordingsDataDir, `${input}.ndjson`);
+		const file = path.join(recordingsDataDir, `${input.id}.ndjson`);
 		const recordingStorage = initObjectStorage(file, macroRecordingSchema);
 		const totalRecordingsRemoved = await recordingStorage.destroyStorage();
 		getLogger().info(`Deleted recordings for macro "${input.name}" (${input.id})`);

@@ -7,9 +7,7 @@ import { Command as CommandPrimitive } from 'cmdk';
 
 import { cn, setDisplayName } from '@/helpers/utils';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { scrollClasses } from '@/components/common/scroll-container';
 import { Input } from '@/components/ui/input';
-import { TextInput } from '@/components/forms/text-input';
 
 const Command = React.forwardRef<
 	React.ElementRef<typeof CommandPrimitive>,
@@ -68,7 +66,7 @@ const CommandList = React.forwardRef<
 >(({ className, ...props }, ref) => (
 	<CommandPrimitive.List
 		ref={ref}
-		className={cn('max-h-[300px] overflow-y-auto overflow-x-hidden', scrollClasses, className)}
+		className={cn('scrollable max-h-[300px] overflow-y-auto overflow-x-hidden', className)}
 		{...props}
 	/>
 ));

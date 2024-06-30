@@ -137,6 +137,10 @@
 		--diff-code-selected-text-color: var(--diff-text-color);
 		--diff-omit-gutter-line-color: theme(colors.rose.400 / 20%);
 	}
+	
+	.scrollable {
+		@apply scroll-smooth scrollbar-thin scrollbar-track-zinc-800/15 scrollbar-thumb-rounded-md scrollbar-thumb-muted-foreground;
+	}
 }
 sub, sup, .sub, .sup { font-size: 75%; line-height: 0; position: relative; vertical-align: baseline; }
 sup, .sup { top: -0.3em; vertical-align: super;}

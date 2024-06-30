@@ -11,7 +11,7 @@ import { Badge, BadgeProps } from '@/components/common/badge';
 import { DotFilledIcon } from '@radix-ui/react-icons';
 import React from 'react';
 import { ColumnCapabilities } from '@/app/analysis/macros/components/data-table-toolbar';
-import { ArrowDownToDot, Cpu, Play, Server } from 'lucide-react';
+import { ArrowDownToDot, Cpu, Play, Server, Target } from 'lucide-react';
 import { MacroBulkActions } from '@/app/analysis/macros/macro-bulk-actions';
 import Link from 'next/link';
 
@@ -46,16 +46,19 @@ export const columns: (ColumnDef<Macro> & ColumnCapabilities)[] = [
 			row.original.sequences.map((sequence) => {
 				switch (sequence.recording?.accelerometer) {
 					case 'controlboard':
-						labels.push({ label: 'Control Board', color: 'lime', icon: Cpu });
+						labels.push({ label: 'Control Board', color: 'purple', icon: Cpu });
 						break;
 					case 'rpi':
-						labels.push({ label: 'Host', color: 'yellow', icon: Server });
+						labels.push({ label: 'Host', color: 'gray', icon: Server });
 						break;
 					case 'toolboard_t0':
 						labels.push({ label: 'Tool Board T0', color: 'sky', icon: ArrowDownToDot });
 						break;
 					case 'toolboard_t1':
 						labels.push({ label: 'Tool Board T1', color: 'pink', icon: ArrowDownToDot });
+						break;
+					case 'beacon':
+						labels.push({ label: 'Beacon', color: 'green', icon: ArrowDownToDot });
 						break;
 				}
 			});
@@ -88,6 +91,7 @@ export const columns: (ColumnDef<Macro> & ColumnCapabilities)[] = [
 				{ label: 'Host', value: 'rpi', icon: Server },
 				{ label: 'Tool Board T0', value: 'toolboard_t0', icon: ArrowDownToDot },
 				{ label: 'Tool Board T1', value: 'toolboard_t1', icon: ArrowDownToDot },
+				{ label: 'Beacon', value: 'beacon', icon: Target },
 			];
 		},
 		filterFn: (row, id, filterValues) => {

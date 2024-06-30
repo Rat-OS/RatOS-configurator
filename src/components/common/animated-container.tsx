@@ -1,10 +1,12 @@
 import { useDebounce } from '@/app/_hooks/debounce';
 import useResizeObserver from '@react-hook/resize-observer';
-import { motion } from 'framer-motion';
+import { motion, SpringOptions } from 'framer-motion';
 import { useState, useRef, PropsWithChildren, useCallback, useLayoutEffect, useEffect } from 'react';
 import { twJoin, twMerge } from 'tailwind-merge';
 
-export const AnimatedContainer = (props: PropsWithChildren<{ containerClassName?: string; className?: string }>) => {
+export const AnimatedContainer = (
+	props: PropsWithChildren<{ containerClassName?: string; className?: string; transition?: SpringOptions }>,
+) => {
 	const [height, setHeight] = useState(0);
 	const heightRef = useRef(height);
 	heightRef.current = height;
@@ -42,6 +44,7 @@ export const AnimatedContainer = (props: PropsWithChildren<{ containerClassName?
 			onAnimationComplete={onComplete}
 			onAnimationStart={onStart}
 			animate={{ height }}
+			transition={props.transition}
 		>
 			<div ref={containerRef} className={props.className}>
 				{props.children}

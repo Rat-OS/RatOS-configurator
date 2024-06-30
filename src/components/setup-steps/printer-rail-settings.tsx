@@ -323,7 +323,7 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 							{props.printerRail.axisDescription}
 						</CardDescription>
 					</CardHeader>
-					<CardContent className="@2xs:grid-cols-2 grid grid-cols-1 gap-4">
+					<CardContent className="grid grid-cols-1 gap-4 @2xs:grid-cols-2">
 						{motorSlotOptions && (
 							<div className="col-span-full">
 								<Dropdown

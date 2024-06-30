@@ -24,6 +24,7 @@ import { AccelerometerType } from '@/zods/hardware';
 import { z } from 'zod';
 import { PSDResult } from '@/app/analysis/_worker/psd';
 import type { TypedArrayPSD } from '@/app/analysis/periodogram';
+import { LiveGcodeResponse } from '@/components/common/live-gcode-response';
 
 SciChartSurface.configure({
 	wasmUrl: '/configure/scichart2d.wasm',
@@ -56,7 +57,9 @@ export const useRealtimeAnalysisChart = (
 					? toolheads[1]?.getToolboard()?.name
 					: adxl === 'rpi'
 						? 'Raspberry Pi'
-						: 'N/A') ?? 'N/A';
+						: adxl === 'beacon'
+							? 'Beacon'
+							: 'N/A') ?? 'N/A';
 	const psdChart = usePSDChart();
 	const xSignalChart = useADXLSignalChart('x');
 	const ySignalChart = useADXLSignalChart('y');
@@ -286,12 +289,13 @@ export const RealtimeAnalysisChart: React.FC<RealtimeAnalysisChartProps> = React
 						/>
 					</Card>
 				</div>
-				<Card className="flex flex-1 overflow-hidden">
+				<Card className="relative flex flex-1 overflow-hidden">
 					<SciChartReact
 						{...psdChart.forwardProps}
 						className="flex-1"
 						fallback={<FullLoadScreen className="ml-[150px]" />}
 					/>
+					<LiveGcodeResponse className="absolute right-4 top-4" />
 				</Card>
 			</div>
 		);
