@@ -2,11 +2,10 @@ import * as React from 'react';
 
 import { cn, setDisplayName } from '@/helpers/utils';
 import { twJoin } from 'tailwind-merge';
-import { scrollClasses } from '@/components/common/scroll-container';
 
 const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
 	({ className, ...props }, ref) => (
-		<div className={twJoin(scrollClasses, 'relative w-full overflow-auto rounded-md border')}>
+		<div className={twJoin('scrollable, relative w-full overflow-auto rounded-md border')}>
 			<table ref={ref} className={cn('w-full caption-bottom rounded-md text-sm', className)} {...props} />
 		</div>
 	),

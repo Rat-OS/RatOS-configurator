@@ -14,6 +14,7 @@ import {
 	of,
 	scheduled,
 	share,
+	tap,
 } from 'rxjs';
 
 const expectedSampleRates = [100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600, 51200];
@@ -44,6 +45,7 @@ export const createSignalBuffers = async (dataStream$: Observable<KlipperAccelSu
 		y,
 		z,
 	];
+
 	const signal$ = scheduled(dataStream$, asyncScheduler).pipe(
 		concatMap((data) => scheduled(from(data.data), asyncScheduler)),
 		map(subtractTimeStamp),

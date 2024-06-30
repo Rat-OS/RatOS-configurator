@@ -68,7 +68,9 @@ export async function loadTFJS() {
 const runPSD = async (samples: AccelSampleMs[], includeSource: boolean = false): Promise<PSDResult | null> => {
 	const sampleRate = new BigNumber(samples.length)
 		.div(new BigNumber(samples[samples.length - 1][0]).minus(samples[0][0]).shiftedBy(-3))
-		.decimalPlaces(0, BigNumber.ROUND_FLOOR)
+		.shiftedBy(-1)
+		.decimalPlaces(0, BigNumber.ROUND_HALF_DOWN) // Round to closest 10's of Hz
+		.shiftedBy(1)
 		.toNumber();
 	const tensors = tidy(() => {
 		const signal = tensor2d(samples.map((s) => [s[1], s[2], s[3]]));
