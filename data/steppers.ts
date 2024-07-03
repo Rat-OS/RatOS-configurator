@@ -167,6 +167,16 @@ export const Steppers = z.array(Stepper).parse([
 				driver_HEND: 2,
 				driver_HSTRT: 0,
 			},
+			{
+				voltage: 24,
+				driver: 'TMC2209',
+				sense_resistor: 0.11,
+				run_current: 1.0,
+				driver_TBL: 2,
+				driver_TOFF: 3,
+				driver_HEND: 3,
+				driver_HSTRT: 0,
+			},
 		],
 	},
 	{
