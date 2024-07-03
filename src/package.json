@@ -52,6 +52,8 @@
 		"@tanstack/react-query": "^4.36.1",
 		"@tanstack/react-table": "^8.11.7",
 		"@tanstack/react-virtual": "^3.0.2",
+		"@tensorflow/tfjs-backend-cpu": "^4.20.0",
+		"@tensorflow/tfjs-backend-wasm": "^4.20.0",
 		"@tensorflow/tfjs-backend-webgl": "^4.19.0",
 		"@tensorflow/tfjs-backend-webgpu": "^4.19.0",
 		"@tensorflow/tfjs-core": "^4.19.0",

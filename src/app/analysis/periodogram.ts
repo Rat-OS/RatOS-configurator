@@ -15,6 +15,7 @@ import {
 import '@tensorflow/tfjs-backend-webgl';
 import { NumberRange } from 'scichart';
 import { PSD } from '@/zods/analysis';
+import { shaperDefaults } from '@/app/analysis/_worker/input-shaper';
 
 export interface TypedArrayPSD extends Omit<PSD, 'estimates' | 'frequencies'> {
 	estimates: Float64Array;
@@ -41,10 +42,7 @@ export function nextpow2(num: number): number {
 
 export const detrendSignal = (signal: Tensor1D) => tidy(() => sub<Tensor1D>(signal, mean(signal, 0, true)));
 
-const WINDOW_T_SEC = 0.5;
-const MAX_FREQ = 200;
-
-export const getFFTSize = (sampleRate: number, windowT: number = WINDOW_T_SEC): number =>
+export const getFFTSize = (sampleRate: number, windowT: number = shaperDefaults.WINDOW_T_SEC): number =>
 	1 << Math.floor(sampleRate * windowT - 1).toString(2).length;
 
 /**
@@ -67,7 +65,7 @@ export async function powerSpectralDensity(
 ): Promise<TypedArrayPSD> {
 	let { fftSize, _scaling } = Object.assign(
 		{
-			fftSize: getFFTSize(sampleRate, WINDOW_T_SEC),
+			fftSize: getFFTSize(sampleRate, shaperDefaults.WINDOW_T_SEC),
 			_scaling: 'psd',
 		},
 		options,
@@ -100,7 +98,7 @@ export async function powerSpectralDensity(
 		const fftRatio = sampleRate / fftSize;
 		for (var i = 0; i < series.length - 1; i += 2) {
 			const frequency = (i === 0 ? 0 : i / 2) * fftRatio;
-			if (frequency > MAX_FREQ) {
+			if (frequency > shaperDefaults.MAX_FREQ) {
 				skipped++;
 				continue;
 			}
@@ -110,7 +108,7 @@ export async function powerSpectralDensity(
 			let power: number = series[i] ** 2 + series[i + 1] ** 2;
 			power *= windowLossCompensationFactor;
 			// Don't scale DC or Nyquist by 2
-			if (_scaling == 'psd' && i > 0 && nextFrequency < MAX_FREQ) {
+			if (_scaling == 'psd' && i > 0 && nextFrequency < shaperDefaults.MAX_FREQ) {
 				power *= scaling_factor;
 			}
 			if (power > maxPower) {

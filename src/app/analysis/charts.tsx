@@ -204,6 +204,7 @@ export const useADXLSignalChart = (axis: ADXLAxes) => {
 };
 
 export const PSD_CHART_AXIS_AMPLITUDE_ID = 'amplitude';
+export const PSD_CHART_AXIS_SHAPER_ID = 'shaper';
 export const PSDChartMinimumYVisibleRange = new NumberRange(0, 1500);
 export const PSDChartNoSeriesDefinition: ISciChart2DDefinition = {
 	surface: {
@@ -256,6 +257,28 @@ export const PSDChartNoSeriesDefinition: ISciChart2DDefinition = {
 				drawMajorTickLines: false,
 				drawMajorBands: false,
 				axisTitleStyle: { fontSize: 10 },
+			},
+		},
+		{
+			type: EAxisType.NumericAxis,
+			options: {
+				id: PSD_CHART_AXIS_SHAPER_ID,
+				axisAlignment: EAxisAlignment.Right,
+				isVisible: false,
+				growBy: new NumberRange(0, 0.1),
+				autoRange: EAutoRange.Always,
+				autoRangeAnimation: {
+					duration: 140,
+					animateInitialRanging: false,
+					animateSubsequentRanging: true,
+					easing: easing.inOutCubic,
+				},
+				drawMinorGridLines: false,
+				drawMinorTickLines: false,
+				drawMajorTickLines: false,
+				drawMajorBands: false,
+				axisTitleStyle: { fontSize: 10 },
+				axisTitle: 'Shaper vibration reduction (ratio)',
 			},
 		},
 	],

@@ -53,7 +53,7 @@ export default function MacroRecordings({ id }: { id: string }) {
 		<div className="flex h-full flex-1 flex-col space-y-8 p-8">
 			<div className="flex items-center justify-between space-y-2">
 				<div>
-					<h2 className="text-xl font-semibold leading-none tracking-tight">Recordings for {macro.name}</h2>
+					<h2 className="text-2xl font-bold tracking-tight">Recordings for {macro.name}</h2>
 					<p className="text-base font-medium text-muted-foreground">
 						You have recorded {macroRecordingsQuery.total || macroRecordingsQuery.result.length} sequence(s) for this
 						macro so far.

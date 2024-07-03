@@ -3,6 +3,7 @@ import { macroRecordingSchemaWithoutSourcePSDs, macroSequenceSchema } from '@/zo
 import {
 	PSDChartNoSeriesDefinition,
 	PSD_CHART_AXIS_AMPLITUDE_ID,
+	PSD_CHART_AXIS_SHAPER_ID,
 	getPSDTooltipLegendTemplate,
 	isXyDataSeries,
 	isXyyDataSeries,
@@ -16,7 +17,9 @@ import {
 	EAutoRange,
 	FastBandRenderableSeries,
 	FastLineRenderableSeries,
+	FastMountainRenderableSeries,
 	LineAnimation,
+	MountainAnimation,
 	NumberRange,
 	RolloverModifier,
 	SciChartSurface,
@@ -28,6 +31,7 @@ import {
 import { shadableTWColors } from '@/app/_helpers/colors';
 import { SciChartReact } from 'scichart-react';
 import deepEqual from 'deep-equal';
+import { findBestShaper } from '@/app/analysis/_worker/input-shaper';
 
 SciChartSurface.configure({
 	wasmUrl: '/configure/scichart2d.wasm',
@@ -37,25 +41,98 @@ SciChartSurface.configure({
 interface MacroRunChartProps {
 	recordings: z.infer<typeof macroRecordingSchemaWithoutSourcePSDs>[];
 	sequences: z.infer<typeof macroSequenceSchema>[];
+	inputShapers?: Awaited<ReturnType<typeof findBestShaper>>;
 }
 
-export const MacroRunChart: React.FC<MacroRunChartProps> = ({ recordings, sequences }) => {
+export const MacroRunChart: React.FC<MacroRunChartProps> = ({ recordings, sequences, inputShapers }) => {
 	const sequenceData = recordings
-		.map((rec) => {
+		.flatMap((rec) => {
 			const sequence = sequences.find((seq) => seq.id === rec.sequenceId);
+			if (recordings.length === 1 && sequence?.recording != null) {
+				return [
+					{
+						color: 'red',
+						name: rec.name + ' (X)',
+						psd: rec.psd.x,
+						type: 'line',
+					},
+					{
+						color: 'yellow',
+						name: rec.name + ' (Y)',
+						psd: rec.psd.y,
+						type: 'line',
+					},
+					{
+						color: 'blue',
+						name: rec.name + ' (Z)',
+						psd: rec.psd.z,
+						type: 'line',
+					},
+					{
+						color: sequence?.recording?.color,
+						name: rec.name + ' (Total)',
+						psd: rec.psd.total,
+						type: 'mountain',
+					},
+				];
+			}
 			return sequence?.recording
 				? {
 						color: sequence?.recording?.color,
 						name: rec.name,
 						psd: rec.psd.total,
+						type: 'mountain',
 					}
 				: null;
 		})
 		.filter(Boolean);
 	const prevSequenceData = useRef(sequenceData);
+	const currentInputShapers = useRef(inputShapers);
+	currentInputShapers.current = inputShapers;
+	const prevInputShapers = useRef(inputShapers);
+
+	const initializeInputShapers = useCallback(
+		(surface: SciChartSurface, skip: string[] = []) => {
+			if (!currentInputShapers.current?.shapers.length || surface == null) {
+				console.log('no input shapers or surface');
+			}
+			currentInputShapers.current?.shapers.forEach((seq) => {
+				if (surface == null || skip.includes(seq.name)) {
+					return;
+				}
+				const color = Object.keys(shadableTWColors)[
+					Math.floor(Math.random() * Object.keys(shadableTWColors).length)
+				] as keyof typeof shadableTWColors;
+				console.log('initializing', seq.name, 'with color', color, 'on chart', surface.id);
+				const rs = new FastLineRenderableSeries(surface.webAssemblyContext2D, {
+					id: seq.name,
+					dataSeries: new XyDataSeries(surface.webAssemblyContext2D, {
+						containsNaN: false,
+						isSorted: true,
+						xValues: sequenceData[0].psd.frequencies,
+						yValues: seq.vals,
+					}),
+					stroke: shadableTWColors[color][400],
+					strokeThickness: 3,
+					strokeDashArray: [5, 5],
+					yAxisId: PSD_CHART_AXIS_SHAPER_ID,
+				});
+				rs.rolloverModifierProps.tooltipColor = color;
+				rs.rolloverModifierProps.tooltipTitle = seq?.name + ' @ ' + Math.round(seq?.freq * 100) / 100 + ' Hz';
+				rs.animation = new WaveAnimation({
+					duration: 500,
+				});
+				surface.renderableSeries.add(rs);
+				surface.invalidateElement();
+			});
+			prevInputShapers.current = currentInputShapers.current;
+		},
+		[sequenceData],
+	);
 
 	const setupChart = useCallback(
 		(surface: SciChartSurface) => {
+			console.log('initializing', surface.id);
 			let bandSeries = false;
 			if (sequenceData.length === 2) {
 				bandSeries = true;
@@ -78,7 +155,7 @@ export const MacroRunChart: React.FC<MacroRunChartProps> = ({ recordings, sequen
 					fillY1: shadableTWColors[(sequenceData[0].color ?? 'rose') as keyof typeof shadableTWColors][600] + 22,
 					stroke: shadableTWColors[(sequenceData[0].color ?? 'rose') as keyof typeof shadableTWColors][400],
 					strokeY1: shadableTWColors[(sequenceData[1].color ?? 'sky') as keyof typeof shadableTWColors][400],
-					strokeThickness: 3,
+					strokeThickness: 4,
 					yAxisId: PSD_CHART_AXIS_AMPLITUDE_ID,
 				});
 				rs.rolloverModifierProps.tooltipColor = sequenceData[0].color ?? 'zinc';
@@ -87,12 +164,12 @@ export const MacroRunChart: React.FC<MacroRunChartProps> = ({ recordings, sequen
 				rs.rolloverModifierProps1.tooltipTitle = sequenceData[1].name + ' Power';
 				rs.animation = new WaveAnimation({
 					duration: 500,
-					pointDurationFraction: 1,
 				});
 				surface.renderableSeries.add(rs);
 			} else {
 				sequenceData.forEach((seq) => {
-					const rs = new FastLineRenderableSeries(surface.webAssemblyContext2D, {
+					const Series = seq.type === 'line' ? FastLineRenderableSeries : FastMountainRenderableSeries;
+					const rs = new Series(surface.webAssemblyContext2D, {
 						dataSeries: new XyDataSeries(surface.webAssemblyContext2D, {
 							containsNaN: false,
 							isSorted: true,
@@ -100,14 +177,14 @@ export const MacroRunChart: React.FC<MacroRunChartProps> = ({ recordings, sequen
 							yValues: seq.psd.estimates,
 						}),
 						stroke: shadableTWColors[(seq.color ?? 'brand') as keyof typeof shadableTWColors][400],
-						strokeThickness: 3,
+						fill: shadableTWColors[(seq.color ?? 'brand') as keyof typeof shadableTWColors][600] + 11,
+						strokeThickness: 4,
 						yAxisId: PSD_CHART_AXIS_AMPLITUDE_ID,
 					});
 					rs.rolloverModifierProps.tooltipColor = seq.color ?? 'zinc';
 					rs.rolloverModifierProps.tooltipTitle = seq.name + ' Power';
 					rs.animation = new WaveAnimation({
 						duration: 500,
-						pointDurationFraction: 1,
 					});
 					surface.renderableSeries.add(rs);
 				});
@@ -152,11 +229,82 @@ export const MacroRunChart: React.FC<MacroRunChartProps> = ({ recordings, sequen
 					axisLabelStroke: shadableTWColors.zinc[100],
 				}),
 			);
+			if (recordings.length === 1) {
+				console.log('initializing shapers');
+				initializeInputShapers(surface);
+			}
 		},
-		[sequenceData],
+		[initializeInputShapers, recordings.length, sequenceData],
 	);
 
 	const chart = useChart(PSDChartNoSeriesDefinition, setupChart);
+
+	const updateInputShapers = useCallback(() => {
+		// Update input shapers
+		if (chart.surface.current == null) {
+			return;
+		}
+		if (
+			recordings.length === 1 &&
+			(inputShapers?.shapers.length ?? 0) > 0 &&
+			deepEqual(inputShapers, prevInputShapers.current) === false
+		) {
+			console.log('input shapers changed');
+			if ((prevInputShapers.current?.shapers.length ?? 0) > 0) {
+				// Animate input shapers
+				const skip: string[] = [];
+				chart.surface.current.renderableSeries
+					.asArray()
+					.filter((rs) => rs.yAxisId === PSD_CHART_AXIS_SHAPER_ID)
+					.forEach((rs) => {
+						if (chart.surface.current == null) {
+							return;
+						}
+						const shaper = inputShapers?.shapers.find((shaper) => shaper.name === rs.id);
+						const newDs = new XyDataSeries(chart.surface.current.webAssemblyContext2D, {
+							containsNaN: false,
+							isSorted: true,
+						});
+						chart.surface.current.addDeletable(newDs);
+						if (shaper == null) {
+							// Remove shaper if it no longer exists
+							console.log('animating', rs.id, 'to zero and removing..');
+							newDs.appendRange(sequenceData[0].psd.frequencies, new Array(rs.dataSeries.count()).fill(0));
+							chart.surface.current.addDeletable(newDs);
+							rs.runAnimation(
+								new LineAnimation({
+									duration: 500,
+									ease: easing.inOutCirc,
+									reverse: true,
+									dataSeries: newDs,
+									onCompleted: () => {
+										console.log('removing', rs.id);
+										rs.delete();
+										newDs.delete();
+									},
+								}),
+							);
+							return;
+						}
+						console.log('animating', rs.id, 'to new value..');
+						newDs.appendRange(sequenceData[0].psd.frequencies, shaper.vals);
+						rs.runAnimation(
+							new LineAnimation({
+								duration: 500,
+								ease: easing.inOutCirc,
+								dataSeries: newDs,
+							}),
+						);
+						skip.push(rs.id);
+					});
+				initializeInputShapers(chart.surface.current, skip);
+				prevInputShapers.current = inputShapers;
+			} else {
+				initializeInputShapers(chart.surface.current);
+				prevInputShapers.current = inputShapers;
+			}
+		}
+	}, [chart.surface, initializeInputShapers, inputShapers, recordings.length, sequenceData]);
 
 	const transitionToChart = useCallback(
 		(data: typeof sequenceData) => {
@@ -230,7 +378,7 @@ export const MacroRunChart: React.FC<MacroRunChartProps> = ({ recordings, sequen
 							rs.rolloverModifierProps.tooltipColor = seq.color ?? 'zinc';
 							rs.rolloverModifierProps.tooltipTitle = seq.name + ' Power';
 							rs.runAnimation(
-								new LineAnimation({
+								new MountainAnimation({
 									duration: 500,
 									ease: easing.inOutCirc,
 									dataSeries: newDs,
@@ -242,6 +390,9 @@ export const MacroRunChart: React.FC<MacroRunChartProps> = ({ recordings, sequen
 						}
 					}
 				});
+				// Update input shapers
+				console.log('updating shapers');
+				updateInputShapers();
 				return;
 			}
 			// If different number of data series, animate data to zero, then run setupChart.
@@ -288,6 +439,7 @@ export const MacroRunChart: React.FC<MacroRunChartProps> = ({ recordings, sequen
 				});
 				setTimeout(() => {
 					if (chart.surface.current) {
+						console.log('clearing chart!');
 						chart.surface.current?.renderableSeries.clear();
 						chart.surface.current?.chartModifiers.clear();
 						setupChart(chart.surface.current);
@@ -297,7 +449,7 @@ export const MacroRunChart: React.FC<MacroRunChartProps> = ({ recordings, sequen
 				return;
 			}
 		},
-		[chart.surface, setupChart],
+		[chart.surface, setupChart, updateInputShapers],
 	);
 
 	useEffect(() => {
@@ -306,8 +458,11 @@ export const MacroRunChart: React.FC<MacroRunChartProps> = ({ recordings, sequen
 				transitionToChart(sequenceData);
 			}
 			prevSequenceData.current = sequenceData;
+		} else if (inputShapers?.shapers.length) {
+			console.log('updating shapers from effect');
+			updateInputShapers();
 		}
-	}, [chart.surface, sequenceData, setupChart, transitionToChart]);
+	}, [chart.surface, inputShapers?.shapers.length, sequenceData, setupChart, transitionToChart, updateInputShapers]);
 
 	return <SciChartReact {...chart.forwardProps} className="flex-1 bg-zinc-900/50"></SciChartReact>;
 };

@@ -6,6 +6,8 @@ import { ChevronLeft, SkipBack, SkipForward } from 'lucide-react';
 import { useCallback, useState, useMemo } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import * as luxon from 'luxon';
+import { useQuery } from '@tanstack/react-query';
+import { findBestShaper } from '@/app/analysis/_worker/input-shaper';
 
 luxon.Settings.defaultLocale = 'en-GB';
 const userLocale = luxon.DateTime.local().locale;
@@ -24,6 +26,18 @@ export const MacroRun = ({ id, runId }: { id: string; runId: string }) => {
 		},
 		{ keepPreviousData: true },
 	);
+
+	const inputShapers = useQuery({
+		enabled: recordings.result.length === 1,
+		queryKey: ['inputShapers', currentRun],
+		retry: false,
+		refetchOnMount: false,
+		refetchOnWindowFocus: false,
+		refetchOnReconnect: false,
+		queryFn: async () => {
+			return await findBestShaper(recordings.result[0].psd.total, 5);
+		},
+	});
 
 	useHotkeys(
 		'left',
@@ -107,7 +121,11 @@ export const MacroRun = ({ id, runId }: { id: string; runId: string }) => {
 
 	return (
 		<div className="flex flex-1">
-			<MacroRunChart sequences={macro.sequences} recordings={recordings.result} />
+			<MacroRunChart
+				sequences={macro.sequences}
+				recordings={recordings.result}
+				inputShapers={inputShapers.data ?? undefined}
+			/>
 			<div className="absolute left-1/2 top-4 -translate-x-1/2 text-center">
 				<h2 className="bg-gradient-to-b from-white/80 to-white/30 bg-clip-text text-2xl font-bold !leading-snug tracking-tight text-transparent transition-all lg:text-4xl xl:text-5xl 2xl:text-6xl">
 					{macro.name}
