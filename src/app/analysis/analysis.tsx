@@ -42,6 +42,8 @@ import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
 import { useToolheads } from '@/hooks/useToolheadConfiguration';
 import { KlipperAccelSensorName } from '@/zods/hardware';
+import { useMoonrakerMutation, useMoonrakerQuery, usePrinterObjectQuery } from '@/moonraker/hooks';
+import { getHost } from '@/helpers/util';
 
 SciChartSurface.configure({
 	wasmUrl: '/configure/scichart2d.wasm',
@@ -241,6 +243,18 @@ export const Analysis = () => {
 						if (abort.aborted) {
 							throw new DOMException('Macro run aborted by user', 'AbortError');
 						}
+						const moonrakerReq = await fetch(
+							`http://${getHost()}/printer/objects/query?toolhead=square_corner_velocity`,
+						);
+						let scv = undefined;
+						if (moonrakerReq.ok) {
+							const moonrakerResponse = await moonrakerReq.json();
+							if (moonrakerResponse?.result?.status?.toolhead?.square_corner_velocity != null) {
+								scv = moonrakerResponse.result.status.toolhead.square_corner_velocity;
+							} else {
+								getLogger().warn(moonrakerResponse, 'Failed to get square corner velocity from moonraker');
+							}
+						}
 						mutations.push(
 							mutateRecordingAsync({
 								recording: {
@@ -249,6 +263,7 @@ export const Analysis = () => {
 									macroId: macro.id,
 									sequenceId: sequence.id,
 									startTimeStamp: startTs,
+									scv,
 									endTimeStamp: new Date().getTime(),
 									psd,
 									name: sequence.name,

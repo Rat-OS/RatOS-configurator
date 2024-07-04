@@ -375,6 +375,9 @@ export const getPSDTooltipLegendTemplate = (seriesInfos: SeriesInfo[], svgAnnota
 	let y = padding * 2;
 	const valuesWithLabels: string[] = [];
 	seriesInfos.forEach((seriesInfo, index) => {
+		if (seriesInfo.renderableSeries.rolloverModifierProps.showRollover === false) {
+			return;
+		}
 		let separator = ':';
 		let textColor = seriesInfo.renderableSeries.rolloverModifierProps.tooltipColor as TWShadeableColorName;
 		valuesWithLabels.push(
@@ -385,6 +388,9 @@ export const getPSDTooltipLegendTemplate = (seriesInfos: SeriesInfo[], svgAnnota
 		</text>`;
 		y += 20;
 		if (seriesInfo.dataSeriesType === EDataSeriesType.Xyy) {
+			if (seriesInfo.renderableSeries.rolloverModifierProps1.showRollover === false) {
+				return;
+			}
 			const si = seriesInfo as XyySeriesInfo;
 			let textColor = seriesInfo.renderableSeries.rolloverModifierProps1.tooltipColor as TWShadeableColorName;
 			valuesWithLabels.push(

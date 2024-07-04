@@ -139,15 +139,19 @@ async function estimateRemainingVibrations(
 	return [res, vals];
 }
 
-type ShaperCalibrationResult = {
+export type ShaperCalibrationResult = {
 	name: string;
 	freq: number;
 	vals: number[];
+	psd: number[];
 	vibrs: number;
 	smoothing: number;
 	score: number;
 	maxAccel: number;
 };
+
+const range = (start: number, stop: number, step: number) =>
+	Array.from({ length: (stop - start) / step + 1 }, (value, index) => start + index * step);
 
 export async function fitShaper(
 	shaperCfg: InputShaperModel,
@@ -166,15 +170,11 @@ export async function fitShaper(
 ) {
 	dampingRatio = dampingRatio || shaperDefaults.DEFAULT_DAMPING_RATIO;
 	testDampingRatios = testDampingRatios || shaperDefaults.TEST_DAMPING_RATIOS;
-	const testFreqs: number[] = [];
 	const freqEnd = shaperFreqs[1] ?? shaperDefaults.MAX_SHAPER_FREQ;
 	const freqStart = Math.min(shaperFreqs[0] ?? shaperCfg.minFreq, freqEnd - 1e-7);
 	const freqStep = shaperFreqs[2] ?? 0.2;
-	for (let freq = freqStart; freq < freqEnd; freq += freqStep) {
-		testFreqs.push(freq);
-	}
 
-	maxFreq = Math.max(maxFreq || shaperDefaults.MAX_FREQ, Math.max(...testFreqs));
+	maxFreq = Math.max(maxFreq || shaperDefaults.MAX_FREQ, freqEnd);
 
 	const freqBins = slice1d(calibrationData.frequencies, 0, calibrationData.frequencies.length);
 	const freqBinsFiltered = slice1d(
@@ -184,51 +184,88 @@ export async function fitShaper(
 	);
 	const psd = slice1d(calibrationData.estimates, 0, freqBins.size);
 	freqBins.dispose();
-
-	let bestRes: ShaperCalibrationResult | null = null;
-	const results: ShaperCalibrationResult[] = [];
-	for (let i = testFreqs.length - 1; i >= 0; i--) {
-		const testFreq = testFreqs[i];
-		let shaperVibrations = 0;
-		let shaperVals = zeros([psd.size]);
-		const shaper = shaperCfg.initFunc(testFreq, dampingRatio);
-		const shaperSmoothing = await getShaperSmoothing(shaper, scv);
-		if (maxSmoothing && shaperSmoothing > maxSmoothing && bestRes) {
-			return bestRes;
-		}
-		for (const dr of testDampingRatios) {
-			const [vibrations, vals] = await estimateRemainingVibrations(shaper, dr, freqBinsFiltered, psd);
-			shaperVals = tidy(() => max<Tensor1D>(stack([shaperVals, vals]), 0));
-			if (vibrations > shaperVibrations) {
-				shaperVibrations = vibrations;
+	const zeroArray = zeros([psd.size]);
+	// Two pass approach, start in 10hz increments, then refine in `freqStep` increments
+	const freqsOfInterest = (
+		await Promise.all(
+			range(freqStart, freqEnd, 10).map(async (f) => {
+				if (shaperCfg.minFreq > f) {
+					return null;
+				}
+				const shaper = shaperCfg.initFunc(f, dampingRatio);
+				let shaperVibrations = 0;
+				let shaperVals = zeroArray.clone();
+				for (const dr of testDampingRatios) {
+					const [vibrations, vals] = await estimateRemainingVibrations(shaper, dr, freqBinsFiltered, psd);
+					const oldShapervals = shaperVals;
+					shaperVals = tidy(() => max<Tensor1D>(stack([oldShapervals, vals]), 0));
+					oldShapervals.dispose();
+					if (vibrations > shaperVibrations) {
+						shaperVibrations = vibrations;
+					}
+				}
+				if (shaperVibrations < 0.15) {
+					return f;
+				}
+				return null;
+			}),
+		)
+	).filter(Boolean);
+	const bestShaper: ShaperCalibrationResult | null = (
+		await Promise.all(
+			range(Math.min(...freqsOfInterest), Math.max(...freqsOfInterest), freqStep)
+				.reverse()
+				.map(async (testFreq) => {
+					let shaperVibrations = 0;
+					let shaperVals = zeroArray.clone();
+					const shaper = shaperCfg.initFunc(testFreq, dampingRatio);
+					const shaperSmoothing = await getShaperSmoothing(shaper, undefined, scv);
+					if (maxSmoothing && shaperSmoothing > maxSmoothing) {
+						return null;
+					}
+					for (const dr of testDampingRatios) {
+						const [vibrations, vals] = await estimateRemainingVibrations(shaper, dr, freqBinsFiltered, psd);
+						const oldShapervals = shaperVals;
+						shaperVals = tidy(() => max<Tensor1D>(stack([oldShapervals, vals]), 0));
+						oldShapervals.dispose();
+						if (vibrations > shaperVibrations) {
+							shaperVibrations = vibrations;
+						}
+					}
+					const maxAccel = await findShaperMaxAccel(shaper, scv);
+					const shaperScore = shaperSmoothing * (Math.pow(shaperVibrations, 1.5) + shaperVibrations * 0.2 + 0.01);
+					const result = {
+						name: shaperCfg.name,
+						freq: testFreq,
+						vals: (await shaperVals.array()) as number[],
+						psd: (await mul(psd, shaperVals).array()) as number[],
+						vibrs: shaperVibrations,
+						smoothing: shaperSmoothing,
+						score: shaperScore,
+						maxAccel: maxAccel,
+					} satisfies ShaperCalibrationResult;
+					return result;
+				}),
+		)
+	).reduce(
+		(selected, res) => {
+			if (res === null) {
+				return selected;
 			}
-		}
-		const maxAccel = await findShaperMaxAccel(shaper, scv);
-		const shaperScore = shaperSmoothing * (Math.pow(shaperVibrations, 1.5) + shaperVibrations * 0.2 + 0.01);
-		const result = {
-			name: shaperCfg.name,
-			freq: testFreq,
-			vals: (await shaperVals.array()) as number[],
-			vibrs: shaperVibrations,
-			smoothing: shaperSmoothing,
-			score: shaperScore,
-			maxAccel: maxAccel,
-		} satisfies ShaperCalibrationResult;
-		results.push(result);
-		if (bestRes == null || bestRes.vibrs > result.vibrs) {
-			bestRes = result;
-		}
-	}
+			if (selected == null || (res.vibrs < selected.vibrs * 1.1 && res.score < selected.score)) {
+				selected = res;
+			}
+			return selected;
+		},
+		null as ShaperCalibrationResult | null,
+	);
 	freqBinsFiltered.dispose();
 	psd.dispose();
+	zeroArray.dispose();
 
-	let selected = bestRes;
-	for (let i = results.length - 1; i >= 0; i--) {
-		if (bestRes && selected && results[i].vibrs < bestRes.vibrs * 1.1 && results[i].score < selected.score) {
-			selected = results[i];
-		}
-	}
-	return selected;
+	postMessage({ type: 'fitShaper', result: bestShaper });
+
+	return bestShaper;
 }
 
 setWasmPaths({
@@ -247,7 +284,6 @@ export async function findBestShaper(
 	maxFreq?: number,
 ) {
 	await setBackend('wasm');
-	console.time('findBestShaper');
 	const fittedShapers = (
 		await Promise.all(
 			shapers.map((s) =>
@@ -267,9 +303,50 @@ export async function findBestShaper(
 		}
 		return best;
 	});
-	console.timeEnd('findBestShaper');
 	return {
 		result: best,
 		shapers: fittedShapers,
 	};
 }
+
+export type InputShaperWorkerInput = {
+	type: 'findBestShaper';
+	calibrationData: TypedArrayPSD | PSD;
+	scv: number;
+	shaperFreqs?: [number | null, number | null, number | null];
+	dampingRatio?: number;
+	maxSmoothing?: number;
+	testDampingRatios?: number[];
+	maxFreq?: number;
+};
+
+export type InputShaperWorkerOutput =
+	| {
+			type: 'findBestShaper';
+			result: ShaperCalibrationResult | null;
+			shapers: (ShaperCalibrationResult | null)[];
+	  }
+	| {
+			type: 'fitShaper';
+			result: ShaperCalibrationResult | null;
+	  };
+
+onmessage = async (e: MessageEvent<InputShaperWorkerInput>) => {
+	const command = e.data.type;
+	switch (command) {
+		case 'findBestShaper':
+			const { calibrationData, scv, shaperFreqs, dampingRatio, maxSmoothing, testDampingRatios, maxFreq } = e.data;
+			const result = await findBestShaper(
+				calibrationData,
+				scv,
+				INPUT_SHAPERS,
+				shaperFreqs,
+				dampingRatio,
+				maxSmoothing,
+				testDampingRatios,
+				maxFreq,
+			);
+			postMessage({ type: 'findBestShaper', ...result } satisfies InputShaperWorkerOutput);
+			break;
+	}
+};

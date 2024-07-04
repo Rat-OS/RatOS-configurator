@@ -236,7 +236,7 @@ export type MoonrakerQueries = {
 		objects: {
 			query: MoonrakerMethod<
 				{ status: unknown; eventtime: number },
-				{ objects: PrinterObjectsMoonrakerQueryParams | null }
+				{ objects: Partial<PrinterObjectsMoonrakerQueryParams> | null }
 			>;
 		};
 	};
