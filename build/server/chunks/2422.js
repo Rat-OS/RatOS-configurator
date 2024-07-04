@@ -54,6 +54,7 @@ ${r.renderMacros()}
 # Macro variable overrides
 [gcode_macro RatOS]
 ${r.renderMacroVariableOverrides()}
+variable_home_y_first: True
 
 # Save variables
 ${r.renderSaveVariables()}
