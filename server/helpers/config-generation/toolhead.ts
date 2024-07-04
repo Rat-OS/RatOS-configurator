@@ -187,6 +187,15 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 			return ''; // use controlboard
 		}
 	}
+	public isToolboardPinInverted(pin?: string) {
+		if (pin == null) {
+			return false;
+		}
+		if (this.config.toolboard?.invertPinLogic.includes(pin)) {
+			return true;
+		}
+		return false;
+	}
 	public renderToolboard(exportPinsFn?: RenderPinsFn) {
 		const pins = this.toolboardPins;
 		const toolboard = this.config.toolboard;
@@ -213,34 +222,79 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 			result.push(''); // Add a newline for readability.
 			result.push(`[adxl345 ${this.getToolboardName()}]`);
 			result.push(`axes_map: x, z, y # Assumes back-facing vertical toolboard mounting`);
-			result.push(`cs_pin: ${this.getPinPrefix()}${toolboard.ADXL345SPI.cs_pin}`);
+			result.push(
+				`cs_pin: ${this.isToolboardPinInverted(toolboard.ADXL345SPI.cs_pin) ? '!' : ''}${this.getPinPrefix()}${toolboard.ADXL345SPI.cs_pin}`,
+			);
 			if ('hardware' in toolboard.ADXL345SPI) {
 				result.push(`spi_bus: ${toolboard.ADXL345SPI.hardware.bus}`);
 			} else {
-				result.push(`spi_software_mosi_pin: ${this.getPinPrefix()}${toolboard.ADXL345SPI.software.mosi}`);
-				result.push(`spi_software_miso_pin: ${this.getPinPrefix()}${toolboard.ADXL345SPI.software.miso}`);
-				result.push(`spi_software_sclk_pin: ${this.getPinPrefix()}${toolboard.ADXL345SPI.software.sclk}`);
+				result.push(
+					`spi_software_mosi_pin: ${this.isToolboardPinInverted(toolboard.ADXL345SPI.software.mosi) ? '!' : ''}${this.getPinPrefix()}${toolboard.ADXL345SPI.software.mosi}`,
+				);
+				result.push(
+					`spi_software_miso_pin: ${this.isToolboardPinInverted(toolboard.ADXL345SPI.software.miso) ? '!' : ''}${this.getPinPrefix()}${toolboard.ADXL345SPI.software.miso}`,
+				);
+				result.push(
+					`spi_software_sclk_pin: ${this.isToolboardPinInverted(toolboard.ADXL345SPI.software.sclk) ? '!' : ''}${this.getPinPrefix()}${toolboard.ADXL345SPI.software.sclk}`,
+				);
 			}
 		}
 		if (toolboard.LIS2DW != null) {
 			result.push(''); // Add a newline for readability.
 			result.push(`[lis2dw ${this.getToolboardName()}]`);
 			result.push(`axes_map: x, z, y # Assumes back-facing vertical toolboard mounting`);
-			result.push(`cs_pin: ${this.getPinPrefix()}${toolboard.LIS2DW.cs_pin}`);
+			result.push(
+				`cs_pin: ${this.isToolboardPinInverted(toolboard.LIS2DW.cs_pin) ? '!' : ''}${this.getPinPrefix()}${toolboard.LIS2DW.cs_pin}`,
+			);
 			if ('hardware' in toolboard.LIS2DW) {
 				result.push(`spi_bus: ${toolboard.LIS2DW.hardware.bus}`);
 			} else {
-				result.push(`spi_software_mosi_pin: ${this.getPinPrefix()}${toolboard.LIS2DW.software.mosi}`);
-				result.push(`spi_software_miso_pin: ${this.getPinPrefix()}${toolboard.LIS2DW.software.miso}`);
-				result.push(`spi_software_sclk_pin: ${this.getPinPrefix()}${toolboard.LIS2DW.software.sclk}`);
+				result.push(
+					`spi_software_mosi_pin: ${this.isToolboardPinInverted(toolboard.LIS2DW.software.mosi) ? '!' : ''}${this.getPinPrefix()}${toolboard.LIS2DW.software.mosi}`,
+				);
+				result.push(
+					`spi_software_miso_pin: ${this.isToolboardPinInverted(toolboard.LIS2DW.software.miso) ? '!' : ''}${this.getPinPrefix()}${toolboard.LIS2DW.software.miso}`,
+				);
+				result.push(
+					`spi_software_sclk_pin: ${this.isToolboardPinInverted(toolboard.LIS2DW.software.sclk) ? '!' : ''}${this.getPinPrefix()}${toolboard.LIS2DW.software.sclk}`,
+				);
 			}
 		}
 		if (toolboard.outputPins != null) {
 			toolboard.outputPins.forEach((pindef) => {
 				result.push(''); // Add a newline for readability.
 				result.push(`[output_pin ${pindef.name}]`);
-				result.push(`pin: ${this.getPinPrefix()}${pindef.pin}`);
+				result.push(`pin: ${this.isToolboardPinInverted(pindef.pin) ? '!' : ''}${this.getPinPrefix()}${pindef.pin}`);
 				result.push(`value: ${pindef.value}`);
+			});
+		}
+		if (toolboard.customSections != null) {
+			Object.keys(toolboard.customSections).forEach((sectionName) => {
+				if (toolboard.customSections == null) {
+					return;
+				}
+				const section = toolboard.customSections[sectionName];
+				result.push(''); // Add a newline for readability.
+				result.push(`[${sectionName}${section.name ? ` ${section.name}` : ''}]`);
+				if (section.comments != null) {
+					section.comments.forEach((comment) => {
+						result.push(`# ${comment}`);
+					});
+				}
+				Object.keys(section.parameters).forEach((parameter) => {
+					if (this.toolboardPins == null) {
+						return;
+					}
+					const value = section.parameters[parameter];
+					if (value == null) {
+						throw new Error(`Parameter "${parameter}" has no value in custom section "${sectionName}"`);
+					}
+					if (typeof value == 'string' && Object.values(this.toolboardPins).includes(value)) {
+						result.push(`${parameter}: ${this.isToolboardPinInverted(value) ? '!' : ''}${this.getPinPrefix()}${value}`);
+					} else {
+						result.push(`${parameter}: ${value}`);
+					}
+				});
 			});
 		}
 		return result.join('\n');
@@ -329,7 +383,7 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 				result.push(`pin: ${this.controlboardPins?.['4p_fan_part_cooling_pin']}`);
 				result.push(`cycle_time:  0.00004`);
 				if (this.controlboardPins?.['4p_fan_part_cooling_tach_pin'] != null) {
-					result.push(`tachometer_pin: ${this.controlboardPins?.['4p_fan_part_cooling_tach_pin']}`);
+					result.push(`tachometer_pin: ^${this.controlboardPins?.['4p_fan_part_cooling_tach_pin']}`);
 					result.push(`tachometer_poll_interval: 0.0005`);
 				}
 				break;
@@ -338,14 +392,18 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 				result.push(
 					`# 2-pin fan connected to 2-pin header on T${this.getTool()} (${this.getToolboard()?.name}) - input voltage pwm`,
 				);
-				result.push(`pin: ${this.getPinPrefix()}${this.toolboardPins?.fan_part_cooling_pin}`);
+				result.push(
+					`pin: ${this.isToolboardPinInverted(this.toolboardPins?.fan_part_cooling_pin) ? '!' : ''}${this.getPinPrefix()}${this.toolboardPins?.fan_part_cooling_pin}`,
+				);
 				break;
 			case '4pin-toolboard':
 				this.requireToolboardPin('fan_part_cooling_pin');
 				result.push(
 					`# 4-pin fan connected to 2-pin header on T${this.getTool()} (${this.getToolboard()?.name}) - digital pwm`,
 				);
-				result.push(`pin: !${this.getPinPrefix()}${this.toolboardPins?.fan_part_cooling_pin}`);
+				result.push(
+					`pin: ${this.isToolboardPinInverted(this.toolboardPins?.fan_part_cooling_pin) ? '' : '!'}${this.getPinPrefix()}${this.toolboardPins?.fan_part_cooling_pin}`,
+				);
 				result.push(`cycle_time:  0.00004`);
 				break;
 			case '4pin-dedicated-toolboard':
@@ -353,10 +411,14 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 				result.push(
 					`# 4-pin fan connected to 4-pin header on T${this.getTool()} (${this.getToolboard()?.name}) - digital pwm`,
 				);
-				result.push(`pin: ${this.getPinPrefix()}${this.toolboardPins?.['4p_fan_part_cooling_pin']}`);
+				result.push(
+					`pin: ${this.isToolboardPinInverted(this.toolboardPins?.['4p_fan_part_cooling_pin']) ? '!' : ''}${this.getPinPrefix()}${this.toolboardPins?.['4p_fan_part_cooling_pin']}`,
+				);
 				result.push(`cycle_time:  0.00004`);
 				if (this.toolboardPins?.['4p_fan_part_cooling_tach_pin'] != null) {
-					result.push(`tachometer_pin: ${this.toolboardPins?.['4p_fan_part_cooling_tach_pin']}`);
+					result.push(
+						`tachometer_pin: ^${this.isToolboardPinInverted(this.toolboardPins?.['4p_fan_part_cooling_tach_pin']) ? '!' : ''}${this.toolboardPins?.['4p_fan_part_cooling_tach_pin']}`,
+					);
 					result.push(`tachometer_poll_interval: 0.0005`);
 				}
 				break;
@@ -397,14 +459,18 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 				result.push(
 					`# 2-pin fan connected to 2-pin header on T${this.getTool()} (${this.getToolboard()?.name}) - input voltage pwm`,
 				);
-				result.push(`pin: ${this.getPinPrefix()}${this.toolboardPins?.fan_toolhead_cooling_pin}`);
+				result.push(
+					`pin: ${this.isToolboardPinInverted(this.toolboardPins?.fan_toolhead_cooling_pin) ? '!' : ''}${this.getPinPrefix()}${this.toolboardPins?.fan_toolhead_cooling_pin}`,
+				);
 				break;
 			case '4pin-toolboard':
 				this.requireToolboardPin('fan_toolhead_cooling_pin');
 				result.push(
 					`# 4-pin fan connected to 2-pin header on T${this.getTool()} (${this.getToolboard()?.name}) - digital pwm`,
 				);
-				result.push(`pin: !${this.getPinPrefix()}${this.toolboardPins?.fan_toolhead_cooling_pin}`);
+				result.push(
+					`pin: ${this.isToolboardPinInverted(this.toolboardPins?.fan_toolhead_cooling_pin) ? '' : '!'}${this.getPinPrefix()}${this.toolboardPins?.fan_toolhead_cooling_pin}`,
+				);
 				result.push(`cycle_time:  0.00004`);
 				break;
 			case '4pin-dedicated-toolboard':
@@ -412,10 +478,14 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 				result.push(
 					`# 4-pin fan connected to 4-pin header on T${this.getTool()} (${this.getToolboard()?.name}) - digital pwm`,
 				);
-				result.push(`pin: ${this.getPinPrefix()}${this.toolboardPins?.['4p_toolhead_cooling_pin']}`);
+				result.push(
+					`pin: ${this.isToolboardPinInverted(this.toolboardPins?.['4p_toolhead_cooling_pin']) ? '!' : ''}${this.getPinPrefix()}${this.toolboardPins?.['4p_toolhead_cooling_pin']}`,
+				);
 				result.push(`cycle_time:  0.00004`);
 				if (this.toolboardPins?.['4p_toolhead_cooling_tach_pin'] != null) {
-					result.push(`tachometer_pin: ^${this.toolboardPins?.['4p_toolhead_cooling_tach_pin']}`);
+					result.push(
+						`tachometer_pin: ^${this.isToolboardPinInverted(this.toolboardPins?.['4p_toolhead_cooling_tach_pin']) ? '!' : ''}${this.toolboardPins?.['4p_toolhead_cooling_tach_pin']}`,
+					);
 					result.push(`tachometer_poll_interval: 0.0005`);
 				}
 				break;
