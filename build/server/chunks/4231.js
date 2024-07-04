@@ -59,6 +59,7 @@ ${r.renderMacros()}
 # Macro variable overrides
 [gcode_macro RatOS]
 ${r.renderMacroVariableOverrides()}
+variable_home_y_first: True
 
 # Save variables
 ${r.renderSaveVariables({xcontrolpoint:e.size.x/2-37,ycontrolpoint:e.size.y+32,zcontrolpoint:10,zoffsetcontrolpoint:0})}
