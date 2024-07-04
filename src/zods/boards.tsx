@@ -345,6 +345,17 @@ export const Board = z
 		hasMcuTempSensor: z.boolean().default(true),
 		thermistorPullup: z.number().default(4700),
 		alternativePT1000Resistor: z.number().optional(),
+		invertPinLogic: z.array(z.string()).default([]),
+		customSections: z
+			.record(
+				z.string().regex(/^\S+$/),
+				z.object({
+					name: z.string().optional(),
+					parameters: z.record(z.string().regex(/^\S+$/), z.string().or(z.number())),
+					comments: z.array(z.string()).default([]),
+				}),
+			)
+			.optional(),
 		motorSlots: z.record(MotorSlotKey, MotorSlot).optional(),
 		outputPins: z
 			.array(

@@ -1,0 +1,72 @@
+{
+	"printer": "v-minion",
+	"controlboard": "btt-skrat-10",
+	"toolheads": [
+		{
+			"hotend": "rapido",
+			"thermistor": "PT1000",
+			"extruder": "orbiter-2",
+			"xEndstop": "endstop-toolboard",
+			"yEndstop": "sensorless",
+			"hotendFan": "2pin-toolboard",
+			"partFan": "2pin-toolboard",
+			"xAccelerometer": "toolboard",
+			"yAccelerometer": "sbc",
+			"toolboard": "ldo-orbitool-o2",
+			"probe": "superpinda",
+			"axis": "x",
+			"toolNumber": 0
+		}
+	],
+	"size": null,
+	"controllerFan": "2pin",
+	"performanceMode": true,
+	"stealthchop": false,
+	"standstillStealth": false,
+	"rails": [
+		{
+			"axis": "x",
+			"axisDescription": "The X axis motor moves the print head left and right.",
+			"driver": "BTT-TMC2209-13",
+			"voltage": 24,
+			"stepper": "LDO-42STH40-1684AC",
+			"current": 1.188,
+			"rotationDistance": 40,
+			"homingSpeed": 100,
+			"microstepping": 64
+		},
+		{
+			"axis": "y",
+			"axisDescription": "The Y axis motor moves the print bed forward and backward.",
+			"driver": "BTT-TMC2209-13",
+			"voltage": 24,
+			"stepper": "LDO-42STH40-1684AC",
+			"current": 1.188,
+			"rotationDistance": 40,
+			"homingSpeed": 100,
+			"microstepping": 64
+		},
+		{
+			"axis": "z",
+			"axisDescription": "The Z axis motor moves the print head up and down.",
+			"driver": "BTT-TMC2209-13",
+			"voltage": 24,
+			"stepper": "LDO-42STH40-1684AC",
+			"current": 1.188,
+			"rotationDistance": 4,
+			"homingSpeed": 10,
+			"microstepping": 64
+		},
+		{
+			"axis": "extruder",
+			"axisDescription": "The extruder motor used for your toolhead",
+			"driver": "BTT-TMC2209-13",
+			"voltage": 24,
+			"stepper": "LDO-36STH20-1004AHG",
+			"current": 0.707,
+			"rotationDistance": 0,
+			"homingSpeed": 10,
+			"microstepping": 64
+		}
+	]
+}
