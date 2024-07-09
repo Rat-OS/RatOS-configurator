@@ -7,6 +7,7 @@ import { Card } from '@/components/common/card';
 import {
 	PSDChartMinimumYVisibleRange,
 	PSD_CHART_AXIS_AMPLITUDE_ID,
+	createPSDAnimationSeries,
 	useADXLSignalChart,
 	usePSDChart,
 } from '@/app/analysis/charts';
@@ -90,94 +91,97 @@ export const useRealtimeAnalysisChart = (
 			if (res.total.frequencies.reduce((acc, val) => acc + val, 0) < 200) {
 				return;
 			}
-			const animationDS = psdChart.data.current?.animationSeries;
-			if (animationDS == null) {
-				throw new Error('No animation data series');
-			}
-			// Log lengths if estimates and frequencies aren't the same length
-			if (res.x.frequencies.length !== res.x.estimates.length) {
-				getLogger().warn(
-					`X estimates and frequencies are not the same length (${res.x.estimates.length} vs ${res.x.frequencies.length})`,
-				);
-			}
-			if (res.y.frequencies.length !== res.y.estimates.length) {
-				getLogger().warn(
-					`Y estimates and frequencies are not the same length (${res.y.estimates.length} vs ${res.y.frequencies.length})`,
-				);
-			}
-			if (res.z.frequencies.length !== res.z.estimates.length) {
-				getLogger().warn(
-					`Z estimates and frequencies are not the same length (${res.z.estimates.length} vs ${res.z.frequencies.length})`,
-				);
-			}
-			if (res.total.frequencies.length !== res.total.estimates.length) {
-				getLogger().warn(
-					`Total estimates and frequencies are not the same length  (${res.total.estimates.length} vs ${res.total.frequencies.length})`,
-				);
-			}
-			if (res.x.frequencies.length !== surface.renderableSeries.getById('x').dataSeries.count()) {
-				surface.renderableSeries.getById('x').dataSeries.clear();
-				surface.renderableSeries.getById('y').dataSeries.clear();
-				surface.renderableSeries.getById('z').dataSeries.clear();
-				surface.renderableSeries.getById('total').dataSeries.clear();
-				(surface.renderableSeries.getById('x').dataSeries as XyDataSeries).appendRange(
-					res.x.frequencies,
-					res.x.estimates,
-				);
-				(surface.renderableSeries.getById('y').dataSeries as XyDataSeries).appendRange(
-					res.y.frequencies,
-					res.y.estimates,
-				);
-				(surface.renderableSeries.getById('z').dataSeries as XyDataSeries).appendRange(
-					res.z.frequencies,
-					res.z.estimates,
-				);
-				(surface.renderableSeries.getById('total').dataSeries as XyDataSeries).appendRange(
-					res.total.frequencies,
-					res.total.estimates,
-				);
-				updatePsdChartRange(new NumberRange(res.total.powerRange.min, res.total.powerRange.max));
-				return;
-			}
-			animationDS.x.clear();
-			animationDS.y.clear();
-			animationDS.z.clear();
-			animationDS.total.clear();
-			animationDS.x.appendRange(res.x.frequencies, res.x.estimates);
-			animationDS.y.appendRange(res.y.frequencies, res.y.estimates);
-			animationDS.z.appendRange(res.z.frequencies, res.z.estimates);
-			animationDS.total.appendRange(res.total.frequencies, res.total.estimates);
-			surface.renderableSeries.getById('x').runAnimation(
-				new LineAnimation({
-					duration: Math.max(elapsed, 100),
-					ease: easing.inOutQuad,
-					dataSeries: animationDS.x,
-				}),
-			);
-			surface.renderableSeries.getById('y').runAnimation(
-				new LineAnimation({
-					duration: Math.max(elapsed, 100),
-					ease: easing.inOutQuad,
-					dataSeries: animationDS.y,
-				}),
-			);
-			surface.renderableSeries.getById('z').runAnimation(
-				new LineAnimation({
-					duration: Math.max(elapsed, 100),
-					ease: easing.inOutQuad,
-					dataSeries: animationDS.z,
-				}),
-			);
-			surface.renderableSeries.getById('total').runAnimation(
-				new MountainAnimation({
-					duration: Math.max(elapsed, 100),
-					ease: easing.inOutQuad,
-					dataSeries: animationDS.total,
-				}),
-			);
+			// const animationDS = createPSDAnimationSeries(surface);
+			// if (animationDS == null) {
+			// 	throw new Error('No animation data series');
+			// }
+			// // Log lengths if estimates and frequencies aren't the same length
+			// if (res.x.frequencies.length !== res.x.estimates.length) {
+			// 	getLogger().warn(
+			// 		`X estimates and frequencies are not the same length (${res.x.estimates.length} vs ${res.x.frequencies.length})`,
+			// 	);
+			// }
+			// if (res.y.frequencies.length !== res.y.estimates.length) {
+			// 	getLogger().warn(
+			// 		`Y estimates and frequencies are not the same length (${res.y.estimates.length} vs ${res.y.frequencies.length})`,
+			// 	);
+			// }
+			// if (res.z.frequencies.length !== res.z.estimates.length) {
+			// 	getLogger().warn(
+			// 		`Z estimates and frequencies are not the same length (${res.z.estimates.length} vs ${res.z.frequencies.length})`,
+			// 	);
+			// }
+			// if (res.total.frequencies.length !== res.total.estimates.length) {
+			// 	getLogger().warn(
+			// 		`Total estimates and frequencies are not the same length  (${res.total.estimates.length} vs ${res.total.frequencies.length})`,
+			// 	);
+			// }
+			// if (res.x.frequencies.length !== surface.renderableSeries.getById('x').dataSeries.count()) {
+			// 	getLogger().warn(
+			// 		`X frequencies are not the same length as the data series (${res.x.estimates.length} vs ${surface.renderableSeries.getById('x').dataSeries.count()})`,
+			// 	);
+			// 	surface.renderableSeries.getById('x').dataSeries.clear();
+			// 	surface.renderableSeries.getById('y').dataSeries.clear();
+			// 	surface.renderableSeries.getById('z').dataSeries.clear();
+			// 	surface.renderableSeries.getById('total').dataSeries.clear();
+			// 	(surface.renderableSeries.getById('x').dataSeries as XyDataSeries).appendRange(
+			// 		res.x.frequencies,
+			// 		res.x.estimates,
+			// 	);
+			// 	(surface.renderableSeries.getById('y').dataSeries as XyDataSeries).appendRange(
+			// 		res.y.frequencies,
+			// 		res.y.estimates,
+			// 	);
+			// 	(surface.renderableSeries.getById('z').dataSeries as XyDataSeries).appendRange(
+			// 		res.z.frequencies,
+			// 		res.z.estimates,
+			// 	);
+			// 	(surface.renderableSeries.getById('total').dataSeries as XyDataSeries).appendRange(
+			// 		res.total.frequencies,
+			// 		res.total.estimates,
+			// 	);
+			// 	updatePsdChartRange(new NumberRange(res.total.powerRange.min, res.total.powerRange.max));
+			// 	return;
+			// }
+			// animationDS.x.appendRange(res.x.frequencies, res.x.estimates);
+			// animationDS.y.appendRange(res.y.frequencies, res.y.estimates);
+			// animationDS.z.appendRange(res.z.frequencies, res.z.estimates);
+			// animationDS.total.appendRange(res.total.frequencies, res.total.estimates);
+			// surface.renderableSeries.getById('x').dataSeries.delete();
+			// surface.renderableSeries.getById('y').dataSeries.delete();
+			// surface.renderableSeries.getById('z').dataSeries.delete();
+			// surface.renderableSeries.getById('total').dataSeries.delete();
+			// surface.renderableSeries.getById('x').runAnimation(
+			// 	new LineAnimation({
+			// 		duration: Math.max(elapsed, 100),
+			// 		ease: easing.inOutQuad,
+			// 		dataSeries: animationDS.x,
+			// 	}),
+			// );
+			// surface.renderableSeries.getById('y').runAnimation(
+			// 	new LineAnimation({
+			// 		duration: Math.max(elapsed, 100),
+			// 		ease: easing.inOutQuad,
+			// 		dataSeries: animationDS.y,
+			// 	}),
+			// );
+			// surface.renderableSeries.getById('z').runAnimation(
+			// 	new LineAnimation({
+			// 		duration: Math.max(elapsed, 100),
+			// 		ease: easing.inOutQuad,
+			// 		dataSeries: animationDS.z,
+			// 	}),
+			// );
+			// surface.renderableSeries.getById('total').runAnimation(
+			// 	new MountainAnimation({
+			// 		duration: Math.max(elapsed, 100),
+			// 		ease: easing.inOutQuad,
+			// 		dataSeries: animationDS.total,
+			// 	}),
+			// );
 			updatePsdChartRange(new NumberRange(res.total.powerRange.min, res.total.powerRange.max));
 		},
-		[psdChart.data, psdChart.surface, updatePsdChartRange],
+		[psdChart.surface, updatePsdChartRange],
 	);
 	const updateSignals = useCallback(
 		async ([time, x, y, z]: [Float64Array, Float64Array, Float64Array, Float64Array]) => {

@@ -266,13 +266,8 @@ export const PSDChartNoSeriesDefinition: ISciChart2DDefinition = {
 				axisAlignment: EAxisAlignment.Right,
 				isVisible: false,
 				growBy: new NumberRange(0, 0.1),
-				autoRange: EAutoRange.Always,
-				autoRangeAnimation: {
-					duration: 140,
-					animateInitialRanging: false,
-					animateSubsequentRanging: true,
-					easing: easing.inOutCubic,
-				},
+				autoRange: EAutoRange.Never,
+				visibleRange: new NumberRange(0, 1),
 				drawMinorGridLines: false,
 				drawMinorTickLines: false,
 				drawMajorTickLines: false,
@@ -495,38 +490,47 @@ export const psdRolloverTooltipTemplate: TRolloverTooltipSvgTemplate = (id, seri
 		</svg>`;
 };
 
+export const createPSDAnimationSeries = (surface: SciChartSurface) => {
+	const xAnimationSeries = new XyDataSeries(surface.webAssemblyContext2D, {
+		id: 'xAnimationSeries',
+		containsNaN: false,
+		isSorted: true,
+		dataIsSortedInX: true,
+	});
+	surface.addDeletable(xAnimationSeries);
+	const yAnimationSeries = new XyDataSeries(surface.webAssemblyContext2D, {
+		id: 'yAnimationSeries',
+		containsNaN: false,
+		isSorted: true,
+		dataIsSortedInX: true,
+	});
+	surface.addDeletable(yAnimationSeries);
+	const zAnimationSeries = new XyDataSeries(surface.webAssemblyContext2D, {
+		id: 'zAnimationSeries',
+		containsNaN: false,
+		isSorted: true,
+		dataIsSortedInX: true,
+	});
+	surface.addDeletable(zAnimationSeries);
+	const totalAnimationSeries = new XyDataSeries(surface.webAssemblyContext2D, {
+		id: 'totalAnimationSeries',
+		containsNaN: false,
+		isSorted: true,
+		dataIsSortedInX: true,
+	});
+	surface.addDeletable(totalAnimationSeries);
+	return {
+		x: xAnimationSeries,
+		y: yAnimationSeries,
+		z: zAnimationSeries,
+		total: totalAnimationSeries,
+	};
+};
+
 export const usePSDChart = () => {
 	return useChart(
 		PSDChartDefinition,
 		useCallback((surface: SciChartSurface) => {
-			const xAnimationSeries = new XyDataSeries(surface.webAssemblyContext2D, {
-				id: 'xAnimationSeries',
-				containsNaN: false,
-				isSorted: true,
-				dataIsSortedInX: true,
-			});
-			surface.addDeletable(xAnimationSeries);
-			const yAnimationSeries = new XyDataSeries(surface.webAssemblyContext2D, {
-				id: 'yAnimationSeries',
-				containsNaN: false,
-				isSorted: true,
-				dataIsSortedInX: true,
-			});
-			surface.addDeletable(yAnimationSeries);
-			const zAnimationSeries = new XyDataSeries(surface.webAssemblyContext2D, {
-				id: 'zAnimationSeries',
-				containsNaN: false,
-				isSorted: true,
-				dataIsSortedInX: true,
-			});
-			surface.addDeletable(zAnimationSeries);
-			const totalAnimationSeries = new XyDataSeries(surface.webAssemblyContext2D, {
-				id: 'totalAnimationSeries',
-				containsNaN: false,
-				isSorted: true,
-				dataIsSortedInX: true,
-			});
-			surface.addDeletable(totalAnimationSeries);
 			(surface.renderableSeries.asArray() as FastMountainRenderableSeries[]).forEach((rs) => {
 				rs.rolloverModifierProps.tooltipColor = getAxisColorName(rs.id as ADXLAxes);
 				rs.rolloverModifierProps.tooltipTemplate = psdRolloverTooltipTemplate;
@@ -555,14 +559,7 @@ export const usePSDChart = () => {
 				}),
 			);
 
-			return {
-				animationSeries: {
-					x: xAnimationSeries,
-					y: yAnimationSeries,
-					z: zAnimationSeries,
-					total: totalAnimationSeries,
-				},
-			};
+			return {};
 		}, []),
 	);
 };

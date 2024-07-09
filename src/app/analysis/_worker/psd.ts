@@ -23,7 +23,19 @@ import {
 } from 'rxjs';
 import { AccelSampleMs } from '@/app/analysis/_worker/processing';
 import { TypedArrayPSD, WelchError, powerSpectralDensity, sumPSDs } from '@/app/analysis/periodogram';
-import { Rank, Tensor2D, ready, reshape, setBackend, split, tensor2d, tidy } from '@tensorflow/tfjs-core';
+import {
+	Rank,
+	Tensor2D,
+	backend,
+	disposeVariables,
+	getBackend,
+	ready,
+	reshape,
+	setBackend,
+	split,
+	tensor2d,
+	tidy,
+} from '@tensorflow/tfjs-core';
 import BigNumber from 'bignumber.js';
 import { DoWork, runWorker } from 'observable-webworker';
 import { bufferFifo } from '@/app/analysis/_worker/stream-utils';
@@ -87,6 +99,7 @@ const runPSD = async (samples: AccelSampleMs[], includeSource: boolean = false):
 			powerSpectralDensity(tensors.z, sampleRate, { isDetrended: true }),
 		]);
 		Object.values(tensors).forEach((t) => t.dispose());
+		disposeVariables();
 		return {
 			x: xPsd,
 			y: yPsd,
@@ -138,6 +151,7 @@ const createPSDProcessor = async (
 				}
 				if (!accumulate && acc.onAccumulationComplete) {
 					const cb = acc.onAccumulationComplete;
+					getLogger().info('Accumulation completed, running PSD on ' + acc.samples.length + ' samples');
 					runPSD(acc.samples, true).then((psd) => {
 						cb(psd);
 					});
@@ -232,6 +246,7 @@ export class PSDWorker implements DoWork<PSDWorkerInput, PSDWorkerOutput> {
 				switch (input.command) {
 					case 'accumulate': {
 						if (!this.isAccumulating && input.payload === true) {
+							getLogger().info('PSD Worker Command: Starting accumulation');
 							this.isAccumulating = true;
 							return merge(
 								of({

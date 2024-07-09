@@ -76,12 +76,12 @@ export async function powerSpectralDensity(
 	}
 
 	let scaling_factor: number = _scaling === 'none' ? 1 : 2;
-	const win = tfSignal.hannWindow(fftSize);
+	const win = tidy(() => tfSignal.hannWindow(fftSize));
 	let windowLossCompensationFactor = (await tidy(() => div(div(1.0, sum(pow(win, 2))), sampleRate)).array()) as number;
 
 	const detrended = options?.isDetrended ? signal : detrendSignal(signal);
 	// await setBackend('webgl');
-	let f = tfSignal.stft(detrended, fftSize, Math.floor(fftSize / 2), fftSize, tfSignal.hannWindow);
+	let f = tidy(() => tfSignal.stft(detrended, fftSize, Math.floor(fftSize / 2), fftSize, tfSignal.hannWindow));
 
 	let x = (await f.array()) as number[][];
 	f.dispose();

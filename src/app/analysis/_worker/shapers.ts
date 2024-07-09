@@ -4,21 +4,26 @@
  * This file may be distributed under the terms of the GNU GPLv3 license.
  */
 import { shaperDefaults } from '@/app/analysis/_worker/input-shaper';
+import { shadableTWColors } from '@/app/_helpers/colors';
 
 export type Shaper = [number[], number[]];
+
+export type ShaperModels = 'zv' | 'mzv' | 'zvd' | 'ei' | '2hump_ei' | '3hump_ei';
 
 export type InputShaperModel = {
 	minFreq: number;
 	initFunc: (shaperFrequency: number, dampingRatio: number) => Shaper;
-	name: string;
+	name: ShaperModels;
+	color: keyof typeof shadableTWColors;
 };
 
 export function inputShaperCfg(
-	name: string,
+	name: ShaperModels,
 	initFunc: (shaperFrequency: number, dampingRatio: number) => Shaper,
 	minFreq: number,
+	color: keyof typeof shadableTWColors,
 ): InputShaperModel {
-	return { name, initFunc, minFreq };
+	return { name, initFunc, minFreq, color };
 }
 
 export function get_none_shaper(): Shaper {
@@ -109,10 +114,10 @@ export function get_3hump_ei_shaper(shaper_freq: number, damping_ratio: number):
 }
 
 export const INPUT_SHAPERS = [
-	inputShaperCfg('zv', get_zv_shaper, 21),
-	inputShaperCfg('mzv', get_mzv_shaper, 23),
-	inputShaperCfg('zvd', get_zvd_shaper, 29),
-	inputShaperCfg('ei', get_ei_shaper, 29),
-	inputShaperCfg('2hump_ei', get_2hump_ei_shaper, 39),
-	inputShaperCfg('3hump_ei', get_3hump_ei_shaper, 48),
+	inputShaperCfg('zv', get_zv_shaper, 21, 'blue'),
+	inputShaperCfg('mzv', get_mzv_shaper, 23, 'rose'),
+	inputShaperCfg('zvd', get_zvd_shaper, 29, 'lime'),
+	inputShaperCfg('ei', get_ei_shaper, 29, 'amber'),
+	inputShaperCfg('2hump_ei', get_2hump_ei_shaper, 39, 'pink'),
+	inputShaperCfg('3hump_ei', get_3hump_ei_shaper, 48, 'violet'),
 ];

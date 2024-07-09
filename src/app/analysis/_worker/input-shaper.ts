@@ -30,8 +30,70 @@ import {
 import { setWasmPaths } from '@tensorflow/tfjs-backend-wasm';
 
 import type { TypedArrayPSD } from '@/app/analysis/periodogram';
-import { INPUT_SHAPERS, InputShaperModel, Shaper } from '@/app/analysis/_worker/shapers';
+import { INPUT_SHAPERS, InputShaperModel, Shaper, ShaperModels } from '@/app/analysis/_worker/shapers';
 import { PSD } from '@/zods/analysis';
+import { shadableTWColors } from '@/app/_helpers/colors';
+
+export type InputShaperWorkerInput =
+	| {
+			id?: number;
+			type: 'findBestShaper';
+			calibrationData: TypedArrayPSD | PSD;
+			scv: number;
+			shaperFreqs?: [number | null, number | null, number | null];
+			dampingRatio?: number;
+			maxSmoothing?: number;
+			testDampingRatios?: number[];
+			maxFreq?: number;
+	  }
+	| {
+			type: 'cancelJob';
+			id: number;
+	  };
+
+export type InputShaperWorkerOutput =
+	| {
+			type: 'findBestShaper';
+			result: ShaperCalibrationResult | null;
+			jobId: number;
+			shapers: (ShaperCalibrationResult | null)[];
+	  }
+	| {
+			type: 'fitShaper';
+			jobId: number;
+			result: ShaperCalibrationResult | null;
+	  }
+	| {
+			type: 'jobCancelled';
+			id: number;
+	  }
+	| {
+			type: 'fitShaperProgress';
+			model: ShaperModels;
+			jobId: number;
+			progress: number;
+	  }
+	| {
+			type: 'findBestShaperProgress';
+			jobId: number;
+			progress: number;
+	  };
+declare function postMessage(message: InputShaperWorkerOutput, targetOrigin: string, transfer?: Transferable[]): void;
+declare function postMessage(message: InputShaperWorkerOutput, options?: WindowPostMessageOptions): void;
+
+export interface InputShaperWorker extends Worker {
+	onmessage(this: Worker, ev: MessageEvent<InputShaperWorkerOutput>): any;
+	postMessage(message: InputShaperWorkerInput, transfer?: Transferable[]): void;
+	postMessage(message: InputShaperWorkerInput, options?: StructuredSerializeOptions): void;
+}
+class JobCancelledError extends Error {
+	constructor() {
+		super('Job cancelled');
+	}
+}
+
+const jobs = new Map<number, AbortController>();
+let _id = 0;
 
 export const shaperDefaults = {
 	DEFAULT_DAMPING_RATIO: 0.1,
@@ -47,6 +109,20 @@ export const shaperDefaults = {
 };
 
 const sumArray = (arr: number[]) => arr.reduce((a, b) => a + b, 0);
+
+const cancelJob = (id: number) => {
+	const controller = jobs.get(id);
+	if (controller && controller.signal.aborted === false) {
+		controller.abort();
+	}
+	jobs.delete(id);
+};
+
+const throwIfCancelled = (signal: AbortSignal) => {
+	if (signal.aborted) {
+		throw new JobCancelledError();
+	}
+};
 
 async function getShaperSmoothing(shaper: Shaper, accel: number = 5000, scv: number = 5): Promise<number> {
 	const half_accel = accel * 0.5;
@@ -140,7 +216,8 @@ async function estimateRemainingVibrations(
 }
 
 export type ShaperCalibrationResult = {
-	name: string;
+	name: ShaperModels;
+	color: keyof typeof shadableTWColors;
 	freq: number;
 	vals: number[];
 	psd: number[];
@@ -154,6 +231,8 @@ const range = (start: number, stop: number, step: number) =>
 	Array.from({ length: (stop - start) / step + 1 }, (value, index) => start + index * step);
 
 export async function fitShaper(
+	jobId: number,
+	signal: AbortSignal,
 	shaperCfg: InputShaperModel,
 	calibrationData: TypedArrayPSD | PSD,
 	/**
@@ -166,13 +245,14 @@ export async function fitShaper(
 	maxSmoothing?: number,
 	testDampingRatios?: number[],
 	maxFreq?: number,
-	skipInit?: boolean,
+	onProgress?: (model: ShaperModels, progress: number) => void,
 ) {
 	dampingRatio = dampingRatio || shaperDefaults.DEFAULT_DAMPING_RATIO;
 	testDampingRatios = testDampingRatios || shaperDefaults.TEST_DAMPING_RATIOS;
 	const freqEnd = shaperFreqs[1] ?? shaperDefaults.MAX_SHAPER_FREQ;
 	const freqStart = Math.min(shaperFreqs[0] ?? shaperCfg.minFreq, freqEnd - 1e-7);
 	const freqStep = shaperFreqs[2] ?? 0.2;
+	throwIfCancelled(signal);
 
 	maxFreq = Math.max(maxFreq || shaperDefaults.MAX_FREQ, freqEnd);
 
@@ -197,6 +277,7 @@ export async function fitShaper(
 				let shaperVals = zeroArray.clone();
 				for (const dr of testDampingRatios) {
 					const [vibrations, vals] = await estimateRemainingVibrations(shaper, dr, freqBinsFiltered, psd);
+					throwIfCancelled(signal);
 					const oldShapervals = shaperVals;
 					shaperVals = tidy(() => max<Tensor1D>(stack([oldShapervals, vals]), 0));
 					oldShapervals.dispose();
@@ -211,41 +292,60 @@ export async function fitShaper(
 			}),
 		)
 	).filter(Boolean);
+	throwIfCancelled(signal);
+	const testFrequencies = range(Math.min(...freqsOfInterest), Math.max(...freqsOfInterest), freqStep);
+	const progressMap = new Map<number, number>();
+	const reportProgress = (index: number, progress: number) => {
+		progressMap.set(index, progress);
+		const totalProgress = sumArray(Array.from(progressMap.values())) / testFrequencies.length;
+		postMessage({ type: 'fitShaperProgress', model: shaperCfg.name, progress: totalProgress, jobId });
+		onProgress?.(shaperCfg.name, totalProgress);
+	};
 	const bestShaper: ShaperCalibrationResult | null = (
 		await Promise.all(
-			range(Math.min(...freqsOfInterest), Math.max(...freqsOfInterest), freqStep)
-				.reverse()
-				.map(async (testFreq) => {
-					let shaperVibrations = 0;
-					let shaperVals = zeroArray.clone();
-					const shaper = shaperCfg.initFunc(testFreq, dampingRatio);
-					const shaperSmoothing = await getShaperSmoothing(shaper, undefined, scv);
-					if (maxSmoothing && shaperSmoothing > maxSmoothing) {
-						return null;
+			testFrequencies.reverse().map(async (testFreq, index) => {
+				reportProgress(testFreq, 0);
+				throwIfCancelled(signal);
+				let shaperVibrations = 0;
+				let shaperVals = zeroArray.clone();
+				const shaper = shaperCfg.initFunc(testFreq, dampingRatio);
+				const shaperSmoothing = await getShaperSmoothing(shaper, undefined, scv);
+				throwIfCancelled(signal);
+				if (maxSmoothing && shaperSmoothing > maxSmoothing) {
+					return null;
+				}
+				reportProgress(index, 1 / 3);
+				for (const dr of testDampingRatios) {
+					const [vibrations, vals] = await estimateRemainingVibrations(shaper, dr, freqBinsFiltered, psd);
+					throwIfCancelled(signal);
+					const oldShapervals = shaperVals;
+					shaperVals = tidy(() => max<Tensor1D>(stack([oldShapervals, vals]), 0));
+					oldShapervals.dispose();
+					if (vibrations > shaperVibrations) {
+						shaperVibrations = vibrations;
 					}
-					for (const dr of testDampingRatios) {
-						const [vibrations, vals] = await estimateRemainingVibrations(shaper, dr, freqBinsFiltered, psd);
-						const oldShapervals = shaperVals;
-						shaperVals = tidy(() => max<Tensor1D>(stack([oldShapervals, vals]), 0));
-						oldShapervals.dispose();
-						if (vibrations > shaperVibrations) {
-							shaperVibrations = vibrations;
-						}
-					}
-					const maxAccel = await findShaperMaxAccel(shaper, scv);
-					const shaperScore = shaperSmoothing * (Math.pow(shaperVibrations, 1.5) + shaperVibrations * 0.2 + 0.01);
-					const result = {
-						name: shaperCfg.name,
-						freq: testFreq,
-						vals: (await shaperVals.array()) as number[],
-						psd: (await mul(psd, shaperVals).array()) as number[],
-						vibrs: shaperVibrations,
-						smoothing: shaperSmoothing,
-						score: shaperScore,
-						maxAccel: maxAccel,
-					} satisfies ShaperCalibrationResult;
-					return result;
-				}),
+				}
+
+				reportProgress(index, 2 / 3);
+				const maxAccel = await findShaperMaxAccel(shaper, scv);
+				throwIfCancelled(signal);
+				const shaperScore = shaperSmoothing * (Math.pow(shaperVibrations, 1.5) + shaperVibrations * 0.2 + 0.01);
+				const shaperValsArray = (await shaperVals.array()) as number[];
+				const adaptedPsd = (await mul(psd, shaperVals).array()) as number[];
+				reportProgress(index, 3 / 3);
+				const result = {
+					name: shaperCfg.name,
+					freq: testFreq,
+					vals: shaperValsArray,
+					psd: adaptedPsd,
+					vibrs: shaperVibrations,
+					smoothing: shaperSmoothing,
+					score: shaperScore,
+					color: shaperCfg.color,
+					maxAccel: maxAccel,
+				} satisfies ShaperCalibrationResult;
+				return result;
+			}),
 		)
 	).reduce(
 		(selected, res) => {
@@ -263,7 +363,8 @@ export async function fitShaper(
 	psd.dispose();
 	zeroArray.dispose();
 
-	postMessage({ type: 'fitShaper', result: bestShaper });
+	throwIfCancelled(signal);
+	postMessage({ type: 'fitShaper', result: bestShaper, jobId });
 
 	return bestShaper;
 }
@@ -274,6 +375,8 @@ setWasmPaths({
 	'tfjs-backend-wasm-threaded-simd.wasm': '/configure/tfjs-backend-wasm-threaded-simd.wasm',
 });
 export async function findBestShaper(
+	jobId: number,
+	signal: AbortSignal,
 	calibrationData: TypedArrayPSD | PSD,
 	scv: number,
 	shapers: InputShaperModel[] = INPUT_SHAPERS,
@@ -284,13 +387,54 @@ export async function findBestShaper(
 	maxFreq?: number,
 ) {
 	await setBackend('wasm');
-	const fittedShapers = (
-		await Promise.all(
-			shapers.map((s) =>
-				fitShaper(s, calibrationData, scv, shaperFreqs, dampingRatio, maxSmoothing, testDampingRatios, maxFreq, true),
-			),
-		)
-	).filter(Boolean);
+	throwIfCancelled(signal);
+	const fittedShapers: ShaperCalibrationResult[] = [];
+	const totalProgress = new Map<ShaperModels, number>();
+	shapers.forEach((s) => totalProgress.set(s.name, 0));
+	postMessage({ type: 'findBestShaperProgress', progress: 0, jobId });
+	const reportProgress = (model: ShaperModels, progress: number) => {
+		totalProgress.set(model, progress);
+		const total = sumArray(Array.from(totalProgress.values())) / shapers.length;
+		postMessage({ type: 'findBestShaperProgress', progress: total, jobId });
+	};
+	for (const shaper of shapers) {
+		const fittedShaper = await fitShaper(
+			jobId,
+			signal,
+			shaper,
+			calibrationData,
+			scv,
+			shaperFreqs,
+			dampingRatio,
+			maxSmoothing,
+			testDampingRatios,
+			maxFreq,
+			reportProgress,
+		);
+		if (fittedShaper) {
+			fittedShapers.push(fittedShaper);
+		}
+	}
+	// const fittedShapers = (
+	// 	await Promise.all(
+	// 		shapers.map((s) =>
+	// 			fitShaper(
+	// 				jobId,
+	// 				signal,
+	// 				s,
+	// 				calibrationData,
+	// 				scv,
+	// 				shaperFreqs,
+	// 				dampingRatio,
+	// 				maxSmoothing,
+	// 				testDampingRatios,
+	// 				maxFreq,
+	// 				true,
+	// 			),
+	// 		),
+	// 	)
+	// ).filter(Boolean);
+	throwIfCancelled(signal);
 	const best = fittedShapers.reduce((best, shaper) => {
 		// Either the shaper significantly improves the score (by 20%),
 		// or it improves the score and smoothing (by 5% and 10% resp.)
@@ -309,44 +453,37 @@ export async function findBestShaper(
 	};
 }
 
-export type InputShaperWorkerInput = {
-	type: 'findBestShaper';
-	calibrationData: TypedArrayPSD | PSD;
-	scv: number;
-	shaperFreqs?: [number | null, number | null, number | null];
-	dampingRatio?: number;
-	maxSmoothing?: number;
-	testDampingRatios?: number[];
-	maxFreq?: number;
-};
-
-export type InputShaperWorkerOutput =
-	| {
-			type: 'findBestShaper';
-			result: ShaperCalibrationResult | null;
-			shapers: (ShaperCalibrationResult | null)[];
-	  }
-	| {
-			type: 'fitShaper';
-			result: ShaperCalibrationResult | null;
-	  };
-
 onmessage = async (e: MessageEvent<InputShaperWorkerInput>) => {
 	const command = e.data.type;
 	switch (command) {
 		case 'findBestShaper':
-			const { calibrationData, scv, shaperFreqs, dampingRatio, maxSmoothing, testDampingRatios, maxFreq } = e.data;
-			const result = await findBestShaper(
-				calibrationData,
-				scv,
-				INPUT_SHAPERS,
-				shaperFreqs,
-				dampingRatio,
-				maxSmoothing,
-				testDampingRatios,
-				maxFreq,
-			);
-			postMessage({ type: 'findBestShaper', ...result } satisfies InputShaperWorkerOutput);
+			const { calibrationData, scv, shaperFreqs, dampingRatio, maxSmoothing, testDampingRatios, maxFreq, id } = e.data;
+			const jobId = id ?? _id++;
+			const abortController = new AbortController();
+			try {
+				jobs.set(jobId, abortController);
+				const result = await findBestShaper(
+					jobId,
+					abortController.signal,
+					calibrationData,
+					scv,
+					INPUT_SHAPERS,
+					shaperFreqs,
+					dampingRatio,
+					maxSmoothing,
+					testDampingRatios,
+					maxFreq,
+				);
+				postMessage({ type: 'findBestShaper', jobId, ...result } satisfies InputShaperWorkerOutput);
+			} catch (e) {
+				if (e instanceof JobCancelledError) {
+					cancelJob(jobId);
+					postMessage({ type: 'jobCancelled', id: jobId } satisfies InputShaperWorkerOutput);
+				}
+			}
+			break;
+		case 'cancelJob':
+			cancelJob(e.data.id);
 			break;
 	}
 };

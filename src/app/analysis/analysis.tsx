@@ -225,6 +225,7 @@ export const Analysis = () => {
 					setAdxl(sequence.recording?.accelerometer);
 					await streamStarted();
 					if (sequence.recording?.capturePSD) {
+						getLogger().info('Starting PSD accumulation');
 						await psds.startAccumulation();
 						setIsRecording(true);
 					}
@@ -238,6 +239,7 @@ export const Analysis = () => {
 						M400
 					`;
 					if (sequence.recording?.capturePSD) {
+						getLogger().info('Stopping PSD accumulation');
 						const psd = await psds.stopAccumulation();
 						setIsRecording(false);
 						if (abort.aborted) {
