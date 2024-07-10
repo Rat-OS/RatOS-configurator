@@ -559,7 +559,9 @@ export const usePSDChart = () => {
 				}),
 			);
 
-			return {};
+			return {
+				animationSeries: createPSDAnimationSeries(surface),
+			};
 		}, []),
 	);
 };

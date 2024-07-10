@@ -254,18 +254,21 @@ export class PSDWorker implements DoWork<PSDWorkerInput, PSDWorkerOutput> {
 								}),
 								scheduled(
 									from(
-										new Promise<Observable<PSDResult>>((resolve, reject) => {
+										new Promise<PSDResult>((resolve, reject) => {
 											this.accumulationSubject.next((val) => {
+												console.log('Accumulation callback called');
 												if (val == null) {
+													console.log('Accumulation callback called with null');
 													resolve(EMPTY);
 													return;
 												}
-												resolve(of(val));
+												console.log('Accumulation callback called with value, resolving');
+												resolve(val);
 											});
 										}),
 									).pipe(
-										mergeAll(),
 										map((result) => {
+											console.log('Accumulation promise resolved');
 											return {
 												type: `accumulation_finished` as const,
 												psd: result,
