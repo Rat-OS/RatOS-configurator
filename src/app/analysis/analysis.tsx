@@ -22,6 +22,8 @@ import {
 	AudioWaveform,
 	Ban,
 	Cpu,
+	Dot,
+	ExternalLink,
 	Home,
 	List,
 	Move3D,
@@ -428,40 +430,59 @@ export const Analysis = () => {
 
 								<Menu.MenubarSub>
 									<Menu.MenubarSubTrigger>
-										<Menu.MenubarContentIcon Icon={AudioWaveform} /> Oscillator
+										<Menu.MenubarContentIcon Icon={AudioWaveform} /> Toolhead Oscillator
 									</Menu.MenubarSubTrigger>
 									<Menu.MenubarSubContent>
+										<Menu.MenubarLabel>Oscillation Direction</Menu.MenubarLabel>
 										<Menu.MenubarRadioGroup value={axis} onValueChange={(e) => setAxis(e as 'x' | 'y' | 'a' | 'b')}>
 											<Menu.MenubarRadioItem
 												value="x"
 												className={twJoin(axis === 'x' && frequency > 0 && 'font-semibold text-brand-400')}
 												onSelect={(e) => e.preventDefault()}
 											>
-												<Menu.MenubarContentIcon Icon={MoveHorizontal} /> Oscillate in X
+												<Menu.MenubarContentIcon Icon={MoveHorizontal} />{' '}
+												<div>
+													Oscillate X
+													<div className="text-xs text-muted-foreground">This isolates the X belt on bedslingers.</div>
+												</div>
 											</Menu.MenubarRadioItem>
 											<Menu.MenubarRadioItem
 												value="y"
 												className={twJoin(axis === 'y' && frequency > 0 && 'font-semibold text-brand-400')}
 												onSelect={(e) => e.preventDefault()}
 											>
-												<Menu.MenubarContentIcon Icon={MoveVertical} /> Oscillate in Y
+												<Menu.MenubarContentIcon Icon={MoveVertical} />{' '}
+												<div>
+													Oscillate Y
+													<div className="text-xs text-muted-foreground">This isolates the Y belt on bedslingers.</div>
+												</div>
 											</Menu.MenubarRadioItem>
 											<Menu.MenubarRadioItem
 												value="a"
 												className={twJoin(axis === 'a' && frequency > 0 && 'font-semibold text-brand-400')}
 												onSelect={(e) => e.preventDefault()}
 											>
-												<Menu.MenubarContentIcon Icon={MoveDiagonal} /> Oscillate in A
+												<Menu.MenubarContentIcon Icon={MoveDiagonal} />{' '}
+												<div>
+													Oscillate X+Y
+													<div className="text-xs text-muted-foreground">This isolates the A belt on CoreXY.</div>
+												</div>
 											</Menu.MenubarRadioItem>
 											<Menu.MenubarRadioItem
 												value="b"
 												className={twJoin(axis === 'b' && frequency > 0 && 'font-semibold text-brand-400')}
 												onSelect={(e) => e.preventDefault()}
 											>
-												<Menu.MenubarContentIcon Icon={MoveDiagonal2} /> Oscillate in B
+												<Menu.MenubarContentIcon Icon={MoveDiagonal2} />{' '}
+												<div>
+													Oscillate X-Y
+													<div className="text-xs text-muted-foreground">This isolates the B belt on CoreXY.</div>
+												</div>
 											</Menu.MenubarRadioItem>
 										</Menu.MenubarRadioGroup>
 										<Menu.MenubarSeparator />
+
+										<Menu.MenubarLabel>Oscillation Frequency</Menu.MenubarLabel>
 										<div className="min-w-48 p-4">
 											<h3 className="-mt-2 text-center text-2xl font-medium tracking-tight">
 												<Input
@@ -496,38 +517,49 @@ export const Analysis = () => {
 								{MacroIcon} <span className="hidden lg:inline">Macros</span>
 							</Menu.MenubarTrigger>
 							<Menu.MenubarContent onCloseAutoFocus={(e) => e.preventDefault()}>
-								{macros.result?.map((macro) => (
-									<Menu.MenubarItem
-										key={macro.id}
-										disabled={isMacroRunning}
-										onSelect={buildMacro(macro)}
-										className={twJoin(currentMacro.current?.id === macro.id && 'text-brand-400 opacity-100')}
-									>
-										{currentMacro.current?.id === macro.id ? MacroIcon : <Menu.MenubarContentIcon Icon={Play} />}
-										{macro.name}
-									</Menu.MenubarItem>
-								))}
-								<Menu.MenubarSeparator />
-								<Menu.MenubarItem disabled={isMacroRunning} asChild={true} className="pr-8">
-									<Link href="/analysis/macros">
-										<Menu.MenubarContentIcon Icon={List} /> View All Macros
-										<span className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center">
-											<MoveRight className="h-4 w-4" />
-										</span>
-									</Link>
-								</Menu.MenubarItem>
 								<Menu.MenubarItem disabled={isMacroRunning} asChild={true} className="pr-8">
 									<Link href="/analysis/macros/new">
 										<Menu.MenubarContentIcon Icon={Plus} /> New Macro
 										<span className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center">
-											<MoveRight className="h-4 w-4" />
+											<ExternalLink className="h-4 w-4" />
+										</span>
+									</Link>
+								</Menu.MenubarItem>
+								<Menu.MenubarItem disabled={isMacroRunning} asChild={true} className="pr-8">
+									<Link href="/analysis/macros">
+										<Menu.MenubarContentIcon Icon={List} /> Macro Overview
+										<span className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center">
+											<ExternalLink className="h-4 w-4" />
 										</span>
 									</Link>
 								</Menu.MenubarItem>
 								<Menu.MenubarSeparator />
+								<Menu.MenubarSub>
+									<Menu.MenubarSubTrigger>
+										<Menu.MenubarContentIcon Icon={Play} /> Execute Macro
+									</Menu.MenubarSubTrigger>
+									<Menu.MenubarSubContent className="max-w-80">
+										{macros.result?.map((macro) => (
+											<Menu.MenubarItem
+												key={macro.id}
+												disabled={isMacroRunning}
+												onSelect={buildMacro(macro)}
+												className={twJoin(
+													currentMacro.current?.id === macro.id && 'text-brand-400 opacity-100 lg:text-brand-400',
+												)}
+											>
+												{currentMacro.current?.id === macro.id ? MacroIcon : <Menu.MenubarContentIcon Icon={Dot} />}
+												<div>
+													{macro.name}
+													<div className="text-xs text-muted-foreground">{macro.description}</div>
+												</div>
+											</Menu.MenubarItem>
+										))}
+									</Menu.MenubarSubContent>
+								</Menu.MenubarSub>
 								<Menu.MenubarItem disabled={!isMacroRunning} onClick={() => abortController.current.abort()}>
 									<Menu.MenubarContentIcon Icon={Ban} className={twJoin(isMacroRunning && 'text-red-400')} />
-									Abort {currentMacro.current?.name || ''}
+									Abort {currentMacro.current?.name || 'Macro'}
 								</Menu.MenubarItem>
 							</Menu.MenubarContent>
 						</Menu.MenubarMenu>

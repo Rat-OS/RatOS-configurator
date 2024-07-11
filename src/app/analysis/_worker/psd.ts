@@ -35,11 +35,14 @@ import {
 	split,
 	tensor2d,
 	tidy,
+	env,
 } from '@tensorflow/tfjs-core';
 import BigNumber from 'bignumber.js';
 import { DoWork, runWorker } from 'observable-webworker';
 import { bufferFifo } from '@/app/analysis/_worker/stream-utils';
 import { getLogger } from '@/app/_helpers/logger';
+import type { WebGPUBackend } from '@tensorflow/tfjs-backend-webgpu';
+import type { MathBackendWebGL } from '@tensorflow/tfjs-backend-webgl';
 
 export type PSDResult = {
 	x: TypedArrayPSD;
@@ -61,11 +64,13 @@ export async function loadTFJS() {
 		getLogger().info('WebGPU not available, falling back to WebGL');
 		await import('@tensorflow/tfjs-backend-webgl');
 		await setBackend('webgl');
+		getLogger().info('WebGL backend loaded');
 	} else {
 		try {
 			getLogger().info('Loading webgpu backend');
-			await import('@tensorflow/tfjs-backend-webgpu');
+			const tf = await import('@tensorflow/tfjs-backend-webgpu');
 			await setBackend('webgpu');
+			env().set('WEBGPU_CPU_FORWARD', false);
 			getLogger().info('WebGPU backend loaded');
 		} catch (e) {
 			getLogger().error(e, 'Failed to load webgpu backend, falling back to webgl');
@@ -77,7 +82,8 @@ export async function loadTFJS() {
 	loaded = true;
 }
 
-const runPSD = async (samples: AccelSampleMs[], includeSource: boolean = false): Promise<PSDResult | null> => {
+const runPSD = async (samples: AccelSampleMs[]): Promise<PSDResult | null> => {
+	await ready();
 	const sampleRate = new BigNumber(samples.length)
 		.div(new BigNumber(samples[samples.length - 1][0]).minus(samples[0][0]).shiftedBy(-3))
 		.shiftedBy(-1)
@@ -98,15 +104,27 @@ const runPSD = async (samples: AccelSampleMs[], includeSource: boolean = false):
 			powerSpectralDensity(tensors.y, sampleRate, { isDetrended: true }),
 			powerSpectralDensity(tensors.z, sampleRate, { isDetrended: true }),
 		]);
-		Object.values(tensors).forEach((t) => t.dispose());
-		disposeVariables();
+		Object.values(tensors).forEach((t) => {
+			t.dispose();
+		});
+		if (getBackend() === 'webgpu') {
+			// Force cleanup of memory because tfjs sucks balls at memory management.
+			const tf = backend() as WebGPUBackend;
+			tf.bufferManager.dispose();
+		} else if (getBackend() === 'webgl') {
+			// Force cleanup of memory because tfjs sucks balls at memory management.
+			const tf = backend() as MathBackendWebGL;
+			const textureManager = tf.getTextureManager();
+			textureManager.dispose();
+			// I can't fucking believe it..
+			(textureManager as any).freeTextures = {};
+			(textureManager as any).usedTextures = {};
+		}
 		return {
 			x: xPsd,
 			y: yPsd,
 			z: zPsd,
 			total: sumPSDs([xPsd, yPsd, zPsd]),
-			// TODO: save source for later analysis.
-			// source: includeSource ? samples.map((s) => new Float64Array([s[0].toNumber(), s[1], s[2], s[3]])) : undefined,
 		};
 	} catch (e) {
 		if (e instanceof WelchError) {
@@ -145,16 +163,14 @@ const createPSDProcessor = async (
 							return {
 								samples,
 								onAccumulationComplete: accumulate,
+								accumulationComplete: false,
 							};
 						}),
 					);
 				}
 				if (!accumulate && acc.onAccumulationComplete) {
-					const cb = acc.onAccumulationComplete;
-					getLogger().info('Accumulation completed, running PSD on ' + acc.samples.length + ' samples');
-					runPSD(acc.samples, true).then((psd) => {
-						cb(psd);
-					});
+					acc.accumulationComplete = true;
+					return of(acc);
 				}
 				// Don't accumulate
 				return specSampleRate$.pipe(
@@ -165,20 +181,32 @@ const createPSDProcessor = async (
 						return {
 							samples,
 							onAccumulationComplete: false,
+							accumulationComplete: false,
 						};
 					}),
 				);
 			},
-			{ samples: [] as AccelSampleMs[], onAccumulationComplete: false as AccumulateAndCallback },
+			{
+				samples: [] as AccelSampleMs[],
+				onAccumulationComplete: false as AccumulateAndCallback,
+				accumulationComplete: false,
+			},
 		),
 		throttle(() => psdProcess$, { leading: first, trailing: true }),
-		concatMap(({ samples, onAccumulationComplete }) => {
+		concatMap((input) => {
+			const { samples, onAccumulationComplete, accumulationComplete } = input;
 			if (first) {
 				first = false;
 			}
 			return scheduled(
 				from(
 					runPSD(samples).then((psd) => {
+						if (accumulationComplete && typeof onAccumulationComplete === 'function') {
+							getLogger().info('Accumulation completed, psd was run on ' + samples.length + ' samples');
+							onAccumulationComplete(psd);
+							psdProcess.next({});
+							return EMPTY;
+						}
 						if (psd == null) {
 							psdProcess.next({});
 							return EMPTY;
@@ -256,19 +284,15 @@ export class PSDWorker implements DoWork<PSDWorkerInput, PSDWorkerOutput> {
 									from(
 										new Promise<PSDResult>((resolve, reject) => {
 											this.accumulationSubject.next((val) => {
-												console.log('Accumulation callback called');
 												if (val == null) {
-													console.log('Accumulation callback called with null');
-													resolve(EMPTY);
+													reject('Accumulation failed');
 													return;
 												}
-												console.log('Accumulation callback called with value, resolving');
 												resolve(val);
 											});
 										}),
 									).pipe(
 										map((result) => {
-											console.log('Accumulation promise resolved');
 											return {
 												type: `accumulation_finished` as const,
 												psd: result,
@@ -294,8 +318,8 @@ export class PSDWorker implements DoWork<PSDWorkerInput, PSDWorkerOutput> {
 								this.accumulation$,
 							);
 							const stream = from(this.processor).pipe(
-								mergeMap((proc) => {
-									const res = proc.pipe(
+								mergeMap((proc) =>
+									proc.pipe(
 										map(
 											(psd) =>
 												({
@@ -307,14 +331,13 @@ export class PSDWorker implements DoWork<PSDWorkerInput, PSDWorkerOutput> {
 												},
 										),
 										shareReplay({ bufferSize: 1, refCount: false }),
-									);
-									return res;
-								}),
+									),
+								),
 							);
 							firstValueFrom(from(this.processor)).then(() => {
-								setTimeout(() => {
+								if (!this.isAccumulating) {
 									this.accumulationSubject.next(false);
-								}, 1000);
+								}
 							});
 							return stream;
 						}

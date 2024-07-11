@@ -15,6 +15,7 @@ import {
 	BandAnimation,
 	CursorModifier,
 	EAutoRange,
+	EDataSeriesValueType,
 	FastBandRenderableSeries,
 	FastLineRenderableSeries,
 	FastMountainRenderableSeries,
@@ -25,6 +26,7 @@ import {
 	SciChartSurface,
 	WaveAnimation,
 	XyDataSeries,
+	XyMovingAverageFilter,
 	XyyDataSeries,
 	easing,
 } from 'scichart';
@@ -189,6 +191,44 @@ export const MacroRunChart: React.FC<MacroRunChartProps> = ({ recordings, sequen
 					duration: 500,
 				});
 				surface.renderableSeries.add(rs);
+
+				// Moving average
+				const movingAverageFirst = new XyMovingAverageFilter(
+					new XyDataSeries(surface.webAssemblyContext2D, {
+						containsNaN: false,
+						isSorted: true,
+						xValues: sequenceData[0].psd.frequencies,
+						yValues: sequenceData[0].psd.estimates,
+					}),
+					{ length: 2 },
+				);
+				const movingAverageSecond = new XyMovingAverageFilter(
+					new XyDataSeries(surface.webAssemblyContext2D, {
+						containsNaN: false,
+						isSorted: true,
+						xValues: sequenceData[0].psd.frequencies,
+						yValues: sequenceData[1].psd.estimates,
+					}),
+					{ length: 2 },
+				);
+				const ma = new FastLineRenderableSeries(surface.webAssemblyContext2D, {
+					dataSeries: movingAverageFirst,
+					stroke: shadableTWColors['sky'][400],
+					strokeThickness: 2,
+					yAxisId: PSD_CHART_AXIS_AMPLITUDE_ID,
+				});
+				ma.rolloverModifierProps.showRollover = false;
+				ma.animation = new WaveAnimation({
+					duration: 500,
+				});
+				surface.renderableSeries.add(ma);
+				const ma1 = movingAverageFirst.getNativeYValues();
+				for (let i = 1; i < ma1.size(); i++) {
+					if (ma1.get(i - 1) < ma1.get(i) && ma1.get(i + 1) < ma1.get(i)) {
+						// peak identified.
+						console.log('peak at frequency', sequenceData[0].psd.frequencies[i], 'hz at', ma1.get(i));
+					}
+				}
 			} else {
 				sequenceData.forEach((seq) => {
 					const Series = seq.type === 'line' ? FastLineRenderableSeries : FastMountainRenderableSeries;

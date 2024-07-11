@@ -1,18 +1,4 @@
-import {
-	signal as tfSignal,
-	Tensor1D,
-	sum,
-	pow,
-	div,
-	mean,
-	sub,
-	tidy,
-	transpose,
-	mul,
-	real,
-	tensor1d,
-} from '@tensorflow/tfjs-core';
-import '@tensorflow/tfjs-backend-webgl';
+import { signal as tfSignal, Tensor1D, sum, pow, div, mean, sub, tidy } from '@tensorflow/tfjs-core';
 import { NumberRange } from 'scichart';
 import { PSD } from '@/zods/analysis';
 import { shaperDefaults } from '@/app/analysis/_worker/input-shaper';
@@ -20,24 +6,6 @@ import { shaperDefaults } from '@/app/analysis/_worker/input-shaper';
 export interface TypedArrayPSD extends Omit<PSD, 'estimates' | 'frequencies'> {
 	estimates: Float64Array;
 	frequencies: Float64Array;
-}
-
-/**
- * Returns the ceil of the log2 of the absolute value of the passed number
- * @memberof module:bcijs
- * @function
- * @name nextpow2
- * @param {number} num
- * @returns {number} The ceil of the log2 of the absolute value of the passed number
- * @example
- * nextpow2(8); // 3
- * nextpow2(9); // 4
- * nextpow2(16); // 4
- * nextpow2(30); // 5
- * nextpow2(0); // -Infinity
- */
-export function nextpow2(num: number): number {
-	return Math.ceil(Math.log2(Math.abs(num)));
 }
 
 export const detrendSignal = (signal: Tensor1D) => tidy(() => sub<Tensor1D>(signal, mean(signal, 0, true)));

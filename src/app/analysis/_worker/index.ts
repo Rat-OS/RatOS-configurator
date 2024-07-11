@@ -213,7 +213,6 @@ export class AccelSensorWorker implements DoWork<WorkerInput, WorkerOutput> {
 										),
 									).pipe(
 										mapToWorkerOutput((result) => {
-											console.log('mapping accumulated result');
 											return {
 												type: WorkResult.ACCUMULATED,
 												payload: result.psd,
