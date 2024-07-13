@@ -734,6 +734,9 @@ export const constructKlipperConfigHelpers = async (
 				});
 			} else {
 				section.push(`run_current: ${rail.current}`);
+				if ('senseResistor' in rail.driver) {
+					section.push(`sense_resistor: ${rail.driver.senseResistor}`);
+				}
 			}
 			return section.join('\n') + '\n';
 		},
