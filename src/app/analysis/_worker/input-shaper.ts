@@ -16,15 +16,12 @@ import {
 	sin,
 	cos,
 	outerProduct,
-	lessEqual,
 	slice,
 	zeros,
 	stack,
 	sqrt,
 	slice1d,
-	disposeVariables,
 	tidy,
-	print,
 	setBackend,
 } from '@tensorflow/tfjs-core';
 import { setWasmPaths } from '@tensorflow/tfjs-backend-wasm';
@@ -33,6 +30,7 @@ import type { TypedArrayPSD } from '@/app/analysis/periodogram';
 import { INPUT_SHAPERS, InputShaperModel, Shaper, ShaperModels } from '@/app/analysis/_worker/shapers';
 import { PSD } from '@/zods/analysis';
 import { shadableTWColors } from '@/app/_helpers/colors';
+import { sumArray } from '@/app/analysis/math';
 
 export type InputShaperWorkerInput =
 	| {
@@ -107,8 +105,6 @@ export const shaperDefaults = {
 	// for max_accel without much smoothing
 	TARGET_SMOOTHING: 0.12,
 };
-
-const sumArray = (arr: number[]) => arr.reduce((a, b) => a + b, 0);
 
 const cancelJob = (id: number) => {
 	const controller = jobs.get(id);
@@ -415,25 +411,6 @@ export async function findBestShaper(
 			fittedShapers.push(fittedShaper);
 		}
 	}
-	// const fittedShapers = (
-	// 	await Promise.all(
-	// 		shapers.map((s) =>
-	// 			fitShaper(
-	// 				jobId,
-	// 				signal,
-	// 				s,
-	// 				calibrationData,
-	// 				scv,
-	// 				shaperFreqs,
-	// 				dampingRatio,
-	// 				maxSmoothing,
-	// 				testDampingRatios,
-	// 				maxFreq,
-	// 				true,
-	// 			),
-	// 		),
-	// 	)
-	// ).filter(Boolean);
 	throwIfCancelled(signal);
 	const best = fittedShapers.reduce((best, shaper) => {
 		// Either the shaper significantly improves the score (by 20%),

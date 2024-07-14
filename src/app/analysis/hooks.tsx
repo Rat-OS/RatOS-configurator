@@ -240,6 +240,7 @@ export const useWorker = (
 		stopAccumulation,
 	};
 };
+
 export const useAccelerometerWithType = (accelerometerName: KlipperAccelSensorName): KlipperAccelSensorSchema => {
 	const controlBoard = useRecoilValue(ControlboardState);
 	const toolheads = useToolheads();
@@ -286,6 +287,7 @@ export const useChart = <T,>(
 ) => {
 	const surface = useRef<SciChartSurface | null>(null);
 	const [isInitialized, setIsInitialized] = useState(false);
+	const initializers = useRef<ReactCallback<(surface: SciChartSurface) => void>[]>([]);
 	const data = useRef<T | null>(null);
 	return useMemo(
 		() => ({
@@ -322,7 +324,13 @@ export const useChart = <T,>(
 
 					return { sciChartSurface: chart.sciChartSurface };
 				},
-				onInit: () => setIsInitialized(true),
+				onInit: () => {
+					setIsInitialized(true);
+					if (surface.current == null) {
+						throw new Error('onInit called without surface initialized');
+					}
+					initializers.current.forEach((init) => init(surface.current!));
+				},
 				style: {
 					marginLeft: indent ? -300 : 0,
 				},
@@ -331,6 +339,12 @@ export const useChart = <T,>(
 			} satisfies TChartComponentProps,
 			surface,
 			isInitialized,
+			onInitialize: (callback: ReactCallback<(surface: SciChartSurface) => void>) => {
+				initializers.current.push(callback);
+				if (isInitialized && surface.current != null) {
+					callback(surface.current);
+				}
+			},
 			data,
 		}),
 		[indent, isInitialized, definition, initializer],
