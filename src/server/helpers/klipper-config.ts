@@ -272,19 +272,24 @@ export const constructKlipperConfigUtils = async (config: PrinterConfiguration) 
 			}
 			return null;
 		},
-		getMotorComments(axis: PrinterAxis | Zod.infer<typeof PrinterRail>, header?: string) {
+		getMotorComments(axis: PrinterAxis | Zod.infer<typeof PrinterRail>, header?: string, omitDetails?: boolean) {
 			const rail = typeof axis === 'object' ? axis : config.rails.find((r) => r.axis === axis);
 			if (rail == null) {
 				throw new Error(`No rail found for axis ${axis}`);
 			}
 			const section = [`# ${rail.axisDescription}`];
-			const toolhead = this.isExtruderToolheadAxis(rail.axis) ? this.getToolhead(rail.axis) : null;
-			if (toolhead?.hasToolboard()) {
-				section.push(`# Connected to ${(toolhead.getToolboard() || config.controlboard).name}`);
-			} else if (rail.motorSlot && config.controlboard.motorSlots) {
-				section.push(
-					`# Connected to ${config.controlboard.motorSlots[rail.motorSlot].title} on ${config.controlboard.name}`,
-				);
+			if (!omitDetails) {
+				const toolhead = this.isExtruderToolheadAxis(rail.axis) ? this.getToolhead(rail.axis) : null;
+				if (toolhead?.hasToolboard()) {
+					section.push(`# Connected to ${(toolhead.getToolboard() || config.controlboard).name}`);
+				} else if (rail.motorSlot && config.controlboard.motorSlots) {
+					section.push(
+						`# Connected to ${config.controlboard.motorSlots[rail.motorSlot].title} on ${config.controlboard.manufacturer} ${config.controlboard.name}`,
+					);
+				}
+				section.push(`# Driver: ${rail.driver.title}`);
+				section.push(`# Motor: ${rail.stepper.title}`);
+				section.push(`# Voltage: ${rail.voltage}`);
 			}
 			return this.renderCommentHeader(header ?? rail.axis.toUpperCase(), section);
 		},
@@ -625,7 +630,7 @@ export const constructKlipperConfigHelpers = async (
 				extruderPinPrefix = utils.getExtruderPinPrefix(rail.axis);
 			}
 			const section = utils
-				.getMotorComments(rail)
+				.getMotorComments(rail, undefined, true)
 				.concat([
 					`[${utils.getAxisStepperName(rail.axis)}]`,
 					`dir_pin: ${directionInverted ? '!' : ''}${extruderPinPrefix}${utils.printerAxisToPinAliasPrefix(rail.axis)}_dir_pin ${dirComment}`,
