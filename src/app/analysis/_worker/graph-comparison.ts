@@ -1,6 +1,6 @@
 import { PSD } from '@/zods/analysis';
 import { SciChartSurface, XyMovingAverageFilter, XyDataSeries, FastLineRenderableSeries } from 'scichart';
-import { calculatePercentile, pearsonCorrelation } from '@/app/analysis/math';
+import { calculatePercentile, maxArrayIndex, pearsonCorrelation } from '@/app/analysis/math';
 import { PSD_CHART_AXIS_AMPLITUDE_ID } from '@/app/analysis/charts';
 
 /**
@@ -14,7 +14,12 @@ const DC_MAX_UNPAIRED_PEAKS_ALLOWED = 0;
 
 type Peak = { freq: number; amplitude: number };
 
-export const detectPeaks = (surface: SciChartSurface, psd: PSD): Peak[] => {
+export const detectPeaks = (
+	surface: SciChartSurface,
+	psd: PSD,
+	detectionThreshold: number,
+	seriesColor?: string,
+): Peak[] => {
 	// Moving average
 	const movingAverage = new XyMovingAverageFilter(
 		new XyDataSeries(surface.webAssemblyContext2D, {
@@ -23,32 +28,57 @@ export const detectPeaks = (surface: SciChartSurface, psd: PSD): Peak[] => {
 			xValues: psd.frequencies,
 			yValues: psd.estimates,
 		}),
-		{ length: 2, isSorted: true, containsNaN: false },
+		{ length: 3, isSorted: true, containsNaN: false },
 	);
 	const avgValues = movingAverage.getNativeYValues();
-	const detectionThreshold = psd.powerRange.max * 0.05;
 	const peaks: Peak[] = [];
 
+	if (seriesColor) {
+		surface.renderableSeries.add(
+			new FastLineRenderableSeries(surface.webAssemblyContext2D, {
+				dataSeries: movingAverage,
+				yAxisId: PSD_CHART_AXIS_AMPLITUDE_ID,
+				stroke: seriesColor,
+				strokeThickness: 5,
+				strokeDashArray: [5, 5],
+			}),
+		);
+	}
+
+	const vicinity = 10;
+	const freqPerStep = psd.frequencies[1] - psd.frequencies[0];
+	let vicinitySteps = Math.ceil(vicinity / freqPerStep);
+	if (!isFinite(vicinitySteps)) {
+		vicinitySteps = vicinity;
+	}
+	const peakIndex: number[] = [];
 	for (let i = 1; i < avgValues.size(); i++) {
 		const prev = avgValues.get(i - 1);
 		const current = avgValues.get(i);
 		const next = avgValues.get(i + 1);
-		if (prev < current && current > next) {
+		if (prev < current && current > next && current > detectionThreshold) {
 			// peak identified.
-			if (current - prev > detectionThreshold) {
-				if (psd.estimates[i] < psd.estimates[i - 1]) {
-					peaks.push({ freq: psd.frequencies[i - 1], amplitude: psd.estimates[i - 1] });
-				} else {
-					peaks.push({ freq: psd.frequencies[i], amplitude: psd.estimates[i] });
+			// Find the highest peak where psd.frequencies[index] is within `vicinity` hz.
+			let highestPeakIndex = i;
+			new Array(vicinitySteps).fill(0).forEach((_, j) => {
+				const index = i - j;
+				if (
+					index > 0 &&
+					index < psd.estimates.length &&
+					psd.estimates[index] > psd.estimates[highestPeakIndex] &&
+					psd.estimates[index - 1] < psd.estimates[index] &&
+					psd.estimates[index + 1] < psd.estimates[index]
+				) {
+					highestPeakIndex = index;
 				}
-			} else if (current - next > detectionThreshold) {
-				peaks.push({ freq: psd.frequencies[i], amplitude: psd.estimates[i] });
+			});
+			if (peakIndex.indexOf(highestPeakIndex) === -1) {
+				peakIndex.push(highestPeakIndex);
+				peaks.push({ freq: psd.frequencies[highestPeakIndex], amplitude: psd.estimates[highestPeakIndex] });
 			}
 		}
 	}
-
-	// sort by amplitude
-	return peaks.sort((a, b) => b.amplitude - a.amplitude);
+	return peaks;
 };
 
 export type PeakPairingResult = {
@@ -62,8 +92,8 @@ export const pairPeaks = (
 	peaks2: { freq: number; amplitude: number }[],
 ): PeakPairingResult => {
 	const pairedPeaks: [Peak, Peak][] = [];
-	const unpairedPeaks1: Peak[] = [];
-	const unpairedPeaks2: Peak[] = [];
+	const unpairedPeaks1: Peak[] = peaks1.slice();
+	const unpairedPeaks2: Peak[] = peaks2.slice();
 
 	let distances: number[] = [];
 	for (let p1 of peaks1) {
@@ -81,19 +111,24 @@ export const pairPeaks = (
 	threshold = Math.min(threshold, 10);
 
 	// Pair peaks
-	for (const peak1 of peaks1) {
-		const peak2 = peaks2.find((p) => Math.abs(p.freq - peak1.freq) < threshold);
-		if (peak2) {
-			pairedPeaks.push([peak1, peak2]);
-		} else {
-			unpairedPeaks1.push(peak1);
+	let i = 0;
+	while (unpairedPeaks1.length > 0 && unpairedPeaks2.length > 0 && i < unpairedPeaks1.length * unpairedPeaks2.length) {
+		i++;
+		let min_distance = threshold + 1;
+		let pair: [Peak, Peak] | null = null;
+		for (const p1 of unpairedPeaks1) {
+			for (const p2 of unpairedPeaks2) {
+				const distance = Math.abs(p1.freq - p2.freq);
+				if (distance < min_distance) {
+					min_distance = distance;
+					pair = [p1, p2];
+				}
+			}
 		}
-	}
-
-	// Find unpaired peaks
-	for (const peak2 of peaks2) {
-		if (!pairedPeaks.some((p) => p[1].freq === peak2.freq)) {
-			unpairedPeaks2.push(peak2);
+		if (pair) {
+			pairedPeaks.push(pair);
+			unpairedPeaks1.splice(unpairedPeaks1.indexOf(pair[0]), 1);
+			unpairedPeaks2.splice(unpairedPeaks2.indexOf(pair[1]), 1);
 		}
 	}
 
@@ -102,11 +137,12 @@ export const pairPeaks = (
 
 function mechanicalHealthLookupTable(mechanicalHealthIndicator: number): string {
 	const ranges: [number, number, string][] = [
-		[70, 100, 'Excellent mechanical health'],
-		[55, 70, 'Good mechanical health'],
-		[45, 55, 'Acceptable mechanical health'],
-		[30, 45, 'Potential signs of mechanical issues'],
-		[15, 30, 'Likely mechanical issues'],
+		[90, 100, 'Excellent mechanical health'],
+		[70, 90, 'Good mechanical health'],
+		[55, 70, 'Acceptable mechanical health'],
+		[45, 55, 'Potential signs of overtensioning'],
+		[30, 45, 'Potential signs of mechanical issues or overtensioning'],
+		[15, 30, 'Very likely mechanical issues'],
 		[0, 15, 'Mechanical issues detected'],
 	];
 	const mhi = Math.max(0, Math.min(mechanicalHealthIndicator, 100));
@@ -124,7 +160,7 @@ export function computeMechanicalHealth(
 	signal1: { unpairedPeaks: Peak[]; pairedPeaks: [Peak, Peak][]; psd: PSD },
 	signal2: { unpairedPeaks: Peak[]; pairedPeaks: [Peak, Peak][]; psd: PSD },
 ): MechanicalHealthResult {
-	const similarityFactor = pearsonCorrelation(signal1.psd.estimates, signal2.psd.estimates);
+	const similarityFactor = pearsonCorrelation(signal1.psd.estimates, signal2.psd.estimates) * 100;
 	const numUnpairedPeaks = signal1.unpairedPeaks.length + signal2.unpairedPeaks.length;
 	const numPairedPeaks = signal1.pairedPeaks.length;
 
@@ -136,9 +172,12 @@ export function computeMechanicalHealth(
 	// Start with the similarity factor directly scaled to a percentage
 	let mhi = similarityFactor;
 
-	// Bonus for ideal number of total peaks (1 or 2)
+	// Bonus for ideal number of total peaks (2)
 	if (numPairedPeaks >= DC_MAX_PEAKS) {
 		mhi *= DC_MAX_PEAKS / numPairedPeaks; // Reduce MHI if more than ideal number of peaks
+	}
+	if (numPairedPeaks < DC_MAX_PEAKS) {
+		mhi *= numPairedPeaks / DC_MAX_PEAKS; // Reduce MHI if less than ideal number of peaks
 	}
 
 	// Penalty from unpaired peaks weighted by their amplitude relative to the maximum PSD amplitude

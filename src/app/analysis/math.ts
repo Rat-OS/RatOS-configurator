@@ -1,5 +1,6 @@
 export const sumArray = (arr: number[]) => arr.reduce((a, b) => a + b, 0);
 export const meanArray = (arr: number[]) => sumArray(arr) / arr.length;
+export const maxArrayIndex = (arr: number[]) => arr.reduce((iMax, x, i, arr) => (x > arr[iMax] ? i : iMax), 0);
 
 export function pearsonCorrelation(x: number[], y: number[]): number {
 	if (x.length !== y.length) {

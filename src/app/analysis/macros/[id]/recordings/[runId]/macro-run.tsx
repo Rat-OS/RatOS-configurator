@@ -2,18 +2,7 @@
 import { MacroRunChart } from '@/app/analysis/macros/[id]/recordings/[runId]/macro-run-chart';
 import { useTopMenu } from '@/app/topmenu';
 import { trpc } from '@/utils/trpc';
-import {
-	Antenna,
-	AudioLines,
-	AudioWaveform,
-	ChevronLeft,
-	FileCog,
-	Minus,
-	SkipBack,
-	SkipForward,
-	Spline,
-	ThumbsUp,
-} from 'lucide-react';
+import { ChevronLeft, SkipBack, SkipForward } from 'lucide-react';
 import { useCallback, useState, useMemo, useEffect, useRef } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import * as luxon from 'luxon';
@@ -27,7 +16,6 @@ import { SequenceData, SequenceDataChartType, setupChart } from '@/app/analysis/
 import { SciChartSurface } from 'scichart';
 import { InputShapers } from '@/app/analysis/macros/[id]/recordings/[runId]/input-shapers';
 import { useInputShapersState, useSeriesSubcomponentsChart, useBeltTensionState } from '@/app/analysis/macros/hooks';
-import { computeMechanicalHealth, detectPeaks, pairPeaks } from '@/app/analysis/_worker/graph-comparison';
 import { BeltTensionComparison } from '@/app/analysis/macros/[id]/recordings/[runId]/belt-tension-comparison';
 import deepEqual from 'deep-equal';
 

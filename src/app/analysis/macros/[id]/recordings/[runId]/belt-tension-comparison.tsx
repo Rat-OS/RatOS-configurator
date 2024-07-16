@@ -7,18 +7,14 @@ import {
 } from '@/app/analysis/_worker/graph-comparison';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { SciChartSurface } from 'scichart';
-import recordings from '@/app/analysis/macros/[id]/recordings/recordings';
 import { SequenceData } from '@/app/analysis/macros/[id]/recordings/[runId]/setup';
 import { initBeltTensionChartAnnotations, updateBeltTensionChartAnnotations } from '@/app/analysis/macros/hooks';
 import { AnimatedContainer } from '@/components/common/animated-container';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { shadableTWColors } from '@/app/_helpers/colors';
-import { Spinner } from '@/components/common/spinner';
-import { Minus } from 'lucide-react';
 import { twJoin } from 'tailwind-merge';
 import { CardDescription, CardTitle } from '@/components/ui/card';
-import { Card } from '@/components/common/card';
 import { useChart } from '@/app/analysis/hooks';
+import deepEqual from 'deep-equal';
 
 interface BeltTensionComparisonProps {
 	sequencePair: [SequenceData, SequenceData] | null;
@@ -34,6 +30,7 @@ export const BeltTensionComparison: React.FC<BeltTensionComparisonProps> = (prop
 		props;
 	const initializedSurfaceId = useRef<string | null>(null);
 	const [surfaceId, setSurfaceId] = useState<string | null>(null);
+	const prevPairingResult = useRef<PeakPairingResult | null>(null);
 
 	const updateSurfaceId = useCallback((surface: SciChartSurface) => {
 		setSurfaceId(surface.id);
@@ -48,8 +45,10 @@ export const BeltTensionComparison: React.FC<BeltTensionComparisonProps> = (prop
 			return;
 		}
 		if (sequencePair != null && sequencePair.length === 2 && chart.surface.current != null) {
-			const peaks1 = detectPeaks(chart.surface.current, sequencePair[0].psd.total);
-			const peaks2 = detectPeaks(chart.surface.current, sequencePair[1].psd.total);
+			const detectionThreshold =
+				Math.max(sequencePair[0].psd.total.powerRange.max, sequencePair[1].psd.total.powerRange.max) * 0.12;
+			const peaks1 = detectPeaks(chart.surface.current, sequencePair[0].psd.total, detectionThreshold);
+			const peaks2 = detectPeaks(chart.surface.current, sequencePair[1].psd.total, detectionThreshold);
 			const newPeakPairingResults = pairPeaks(peaks1, peaks2);
 			const newMechanicalHealth = computeMechanicalHealth(
 				{
@@ -68,8 +67,12 @@ export const BeltTensionComparison: React.FC<BeltTensionComparisonProps> = (prop
 			if (surfaceId !== initializedSurfaceId.current) {
 				initBeltTensionChartAnnotations(chart.surface.current, sequencePair, newPeakPairingResults);
 				initializedSurfaceId.current = surfaceId;
-			} else {
-				updateBeltTensionChartAnnotations(chart.surface.current, sequencePair, newPeakPairingResults);
+				prevPairingResult.current = newPeakPairingResults;
+			} else if (!deepEqual(prevPairingResult.current, newPeakPairingResults)) {
+				updateBeltTensionChartAnnotations(chart.surface.current, sequencePair, newPeakPairingResults).then(() =>
+					initBeltTensionChartAnnotations(chart.surface.current, sequencePair, newPeakPairingResults, 0),
+				);
+				prevPairingResult.current = newPeakPairingResults;
 			}
 		} else if (sequencePair == null && initializedSurfaceId.current != null) {
 			setPeakPairingResults(null);
@@ -120,6 +123,15 @@ export const BeltTensionComparison: React.FC<BeltTensionComparisonProps> = (prop
 						<div>
 							<CardTitle className="text-sm">Status</CardTitle>
 							<CardDescription className="text-xs">{mechanicalHealth?.label}</CardDescription>
+						</div>
+						<div>
+							<CardTitle className="text-sm">Unpaired Peaks</CardTitle>
+							<CardDescription className="text-xs">
+								{peakPairingResults.unpairedPeaks1.length} on {sequencePair[0].name}
+							</CardDescription>
+							<CardDescription className="text-xs">
+								{peakPairingResults.unpairedPeaks2.length} on {sequencePair[1].name}
+							</CardDescription>
 						</div>
 					</div>
 				</div>
