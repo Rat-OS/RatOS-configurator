@@ -648,6 +648,160 @@ describe('server', async () => {
 				compareSettings(serialized);
 			});
 		});
+		const fixtures = await Promise.all(
+			glob.sync(path.join(__dirname, 'fixtures', '*.json')).map(async (fixture) => {
+				return {
+					fixture: await import(fixture),
+					fixtureFile: path.basename(fixture),
+				};
+			}),
+		);
+		describe.each(fixtures)('can generate a config from fixtures/$fixtureFile', async (printer) => {
+			const serialized = printer.fixture;
+			const config = await deserializePrinterConfiguration(serialized);
+			test('fixture resolves to valid config', async () => {
+				expect(config).not.toBeNull();
+				expect(config?.printer?.id).toBeDefined();
+				expect(config?.toolheads).toBeDefined();
+				expect(config?.toolheads?.length).toBeGreaterThan(0);
+				expect(config?.rails?.length).toBeGreaterThan(0);
+				for (const toolhead of config!.toolheads!) {
+					expect(toolhead).toBeDefined();
+					if (toolhead == null) {
+						return;
+					}
+					const th = extractToolheadFromPrinterConfiguration(toolhead.axis!, config)?.serialize();
+					expect(th).toBeDefined();
+					const reserialized = serializePartialToolheadConfiguration(toolhead)!;
+					expect(th).toEqual(reserialized);
+					Object.keys(toolhead).forEach((key) => {
+						if (key === 'axis') {
+							return;
+						}
+						expect(th?.[key as keyof typeof toolhead]).toEqual(reserialized[key as keyof typeof reserialized]);
+					});
+				}
+			});
+			describe.each(await getFilesToWrite(config))('fixture generates valid content for $fileName', async (res) => {
+				const splitRes = res.content.split('\n');
+				const annotatedLines = splitRes.map((l: string, i: number) => `Line-${i + 1}`.padEnd(10, '-') + `|${l}`);
+				test('not empty', () => {
+					expect(splitRes.length).toBeGreaterThan(0);
+				});
+				test('no invalid stringification', () => {
+					const noUndefined = splitRes.findIndex((l: string) => l.includes('undefined'));
+					const noPromises = splitRes.findIndex((l: string) => l.includes('[object Promise]'));
+					const noObjects = splitRes.findIndex((l: string) => l.includes('[object Object]'));
+					try {
+						expect(noUndefined, 'Expected no undefined values in config').to.eq(-1);
+					} catch (e) {
+						throw new Error(
+							`Found stringified undefined ${noUndefined + 1}:\n${annotatedLines.slice(Math.max(noUndefined - 4, 0), Math.min(annotatedLines.length, noUndefined + 5)).join('\n')}`,
+						);
+					}
+					try {
+						expect(noPromises, 'Expected no promises in config').to.eq(-1);
+					} catch (e) {
+						throw new Error(
+							`Found stringified promise ${noUndefined + 1}:\n${annotatedLines.slice(Math.max(noUndefined - 4, 0), Math.min(annotatedLines.length, noUndefined + 5)).join('\n')}`,
+						);
+					}
+					try {
+						expect(noObjects, 'Expected no objects in config').to.eq(-1);
+					} catch (e) {
+						throw new Error(
+							`Found stringified object ${noUndefined + 1}:\n${annotatedLines.slice(Math.max(noUndefined - 4, 0), Math.min(annotatedLines.length, noUndefined + 5)).join('\n')}`,
+						);
+					}
+				});
+				test('contain valid includes', async () => {
+					const includes = splitRes.filter((l) => l.includes('[include '));
+					const invalidIncludes = includes.filter((l) => !l.includes('[include RatOS'));
+					const env = serverSchema.parse(process.env);
+					includes
+						.filter((l) => l.includes('[include RatOS/'))
+						.forEach((l) => {
+							try {
+								expect(
+									existsSync(path.join(env.RATOS_CONFIGURATION_PATH, l.split('[include RatOS/')[1].replace(']', ''))),
+								).toBeTruthy();
+							} catch (e) {
+								const index = splitRes.findIndex((line) => line === l);
+								throw new Error(
+									`Found non existing include ${l}:\n${annotatedLines
+										.slice(Math.max(index - 4, 0), Math.min(index + 5, splitRes.length))
+										.join('\n')}`,
+								);
+							}
+						});
+				});
+				test.runIf(res.fileName === 'printer.cfg').concurrent('contains position_min/max/endstop for x/y', async () => {
+					const xSections: number[] = [];
+					const ySections: number[] = [];
+					splitRes.forEach((l, i) => {
+						l.startsWith('[stepper_x]') && xSections.push(i);
+						l.startsWith('[stepper_y]') && ySections.push(i);
+					});
+					[xSections, ySections].forEach((sections, i) => {
+						const sectionName = ['x', 'y', 'z'][i];
+						let hasMin = false;
+						let hasMax = false;
+						let hasEndstop = false;
+						sections.forEach((i) => {
+							const nextSection = splitRes.slice(i + 1).findIndex((l) => l.trim().startsWith('['));
+							hasMin = splitRes.slice(i, i + nextSection).find((l) => l.includes('position_min:')) != null || hasMin;
+							hasMax = splitRes.slice(i, i + nextSection).find((l) => l.includes('position_max:')) != null || hasMax;
+							hasEndstop =
+								splitRes.slice(i, i + nextSection).find((l) => l.includes('position_endstop:')) != null || hasEndstop;
+						});
+						try {
+							expect(hasMin, `[stepper_${sectionName}] is missing position_min`).toBeTruthy();
+							expect(hasMax, `[stepper_${sectionName}] is missing position_max`).toBeTruthy();
+							expect(hasEndstop, `[stepper_${sectionName}] is missing position_endstop`).toBeTruthy();
+						} catch (e) {
+							console.log(annotatedLines.join('\n'));
+							throw e;
+						}
+					});
+				});
+				test.runIf(res.fileName === 'printer.cfg').concurrent('contains no RatOS managed parameters', async () => {
+					const offendingLines: { line: number; param: string }[] = [];
+					const offendingStrings = ['nozzle_diameter', 'variable_hotend_type', 'variable_has_cht_nozzle'];
+					splitRes.forEach((l, i) => {
+						offendingStrings.forEach((s) => {
+							if (l.startsWith(s)) {
+								offendingLines.push({ line: i, param: s });
+							}
+						});
+					});
+					for (const { line, param } of offendingLines) {
+						try {
+							expect(splitRes[line + 1].startsWith('\t') || splitRes[line + 1].startsWith('  ')).toBeTruthy();
+						} catch (e) {
+							throw new Error(
+								`Illegal parameter "${param}" at line ${line + 1}:\n${annotatedLines.slice(Math.max(line - 4, 0), Math.min(line + 5, annotatedLines.length)).join('\n')}`,
+							);
+						}
+					}
+				});
+				test.concurrent('properly indents gcode blocks', async () => {
+					const gcodeBlocks: number[] = [];
+					splitRes.forEach((l, i) => l.includes('gcode:') && gcodeBlocks.push(i));
+					for (const block of gcodeBlocks) {
+						try {
+							expect(splitRes[block + 1].startsWith('\t') || splitRes[block + 1].startsWith('  ')).toBeTruthy();
+						} catch (e) {
+							throw new Error(
+								`Failed to indent gcode block at line ${block + 1}:\n${annotatedLines.slice(Math.max(block - 4, 0), Math.min(block + 5, annotatedLines.length)).join('\n')}`,
+							);
+						}
+					}
+				});
+			});
+			test('can be compared', () => {
+				compareSettings(serialized);
+			});
+		});
 	});
 	describe('mcu', async () => {
 		test.concurrent('can compile firmware for controlboard and toolheads', async () => {

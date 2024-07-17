@@ -12,6 +12,8 @@ jobs:
     name: Build and Push
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: v2.x
       - uses: actions/setup-node@v3
         with:
           node-version: 16.x

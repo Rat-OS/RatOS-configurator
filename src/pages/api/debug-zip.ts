@@ -13,18 +13,27 @@ export const getDebugZipFiles = async () => {
 	}
 	const environment = serverSchema.parse(process.env);
 
-	let ratosFiles: string[] = await glob([`${environment.RATOS_DATA_DIR}/*.+(cfg|json)`]);
-	ratosFiles = ratosFiles
-		.filter((file, index) => ratosFiles.indexOf(file) === index)
-		.filter((f) => {
-			f.indexOf('printer_data/config/RatOS') === -1;
-		});
+	const extensions = `+(cfg|json|ndjson|conf)`;
 
-	let logs = await glob([`${environment.KLIPPER_CONFIG_PATH}/../logs/*.log`, `${environment.LOG_FILE}`]);
+	let ratosFiles: string[] = await glob([
+		`${environment.RATOS_DATA_DIR}/*.+(cfg|json|conf|log)`,
+		`${environment.RATOS_DATA_DIR}/**/*.+(cfg|json|conf|log)`,
+	]);
+	ratosFiles = ratosFiles.filter((file, index) => ratosFiles.indexOf(file) === index);
+
+	let logs = await glob([`${environment.KLIPPER_CONFIG_PATH}/../logs/*.${extensions}`, `${environment.LOG_FILE}`]);
 	logs = logs.filter((file, index) => logs.indexOf(file) === index);
 
-	let exlude = await glob([`${environment.KLIPPER_CONFIG_PATH}/+([a-z|A-Z]|-)+(+([0-9])*(_|-)*([0-9])).cfg`]);
-	let configs = (await glob([`${environment.KLIPPER_CONFIG_PATH}/*.cfg`])).filter((file) => !exlude.includes(file));
+	let exclude = await glob([
+		`${environment.KLIPPER_CONFIG_PATH}/+([a-z|A-Z]|-)+(+([0-9])*(_|-)*([0-9])).${extensions}`,
+	]);
+	let configs = (
+		await glob([
+			`${environment.KLIPPER_CONFIG_PATH}/*.${extensions}`,
+			`${environment.KLIPPER_CONFIG_PATH}/**/*.${extensions}`,
+		])
+	).filter((file) => !exclude.includes(file) && file.indexOf('printer_data/config/RatOS') === -1);
+
 	configs = configs.filter((file, index) => configs.indexOf(file) === index);
 
 	let vars = await glob([`/var/log/ratos-configurator.log`]);
@@ -73,7 +82,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 				const buf = zip.generateNodeStream({ type: 'nodebuffer', streamFiles: true });
 				res.setHeader('Content-Type', 'application/x-zip');
 				res.setHeader('Content-Disposition', `attachment; filename=ratos-debug.zip`);
-				return res.status(200).send(buf);
+				return res
+					.status(200)
+					.send(zip.generateNodeStream({ type: 'nodebuffer', streamFiles: true, compression: 'DEFLATE' }));
 			} catch (e) {
 				getLogger().error(e instanceof Error ? e.message : 'Unknown error while generating debug zip');
 				return res.status(200).json({
