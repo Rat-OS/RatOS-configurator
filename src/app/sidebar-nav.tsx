@@ -6,10 +6,11 @@ import { ArrowTopRightOnSquareIcon, ArrowDownTrayIcon } from '@heroicons/react/2
 import { Modal } from '@/components/common/modal';
 import { AnimatedContainer } from '@/components/common/animated-container';
 import { trpc } from '@/utils/trpc';
-import { FileClock, FileCode } from 'lucide-react';
+import { FileClock, FileCode, FileJson } from 'lucide-react';
 import { Suspense } from 'react';
 import { Spinner } from '@/components/common/spinner';
 import { DialogTitle } from '@/components/ui/dialog';
+import { formatBytes } from '@/helpers/util';
 
 const mainsail = '/';
 const externalNav = [
@@ -52,18 +53,23 @@ export const SidebarNav = () => {
 							content={
 								<AnimatedContainer>
 									<h3 className="mb-1 font-medium tracking-tight">The following files will be zipped</h3>
-									<ul className="grid gap-1 pb-2 text-muted-foreground">
+									<ul className="grid gap-2 pb-2 text-muted-foreground">
 										<Suspense fallback={<Spinner />}>
 											{trpc.debugFileList.useSuspenseQuery()[0].map((file) => {
 												return (
-													<li key={file.path + file.name} className="flex items-center gap-2 text-sm">
+													<li key={file.path} className="flex items-center gap-2 text-sm">
 														{file.name.endsWith('.log') && (
-															<FileClock className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+															<FileClock className="h-4 w-4 flex-shrink-0 text-zinc-100/40" aria-hidden="true" />
 														)}
 														{file.name.endsWith('.cfg') && (
-															<FileCode className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+															<FileCode className="h-4 w-4 flex-shrink-0 text-zinc-100/40" aria-hidden="true" />
 														)}
-														<span>{file.orgPath + '/' + file.name}</span>
+														{file.name.endsWith('.json') && (
+															<FileJson className="h-4 w-4 flex-shrink-0 text-zinc-100/40" aria-hidden="true" />
+														)}
+														<span>
+															{file.orgPath.replace('/home/pi', '~')} ({formatBytes(file.size)})
+														</span>
 													</li>
 												);
 											})}
