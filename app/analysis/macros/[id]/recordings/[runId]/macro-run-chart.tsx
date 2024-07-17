@@ -1,26 +1,11 @@
 'use client';
-import { macroRecordingSchemaWithoutSourcePSDs, macroSequenceSchema } from '@/zods/analysis';
-import {
-	PSDChartNoSeriesDefinition,
-	PSD_CHART_AXIS_AMPLITUDE_ID,
-	getPSDTooltipLegendTemplate,
-	isXyDataSeries,
-	isXyyDataSeries,
-} from '@/app/analysis/charts';
-import { useChart } from '@/app/analysis/hooks';
-import { z } from 'zod';
-import React, { useCallback, useEffect, useRef } from 'react';
+import { isXyDataSeries, isXyyDataSeries } from '@/app/analysis/charts';
+import React, { MutableRefObject, useCallback, useEffect, useRef, useState } from 'react';
 import {
 	BandAnimation,
-	CursorModifier,
-	EAutoRange,
-	FastBandRenderableSeries,
-	FastLineRenderableSeries,
 	LineAnimation,
-	NumberRange,
-	RolloverModifier,
+	MountainAnimation,
 	SciChartSurface,
-	WaveAnimation,
 	XyDataSeries,
 	XyyDataSeries,
 	easing,
@@ -28,6 +13,15 @@ import {
 import { shadableTWColors } from '@/app/_helpers/colors';
 import { SciChartReact } from 'scichart-react';
 import deepEqual from 'deep-equal';
+import { animateYAxis, SequenceData, setupChart } from '@/app/analysis/macros/[id]/recordings/[runId]/setup';
+import { ShaperCalibrationResult } from '@/app/analysis/_worker/input-shaper';
+import { useChart } from '@/app/analysis/hooks';
+import {
+	useSeriesSubcomponentsChart,
+	useInputShaperChart,
+	initSeriesSubcomponents,
+	updateSeriesSubcomponents,
+} from '@/app/analysis/macros/hooks';
 
 SciChartSurface.configure({
 	wasmUrl: '/configure/scichart2d.wasm',
@@ -35,139 +29,48 @@ SciChartSurface.configure({
 });
 
 interface MacroRunChartProps {
-	recordings: z.infer<typeof macroRecordingSchemaWithoutSourcePSDs>[];
-	sequences: z.infer<typeof macroSequenceSchema>[];
+	sequenceSeries: SequenceData[];
+	shapers?: ShaperCalibrationResult[];
+	prevShapers?: MutableRefObject<ShaperCalibrationResult[]>;
+	recommendedShaper?: ShaperCalibrationResult | null;
+	chart: ReturnType<typeof useChart>;
+	subcomponentSeries: ReturnType<typeof useSeriesSubcomponentsChart>['subcomponentSeries'];
 }
 
-export const MacroRunChart: React.FC<MacroRunChartProps> = ({ recordings, sequences }) => {
-	const sequenceData = recordings
-		.map((rec) => {
-			const sequence = sequences.find((seq) => seq.id === rec.sequenceId);
-			return sequence?.recording
-				? {
-						color: sequence?.recording?.color,
-						name: rec.name,
-						psd: rec.psd.total,
-					}
-				: null;
-		})
-		.filter(Boolean);
-	const prevSequenceData = useRef(sequenceData);
+export const MacroRunChart: React.FC<MacroRunChartProps> = (props) => {
+	const { sequenceSeries, shapers, recommendedShaper, chart, prevShapers, subcomponentSeries } = props;
+	const [isTransitioning, setIsTransitioning] = useState(false);
+	const isTransitioningRef = useRef(isTransitioning);
+	isTransitioningRef.current = isTransitioning;
+	const afterTransition = useRef<Promise<void | void[]>>(Promise.resolve());
+	const subComponentSeriesRef = useRef(subcomponentSeries);
+	subComponentSeriesRef.current = subcomponentSeries;
 
-	const setupChart = useCallback(
-		(surface: SciChartSurface) => {
-			let bandSeries = false;
-			if (sequenceData.length === 2) {
-				bandSeries = true;
-				for (let i = 0; i < sequenceData[0].psd.frequencies.length; i++) {
-					if (Math.abs(sequenceData[0].psd.frequencies[i] - sequenceData[1].psd.frequencies[i]) > 1) {
-						bandSeries = false;
-					}
-				}
-			}
-			if (bandSeries) {
-				const rs = new FastBandRenderableSeries(surface.webAssemblyContext2D, {
-					dataSeries: new XyyDataSeries(surface.webAssemblyContext2D, {
-						containsNaN: false,
-						isSorted: true,
-						xValues: sequenceData[0].psd.frequencies,
-						yValues: sequenceData[0].psd.estimates,
-						y1Values: sequenceData[1].psd.estimates,
-					}),
-					fill: shadableTWColors[(sequenceData[1].color ?? 'sky') as keyof typeof shadableTWColors][600] + 22,
-					fillY1: shadableTWColors[(sequenceData[0].color ?? 'rose') as keyof typeof shadableTWColors][600] + 22,
-					stroke: shadableTWColors[(sequenceData[0].color ?? 'rose') as keyof typeof shadableTWColors][400],
-					strokeY1: shadableTWColors[(sequenceData[1].color ?? 'sky') as keyof typeof shadableTWColors][400],
-					strokeThickness: 3,
-					yAxisId: PSD_CHART_AXIS_AMPLITUDE_ID,
-				});
-				rs.rolloverModifierProps.tooltipColor = sequenceData[0].color ?? 'zinc';
-				rs.rolloverModifierProps.tooltipTitle = sequenceData[0].name + ' Power';
-				rs.rolloverModifierProps1.tooltipColor = sequenceData[1].color ?? 'zinc';
-				rs.rolloverModifierProps1.tooltipTitle = sequenceData[1].name + ' Power';
-				rs.animation = new WaveAnimation({
-					duration: 500,
-					pointDurationFraction: 1,
-				});
-				surface.renderableSeries.add(rs);
-			} else {
-				sequenceData.forEach((seq) => {
-					const rs = new FastLineRenderableSeries(surface.webAssemblyContext2D, {
-						dataSeries: new XyDataSeries(surface.webAssemblyContext2D, {
-							containsNaN: false,
-							isSorted: true,
-							xValues: seq.psd.frequencies,
-							yValues: seq.psd.estimates,
-						}),
-						stroke: shadableTWColors[(seq.color ?? 'brand') as keyof typeof shadableTWColors][400],
-						strokeThickness: 3,
-						yAxisId: PSD_CHART_AXIS_AMPLITUDE_ID,
-					});
-					rs.rolloverModifierProps.tooltipColor = seq.color ?? 'zinc';
-					rs.rolloverModifierProps.tooltipTitle = seq.name + ' Power';
-					rs.animation = new WaveAnimation({
-						duration: 500,
-						pointDurationFraction: 1,
-					});
-					surface.renderableSeries.add(rs);
-				});
-			}
-
-			const yAxis = surface.yAxes.getById(PSD_CHART_AXIS_AMPLITUDE_ID);
-			if (yAxis) {
-				yAxis.visibleRange = new NumberRange(
-					Math.min(...sequenceData.map((seq) => seq.psd.powerRange.min)),
-					Math.max(...sequenceData.map((seq) => seq.psd.powerRange.max)),
-				).growBy(new NumberRange(0.0, 0.2));
-				yAxis.autoRange = EAutoRange.Always;
-				yAxis.autoRangeAnimation.duration = 500;
-				yAxis.autoRangeAnimation.easing = easing.inOutCirc;
-			}
-
-			surface.chartModifiers.add(
-				new RolloverModifier({
-					// Defines if rollover vertical line is shown
-					showRolloverLine: true,
-					// Shows the default tooltip
-					showTooltip: false,
-					yAxisId: PSD_CHART_AXIS_AMPLITUDE_ID,
-					// Optional: Overrides the content of the tooltip
-				}),
-			);
-
-			surface.chartModifiers.add(
-				new CursorModifier({
-					// Defines if crosshair is shown
-					crosshairStroke: shadableTWColors.sky[400],
-					crosshairStrokeThickness: 1,
-					showXLine: true,
-					showYLine: true,
-					tooltipLegendTemplate: getPSDTooltipLegendTemplate,
-					tooltipLegendOffsetX: 16,
-					tooltipLegendOffsetY: 16,
-					yAxisId: PSD_CHART_AXIS_AMPLITUDE_ID,
-					// Shows the default tooltip
-					showTooltip: false,
-					axisLabelFill: shadableTWColors.zinc[900],
-					axisLabelStroke: shadableTWColors.zinc[100],
-				}),
-			);
-		},
-		[sequenceData],
+	const prevSequenceData = useRef(sequenceSeries);
+	const { updateInputShapers, initializeInputShapers } = useInputShaperChart(
+		(shapers?.length ?? 0) > 0,
+		sequenceSeries[0],
+		shapers ?? [],
+		recommendedShaper,
 	);
 
-	const chart = useChart(PSDChartNoSeriesDefinition, setupChart);
-
 	const transitionToChart = useCallback(
-		(data: typeof sequenceData) => {
+		(data: typeof sequenceSeries) => {
 			if (chart.surface.current == null) {
 				return;
 			}
-			// if no previous sequenceData, run setupChart
+			const subcomponentData = data.filter((d) => subcomponentSeries.includes(d.sequenceId));
+			// if no previous sequenceSeries, run setupChart
 			if (prevSequenceData.current.length === 0) {
-				setupChart(chart.surface.current);
+				setupChart(chart.surface.current, data);
+				initializeInputShapers(chart.surface.current);
+				subcomponentData.forEach((seq) => {
+					initSeriesSubcomponents(chart.surface.current, seq);
+				});
 				return;
 			}
+			setIsTransitioning(true);
+			const promises: Promise<void | void>[] = [];
 			// If same number of data series, animate style and data
 			if (data.length === prevSequenceData.current.length) {
 				data.forEach((seq, i) => {
@@ -180,134 +83,220 @@ export const MacroRunChart: React.FC<MacroRunChartProps> = ({ recordings, sequen
 						if (isXyyDataSeries(rs.dataSeries)) {
 							// We're dealing with a band series, which means it's combined with the next sequence as well.
 							const nextSeq = data[i + 1];
-							if (prevCount > seq.psd.frequencies.length) {
+							if (prevCount > seq.psd.total.frequencies.length) {
 								// Pad new sequence data
-								const padFreq = new Array(prevCount - seq.psd.frequencies.length).fill(0);
-								const padEstimates = new Array(prevCount - seq.psd.estimates.length).fill(0);
-								seq.psd.frequencies.unshift(...padFreq);
-								seq.psd.estimates.unshift(...padEstimates);
-								nextSeq.psd.frequencies.unshift(...padFreq);
-								nextSeq.psd.estimates.unshift(...padEstimates);
+								const padFreq = new Array(prevCount - seq.psd.total.frequencies.length).fill(0);
+								const padEstimates = new Array(prevCount - seq.psd.total.estimates.length).fill(0);
+								seq.psd.total.frequencies.unshift(...padFreq);
+								seq.psd.total.estimates.unshift(...padEstimates);
+								nextSeq.psd.total.frequencies.unshift(...padFreq);
+								nextSeq.psd.total.estimates.unshift(...padEstimates);
 							}
-							if (prevCount < seq.psd.frequencies.length) {
+							if (prevCount < seq.psd.total.frequencies.length) {
 								// Drop the last n elements of the new sequence data
-								seq.psd.frequencies = seq.psd.frequencies.slice(0, prevCount);
-								seq.psd.estimates = seq.psd.estimates.slice(0, prevCount);
-								nextSeq.psd.frequencies = nextSeq.psd.frequencies.slice(0, prevCount);
-								nextSeq.psd.estimates = nextSeq.psd.estimates.slice(0, prevCount);
+								seq.psd.total.frequencies = seq.psd.total.frequencies.slice(0, prevCount);
+								seq.psd.total.estimates = seq.psd.total.estimates.slice(0, prevCount);
+								nextSeq.psd.total.frequencies = nextSeq.psd.total.frequencies.slice(0, prevCount);
+								nextSeq.psd.total.estimates = nextSeq.psd.total.estimates.slice(0, prevCount);
 							}
 							const newDs = new XyyDataSeries(chart.surface.current.webAssemblyContext2D, {
 								containsNaN: false,
 								isSorted: true,
 							});
-							newDs.appendRange(seq.psd.frequencies, seq.psd.estimates, nextSeq.psd.estimates);
+							newDs.appendRange(seq.psd.total.frequencies, seq.psd.total.estimates, nextSeq.psd.total.estimates);
 							chart.surface.current.addDeletable(newDs);
 							rs.rolloverModifierProps.tooltipColor = seq.color ?? 'zinc';
 							rs.rolloverModifierProps.tooltipTitle = seq.name + ' Power';
 							rs.rolloverModifierProps1.tooltipColor = nextSeq.color ?? 'zinc';
 							rs.rolloverModifierProps1.tooltipTitle = nextSeq.name + ' Power';
-							rs.runAnimation(new BandAnimation({ duration: 500, ease: easing.inOutCirc, dataSeries: newDs }));
+							promises.push(
+								new Promise((resolve) => {
+									rs.runAnimation(
+										new BandAnimation({
+											duration: 500,
+											ease: easing.inOutCirc,
+											dataSeries: newDs,
+											onCompleted: resolve,
+										}),
+									);
+								}),
+							);
 						}
 						if (isXyDataSeries(rs.dataSeries)) {
-							if (prevCount > seq.psd.frequencies.length) {
+							if (prevCount > seq.psd.total.frequencies.length) {
 								// Pad new sequence data
-								const padFreq = new Array(prevCount - seq.psd.frequencies.length).fill(0);
-								const padEstimates = new Array(prevCount - seq.psd.estimates.length).fill(0);
-								seq.psd.frequencies.unshift(...padFreq);
-								seq.psd.estimates.unshift(...padEstimates);
+								const padFreq = new Array(prevCount - seq.psd.total.frequencies.length).fill(0);
+								const padEstimates = new Array(prevCount - seq.psd.total.estimates.length).fill(0);
+								seq.psd.total.frequencies.unshift(...padFreq);
+								seq.psd.total.estimates.unshift(...padEstimates);
 							}
-							if (prevCount < seq.psd.frequencies.length) {
+							if (prevCount < seq.psd.total.frequencies.length) {
 								// Drop the last n elements of the new sequence data
-								seq.psd.frequencies = seq.psd.frequencies.slice(0, prevCount);
-								seq.psd.estimates = seq.psd.estimates.slice(0, prevCount);
+								seq.psd.total.frequencies = seq.psd.total.frequencies.slice(0, prevCount);
+								seq.psd.total.estimates = seq.psd.total.estimates.slice(0, prevCount);
 							}
 							const newDs = new XyDataSeries(chart.surface.current.webAssemblyContext2D, {
 								containsNaN: false,
 								isSorted: true,
 							});
-							newDs.appendRange(seq.psd.frequencies, seq.psd.estimates);
+							newDs.appendRange(seq.psd.total.frequencies, seq.psd.total.estimates);
 							chart.surface.current.addDeletable(newDs);
 							rs.rolloverModifierProps.tooltipColor = seq.color ?? 'zinc';
 							rs.rolloverModifierProps.tooltipTitle = seq.name + ' Power';
-							rs.runAnimation(
-								new LineAnimation({
-									duration: 500,
-									ease: easing.inOutCirc,
-									dataSeries: newDs,
-									styles: {
-										stroke: shadableTWColors[(seq.color ?? 'brand') as keyof typeof shadableTWColors][400],
-									},
+							promises.push(
+								new Promise((resolve) => {
+									rs.runAnimation(
+										new MountainAnimation({
+											duration: 500,
+											ease: easing.inOutCirc,
+											dataSeries: newDs,
+											onCompleted: resolve,
+											styles: {
+												stroke: shadableTWColors[(seq.color ?? 'zinc') as keyof typeof shadableTWColors][400],
+											},
+										}),
+									);
 								}),
 							);
 						}
 					}
 				});
+				// Update input shapers
+				updateInputShapers(chart.surface.current);
+				subcomponentData.forEach((seq) => {
+					updateSeriesSubcomponents(chart.surface.current, seq);
+				});
+				animateYAxis(chart.surface.current, data);
+				afterTransition.current = Promise.all(promises);
 				return;
 			}
 			// If different number of data series, animate data to zero, then run setupChart.
 			if (data.length !== prevSequenceData.current.length) {
-				prevSequenceData.current.forEach((seq, i) => {
-					const rs = chart.surface.current?.renderableSeries.get(i);
+				chart.surface.current?.renderableSeries.asArray().forEach((rs) => {
 					if (rs) {
 						if (chart.surface.current == null) {
 							throw new Error('Missing chart surface');
 						}
 						const prevCount = rs.dataSeries.count();
+						const prevNativeXValues = rs.dataSeries.getNativeXValues();
+						const prevXValues: number[] = [];
+						for (let i = 0; i < prevNativeXValues.size(); i++) {
+							prevXValues.push(prevNativeXValues.get(i));
+						}
 						if (isXyyDataSeries(rs.dataSeries)) {
 							const newDs = new XyyDataSeries(chart.surface.current.webAssemblyContext2D, {
 								containsNaN: false,
 								isSorted: true,
 							});
-							newDs.appendRange(
-								prevSequenceData.current[i].psd.frequencies,
-								new Array(prevCount).fill(0),
-								new Array(prevCount).fill(0),
-							);
+							newDs.appendRange(prevXValues, new Array(prevCount).fill(0), new Array(prevCount).fill(0));
 							chart.surface.current.addDeletable(newDs);
-							rs.runAnimation(new BandAnimation({ duration: 500, ease: easing.inOutCirc, dataSeries: newDs }));
+							promises.push(
+								new Promise((resolve) => {
+									rs.runAnimation(
+										new BandAnimation({
+											duration: 500,
+											fadeEffect: true,
+											reverse: true,
+											ease: easing.inOutCirc,
+											dataSeries: newDs,
+											onCompleted: () => {
+												chart.surface.current?.renderableSeries.remove(rs);
+												resolve();
+											},
+										}),
+									);
+								}),
+							);
 						}
 						if (isXyDataSeries(rs.dataSeries)) {
 							const newDs = new XyDataSeries(chart.surface.current.webAssemblyContext2D, {
 								containsNaN: false,
 								isSorted: true,
 							});
-							newDs.appendRange(prevSequenceData.current[i].psd.frequencies, new Array(prevCount).fill(0));
+							newDs.appendRange(prevXValues, new Array(prevCount).fill(0));
 							chart.surface.current.addDeletable(newDs);
-							rs.runAnimation(
-								new LineAnimation({
-									duration: 500,
-									ease: easing.inOutCirc,
-									dataSeries: newDs,
-									styles: {
-										stroke: shadableTWColors[(seq.color ?? 'brand') as keyof typeof shadableTWColors][400],
-									},
+							promises.push(
+								new Promise((resolve) => {
+									rs.runAnimation(
+										new LineAnimation({
+											duration: 500,
+											ease: easing.inOutCirc,
+											dataSeries: newDs,
+											fadeEffect: true,
+											reverse: true,
+											onCompleted: () => {
+												chart.surface.current?.renderableSeries.remove(rs);
+												resolve();
+											},
+										}),
+									);
 								}),
 							);
 						}
 					}
 				});
-				setTimeout(() => {
-					if (chart.surface.current) {
-						chart.surface.current?.renderableSeries.clear();
-						chart.surface.current?.chartModifiers.clear();
-						setupChart(chart.surface.current);
-						chart.surface.current.invalidateElement();
-					}
-				}, 500);
+				afterTransition.current = Promise.all(promises).then(
+					() =>
+						new Promise((resolve) => {
+							if (chart.surface.current) {
+								chart.surface.current?.renderableSeries.clear();
+								chart.surface.current?.chartModifiers.clear();
+								setupChart(chart.surface.current, data);
+							}
+							resolve();
+						}),
+				);
 				return;
 			}
 		},
-		[chart.surface, setupChart],
+		[chart.surface, initializeInputShapers, subcomponentSeries, updateInputShapers],
 	);
 
 	useEffect(() => {
-		if (sequenceData.length != 0 && deepEqual(sequenceData, prevSequenceData.current) === false) {
+		if (sequenceSeries.length != 0 && deepEqual(sequenceSeries, prevSequenceData.current) === false) {
 			if (chart.surface.current) {
-				transitionToChart(sequenceData);
+				transitionToChart(sequenceSeries);
 			}
-			prevSequenceData.current = sequenceData;
+			prevSequenceData.current = sequenceSeries;
+		} else {
+			if (chart.surface.current) {
+				updateInputShapers(chart.surface.current);
+			}
 		}
-	}, [chart.surface, sequenceData, setupChart, transitionToChart]);
+	}, [
+		chart.surface,
+		initializeInputShapers,
+		prevShapers,
+		sequenceSeries,
+		shapers,
+		subcomponentSeries,
+		transitionToChart,
+		updateInputShapers,
+	]);
+
+	useEffect(() => {
+		if (subcomponentSeries.length && chart.surface.current) {
+			if (isTransitioningRef.current) {
+				afterTransition.current.then(() => {
+					subComponentSeriesRef.current.forEach((seq) => {
+						sequenceSeries
+							.filter((s) => subComponentSeriesRef.current.includes(s.sequenceId))
+							.forEach((seq) => {
+								initSeriesSubcomponents(chart.surface.current, seq);
+							});
+					});
+				});
+			} else {
+				subComponentSeriesRef.current.forEach((seq) => {
+					sequenceSeries
+						.filter((s) => subComponentSeriesRef.current.includes(s.sequenceId))
+						.forEach((seq) => {
+							initSeriesSubcomponents(chart.surface.current, seq);
+						});
+				});
+			}
+		}
+	}, [chart.surface, sequenceSeries, subcomponentSeries]);
 
 	return <SciChartReact {...chart.forwardProps} className="flex-1 bg-zinc-900/50"></SciChartReact>;
 };

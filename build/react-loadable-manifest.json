@@ -1,12 +1,18 @@
 {
   "../app/analysis/_worker/psd.ts -> @tensorflow/tfjs-backend-webgl": {
-    "id": 83675,
-    "files": []
+    "id": 57375,
+    "files": [
+      "static/chunks/f596963f.28440e48f6686c7f.js",
+      "static/chunks/7bd3d363.ad100946069368dc.js",
+      "static/chunks/297.0a7bfa23870b50a6.js",
+      "static/chunks/7562.72e012a08b449aba.js"
+    ]
   },
   "../app/analysis/_worker/psd.ts -> @tensorflow/tfjs-backend-webgpu": {
-    "id": 17754,
+    "id": 90726,
     "files": [
-      "static/chunks/7754.a1decb8ef56ba7aa.js"
+      "static/chunks/297.0a7bfa23870b50a6.js",
+      "static/chunks/726.33386206929ecf4c.js"
     ]
   },
   "../node_modules/.pnpm/@trpc+next@10.45.1_@tanstack+react-query@4.36.1_react-dom@18.2.0_react@18.2.0__react@18.2.0___2igx4b6qzwu3mpzu3wdw7fruxy/node_modules/@trpc/next/dist/index.mjs -> react-dom/server": {

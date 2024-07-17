@@ -204,6 +204,7 @@ export const useADXLSignalChart = (axis: ADXLAxes) => {
 };
 
 export const PSD_CHART_AXIS_AMPLITUDE_ID = 'amplitude';
+export const PSD_CHART_AXIS_SHAPER_ID = 'shaper';
 export const PSDChartMinimumYVisibleRange = new NumberRange(0, 1500);
 export const PSDChartNoSeriesDefinition: ISciChart2DDefinition = {
 	surface: {
@@ -256,6 +257,23 @@ export const PSDChartNoSeriesDefinition: ISciChart2DDefinition = {
 				drawMajorTickLines: false,
 				drawMajorBands: false,
 				axisTitleStyle: { fontSize: 10 },
+			},
+		},
+		{
+			type: EAxisType.NumericAxis,
+			options: {
+				id: PSD_CHART_AXIS_SHAPER_ID,
+				axisAlignment: EAxisAlignment.Right,
+				isVisible: false,
+				growBy: new NumberRange(0, 0.1),
+				autoRange: EAutoRange.Never,
+				visibleRange: new NumberRange(0, 1),
+				drawMinorGridLines: false,
+				drawMinorTickLines: false,
+				drawMajorTickLines: false,
+				drawMajorBands: false,
+				axisTitleStyle: { fontSize: 10 },
+				axisTitle: 'Shaper vibration reduction (ratio)',
 			},
 		},
 	],
@@ -352,6 +370,9 @@ export const getPSDTooltipLegendTemplate = (seriesInfos: SeriesInfo[], svgAnnota
 	let y = padding * 2;
 	const valuesWithLabels: string[] = [];
 	seriesInfos.forEach((seriesInfo, index) => {
+		if (seriesInfo.renderableSeries.rolloverModifierProps.showRollover === false) {
+			return;
+		}
 		let separator = ':';
 		let textColor = seriesInfo.renderableSeries.rolloverModifierProps.tooltipColor as TWShadeableColorName;
 		valuesWithLabels.push(
@@ -362,6 +383,9 @@ export const getPSDTooltipLegendTemplate = (seriesInfos: SeriesInfo[], svgAnnota
 		</text>`;
 		y += 20;
 		if (seriesInfo.dataSeriesType === EDataSeriesType.Xyy) {
+			if (seriesInfo.renderableSeries.rolloverModifierProps1.showRollover === false) {
+				return;
+			}
 			const si = seriesInfo as XyySeriesInfo;
 			let textColor = seriesInfo.renderableSeries.rolloverModifierProps1.tooltipColor as TWShadeableColorName;
 			valuesWithLabels.push(
@@ -466,38 +490,47 @@ export const psdRolloverTooltipTemplate: TRolloverTooltipSvgTemplate = (id, seri
 		</svg>`;
 };
 
+export const createPSDAnimationSeries = (surface: SciChartSurface) => {
+	const xAnimationSeries = new XyDataSeries(surface.webAssemblyContext2D, {
+		id: 'xAnimationSeries',
+		containsNaN: false,
+		isSorted: true,
+		dataIsSortedInX: true,
+	});
+	surface.addDeletable(xAnimationSeries);
+	const yAnimationSeries = new XyDataSeries(surface.webAssemblyContext2D, {
+		id: 'yAnimationSeries',
+		containsNaN: false,
+		isSorted: true,
+		dataIsSortedInX: true,
+	});
+	surface.addDeletable(yAnimationSeries);
+	const zAnimationSeries = new XyDataSeries(surface.webAssemblyContext2D, {
+		id: 'zAnimationSeries',
+		containsNaN: false,
+		isSorted: true,
+		dataIsSortedInX: true,
+	});
+	surface.addDeletable(zAnimationSeries);
+	const totalAnimationSeries = new XyDataSeries(surface.webAssemblyContext2D, {
+		id: 'totalAnimationSeries',
+		containsNaN: false,
+		isSorted: true,
+		dataIsSortedInX: true,
+	});
+	surface.addDeletable(totalAnimationSeries);
+	return {
+		x: xAnimationSeries,
+		y: yAnimationSeries,
+		z: zAnimationSeries,
+		total: totalAnimationSeries,
+	};
+};
+
 export const usePSDChart = () => {
 	return useChart(
 		PSDChartDefinition,
 		useCallback((surface: SciChartSurface) => {
-			const xAnimationSeries = new XyDataSeries(surface.webAssemblyContext2D, {
-				id: 'xAnimationSeries',
-				containsNaN: false,
-				isSorted: true,
-				dataIsSortedInX: true,
-			});
-			surface.addDeletable(xAnimationSeries);
-			const yAnimationSeries = new XyDataSeries(surface.webAssemblyContext2D, {
-				id: 'yAnimationSeries',
-				containsNaN: false,
-				isSorted: true,
-				dataIsSortedInX: true,
-			});
-			surface.addDeletable(yAnimationSeries);
-			const zAnimationSeries = new XyDataSeries(surface.webAssemblyContext2D, {
-				id: 'zAnimationSeries',
-				containsNaN: false,
-				isSorted: true,
-				dataIsSortedInX: true,
-			});
-			surface.addDeletable(zAnimationSeries);
-			const totalAnimationSeries = new XyDataSeries(surface.webAssemblyContext2D, {
-				id: 'totalAnimationSeries',
-				containsNaN: false,
-				isSorted: true,
-				dataIsSortedInX: true,
-			});
-			surface.addDeletable(totalAnimationSeries);
 			(surface.renderableSeries.asArray() as FastMountainRenderableSeries[]).forEach((rs) => {
 				rs.rolloverModifierProps.tooltipColor = getAxisColorName(rs.id as ADXLAxes);
 				rs.rolloverModifierProps.tooltipTemplate = psdRolloverTooltipTemplate;
@@ -527,12 +560,7 @@ export const usePSDChart = () => {
 			);
 
 			return {
-				animationSeries: {
-					x: xAnimationSeries,
-					y: yAnimationSeries,
-					z: zAnimationSeries,
-					total: totalAnimationSeries,
-				},
+				animationSeries: createPSDAnimationSeries(surface),
 			};
 		}, []),
 	);

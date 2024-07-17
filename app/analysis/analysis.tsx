@@ -22,6 +22,8 @@ import {
 	AudioWaveform,
 	Ban,
 	Cpu,
+	Dot,
+	ExternalLink,
 	Home,
 	List,
 	Move3D,
@@ -42,6 +44,7 @@ import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
 import { useToolheads } from '@/hooks/useToolheadConfiguration';
 import { KlipperAccelSensorName } from '@/zods/hardware';
+import { getHost } from '@/helpers/util';
 
 SciChartSurface.configure({
 	wasmUrl: '/configure/scichart2d.wasm',
@@ -73,7 +76,7 @@ const useOscillator = (G: ReturnType<typeof useGcodeCommand>, isEnabled: boolean
 		// aim for TARGET_OSC_TIME to allow for relatively fast updates
 		const macroTime = Math.floor(Math.max(250, TARGET_OSC_TIME - (TARGET_OSC_TIME % oscTime)));
 		const direction = axisRef.current === 'a' ? '1,1' : axisRef.current === 'b' ? '1,-1' : axisRef.current;
-		const beforeGcode = new Date().getTime();
+		const beforeGcode = performance.now();
 		try {
 			if (!isEnabledRef.current) {
 				isOscillating.current = false;
@@ -84,7 +87,7 @@ const useOscillator = (G: ReturnType<typeof useGcodeCommand>, isEnabled: boolean
 			OSCILLATE FREQ=${frequencyRef.current} TIME=${macroTime / 1000} AXIS=${direction}
 			`;
 			isOscillating.current = false;
-			const gcodeDuration = new Date().getTime() - beforeGcode;
+			const gcodeDuration = performance.now() - beforeGcode;
 			if (frequencyRef.current > 0 && gcodeDuration > macroTime) {
 				// If the gcode took longer than the macro time, we need to start it again
 				setTimeout(() => {
@@ -137,8 +140,10 @@ export const Analysis = () => {
 	const [adxl, setAdxl] = useState<MacroRecordingSettings['accelerometer']>(toolheads[0].getYAccelerometerName());
 	const {
 		isChartEnabled,
+		isLoading,
 		setIsChartEnabled,
 		streamStarted,
+		streamStopped,
 		chartProps,
 		psds,
 		currentAccelerometer,
@@ -164,8 +169,6 @@ export const Analysis = () => {
 				const wasStreaming = isChartEnabledRef.current;
 				setFrequency(0);
 				setIsMacroRunning(true);
-				setIsChartEnabled(true);
-				await streamStarted();
 				try {
 					await macro(abortController.current.signal, ...args);
 				} catch (e) {
@@ -190,11 +193,13 @@ export const Analysis = () => {
 					setIsRecording(false);
 					if (!wasStreaming) {
 						setIsChartEnabled(false);
+					} else {
+						setIsChartEnabled(true);
 					}
 					currentMacro.current = null;
 				}
 			},
-		[setFrequency, setIsChartEnabled, streamStarted],
+		[setFrequency, setIsChartEnabled],
 	);
 
 	const MacroIcon = useMemo(
@@ -221,8 +226,9 @@ export const Analysis = () => {
 					}
 					const startTs = new Date().getTime();
 					setAdxl(sequence.recording?.accelerometer);
-					await streamStarted();
+					await setIsChartEnabled(true);
 					if (sequence.recording?.capturePSD) {
+						getLogger().info('Starting PSD accumulation');
 						await psds.startAccumulation();
 						setIsRecording(true);
 					}
@@ -236,10 +242,23 @@ export const Analysis = () => {
 						M400
 					`;
 					if (sequence.recording?.capturePSD) {
+						getLogger().info('Stopping PSD accumulation');
 						const psd = await psds.stopAccumulation();
 						setIsRecording(false);
 						if (abort.aborted) {
 							throw new DOMException('Macro run aborted by user', 'AbortError');
+						}
+						const moonrakerReq = await fetch(
+							`http://${getHost()}/printer/objects/query?toolhead=square_corner_velocity`,
+						);
+						let scv = undefined;
+						if (moonrakerReq.ok) {
+							const moonrakerResponse = await moonrakerReq.json();
+							if (moonrakerResponse?.result?.status?.toolhead?.square_corner_velocity != null) {
+								scv = moonrakerResponse.result.status.toolhead.square_corner_velocity;
+							} else {
+								getLogger().warn(moonrakerResponse, 'Failed to get square corner velocity from moonraker');
+							}
 						}
 						mutations.push(
 							mutateRecordingAsync({
@@ -249,6 +268,7 @@ export const Analysis = () => {
 									macroId: macro.id,
 									sequenceId: sequence.id,
 									startTimeStamp: startTs,
+									scv,
 									endTimeStamp: new Date().getTime(),
 									psd,
 									name: sequence.name,
@@ -258,6 +278,7 @@ export const Analysis = () => {
 							}),
 						);
 					}
+					await setIsChartEnabled(false);
 				});
 				await sequences.reduce((p, f) => p.then(f), Promise.resolve());
 				if (abort.aborted) {
@@ -285,7 +306,7 @@ export const Analysis = () => {
 			}),
 		[
 			runMacro,
-			streamStarted,
+			setIsChartEnabled,
 			G,
 			psds,
 			mutateRecordingAsync,
@@ -298,212 +319,255 @@ export const Analysis = () => {
 	useTopMenu(
 		'analysis',
 		useCallback(
-			(Menu) => (
-				<>
-					<Menu.MenubarMenu>
-						<Menu.MenubarTrigger className="flex-nowrap whitespace-nowrap text-nowrap">
-							<Menu.MenubarIcon Icon={AudioLines} className={twJoin(isChartEnabled && 'text-brand-400')} />{' '}
-							<span className="hidden lg:inline">Stream</span>
-						</Menu.MenubarTrigger>
-						<Menu.MenubarContent onCloseAutoFocus={(e) => e.preventDefault()}>
-							<Menu.MenubarSub>
-								<Menu.MenubarSubTrigger>
-									<Menu.MenubarContentIcon Icon={Move3D} /> Accelerometer
-								</Menu.MenubarSubTrigger>
-								<Menu.MenubarSubContent>
-									<Menu.MenubarRadioGroup value={adxl} onValueChange={(e) => setAdxl(e as KlipperAccelSensorName)}>
-										<Menu.MenubarRadioItem
-											value="rpi"
-											className={twJoin(adxl === 'rpi' && 'font-semibold text-brand-400')}
-											onSelect={(e) => e.preventDefault()}
-										>
-											<Menu.MenubarContentIcon Icon={ServerIcon} />
-											Host
-										</Menu.MenubarRadioItem>
-										<Menu.MenubarRadioItem
-											value="controlboard"
-											className={twJoin(adxl === 'controlboard' && 'font-semibold text-brand-400')}
-											onSelect={(e) => e.preventDefault()}
-										>
-											<Menu.MenubarContentIcon Icon={Cpu} />
-											Control Board
-										</Menu.MenubarRadioItem>
-										{toolheads[0].hasToolboard() && (
+			(Menu) => {
+				return (
+					<>
+						<Menu.MenubarMenu>
+							<Menu.MenubarTrigger className="flex-nowrap whitespace-nowrap text-nowrap">
+								{isLoading ? (
+									<Spinner
+										noMargin={true}
+										className="size-4 text-white transition-colors group-data-[state=open]:text-white lg:text-white/60"
+									/>
+								) : (
+									<Menu.MenubarIcon
+										Icon={AudioLines}
+										className={twJoin(isChartEnabled && 'text-brand-400 lg:text-brand-400')}
+									/>
+								)}{' '}
+								<span className="hidden lg:inline">Stream</span>
+							</Menu.MenubarTrigger>
+							<Menu.MenubarContent onCloseAutoFocus={(e) => e.preventDefault()}>
+								<Menu.MenubarSub>
+									<Menu.MenubarSubTrigger>
+										<Menu.MenubarContentIcon Icon={Move3D} /> Accelerometer
+									</Menu.MenubarSubTrigger>
+									<Menu.MenubarSubContent>
+										<Menu.MenubarRadioGroup value={adxl} onValueChange={(e) => setAdxl(e as KlipperAccelSensorName)}>
 											<Menu.MenubarRadioItem
-												value="toolboard_t0"
-												className={twJoin(adxl === 'toolboard_t0' && 'font-semibold text-brand-400')}
+												value="rpi"
+												className={twJoin(adxl === 'rpi' && 'font-semibold text-brand-400')}
 												onSelect={(e) => e.preventDefault()}
 											>
-												<Menu.MenubarContentIcon Icon={ArrowDownToDot} />
-												Toolboard T0
+												<Menu.MenubarContentIcon Icon={ServerIcon} />
+												Host
 											</Menu.MenubarRadioItem>
-										)}
-										{toolheads.length > 1 && toolheads[1].hasToolboard() && (
 											<Menu.MenubarRadioItem
-												value="toolboard_t1"
-												className={twJoin(adxl === 'toolboard_t1' && 'font-semibold text-brand-400')}
+												value="controlboard"
+												className={twJoin(adxl === 'controlboard' && 'font-semibold text-brand-400')}
 												onSelect={(e) => e.preventDefault()}
 											>
-												<Menu.MenubarContentIcon Icon={ArrowDownToDot} />
-												Toolboard T1
+												<Menu.MenubarContentIcon Icon={Cpu} />
+												Control Board
 											</Menu.MenubarRadioItem>
-										)}
-										{hasBeacon && (
-											<Menu.MenubarRadioItem
-												value="beacon"
-												className={twJoin(adxl === 'beacon' && 'font-semibold text-brand-400')}
-												onSelect={(e) => e.preventDefault()}
-											>
-												<Menu.MenubarContentIcon Icon={Target} />
-												Beacon
-											</Menu.MenubarRadioItem>
-										)}
-									</Menu.MenubarRadioGroup>
-								</Menu.MenubarSubContent>
-							</Menu.MenubarSub>
-							<Menu.MenubarSeparator />
-							<Menu.MenubarItem
-								disabled={isChartEnabled || isMacroRunning}
-								onClick={async () => {
-									setIsChartEnabled(true);
-								}}
-							>
-								<Menu.MenubarContentIcon Icon={Play} /> Start
-							</Menu.MenubarItem>
-							<Menu.MenubarItem
-								disabled={!isChartEnabled || isMacroRunning}
-								onClick={async () => {
-									setIsChartEnabled(false);
-								}}
-							>
-								<Menu.MenubarContentIcon Icon={Pause} /> Stop
-							</Menu.MenubarItem>
-						</Menu.MenubarContent>
-					</Menu.MenubarMenu>
-					<Menu.MenubarMenu>
-						<Menu.MenubarTrigger className="flex-nowrap whitespace-nowrap text-nowrap">
-							<Menu.MenubarIcon Icon={PencilRuler} /> <span className="hidden lg:inline">Tools</span>
-						</Menu.MenubarTrigger>
-						<Menu.MenubarContent onCloseAutoFocus={(e) => e.preventDefault()}>
-							<Menu.MenubarItem
-								disabled={isMacroRunning}
-								onSelect={runMacro(async () => {
-									await G`MAYBE_HOME`;
-								})}
-							>
-								<Menu.MenubarContentIcon Icon={Home} />
-								Home Printer
-							</Menu.MenubarItem>
-							<Menu.MenubarSeparator />
-
-							<Menu.MenubarSub>
-								<Menu.MenubarSubTrigger>
-									<Menu.MenubarContentIcon Icon={AudioWaveform} /> Oscillator
-								</Menu.MenubarSubTrigger>
-								<Menu.MenubarSubContent>
-									<Menu.MenubarRadioGroup value={axis} onValueChange={(e) => setAxis(e as 'x' | 'y' | 'a' | 'b')}>
-										<Menu.MenubarRadioItem
-											value="x"
-											className={twJoin(axis === 'x' && frequency > 0 && 'font-semibold text-brand-400')}
-											onSelect={(e) => e.preventDefault()}
-										>
-											<Menu.MenubarContentIcon Icon={MoveHorizontal} /> Oscillate in X
-										</Menu.MenubarRadioItem>
-										<Menu.MenubarRadioItem
-											value="y"
-											className={twJoin(axis === 'y' && frequency > 0 && 'font-semibold text-brand-400')}
-											onSelect={(e) => e.preventDefault()}
-										>
-											<Menu.MenubarContentIcon Icon={MoveVertical} /> Oscillate in Y
-										</Menu.MenubarRadioItem>
-										<Menu.MenubarRadioItem
-											value="a"
-											className={twJoin(axis === 'a' && frequency > 0 && 'font-semibold text-brand-400')}
-											onSelect={(e) => e.preventDefault()}
-										>
-											<Menu.MenubarContentIcon Icon={MoveDiagonal} /> Oscillate in A
-										</Menu.MenubarRadioItem>
-										<Menu.MenubarRadioItem
-											value="b"
-											className={twJoin(axis === 'b' && frequency > 0 && 'font-semibold text-brand-400')}
-											onSelect={(e) => e.preventDefault()}
-										>
-											<Menu.MenubarContentIcon Icon={MoveDiagonal2} /> Oscillate in B
-										</Menu.MenubarRadioItem>
-									</Menu.MenubarRadioGroup>
-									<Menu.MenubarSeparator />
-									<div className="min-w-48 p-4">
-										<h3 className="-mt-2 text-center text-2xl font-medium tracking-tight">
-											<Input
-												type="number"
-												size={1}
-												max={200}
-												min={0}
-												onKeyUp={(e) => e.stopPropagation()}
-												onKeyDown={(e) => e.stopPropagation()}
-												className="m-0 inline min-w-0 border-none bg-transparent p-0 text-right font-mono text-3xl font-medium tracking-tight"
-												value={frequency.toFixed(1)}
-												style={{ width: frequency.toFixed(1).length + 'rem' }}
-												onChange={(e) => setFrequency(parseFloat(e.target.value))}
-											/>
-											Hz
-										</h3>
-										<Slider
-											min={0}
-											className="mt-4"
-											max={200}
-											value={[frequency]}
-											onValueChange={(val) => setFrequency(val[0])}
-											step={0.1}
-										/>
-									</div>
-								</Menu.MenubarSubContent>
-							</Menu.MenubarSub>
-						</Menu.MenubarContent>
-					</Menu.MenubarMenu>
-					<Menu.MenubarMenu>
-						<Menu.MenubarTrigger className="flex-nowrap whitespace-nowrap text-nowrap">
-							{MacroIcon} <span className="hidden lg:inline">Macros</span>
-						</Menu.MenubarTrigger>
-						<Menu.MenubarContent onCloseAutoFocus={(e) => e.preventDefault()}>
-							{macros.result?.map((macro) => (
+											{toolheads[0].hasToolboard() && (
+												<Menu.MenubarRadioItem
+													value="toolboard_t0"
+													className={twJoin(adxl === 'toolboard_t0' && 'font-semibold text-brand-400')}
+													onSelect={(e) => e.preventDefault()}
+												>
+													<Menu.MenubarContentIcon Icon={ArrowDownToDot} />
+													Toolboard T0
+												</Menu.MenubarRadioItem>
+											)}
+											{toolheads.length > 1 && toolheads[1].hasToolboard() && (
+												<Menu.MenubarRadioItem
+													value="toolboard_t1"
+													className={twJoin(adxl === 'toolboard_t1' && 'font-semibold text-brand-400')}
+													onSelect={(e) => e.preventDefault()}
+												>
+													<Menu.MenubarContentIcon Icon={ArrowDownToDot} />
+													Toolboard T1
+												</Menu.MenubarRadioItem>
+											)}
+											{hasBeacon && (
+												<Menu.MenubarRadioItem
+													value="beacon"
+													className={twJoin(adxl === 'beacon' && 'font-semibold text-brand-400')}
+													onSelect={(e) => e.preventDefault()}
+												>
+													<Menu.MenubarContentIcon Icon={Target} />
+													Beacon
+												</Menu.MenubarRadioItem>
+											)}
+										</Menu.MenubarRadioGroup>
+									</Menu.MenubarSubContent>
+								</Menu.MenubarSub>
+								<Menu.MenubarSeparator />
 								<Menu.MenubarItem
-									key={macro.id}
-									disabled={isMacroRunning}
-									onSelect={buildMacro(macro)}
-									className={twJoin(currentMacro.current?.id === macro.id && 'text-brand-400 opacity-100')}
+									disabled={isChartEnabled || isMacroRunning}
+									onClick={async () => {
+										setIsChartEnabled(true);
+									}}
 								>
-									{currentMacro.current?.id === macro.id ? MacroIcon : <Menu.MenubarContentIcon Icon={Play} />}
-									{macro.name}
+									<Menu.MenubarContentIcon Icon={Play} /> Start
 								</Menu.MenubarItem>
-							))}
-							<Menu.MenubarSeparator />
-							<Menu.MenubarItem disabled={isMacroRunning} asChild={true} className="pr-8">
-								<Link href="/analysis/macros">
-									<Menu.MenubarContentIcon Icon={List} /> View All Macros
-									<span className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center">
-										<MoveRight className="h-4 w-4" />
-									</span>
-								</Link>
-							</Menu.MenubarItem>
-							<Menu.MenubarItem disabled={isMacroRunning} asChild={true} className="pr-8">
-								<Link href="/analysis/macros/new">
-									<Menu.MenubarContentIcon Icon={Plus} /> New Macro
-									<span className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center">
-										<MoveRight className="h-4 w-4" />
-									</span>
-								</Link>
-							</Menu.MenubarItem>
-							<Menu.MenubarSeparator />
-							<Menu.MenubarItem disabled={!isMacroRunning} onClick={() => abortController.current.abort()}>
-								<Menu.MenubarContentIcon Icon={Ban} className={twJoin(isMacroRunning && 'text-red-400')} />
-								Abort {currentMacro.current?.name || ''}
-							</Menu.MenubarItem>
-						</Menu.MenubarContent>
-					</Menu.MenubarMenu>
-				</>
-			),
+								<Menu.MenubarItem
+									disabled={!isChartEnabled || isMacroRunning}
+									onClick={async () => {
+										setIsChartEnabled(false);
+									}}
+								>
+									<Menu.MenubarContentIcon Icon={Pause} /> Stop
+								</Menu.MenubarItem>
+							</Menu.MenubarContent>
+						</Menu.MenubarMenu>
+						<Menu.MenubarMenu>
+							<Menu.MenubarTrigger className="flex-nowrap whitespace-nowrap text-nowrap">
+								<Menu.MenubarIcon Icon={PencilRuler} /> <span className="hidden lg:inline">Tools</span>
+							</Menu.MenubarTrigger>
+							<Menu.MenubarContent onCloseAutoFocus={(e) => e.preventDefault()}>
+								<Menu.MenubarItem
+									disabled={isMacroRunning}
+									onSelect={runMacro(async () => {
+										await G`MAYBE_HOME`;
+									})}
+								>
+									<Menu.MenubarContentIcon Icon={Home} />
+									Home Printer
+								</Menu.MenubarItem>
+								<Menu.MenubarSeparator />
+
+								<Menu.MenubarSub>
+									<Menu.MenubarSubTrigger>
+										<Menu.MenubarContentIcon Icon={AudioWaveform} /> Toolhead Oscillator
+									</Menu.MenubarSubTrigger>
+									<Menu.MenubarSubContent>
+										<Menu.MenubarLabel>Oscillation Direction</Menu.MenubarLabel>
+										<Menu.MenubarRadioGroup value={axis} onValueChange={(e) => setAxis(e as 'x' | 'y' | 'a' | 'b')}>
+											<Menu.MenubarRadioItem
+												value="x"
+												className={twJoin(axis === 'x' && frequency > 0 && 'font-semibold text-brand-400')}
+												onSelect={(e) => e.preventDefault()}
+											>
+												<Menu.MenubarContentIcon Icon={MoveHorizontal} />{' '}
+												<div>
+													Oscillate X
+													<div className="text-xs text-muted-foreground">This isolates the X belt on bedslingers.</div>
+												</div>
+											</Menu.MenubarRadioItem>
+											<Menu.MenubarRadioItem
+												value="y"
+												className={twJoin(axis === 'y' && frequency > 0 && 'font-semibold text-brand-400')}
+												onSelect={(e) => e.preventDefault()}
+											>
+												<Menu.MenubarContentIcon Icon={MoveVertical} />{' '}
+												<div>
+													Oscillate Y
+													<div className="text-xs text-muted-foreground">This isolates the Y belt on bedslingers.</div>
+												</div>
+											</Menu.MenubarRadioItem>
+											<Menu.MenubarRadioItem
+												value="a"
+												className={twJoin(axis === 'a' && frequency > 0 && 'font-semibold text-brand-400')}
+												onSelect={(e) => e.preventDefault()}
+											>
+												<Menu.MenubarContentIcon Icon={MoveDiagonal} />{' '}
+												<div>
+													Oscillate X+Y
+													<div className="text-xs text-muted-foreground">This isolates the A belt on CoreXY.</div>
+												</div>
+											</Menu.MenubarRadioItem>
+											<Menu.MenubarRadioItem
+												value="b"
+												className={twJoin(axis === 'b' && frequency > 0 && 'font-semibold text-brand-400')}
+												onSelect={(e) => e.preventDefault()}
+											>
+												<Menu.MenubarContentIcon Icon={MoveDiagonal2} />{' '}
+												<div>
+													Oscillate X-Y
+													<div className="text-xs text-muted-foreground">This isolates the B belt on CoreXY.</div>
+												</div>
+											</Menu.MenubarRadioItem>
+										</Menu.MenubarRadioGroup>
+										<Menu.MenubarSeparator />
+
+										<Menu.MenubarLabel>Oscillation Frequency</Menu.MenubarLabel>
+										<div className="min-w-48 p-4">
+											<h3 className="-mt-2 text-center text-2xl font-medium tracking-tight">
+												<Input
+													type="number"
+													size={1}
+													max={200}
+													min={0}
+													onKeyUp={(e) => e.stopPropagation()}
+													onKeyDown={(e) => e.stopPropagation()}
+													className="m-0 inline min-w-0 border-none bg-transparent p-0 text-right font-mono text-3xl font-medium tracking-tight"
+													value={frequency.toFixed(1)}
+													style={{ width: frequency.toFixed(1).length + 'rem' }}
+													onChange={(e) => setFrequency(parseFloat(e.target.value))}
+												/>
+												Hz
+											</h3>
+											<Slider
+												min={0}
+												className="mt-4"
+												max={200}
+												value={[frequency]}
+												onValueChange={(val) => setFrequency(val[0])}
+												step={0.1}
+											/>
+										</div>
+									</Menu.MenubarSubContent>
+								</Menu.MenubarSub>
+							</Menu.MenubarContent>
+						</Menu.MenubarMenu>
+						<Menu.MenubarMenu>
+							<Menu.MenubarTrigger className="flex-nowrap whitespace-nowrap text-nowrap">
+								{MacroIcon} <span className="hidden lg:inline">Macros</span>
+							</Menu.MenubarTrigger>
+							<Menu.MenubarContent onCloseAutoFocus={(e) => e.preventDefault()}>
+								<Menu.MenubarItem disabled={isMacroRunning} asChild={true} className="pr-8">
+									<Link href="/analysis/macros/new">
+										<Menu.MenubarContentIcon Icon={Plus} /> New Macro
+										<span className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center">
+											<ExternalLink className="h-4 w-4" />
+										</span>
+									</Link>
+								</Menu.MenubarItem>
+								<Menu.MenubarItem disabled={isMacroRunning} asChild={true} className="pr-8">
+									<Link href="/analysis/macros">
+										<Menu.MenubarContentIcon Icon={List} /> Macro Overview
+										<span className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center">
+											<ExternalLink className="h-4 w-4" />
+										</span>
+									</Link>
+								</Menu.MenubarItem>
+								<Menu.MenubarSeparator />
+								<Menu.MenubarSub>
+									<Menu.MenubarSubTrigger>
+										<Menu.MenubarContentIcon Icon={Play} /> Execute Macro
+									</Menu.MenubarSubTrigger>
+									<Menu.MenubarSubContent className="max-w-80">
+										{macros.result?.map((macro) => (
+											<Menu.MenubarItem
+												key={macro.id}
+												disabled={isMacroRunning}
+												onSelect={buildMacro(macro)}
+												className={twJoin(
+													currentMacro.current?.id === macro.id && 'text-brand-400 opacity-100 lg:text-brand-400',
+												)}
+											>
+												{currentMacro.current?.id === macro.id ? MacroIcon : <Menu.MenubarContentIcon Icon={Dot} />}
+												<div>
+													{macro.name}
+													<div className="text-xs text-muted-foreground">{macro.description}</div>
+												</div>
+											</Menu.MenubarItem>
+										))}
+									</Menu.MenubarSubContent>
+								</Menu.MenubarSub>
+								<Menu.MenubarItem disabled={!isMacroRunning} onClick={() => abortController.current.abort()}>
+									<Menu.MenubarContentIcon Icon={Ban} className={twJoin(isMacroRunning && 'text-red-400')} />
+									Abort {currentMacro.current?.name || 'Macro'}
+								</Menu.MenubarItem>
+							</Menu.MenubarContent>
+						</Menu.MenubarMenu>
+					</>
+				);
+			},
 			[
+				isLoading,
 				isChartEnabled,
 				adxl,
 				toolheads,
