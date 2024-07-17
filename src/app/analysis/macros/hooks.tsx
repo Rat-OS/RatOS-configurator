@@ -530,7 +530,6 @@ export const useInputShaperChart = (
 						(deepEqual(recommendedShaper, prevRecommendedShaper.current) === false ||
 							prevRecommendedShaper.current == null)))
 			) {
-				console.log(currentRecommendedShaper.current, prevRecommendedShaper.current, recommendedShaper);
 				if ((prevShapers.current?.length ?? 0) > 0) {
 					// Animate input shapers
 					const skip: string[] = [];
