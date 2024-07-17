@@ -454,6 +454,7 @@ export const useInputShaperChart = (
 	const currentRecommendedShaper = useRef(recommendedShaper);
 	currentRecommendedShaper.current = recommendedShaper;
 	const prevShapers = useRef(shapers);
+	const prevRecommendedShaper = useRef(recommendedShaper);
 
 	const initializeInputShapers = useCallback(
 		(surface: SciChartSurface, skip: string[] = []) => {
@@ -485,21 +486,21 @@ export const useInputShaperChart = (
 				});
 				surface.renderableSeries.add(rs);
 			}
-			currentInputShapers.current?.forEach((seq, i) => {
-				if (surface == null || skip.includes(seq.name) || surface.renderableSeries.getById(seq.name) != null) {
+			currentInputShapers.current?.forEach((shaper, i) => {
+				if (surface == null || skip.includes(shaper.name) || surface.renderableSeries.getById(shaper.name) != null) {
 					return;
 				}
 				const rs = new FastLineRenderableSeries(surface.webAssemblyContext2D, {
-					id: seq.name,
+					id: shaper.name,
 					dataSeries: new XyDataSeries(surface.webAssemblyContext2D, {
 						containsNaN: false,
 						isSorted: true,
 						xValues: sequenceData.psd.total.frequencies,
-						yValues: seq.vals,
+						yValues: shaper.vals,
 					}),
-					stroke: shadableTWColors[seq.color][400],
-					strokeThickness: seq.name === currentRecommendedShaper.current?.name ? 5 : 2,
-					strokeDashArray: seq.name === currentRecommendedShaper.current?.name ? [10, 5, 2, 5] : [3, 5],
+					stroke: shadableTWColors[shaper.color][400],
+					strokeThickness: shaper.name === currentRecommendedShaper.current?.name ? 5 : 2,
+					strokeDashArray: shaper.name === currentRecommendedShaper.current?.name ? [10, 5, 2, 5] : [3, 5],
 					yAxisId: PSD_CHART_AXIS_SHAPER_ID,
 				});
 				rs.rolloverModifierProps.showRollover = false;
@@ -516,12 +517,20 @@ export const useInputShaperChart = (
 	);
 
 	const updateInputShapers = useCallback(
-		(surface: SciChartSurface) => {
+		async (surface: SciChartSurface) => {
 			// Update input shapers
 			if (surface == null) {
 				return;
 			}
-			if (enabled === true && (shapers?.length ?? 0) > 0 && deepEqual(shapers, prevShapers.current) === false) {
+			if (
+				enabled === true &&
+				(shapers?.length ?? 0) > 0 &&
+				(deepEqual(shapers, prevShapers.current) === false ||
+					(recommendedShaper &&
+						(deepEqual(recommendedShaper, prevRecommendedShaper.current) === false ||
+							prevRecommendedShaper.current == null)))
+			) {
+				console.log(currentRecommendedShaper.current, prevRecommendedShaper.current, recommendedShaper);
 				if ((prevShapers.current?.length ?? 0) > 0) {
 					// Animate input shapers
 					const skip: string[] = [];
@@ -534,7 +543,10 @@ export const useInputShaperChart = (
 							}
 							const shaper = shapers?.find((shaper) => shaper.name === rs.id);
 							const prevShaper = prevShapers.current?.find((shaper) => shaper.name === rs.id);
-							if (shaper && prevShaper && !deepEqual(shaper.vals, prevShaper.vals)) {
+							if (
+								(shaper && prevShaper && !deepEqual(shaper.vals, prevShaper.vals)) ||
+								(currentRecommendedShaper.current?.name === rs.id && prevRecommendedShaper.current?.name != rs.id)
+							) {
 								const newDs = new XyDataSeries(surface.webAssemblyContext2D, {
 									containsNaN: false,
 									isSorted: true,
@@ -565,6 +577,9 @@ export const useInputShaperChart = (
 											duration: 500,
 											ease: easing.inOutCirc,
 											dataSeries: newDs,
+											styles: {
+												strokeThickness: rs.id === currentRecommendedShaper.current?.name ? 5 : 2,
+											},
 										}),
 									);
 								}
@@ -608,9 +623,67 @@ export const useInputShaperChart = (
 						);
 					});
 			}
+			// if (
+			// 	enabled === true &&
+			// 	(shapers?.length ?? 0) > 0 &&
+			// 	recommendedShaper &&
+			// 	deepEqual(recommendedShaper, prevRecommendedShaper.current) === false
+			// ) {
+			// 	const rs = surface.renderableSeries.getById(recommendedShaper.name);
+			// 	if (surface == null || rs.isRunningAnimation) {
+			// 		return;
+			// 	}
+			// 	const newDs = new XyDataSeries(surface.webAssemblyContext2D, {
+			// 		containsNaN: false,
+			// 		isSorted: true,
+			// 	});
+			// 	surface.addDeletable(newDs);
+			// 	if (rs.dataSeries == null) {
+			// 		getLogger().warn(rs.id, 'dataSeries is null');
+			// 		return;
+			// 	}
+			// 	newDs.appendRange(sequenceData.psd.total.frequencies, new Array(rs.dataSeries.count()).fill(0));
+			// 	await new Promise<void>((resolve) => {
+			// 		rs.enqueueAnimation(
+			// 			new LineAnimation({
+			// 				duration: 500,
+			// 				fadeEffect: true,
+			// 				reverse: true,
+			// 				ease: easing.inOutCirc,
+			// 				dataSeries: newDs,
+			// 				onCompleted: () => {
+			// 					surface?.renderableSeries.remove(rs, true);
+			// 					resolve();
+			// 				},
+			// 			}),
+			// 		);
+			// 	});
+			// 	const newRs = new FastLineRenderableSeries(surface.webAssemblyContext2D, {
+			// 		id: recommendedShaper.name,
+			// 		dataSeries: new XyDataSeries(surface.webAssemblyContext2D, {
+			// 			containsNaN: false,
+			// 			isSorted: true,
+			// 			xValues: sequenceData.psd.total.frequencies,
+			// 			yValues: recommendedShaper.psd,
+			// 		}),
+			// 		stroke: shadableTWColors[recommendedShaper.color][400],
+			// 		strokeThickness: 5,
+			// 		strokeDashArray: [10, 5, 2, 5],
+			// 		yAxisId: PSD_CHART_AXIS_SHAPER_ID,
+			// 	});
+			// 	newRs.rolloverModifierProps.showRollover = false;
+			// 	newRs.animation = new WaveAnimation({
+			// 		duration: 1000,
+			// 		ease: easing.inOutCubic,
+			// 		fadeEffect: true,
+			// 	});
+			// 	surface.renderableSeries.add(newRs);
+			// 	prevRecommendedShaper.current = recommendedShaper;
+			// }
+			prevRecommendedShaper.current = recommendedShaper;
 			prevShapers.current = shapers;
 		},
-		[initializeInputShapers, enabled, sequenceData, shapers],
+		[enabled, shapers, recommendedShaper, initializeInputShapers, sequenceData.psd.total.frequencies],
 	);
 
 	return {
