@@ -282,7 +282,6 @@ export const MacroRunChart: React.FC<MacroRunChartProps> = (props) => {
 						sequenceSeries
 							.filter((s) => subComponentSeriesRef.current.includes(s.sequenceId))
 							.forEach((seq) => {
-								console.log('initting subcomponents after transition');
 								initSeriesSubcomponents(chart.surface.current, seq);
 							});
 					});
@@ -292,7 +291,6 @@ export const MacroRunChart: React.FC<MacroRunChartProps> = (props) => {
 					sequenceSeries
 						.filter((s) => subComponentSeriesRef.current.includes(s.sequenceId))
 						.forEach((seq) => {
-							console.log('initting subcomponents');
 							initSeriesSubcomponents(chart.surface.current, seq);
 						});
 				});
