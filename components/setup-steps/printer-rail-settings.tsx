@@ -117,8 +117,15 @@ export const PrinterRailSettings: React.FC<PrinterRailSettingsProps> = (props) =
 	);
 	useEffect(() => {
 		if (guessMotorSlot.data && motorSlot == null && board?.motorSlots?.[guessMotorSlot.data] != null) {
+			// Once the motorslot has been determined, make sure we update all affected details.
 			startTransition(() => {
 				setMotorSlot(guessMotorSlot.data ? guessMotorSlot.data : undefined);
+				if (guessMotorSlot.data && board?.integratedDrivers?.[guessMotorSlot.data] != null) {
+					const newDriver = deserializeDriver(board.integratedDrivers[guessMotorSlot.data]);
+					if (newDriver) {
+						setDriver(newDriver);
+					}
+				}
 			});
 		}
 	}, [board, guessMotorSlot.data, motorSlot, props.printerRailDefault.axis]);

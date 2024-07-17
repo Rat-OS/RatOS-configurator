@@ -24,7 +24,7 @@ export const Drivers = z.array(Driver).parse([
 	},
 	{
 		id: 'BTT-KRAKEN-2160-PLUS',
-		title: 'BTT TMC2160',
+		title: 'BTT TMC2160 PLUS',
 		type: 'TMC5160',
 		protocol: 'SPI',
 		senseResistor: 0.022,
