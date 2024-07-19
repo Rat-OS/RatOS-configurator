@@ -102,7 +102,9 @@ export const BeltTensionComparison: React.FC<BeltTensionComparisonProps> = (prop
 							{peakPairingResults.pairedPeaks.map((pair, i) => (
 								<TableRow key={pair[0].freq + pair[1].freq} className={twJoin('text-xs')}>
 									<TableCell className="whitespace-nowrap text-nowrap">Peaks {String.fromCharCode(65 + i)}</TableCell>
-									<TableCell>{(Math.round(Math.abs(pair[0].freq - pair[1].freq) * 10) / 10).toFixed(1)}hz</TableCell>
+									<TableCell className="text-right">
+										{(Math.round(Math.abs(pair[0].freq - pair[1].freq) * 10) / 10).toFixed(1)}hz
+									</TableCell>
 									<TableCell className="text-right">
 										{(
 											(Math.abs(pair[0].amplitude - pair[1].amplitude) /
