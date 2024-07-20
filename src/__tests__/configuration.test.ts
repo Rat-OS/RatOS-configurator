@@ -274,6 +274,16 @@ describe('configuration', async () => {
 				}
 				expect(firmwareConfigContents.includes(`CONFIG_USB_SERIAL_NUMBER="${getBoardChipId(board)}"`)).toBeTruthy();
 			});
+			test.skipIf(board.dfu == null).concurrent('has existing dfu raster image', async () => {
+				if (board.dfu == null) {
+					throw new Error('dfu should not be null for this test');
+				}
+				expect(
+					fs.existsSync(path.join(board.path, board.dfu.dfuBootImage)),
+					`${board.dfu.dfuBootImage} does not exist.`,
+				).toBeTruthy();
+				expect(board.dfu.dfuBootImage.endsWith('svg'), `SVG images are not supported for dfu boot images`).toBeFalsy();
+			});
 		});
 	});
 	const printerConfigs = parsedPrinters.filter((p) => p.defaults == null);
