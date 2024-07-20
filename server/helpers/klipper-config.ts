@@ -867,9 +867,7 @@ export const constructKlipperConfigHelpers = async (
 						if (!onlyPins) {
 							const reminder: string[] = [];
 							reminder.push('# REMEMBER TO CALIBRATE YOUR BEACON!');
-							reminder.push(
-								'# Follow along from step 6 in the official beacon guide https://docs.beacon3d.com/quickstart/#6-calibrate-beacon',
-							);
+							reminder.push('# Run BEACON_RATOS_CALIBRATE for automatic calibration.');
 							extrasGenerator.addReminder(reminder.join('\n'));
 						}
 						break;

@@ -112,22 +112,8 @@ const psdWorker = fromWorker<PSDWorkerInput, PSDWorkerOutput>(
 	() => new Worker(new URL('@/app/analysis/_worker/psd', import.meta.url)),
 	psdInput$,
 ).pipe(share());
-
-const psdOutput$ = psdWorker.pipe(
-	filter((output): output is { type: 'psd'; psd: PSDResult } => output.type === 'psd'),
-	mapToWorkerOutput((output) => {
-		// console.log('mapping psd result');
-		return {
-			type: WorkResult.PSD,
-			payload: output.psd,
-		};
-	}),
-	share(),
-);
 export class AccelSensorWorker implements DoWork<WorkerInput, WorkerOutput> {
 	private stream: ReturnType<typeof createADXL345Stream> | null = null;
-	private signalProcessor: Awaited<ReturnType<typeof createSignalBuffers>> | null = null;
-	private psdSubscribed = false;
 	public work(input$: Observable<WorkerInput>) {
 		return input$.pipe(
 			mergeMap((input): Observable<WorkerOutput> => {
@@ -141,20 +127,20 @@ export class AccelSensorWorker implements DoWork<WorkerInput, WorkerOutput> {
 							if (this.stream == null) {
 								throw Error(`Stream not initialized`);
 							}
-							this.signalProcessor = await createSignalBuffers(this.stream.dataStream$);
-							this.signalProcessor.signal$.subscribe((s) =>
+							const signalProcessor = await createSignalBuffers(this.stream.dataStream$);
+							signalProcessor.signal$.subscribe((s) =>
 								psdInput$.next({ command: 'sampleInput', payload: [s[0].toNumber(), s[1], s[2], s[3]] }),
 							);
-							this.signalProcessor.specSampleRate$.subscribe((s) =>
+							signalProcessor.specSampleRate$.subscribe((s) =>
 								psdInput$.next({ command: 'specSampleRateInput', payload: s }),
 							);
 							const res = scheduled(
 								from([
 									of({
 										type: WorkResult.STARTED,
-										payload: this.signalProcessor.timeStamp,
+										payload: signalProcessor.timeStamp,
 									} as WorkerOutput),
-									this.signalProcessor.timeMappedSignal$.pipe(
+									signalProcessor.timeMappedSignal$.pipe(
 										mapToWorkerOutput((data) => {
 											const sample = new Float64Array([data[0].toNumber(), ...data.slice(1)] as AccelSampleMs);
 											return {
@@ -162,26 +148,33 @@ export class AccelSensorWorker implements DoWork<WorkerInput, WorkerOutput> {
 												payload: sample.buffer,
 											};
 										}),
+										share(),
 									),
-									this.signalProcessor.sampleRate$.pipe(
+									signalProcessor.sampleRate$.pipe(
 										mapToWorkerOutput((sampleRate) => ({
 											type: WorkResult.SAMPLE_RATE,
 											payload: sampleRate,
 										})),
 									),
-									this.signalProcessor.specSampleRate$.pipe(
+									signalProcessor.specSampleRate$.pipe(
 										mapToWorkerOutput((specSampleRate) => ({
 											type: WorkResult.SPEC_SAMPLE_RATE,
 											payload: specSampleRate,
 										})),
 									),
-									this.psdSubscribed ? EMPTY : psdOutput$,
+									psdWorker.pipe(
+										filter((output): output is { type: 'psd'; psd: PSDResult } => output.type === 'psd'),
+										mapToWorkerOutput((output) => {
+											// console.log('mapping psd result');
+											return {
+												type: WorkResult.PSD,
+												payload: output.psd,
+											};
+										}),
+									),
 								]),
 								asyncScheduler,
 							).pipe(mergeAll());
-							if (!this.psdSubscribed) {
-								this.psdSubscribed = true;
-							}
 							return res;
 						};
 						return from(setup()).pipe(mergeAll());
@@ -196,7 +189,7 @@ export class AccelSensorWorker implements DoWork<WorkerInput, WorkerOutput> {
 						} as WorkerOutput);
 					}
 					case WorkCommand.START_ACCUMULATION: {
-						if (this.signalProcessor == null) {
+						if (this.stream == null) {
 							throw Error(`Stream not initialized`);
 						}
 						if (psdWorker == null) {

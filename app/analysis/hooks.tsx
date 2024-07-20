@@ -67,31 +67,6 @@ const worker = fromWorker<WorkerInput, WorkerOutput>(
 	() => new Worker(new URL('@/app/analysis/_worker/index', import.meta.url)),
 	input$,
 ).pipe(share());
-const signal$ = worker.pipe(
-	filter((output): output is WorkerSignalOutput => output.type === WorkResult.SIGNAL),
-	map((output) => new Float64Array(output.payload)),
-	buffer(animationFrames()),
-	filter((signals) => signals.length > 0),
-	map((signals) => {
-		const time = new Float64Array(signals.length);
-		const x = new Float64Array(signals.length);
-		const y = new Float64Array(signals.length);
-		const z = new Float64Array(signals.length);
-		signals.forEach((signal, i) => {
-			time[i] = signal[0];
-			x[i] = signal[1];
-			y[i] = signal[2];
-			z[i] = signal[3];
-		});
-		return [time, x, y, z] as [Float64Array, Float64Array, Float64Array, Float64Array];
-	}),
-	share(),
-);
-const psd$ = worker.pipe(
-	filter((output): output is WorkerPSDOutput => output.type === WorkResult.PSD),
-	map((output) => output.payload),
-	share(),
-);
 export const useWorker = (
 	enabled: boolean,
 	sensor: KlipperAccelSensorName,
@@ -162,24 +137,22 @@ export const useWorker = (
 			),
 		);
 		await res;
-		return;
+	}, []);
+	const streamStopped = useCallback(async () => {
+		await new Promise((resolve) => setTimeout(resolve, 10));
+		if (!isRunningRef.current) {
+			return;
+		}
+		const res = firstValueFrom(
+			worker.pipe(
+				filter((output): output is WorkerAccumulationResultOuput => output.type === WorkResult.STOPPED),
+				timeout(5000),
+			),
+		);
+		await res;
 	}, []);
 	useEffect(() => {
 		setWsUrl(getWsURL());
-	}, []);
-	useEffect(() => {
-		const subscriber = (signal: [Float64Array, Float64Array, Float64Array, Float64Array]) => {
-			onResultRef.current(signal);
-		};
-		const signalSub = signal$.subscribe(subscriber);
-		const psdSubscriber = (psd: Omit<PSDResult, 'source'>) => {
-			onPSDResultRef.current(psd);
-		};
-		const psdSub = psd$.subscribe(psdSubscriber);
-		return () => {
-			signalSub.unsubscribe();
-			psdSub.unsubscribe();
-		};
 	}, []);
 	useEffect(() => {
 		if (enabled && wsUrl != null) {
@@ -206,20 +179,68 @@ export const useWorker = (
 				},
 				error: onError,
 			});
+			const signalSub = worker
+				.pipe(
+					filter((output): output is WorkerSignalOutput => output.type === WorkResult.SIGNAL),
+					map((output) => new Float64Array(output.payload)),
+					buffer(animationFrames()),
+					filter((signals) => signals.length > 0),
+					map((signals) => {
+						const time = new Float64Array(signals.length);
+						const x = new Float64Array(signals.length);
+						const y = new Float64Array(signals.length);
+						const z = new Float64Array(signals.length);
+						signals.forEach((signal, i) => {
+							time[i] = signal[0];
+							x[i] = signal[1];
+							y[i] = signal[2];
+							z[i] = signal[3];
+						});
+						return [time, x, y, z] as [Float64Array, Float64Array, Float64Array, Float64Array];
+					}),
+				)
+				.subscribe({
+					next: (signal: [Float64Array, Float64Array, Float64Array, Float64Array]) => {
+						onResultRef.current(signal);
+					},
+					error: onError,
+				});
+			const psdSub = worker
+				.pipe(
+					filter((output): output is WorkerPSDOutput => output.type === WorkResult.PSD),
+					map((output) => output.payload),
+				)
+				.subscribe({
+					next: (psd: Omit<PSDResult, 'source'>) => {
+						onPSDResultRef.current(psd);
+					},
+					error: onError,
+				});
 			input$.next({ type: WorkCommand.START, payload: { url: wsUrl, sensor: parsedSensor } });
 			return () => {
-				isRunningRef.current = false;
+				firstValueFrom(
+					worker.pipe(
+						filter((output): output is WorkerAccumulationResultOuput => output.type === WorkResult.STOPPED),
+						timeout(5000),
+					),
+				).finally(() => {
+					isRunningRef.current = false;
+					sub.unsubscribe();
+					signalSub.unsubscribe();
+					psdSub.unsubscribe();
+				});
 				input$.next({ type: WorkCommand.STOP });
-				sub.unsubscribe();
 			};
 		}
 	}, [enabled, onError, parsedSensor, sensor, wsUrl]);
 	return {
 		streamStarted,
+		streamStopped,
 		startAccumulation,
 		stopAccumulation,
 	};
 };
+
 export const useAccelerometerWithType = (accelerometerName: KlipperAccelSensorName): KlipperAccelSensorSchema => {
 	const controlBoard = useRecoilValue(ControlboardState);
 	const toolheads = useToolheads();
@@ -266,6 +287,7 @@ export const useChart = <T,>(
 ) => {
 	const surface = useRef<SciChartSurface | null>(null);
 	const [isInitialized, setIsInitialized] = useState(false);
+	const initializers = useRef<ReactCallback<(surface: SciChartSurface) => void>[]>([]);
 	const data = useRef<T | null>(null);
 	return useMemo(
 		() => ({
@@ -302,7 +324,13 @@ export const useChart = <T,>(
 
 					return { sciChartSurface: chart.sciChartSurface };
 				},
-				onInit: () => setIsInitialized(true),
+				onInit: () => {
+					setIsInitialized(true);
+					if (surface.current == null) {
+						throw new Error('onInit called without surface initialized');
+					}
+					initializers.current.forEach((init) => init(surface.current!));
+				},
 				style: {
 					marginLeft: indent ? -300 : 0,
 				},
@@ -311,6 +339,12 @@ export const useChart = <T,>(
 			} satisfies TChartComponentProps,
 			surface,
 			isInitialized,
+			onInitialize: (callback: ReactCallback<(surface: SciChartSurface) => void>) => {
+				initializers.current.push(callback);
+				if (isInitialized && surface.current != null) {
+					callback(surface.current);
+				}
+			},
 			data,
 		}),
 		[indent, isInitialized, definition, initializer],
@@ -360,8 +394,8 @@ export function useDynamicAxisRange(
 	animationDuration?: number,
 ) {
 	const maxRef = useRef<NumberRange | null>(axis ? maximumRangeUnion(axis) : null);
-	const lastUpdate = useRef<number>(new Date().getTime());
-	const lastChange = useRef<number>(new Date().getTime());
+	const lastUpdate = useRef<number>(performance.now());
+	const lastChange = useRef<number>(performance.now());
 
 	const update = useCallback(
 		(dataRange: NumberRange = minimum) => {
@@ -372,9 +406,9 @@ export function useDynamicAxisRange(
 			if (maxRef.current == null) {
 				maxRef.current = visibleRangeUnion(axis);
 			}
-			const sinceLastUpdate = new Date().getTime() - lastUpdate.current;
-			const sinceLastChange = new Date().getTime() - lastChange.current;
-			lastUpdate.current = new Date().getTime();
+			const sinceLastUpdate = performance.now() - lastUpdate.current;
+			const sinceLastChange = performance.now() - lastChange.current;
+			lastUpdate.current = performance.now();
 			let max = maximumRangeUnion(axis);
 			if (dataRange) {
 				max = max.union(dataRange);
@@ -403,7 +437,7 @@ export function useDynamicAxisRange(
 						const newRange = new NumberRange(bestMin, bestMax);
 						a.animateVisibleRange(newRange, animationDuration ?? sinceLastUpdate, easing.inOutQuad);
 					});
-					lastChange.current = new Date().getTime();
+					lastChange.current = performance.now();
 				}
 			}
 			if (sinceLastChange > 3000) {
@@ -424,7 +458,7 @@ export function useDynamicAxisRange(
 						a.animateVisibleRange(newRange, sinceLastChange / 2, easing.inOutQuad);
 					});
 					maxRef.current = new NumberRange(lowestMin, lowestMax);
-					lastChange.current = new Date().getTime();
+					lastChange.current = performance.now();
 					return;
 				}
 			}

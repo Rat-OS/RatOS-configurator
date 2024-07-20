@@ -18,6 +18,18 @@
 		{
 		  "from": "./node_modules/scichart/_wasm/scichart3d.wasm",
 		  "to": "./public/scichart3d.wasm"
+		},
+		{
+			"from": "./node_modules/@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm.wasm",
+			"to": "./public/tfjs-backend-wasm.wasm"
+		},
+		{
+			"from": "./node_modules/@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm-simd.wasm",
+			"to": "./public/tfjs-backend-wasm-simd.wasm"
+		},
+		{
+			"from": "./node_modules/@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm-threaded-simd.wasm",
+			"to": "./public/tfjs-backend-wasm-threaded-simd.wasm"
 		}
 	]
   }

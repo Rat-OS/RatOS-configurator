@@ -21,7 +21,11 @@ export const getDebugZipFiles = async () => {
 	]);
 	ratosFiles = ratosFiles.filter((file, index) => ratosFiles.indexOf(file) === index);
 
-	let logs = await glob([`${environment.KLIPPER_CONFIG_PATH}/../logs/*.${extensions}`, `${environment.LOG_FILE}`]);
+	let logs = await glob([
+		`${environment.KLIPPER_CONFIG_PATH}/../logs/*.${extensions}`,
+		`${environment.LOG_FILE}`,
+		'/var/log/kern.+(log|log.1)',
+	]);
 	logs = logs.filter((file, index) => logs.indexOf(file) === index);
 
 	let exclude = await glob([
@@ -79,12 +83,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			});
 
 			try {
-				const buf = zip.generateNodeStream({ type: 'nodebuffer', streamFiles: true });
 				res.setHeader('Content-Type', 'application/x-zip');
 				res.setHeader('Content-Disposition', `attachment; filename=ratos-debug.zip`);
-				return res
-					.status(200)
-					.send(zip.generateNodeStream({ type: 'nodebuffer', streamFiles: true, compression: 'DEFLATE' }));
+				getLogger().info(`Sending zip to client...`);
+				return res.status(200).send(
+					zip.generateNodeStream({
+						type: 'nodebuffer',
+						streamFiles: true,
+						compression: 'DEFLATE',
+						compressionOptions: { level: 1 },
+					}),
+				);
 			} catch (e) {
 				getLogger().error(e instanceof Error ? e.message : 'Unknown error while generating debug zip');
 				return res.status(200).json({

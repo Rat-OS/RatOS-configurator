@@ -60,7 +60,6 @@ export const MetadataCache = new NodeCache({
 }) as MetadataCache;
 
 const cachePromiseLookup = new Map<string, Promise<any>>();
-const now = new Date().getTime();
 
 export const cacheAsyncMetadataFn = <
 	K extends `parsePinAlias` | `extractMcuFromFirmwareConfig` | `getExtruderRotationDistance`,

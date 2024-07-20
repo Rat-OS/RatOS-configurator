@@ -73,6 +73,7 @@ export const macroRecordingSettingsSchema = z
 export const macroRecordingSchema = z.object({
 	id: macroRecordingIdSchema,
 	macroRecordingRunId: macroRecordingRunIdSchema,
+	scv: z.number().default(5),
 	macroId: macroIDSchema,
 	sequenceId: macroSequenceIDSchema,
 	startTimeStamp: z.number(),

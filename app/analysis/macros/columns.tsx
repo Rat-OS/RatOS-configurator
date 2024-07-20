@@ -14,6 +14,7 @@ import { ColumnCapabilities } from '@/app/analysis/macros/components/data-table-
 import { ArrowDownToDot, Cpu, Play, Server, Target } from 'lucide-react';
 import { MacroBulkActions } from '@/app/analysis/macros/macro-bulk-actions';
 import Link from 'next/link';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 export const columns: (ColumnDef<Macro> & ColumnCapabilities)[] = [
 	{
@@ -38,9 +39,10 @@ export const columns: (ColumnDef<Macro> & ColumnCapabilities)[] = [
 		enableHiding: false,
 	},
 	{
-		accessorKey: 'name',
-		size: 1000,
-		header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
+		id: 'accelerometers',
+		accessorKey: 'sequences',
+		size: 200,
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Accelerometers" />,
 		cell: ({ row }) => {
 			let labels: { label: string; color: BadgeProps['color']; icon: React.ComponentType }[] = [];
 			row.original.sequences.map((sequence) => {
@@ -62,28 +64,22 @@ export const columns: (ColumnDef<Macro> & ColumnCapabilities)[] = [
 						break;
 				}
 			});
-
 			// make sure there's no duplicate labels
 			labels = labels.filter((v, i, a) => a.findIndex((t) => t.label === v.label) === i);
-
 			return (
-				<div className="flex items-center space-x-2">
+				<div>
 					{labels.map((l) => (
 						<Badge color={l.color} key={l.label}>
 							{l.label}
 						</Badge>
 					))}
-					<Link
-						href={`/analysis/macros/${row.original.id}/recordings`}
-						className="truncate font-medium hover:text-brand-400"
-					>
-						{row.getValue('name')}
-					</Link>
 				</div>
 			);
 		},
 		getUniqueValues: (row) => {
-			return row.sequences.map((sequence) => sequence.recording?.accelerometer as string).concat([row.name]);
+			return row.sequences
+				.map((sequence) => sequence.recording?.accelerometer as string)
+				.filter((v, i, a) => a.findIndex((t) => t === v) === i);
 		},
 		getFacetedOptions: () => {
 			return [
@@ -96,8 +92,33 @@ export const columns: (ColumnDef<Macro> & ColumnCapabilities)[] = [
 		},
 		filterFn: (row, id, filterValues) => {
 			const sequences = row.original.sequences.map((sequence) => sequence.recording?.accelerometer as string);
-			return (Array.isArray(filterValues) ? filterValues : [filterValues]).some(
-				(filterValue) => sequences.includes(filterValue) || row.original.name.includes(filterValue),
+			return (Array.isArray(filterValues) ? filterValues : [filterValues]).some((filterValue) =>
+				sequences.includes(filterValue),
+			);
+		},
+	},
+	{
+		accessorKey: 'name',
+		size: 1000,
+		header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,
+		cell: ({ row }) => {
+			return (
+				<div className="flex items-center space-x-2">
+					<Link
+						href={`/analysis/macros/${row.original.id}/recordings`}
+						className="truncate font-medium hover:text-brand-400"
+					>
+						{row.getValue('name')}
+					</Link>
+				</div>
+			);
+		},
+		getUniqueValues: (row) => {
+			return [row.name];
+		},
+		filterFn: (row, id, filterValues) => {
+			return (Array.isArray(filterValues) ? filterValues : [filterValues]).some((filterValue) =>
+				row.original.name.includes(filterValue),
 			);
 		},
 	},
@@ -112,14 +133,29 @@ export const columns: (ColumnDef<Macro> & ColumnCapabilities)[] = [
 			return (
 				<div className="flex items-center space-x-3">
 					{actions > 0 && (
-						<Badge className="flex gap-1.5" color="gray">
-							<Play className="h-4 w-4 text-foreground" /> {actions}
-						</Badge>
+						<Tooltip>
+							<TooltipTrigger>
+								<Badge className="flex gap-1.5" color="gray">
+									<Play className="h-4 w-4 text-foreground" /> {actions}
+								</Badge>
+							</TooltipTrigger>
+							<TooltipContent className="max-w-48 whitespace-normal text-wrap">
+								There {actions > 1 ? 'are' : 'is'} {actions} unrecorded sequence{actions > 1 ? 's' : ''} in this macro.
+							</TooltipContent>
+						</Tooltip>
 					)}
 					{recordActions > 0 && (
-						<Badge className="flex gap-1.5" color="gray">
-							<DotFilledIcon className="h-4 w-4 scale-[250%] text-rose-400" /> {recordActions}
-						</Badge>
+						<Tooltip>
+							<TooltipTrigger>
+								<Badge className="flex gap-1.5" color="gray">
+									<DotFilledIcon className="h-4 w-4 scale-[250%] text-rose-400" /> {recordActions}
+								</Badge>
+							</TooltipTrigger>
+							<TooltipContent className="max-w-48 whitespace-normal text-wrap">
+								There {recordActions > 1 ? 'are' : 'is'} {recordActions} recorded sequence{recordActions > 1 ? 's' : ''}{' '}
+								in this macro.
+							</TooltipContent>
+						</Tooltip>
 					)}
 				</div>
 			);

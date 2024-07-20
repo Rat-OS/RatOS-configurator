@@ -10,8 +10,10 @@ import { z } from 'zod';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
 	CursorModifier,
+	EResamplingMode,
 	FastBandRenderableSeries,
 	FastLineRenderableSeries,
+	FastMountainRenderableSeries,
 	NumberRange,
 	RolloverModifier,
 	SciChartSurface,
@@ -120,7 +122,7 @@ export const MacroChartPreview: React.FC<MacroChartPreviewProps> = ({ sequences 
 					fillY1: shadableTWColors[(sequenceData[0].color ?? 'rose') as keyof typeof shadableTWColors][600] + 22,
 					stroke: shadableTWColors[(sequenceData[0].color ?? 'rose') as keyof typeof shadableTWColors][400],
 					strokeY1: shadableTWColors[(sequenceData[1].color ?? 'sky') as keyof typeof shadableTWColors][400],
-					strokeThickness: 3,
+					strokeThickness: 4,
 					yAxisId: PSD_CHART_AXIS_AMPLITUDE_ID,
 				});
 				rs.rolloverModifierProps.tooltipColor = sequenceData[0].color ?? 'zinc';
@@ -136,7 +138,7 @@ export const MacroChartPreview: React.FC<MacroChartPreviewProps> = ({ sequences 
 					const randMul1 = 1000 * Math.random() * 50 + 184;
 					const randAdd1 = 1000 * Math.random() * 400 + 900;
 					const step1 = 2 + Math.random() * 3;
-					const rs = new FastLineRenderableSeries(surface.webAssemblyContext2D, {
+					const rs = new FastMountainRenderableSeries(surface.webAssemblyContext2D, {
 						dataSeries: new XyDataSeries(surface.webAssemblyContext2D, {
 							containsNaN: false,
 							isSorted: true,
@@ -155,7 +157,8 @@ export const MacroChartPreview: React.FC<MacroChartPreviewProps> = ({ sequences 
 								),
 						}),
 						stroke: shadableTWColors[(seq.color ?? 'brand') as keyof typeof shadableTWColors][400],
-						strokeThickness: 3,
+						fill: shadableTWColors[(seq.color ?? 'brand') as keyof typeof shadableTWColors][600] + 11,
+						strokeThickness: 4,
 						yAxisId: PSD_CHART_AXIS_AMPLITUDE_ID,
 					});
 					rs.rolloverModifierProps.tooltipColor = seq.color ?? 'zinc';
@@ -171,7 +174,7 @@ export const MacroChartPreview: React.FC<MacroChartPreviewProps> = ({ sequences 
 			if (yAxis) {
 				let range = new NumberRange(0, 0);
 				surface.renderableSeries.asArray().forEach((rs) => {
-					const series = rs as FastLineRenderableSeries | FastBandRenderableSeries;
+					const series = rs as FastMountainRenderableSeries | FastBandRenderableSeries;
 					range = range.union(series.getYRange(series.getXRange(), false));
 				});
 				range = range.growBy(new NumberRange(0.0, 0.1));

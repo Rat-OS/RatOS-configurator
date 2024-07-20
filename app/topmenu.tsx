@@ -82,7 +82,8 @@ export const useTopMenu = (id: string, renderReactCallback: ReactCallback<MenuEn
 	}, [id, registerMenu, renderReactCallback, unregisterMenu]);
 };
 
-export const TopMenu: React.FC<TopMenuProps> = ({ sidebarOpen, setSidebarOpen, menus, menusChanged }) => {
+export const TopMenu: React.FC<TopMenuProps> = (props) => {
+	const { sidebarOpen, setSidebarOpen, menus, menusChanged } = props;
 	const [, setMenu] = useState(Array.from(menus.current.values()));
 	useSignal(
 		menusChanged,

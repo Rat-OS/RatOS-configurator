@@ -1,50 +1,16 @@
-import {
-	signal as tfSignal,
-	Tensor1D,
-	sum,
-	pow,
-	div,
-	mean,
-	sub,
-	tidy,
-	transpose,
-	mul,
-	real,
-	tensor1d,
-} from '@tensorflow/tfjs-core';
-import '@tensorflow/tfjs-backend-webgl';
+import { signal as tfSignal, Tensor1D, sum, pow, div, mean, sub, tidy } from '@tensorflow/tfjs-core';
 import { NumberRange } from 'scichart';
 import { PSD } from '@/zods/analysis';
+import { shaperDefaults } from '@/app/analysis/_worker/input-shaper';
 
 export interface TypedArrayPSD extends Omit<PSD, 'estimates' | 'frequencies'> {
 	estimates: Float64Array;
 	frequencies: Float64Array;
 }
 
-/**
- * Returns the ceil of the log2 of the absolute value of the passed number
- * @memberof module:bcijs
- * @function
- * @name nextpow2
- * @param {number} num
- * @returns {number} The ceil of the log2 of the absolute value of the passed number
- * @example
- * nextpow2(8); // 3
- * nextpow2(9); // 4
- * nextpow2(16); // 4
- * nextpow2(30); // 5
- * nextpow2(0); // -Infinity
- */
-export function nextpow2(num: number): number {
-	return Math.ceil(Math.log2(Math.abs(num)));
-}
-
 export const detrendSignal = (signal: Tensor1D) => tidy(() => sub<Tensor1D>(signal, mean(signal, 0, true)));
 
-const WINDOW_T_SEC = 0.5;
-const MAX_FREQ = 200;
-
-export const getFFTSize = (sampleRate: number, windowT: number = WINDOW_T_SEC): number =>
+export const getFFTSize = (sampleRate: number, windowT: number = shaperDefaults.WINDOW_T_SEC): number =>
 	1 << Math.floor(sampleRate * windowT - 1).toString(2).length;
 
 /**
@@ -67,7 +33,7 @@ export async function powerSpectralDensity(
 ): Promise<TypedArrayPSD> {
 	let { fftSize, _scaling } = Object.assign(
 		{
-			fftSize: getFFTSize(sampleRate, WINDOW_T_SEC),
+			fftSize: getFFTSize(sampleRate, shaperDefaults.WINDOW_T_SEC),
 			_scaling: 'psd',
 		},
 		options,
@@ -78,12 +44,12 @@ export async function powerSpectralDensity(
 	}
 
 	let scaling_factor: number = _scaling === 'none' ? 1 : 2;
-	const win = tfSignal.hannWindow(fftSize);
+	const win = tidy(() => tfSignal.hannWindow(fftSize));
 	let windowLossCompensationFactor = (await tidy(() => div(div(1.0, sum(pow(win, 2))), sampleRate)).array()) as number;
 
 	const detrended = options?.isDetrended ? signal : detrendSignal(signal);
 	// await setBackend('webgl');
-	let f = tfSignal.stft(detrended, fftSize, Math.floor(fftSize / 2), fftSize, tfSignal.hannWindow);
+	let f = tidy(() => tfSignal.stft(detrended, fftSize, Math.floor(fftSize / 2), fftSize, tfSignal.hannWindow));
 
 	let x = (await f.array()) as number[][];
 	f.dispose();
@@ -100,7 +66,7 @@ export async function powerSpectralDensity(
 		const fftRatio = sampleRate / fftSize;
 		for (var i = 0; i < series.length - 1; i += 2) {
 			const frequency = (i === 0 ? 0 : i / 2) * fftRatio;
-			if (frequency > MAX_FREQ) {
+			if (frequency > shaperDefaults.MAX_FREQ) {
 				skipped++;
 				continue;
 			}
@@ -110,7 +76,7 @@ export async function powerSpectralDensity(
 			let power: number = series[i] ** 2 + series[i + 1] ** 2;
 			power *= windowLossCompensationFactor;
 			// Don't scale DC or Nyquist by 2
-			if (_scaling == 'psd' && i > 0 && nextFrequency < MAX_FREQ) {
+			if (_scaling == 'psd' && i > 0 && nextFrequency < shaperDefaults.MAX_FREQ) {
 				power *= scaling_factor;
 			}
 			if (power > maxPower) {

@@ -28,7 +28,8 @@ export type ColumnCapabilities = {
 	}[];
 };
 
-export function DataTableToolbar<TData>({ table, globalFilter, setGlobalFilter }: DataTableToolbarProps<TData>) {
+export function DataTableToolbar<TData>(props: DataTableToolbarProps<TData>) {
+	const { table, globalFilter, setGlobalFilter } = props;
 	const isFiltered = table.getState().columnFilters.length > 0;
 	const facets = table
 		.getAllColumns()
@@ -36,7 +37,7 @@ export function DataTableToolbar<TData>({ table, globalFilter, setGlobalFilter }
 			try {
 				const uniqueVals = column.getFacetedUniqueValues();
 				const columnDef = column.columnDef;
-				if (column.getCanFilter() && hasColumnCapabilities(columnDef) && uniqueVals.size > 0) {
+				if (hasColumnCapabilities(columnDef) && uniqueVals.size > 0) {
 					return {
 						column,
 						options: columnDef.getFacetedOptions?.() ?? [],

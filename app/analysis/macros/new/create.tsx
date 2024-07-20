@@ -33,7 +33,7 @@ export const CreateMacro = () => {
 			toast.success('Macro created!', {
 				description: `The macro "${data.name}" has been created successfully.`,
 			});
-			router.push(`/analysis/macros`);
+			router.back();
 		} catch (e) {
 			toast.error('Failed to create macro', {
 				description: `
@@ -48,21 +48,22 @@ export const CreateMacro = () => {
 
 	useTopMenu(
 		'Analysis',
-		useCallback((Menu) => {
-			return (
-				<>
-					<Menu.MenubarMenu>
-						<Menu.MenubarTrigger className="cursor-pointer" asChild>
-							<Link href={`/analysis/macros`}>
+		useCallback(
+			(Menu) => {
+				return (
+					<>
+						<Menu.MenubarMenu>
+							<Menu.MenubarTrigger className="cursor-pointer" onClick={() => router.back()}>
 								<Menu.MenubarIcon Icon={ChevronLeft} />
 								<span className="hidden lg:inline">Cancel</span>
-							</Link>
-						</Menu.MenubarTrigger>
-						<Menu.MenubarContent className="hidden" />
-					</Menu.MenubarMenu>
-				</>
-			);
-		}, []),
+							</Menu.MenubarTrigger>
+							<Menu.MenubarContent className="hidden" />
+						</Menu.MenubarMenu>
+					</>
+				);
+			},
+			[router],
+		),
 	);
 
 	return (

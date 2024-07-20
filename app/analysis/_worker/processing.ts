@@ -29,7 +29,8 @@ export type BigNumberAccelSample = [BigNumber, number, number, number];
 export type AccelSampleMs = [number, number, number, number];
 
 type KlipperAccelSubscriptionDataCompat = Omit<KlipperAccelSubscriptionData, 'data'> & { data: AccelSample[] };
-export const createSignalBuffers = async (dataStream$: Observable<KlipperAccelSubscriptionDataCompat>) => {
+export const createSignalBuffers = async (data$: Observable<KlipperAccelSubscriptionDataCompat>) => {
+	const dataStream$ = data$.pipe(share());
 	const timeStamp: number | BigNumber = await firstValueFrom(
 		dataStream$.pipe(
 			first(),
@@ -38,7 +39,7 @@ export const createSignalBuffers = async (dataStream$: Observable<KlipperAccelSu
 			}),
 		),
 	);
-	const realTimeStamp = new Date().getTime();
+	const realTimeStamp = performance.now();
 	const subtractTimeStamp = ([time, x, y, z]: AccelSample): BigNumberAccelSample => [
 		BigNumber(time).minus(timeStamp).shiftedBy(3),
 		x,
@@ -46,7 +47,7 @@ export const createSignalBuffers = async (dataStream$: Observable<KlipperAccelSu
 		z,
 	];
 
-	const signal$ = scheduled(dataStream$, asyncScheduler).pipe(
+	const signal$ = dataStream$.pipe(
 		concatMap((data) => scheduled(from(data.data), asyncScheduler)),
 		map(subtractTimeStamp),
 		share(),
@@ -54,25 +55,27 @@ export const createSignalBuffers = async (dataStream$: Observable<KlipperAccelSu
 
 	const sampleRate$ = signal$.pipe(
 		bufferTime(1000),
-		map((samples) =>
-			samples.length < 1
+		map((samples) => {
+			return samples.length < 1
 				? 1
-				: Math.floor(samples.length / samples[samples.length - 1][0].minus(samples[0][0]).shiftedBy(-3).toNumber()),
-		),
+				: Math.floor(samples.length / samples[samples.length - 1][0].minus(samples[0][0]).shiftedBy(-3).toNumber());
+		}),
 		distinctUntilChanged(),
 		share(),
 	);
 
-	const timeMappedSignal$ = signal$.pipe(
-		concatMap((sample) => {
-			const offsetFromRealtime = new Date().getTime() - realTimeStamp;
-			const offsetFromTimestamp = sample[0].toNumber();
-			if (offsetFromRealtime < offsetFromTimestamp) {
-				return scheduled(of(sample).pipe(delay(offsetFromTimestamp - offsetFromRealtime)), asyncScheduler);
-			}
-			return of(sample);
-		}),
-		share(),
+	const timeMappedSignal$ = scheduled(
+		signal$.pipe(
+			concatMap((sample) => {
+				const offsetFromRealtime = performance.now() - realTimeStamp;
+				const offsetFromTimestamp = sample[0].toNumber();
+				if (offsetFromRealtime < offsetFromTimestamp) {
+					return of(sample).pipe(delay(offsetFromTimestamp - offsetFromRealtime));
+				}
+				return of(sample);
+			}),
+		),
+		asyncScheduler,
 	);
 
 	const specSampleRate$ = sampleRate$.pipe(

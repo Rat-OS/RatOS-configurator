@@ -128,7 +128,9 @@ const MenubarContentIcon = React.forwardRef<
 	React.ElementRef<LucideIcon>,
 	React.ComponentPropsWithoutRef<LucideIcon> & { Icon: LucideIcon }
 >(({ className, Icon, ...props }, ref) =>
-	React.cloneElement<LucideIcon>(<Icon ref={ref} className={cn('size-4 text-white/60', className)} {...props} />),
+	React.cloneElement<LucideIcon>(
+		<Icon ref={ref} className={cn('size-4 flex-shrink-0 text-white/60', className)} {...props} />,
+	),
 );
 
 const MenubarSubTrigger = React.forwardRef<

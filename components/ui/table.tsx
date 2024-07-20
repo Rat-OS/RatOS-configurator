@@ -3,13 +3,14 @@ import * as React from 'react';
 import { cn, setDisplayName } from '@/helpers/utils';
 import { twJoin } from 'tailwind-merge';
 
-const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
-	({ className, ...props }, ref) => (
-		<div className={twJoin('scrollable, relative w-full overflow-auto rounded-md border')}>
-			<table ref={ref} className={cn('w-full caption-bottom rounded-md text-sm', className)} {...props} />
-		</div>
-	),
-);
+const Table = React.forwardRef<
+	HTMLTableElement,
+	React.HTMLAttributes<HTMLTableElement> & { containerClassName?: string }
+>(({ className, containerClassName, ...props }, ref) => (
+	<div className={twJoin('scrollable, relative w-full overflow-auto rounded-md border', containerClassName)}>
+		<table ref={ref} className={cn('w-full caption-bottom rounded-md text-sm', className)} {...props} />
+	</div>
+));
 setDisplayName(Table, 'Table');
 
 const TableHeader = React.forwardRef<HTMLTableSectionElement, React.HTMLAttributes<HTMLTableSectionElement>>(
