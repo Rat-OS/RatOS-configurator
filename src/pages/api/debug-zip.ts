@@ -21,7 +21,11 @@ export const getDebugZipFiles = async () => {
 	]);
 	ratosFiles = ratosFiles.filter((file, index) => ratosFiles.indexOf(file) === index);
 
-	let logs = await glob([`${environment.KLIPPER_CONFIG_PATH}/../logs/*.${extensions}`, `${environment.LOG_FILE}`]);
+	let logs = await glob([
+		`${environment.KLIPPER_CONFIG_PATH}/../logs/*.${extensions}`,
+		`${environment.LOG_FILE}`,
+		'/var/log/kern.+(log|log.1)',
+	]);
 	logs = logs.filter((file, index) => logs.indexOf(file) === index);
 
 	let exclude = await glob([
