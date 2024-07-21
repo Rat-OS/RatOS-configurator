@@ -327,6 +327,10 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 				`sensor_type: ${this.getThermistor()}\npullup_resistor: ${actualPullup}`,
 			);
 		}
+		if (actualPullup === 4700) {
+			// Don't add default pullup resistor to the hotend config to accomodate for MAX31685 users.
+			hotend = replaceLinesStartingWith(hotend, 'pullup_resistor: 4700', null);
+		}
 		if (hotend.split('\n').some((line) => line.trim().startsWith('nozzle_diameter'))) {
 			hotend = replaceLinesStartingWith(hotend, 'nozzle_diameter', `nozzle_diameter: ${this.getNozzle().diameter}`);
 		} else {
