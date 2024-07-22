@@ -186,7 +186,7 @@ const ChangedFile: React.FC<ChangedFileProps> = (props) => {
 			{file?.diff != null && (
 				<DiffModal
 					diff={file.diff}
-					fileName={`Changes to ${file.fileName}`}
+					fileName={file.fileName}
 					state={file.state}
 					changedOnDisk={file.changedOnDisk}
 					source={file.diskContent}
