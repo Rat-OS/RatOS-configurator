@@ -176,11 +176,10 @@ export const DiffModal: React.FC<DiffModalProps> = (props) => {
 	};
 
 	const diffType: DiffType = props.state === 'changed' ? 'modify' : props.state === 'created' ? 'add' : 'delete';
-
 	return (
 		isOpen && (
 			<Modal
-				title={`${props.fileName}`}
+				title={`Changes to ${props.fileName}`}
 				onClosed={close}
 				noClose={true}
 				wide="screen"
@@ -221,10 +220,10 @@ export const DiffModal: React.FC<DiffModalProps> = (props) => {
 					<>
 						<div className="git-diff flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-400 scrollbar-thumb-rounded-md dark:scrollbar-thumb-zinc-600">
 							{props.fileName === 'printer.cfg' && props.changedOnDisk && (
-								<InfoMessage title="You might not need these changes." className="mb-4">
-									RatOS Changes to printer.cfg are rarely needed on running printers and can usually be ignored. RatOS
-									currently does not have the ability to port your customizations to generated code, and printer.cfg is
-									usually only regenerated when printer defaults have changed.
+								<InfoMessage title="You might not need these changes" className="mb-4">
+									RatOS currently does not have the ability to port your customizations to generated code, and
+									printer.cfg is usually only regenerated when printer limit defaults have changed or you swap hardware
+									type. If you haven't changed hardware types, you can most likely ignore these changes.
 								</InfoMessage>
 							)}
 							<Diff hunks={hunks} viewType={viewType} diffType={diffType} tokens={tokens} renderGutter={renderGutter}>
