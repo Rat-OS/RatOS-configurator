@@ -317,6 +317,7 @@ type FilesToWrite = {
 export type FilesToWriteWithState = (Omit<Unpacked<FilesToWrite>, 'content'> & {
 	state: FileState;
 	diff: string | null;
+	diskContent: string | null;
 	changedOnDisk?: boolean;
 	changedFromConfig?: boolean;
 })[];
@@ -505,10 +506,11 @@ export const compareSettings = async (newSettings: SerializedPrinterConfiguratio
 					fileName: f.fileName,
 					diff: diff,
 					exists: f.exists,
+					diskContent: f.diskContent ?? null,
 					overwrite: f.overwrite,
 					order: f.order,
 					state: 'created' as const,
-				} as Unpacked<FilesToWriteWithState>;
+				} satisfies Unpacked<FilesToWriteWithState> as Unpacked<FilesToWriteWithState>;
 			}),
 	);
 	const removedFiles = await Promise.all(
@@ -532,10 +534,11 @@ export const compareSettings = async (newSettings: SerializedPrinterConfiguratio
 					fileName: f.fileName,
 					diff: diff,
 					exists: f.exists,
+					diskContent: f.diskContent ?? null,
 					overwrite: f.overwrite,
 					order: f.order,
 					state: 'removed' as const,
-				} as Unpacked<FilesToWriteWithState>;
+				} satisfies Unpacked<FilesToWriteWithState> as Unpacked<FilesToWriteWithState>;
 			}),
 	);
 	const changedFiles = await Promise.all(
@@ -577,12 +580,13 @@ export const compareSettings = async (newSettings: SerializedPrinterConfiguratio
 					diff: diff,
 					exists: f.exists,
 					overwrite: f.overwrite,
+					diskContent: f.diskContent ?? null,
 					changedOnDisk: oldFile.diskContent !== oldFile.content,
 					changedFromConfig:
 						oldFile.content !== f.content || (f.lastSavedContent != null && oldFile.content !== f.lastSavedContent),
 					order: f.order,
 					state: 'changed' as const,
-				} as Unpacked<FilesToWriteWithState>;
+				} satisfies Unpacked<FilesToWriteWithState> as Unpacked<FilesToWriteWithState>;
 			}),
 	);
 	const unchangedFiles = await Promise.all(
@@ -628,12 +632,13 @@ export const compareSettings = async (newSettings: SerializedPrinterConfiguratio
 					diff: diff,
 					exists: f.exists,
 					overwrite: f.overwrite,
+					diskContent: f.diskContent ?? null,
 					changedOnDisk: oldFile.diskContent !== oldFile.content,
 					changedFromConfig:
 						oldFile.content !== f.content || (f.lastSavedContent != null && oldFile.content !== f.lastSavedContent),
 					order: f.order,
 					state: 'unchanged' as const,
-				} as Unpacked<FilesToWriteWithState>;
+				} satisfies Unpacked<FilesToWriteWithState> as Unpacked<FilesToWriteWithState>;
 			}),
 	);
 	const result = addedFiles
