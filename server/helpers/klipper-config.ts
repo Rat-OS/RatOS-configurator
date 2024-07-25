@@ -717,18 +717,41 @@ export const constructKlipperConfigHelpers = async (
 					});
 				} else {
 					section.push(`cs_pin: ${utils.getRailPinValue(rail.axis, '_uart_pin')}`);
-					if (config.controlboard.stepperSPI != null) {
-						if ('hardware' in config.controlboard.stepperSPI) {
-							section.push(`spi_bus: ${config.controlboard.stepperSPI.hardware.bus}`);
+					if (utils.isExtruderToolheadAxis(rail.axis)) {
+						const toolboard = utils.getToolhead(rail.axis).getToolboard();
+						if (toolboard?.stepperSPI != null) {
+							if ('hardware' in toolboard.stepperSPI) {
+								section.push(`spi_bus: ${toolboard.stepperSPI.hardware.bus}`);
+							} else {
+								section.push(
+									`spi_software_mosi_pin: ${utils.getToolhead(rail.axis).getPinPrefix()}${toolboard.stepperSPI.software.mosi}`,
+								);
+								section.push(
+									`spi_software_miso_pin: ${utils.getToolhead(rail.axis).getPinPrefix()}${toolboard.stepperSPI.software.miso}`,
+								);
+								section.push(
+									`spi_software_sclk_pin: ${utils.getToolhead(rail.axis).getPinPrefix()}${toolboard.stepperSPI.software.sclk}`,
+								);
+							}
 						} else {
-							section.push(`spi_software_mosi_pin: ${config.controlboard.stepperSPI.software.mosi}`);
-							section.push(`spi_software_miso_pin: ${config.controlboard.stepperSPI.software.miso}`);
-							section.push(`spi_software_sclk_pin: ${config.controlboard.stepperSPI.software.sclk}`);
+							section.push(`spi_software_mosi_pin: ${utils.getToolhead(rail.axis).getPinPrefix()}stepper_spi_mosi_pin`);
+							section.push(`spi_software_miso_pin: ${utils.getToolhead(rail.axis).getPinPrefix()}stepper_spi_miso_pin`);
+							section.push(`spi_software_sclk_pin: ${utils.getToolhead(rail.axis).getPinPrefix()}stepper_spi_sclk_pin`);
 						}
 					} else {
-						section.push(`spi_software_mosi_pin: stepper_spi_mosi_pin`);
-						section.push(`spi_software_miso_pin: stepper_spi_miso_pin`);
-						section.push(`spi_software_sclk_pin: stepper_spi_sclk_pin`);
+						if (config.controlboard.stepperSPI != null) {
+							if ('hardware' in config.controlboard.stepperSPI) {
+								section.push(`spi_bus: ${config.controlboard.stepperSPI.hardware.bus}`);
+							} else {
+								section.push(`spi_software_mosi_pin: ${config.controlboard.stepperSPI.software.mosi}`);
+								section.push(`spi_software_miso_pin: ${config.controlboard.stepperSPI.software.miso}`);
+								section.push(`spi_software_sclk_pin: ${config.controlboard.stepperSPI.software.sclk}`);
+							}
+						} else {
+							section.push(`spi_software_mosi_pin: stepper_spi_mosi_pin`);
+							section.push(`spi_software_miso_pin: stepper_spi_miso_pin`);
+							section.push(`spi_software_sclk_pin: stepper_spi_sclk_pin`);
+						}
 					}
 				}
 			}
