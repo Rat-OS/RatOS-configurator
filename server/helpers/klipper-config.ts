@@ -30,6 +30,7 @@ import { z } from 'zod';
 import path from 'path';
 import { serverSchema } from '@/env/schema.mjs';
 import { AccelerometerType, KlipperAccelSensorName, klipperAccelSensorSchema } from '@/zods/hardware';
+import { getLogger } from '@/server/helpers/logger';
 
 type WritableFiles = { fileName: string; content: string; overwrite: boolean; order?: number }[];
 type ExcludeStepperParameters<T extends string> = (T extends
@@ -716,7 +717,21 @@ export const constructKlipperConfigHelpers = async (
 						section.push(`${key}: ${pin}`);
 					});
 				} else {
-					section.push(`cs_pin: ${utils.getRailPinValue(rail.axis, '_uart_pin')}`);
+					let cs_pin = utils.getRailPinValue(rail.axis, '_uart_pin');
+					try {
+						cs_pin = utils.getRailPinValue(rail.axis, '_cs_pin');
+					} catch {
+						// getLogger().error(
+						// 	{
+						// 		axis: rail.axis,
+						// 		board: utils.isExtruderToolheadAxis(rail.axis as any)
+						// 			? utils.getToolhead(rail.axis as any).getToolboard()?.id ?? config.controlboard.id
+						// 			: config.controlboard.id,
+						// 	},
+						// 	'Failed to get cs_pin for axis.. falling back to uart_pin',
+						// );
+					}
+					section.push(`cs_pin: ${cs_pin}`);
 					if (utils.isExtruderToolheadAxis(rail.axis)) {
 						const toolboard = utils.getToolhead(rail.axis).getToolboard();
 						if (toolboard?.stepperSPI != null) {
