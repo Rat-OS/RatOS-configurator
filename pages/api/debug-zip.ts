@@ -13,7 +13,7 @@ export const getDebugZipFiles = async () => {
 	}
 	const environment = serverSchema.parse(process.env);
 
-	const extensions = `+(cfg|json|ndjson|conf)`;
+	const extensions = `+(cfg|json|ndjson|conf|log)`;
 
 	let ratosFiles: string[] = await glob([
 		`${environment.RATOS_DATA_DIR}/*.+(cfg|json|conf|log)`,

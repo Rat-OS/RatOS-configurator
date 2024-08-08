@@ -58,7 +58,7 @@ export const SidebarNav = () => {
 											{trpc.debugFileList.useSuspenseQuery()[0].map((file) => {
 												return (
 													<li key={file.path} className="flex items-center gap-2 text-sm">
-														{file.name.endsWith('.log') && (
+														{(file.name.endsWith('.log') || file.name.split('.').slice(-2)[0] === 'log') && (
 															<FileClock className="h-4 w-4 flex-shrink-0 text-zinc-100/40" aria-hidden="true" />
 														)}
 														{file.name.endsWith('.cfg') && (
