@@ -180,10 +180,10 @@ export const InputShapers: React.FC<InputShapersProps> = (props) => {
 			) : (
 				recommendedShaper != null && (
 					<div className="mt-0 block space-y-3 p-3 text-xs text-muted-foreground">
-						{recommendedShaper.name.toLocaleUpperCase()} is recommended at{' '}
-						{Math.round(recommendedShaper.freq * 100) / 100}Hz. Resulting in a resonance reduction of{' '}
-						{100 - recommendedShaper.vibrs}%. Recommended maximum acceleration before noticeable smoothing is{' '}
-						{Math.round(recommendedShaper.maxAccel)} mm/s<sup>2</sup>
+						{recommendedShaper.name.toLocaleUpperCase()} is recommended at {recommendedShaper.freq.toFixed(2)}
+						Hz. Resulting in a resonance reduction of {(100 - recommendedShaper.vibrs).toFixed(2)}%. Recommended maximum
+						acceleration before noticeable smoothing is {Math.round(recommendedShaper.maxAccel)} mm/s
+						<sup>2</sup>
 					</div>
 				)
 			)}
