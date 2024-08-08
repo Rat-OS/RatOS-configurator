@@ -1,6 +1,6 @@
 'use client';
 /* This example requires Tailwind CSS v2.0+ */
-import React, { Fragment, useCallback, useState } from 'react';
+import React, { Fragment, ReactElement, useCallback, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -26,18 +26,20 @@ import { Spinner } from '@/components/common/spinner';
 import { Check, Cross } from 'lucide-react';
 import { twJoin, twMerge } from 'tailwind-merge';
 import { toast } from 'sonner';
-import { ButtonVariantProps } from '@/components/common/button';
+import { ButtonProps, ButtonVariantProps } from '@/components/common/button';
 import { AnimatedContainer } from '@/components/common/animated-container';
 
 export interface ModalProps extends React.PropsWithChildren {
 	title: string;
+	titleActions?: React.ReactNode;
 	body: string;
-	wide?: boolean;
+	wide?: boolean | 'screen';
 	isLoading?: boolean;
 	content?: React.ReactNode;
 	success?: boolean;
 	buttonLabel?: string;
 	buttonVariant?: ButtonVariantProps['variant'];
+	noClose?: boolean;
 	secondButtonLabel?: string;
 	dismissText?: string;
 	dismissVariant?: ButtonVariantProps['variant'];
@@ -45,20 +47,26 @@ export interface ModalProps extends React.PropsWithChildren {
 	onClick?: () => any | Promise<any>;
 	onClickSecondButton?: () => any | Promise<any>;
 	onClose?: () => void;
+	onClosed?: () => void;
+	buttons?: ReactElement<ButtonProps<string>>[];
 }
 
-export function Modal(props: ModalProps) {
-	const { onClick, onClose, onClickSecondButton } = props;
-	const [open, setOpen] = useState(props.children == null);
+export interface ModalButtonProps<T extends string> {
+	button: ReactElement<ButtonProps<T>>;
+	hide: () => void;
+}
+
+export const ModalButton = <T extends string>(props: ModalButtonProps<T>) => {
 	const [isCompletingClick, setIsCompletingClick] = useState<1 | 2 | false>(false);
+	const { hide } = props;
+	const { onClick, children } = props.button.props;
 	const onButtonClick = useCallback(async () => {
-		const clickRes = onClick?.();
+		const clickRes = onClick?.() as any | Promise<any>;
 		if (clickRes instanceof Promise) {
 			setIsCompletingClick(1);
 			try {
 				await clickRes;
-				onClose?.();
-				setOpen(false);
+				hide();
 			} catch (e) {
 				if (e instanceof Error) {
 					toast.error(e.message);
@@ -68,37 +76,37 @@ export function Modal(props: ModalProps) {
 				setIsCompletingClick(false);
 			}
 		} else {
-			onClose?.();
-			setOpen(false);
+			hide();
 		}
-	}, [onClick, onClose]);
+	}, [onClick, hide]);
+	return React.cloneElement(props.button, {
+		onClick: onButtonClick,
+		style: { direction: 'ltr' },
+		children: (
+			<>
+				{children}
+				{isCompletingClick === 1 && <Spinner className="inline-block" noMargin={true} />}
+			</>
+		),
+	});
+};
 
-	const _onClickSecondButton = useCallback(async () => {
-		const clickRes = onClickSecondButton?.();
-		if (clickRes instanceof Promise) {
-			setIsCompletingClick(2);
-			try {
-				await clickRes;
-				onClose?.();
-				setOpen(false);
-			} catch (e) {
-				if (e instanceof Error) {
-					toast.error(e.message);
-				}
-				throw e;
-			} finally {
-				setIsCompletingClick(false);
-			}
-		} else {
-			onClose?.();
-			setOpen(false);
-		}
-	}, [onClickSecondButton, onClose]);
-
-	const onDialogClose = useCallback(() => {
-		onClose?.();
+export function Modal(props: ModalProps) {
+	const { onClick, onClose: _onClose, onClosed, onClickSecondButton } = props;
+	const [open, setOpen] = useState(props.children == null);
+	const hide = useCallback(() => {
+		_onClose?.();
 		setOpen(false);
-	}, [onClose]);
+		if (onClosed) {
+			setTimeout(() => {
+				onClosed();
+			}, 250);
+		}
+	}, [onClosed, _onClose]);
+
+	const show = useCallback(() => {
+		setOpen(true);
+	}, []);
 
 	const success = props.isLoading ? (
 		<div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-700">
@@ -115,24 +123,49 @@ export function Modal(props: ModalProps) {
 	) : null;
 	const isDesktop = useMediaQuery('(min-width: 768px)');
 
+	const buttons = props.buttons ?? [];
+	if (props.buttonLabel && onClick) {
+		buttons.push(
+			<Button variant={props.buttonVariant ?? 'info'} onClick={onClick}>
+				{props.buttonLabel}
+			</Button>,
+		);
+	}
+	if (props.secondButtonLabel && onClickSecondButton) {
+		buttons.push(
+			<Button variant={props.secondButtonVariant ?? 'indeterminate'} onClick={onClickSecondButton}>
+				{props.secondButtonLabel}
+			</Button>,
+		);
+	}
+
 	if (isDesktop) {
 		return (
 			<Dialog
 				open={open}
 				onOpenChange={(val) => {
 					if (!val) {
-						onDialogClose();
+						hide();
 					} else {
-						setOpen(val);
+						show();
 					}
 				}}
 			>
 				{props.children && <DialogTrigger asChild>{props.children}</DialogTrigger>}
-				<DialogContent className={twJoin(props.wide ? 'max-w-6xl' : 'max-w-[600px]', 'flex max-h-[90vh] flex-col')}>
+				<DialogContent
+					className={twJoin(
+						props.wide === 'screen' ? 'max-w-screen-2xl' : props.wide ? 'max-w-6xl' : 'max-w-[600px]',
+						'flex max-h-[90vh] flex-col',
+					)}
+					noClose={props.noClose}
+				>
 					<div className="flex flex-grow-0 items-center gap-4">
 						{success}
-						<DialogHeader>
-							<DialogTitle>{props.title}</DialogTitle>
+						<DialogHeader className="flex-1">
+							<DialogTitle className="flex items-center">
+								<div className="flex-1">{props.title}</div>
+								{props.titleActions && <div className="shrink-0">{props.titleActions}</div>}
+							</DialogTitle>
 							<DialogDescription>{props.body}</DialogDescription>
 						</DialogHeader>
 					</div>
@@ -143,29 +176,22 @@ export function Modal(props: ModalProps) {
 						{props.content}
 					</AnimatedContainer>
 					<div
+						style={{ direction: 'rtl' }}
 						className={twJoin(
-							'col-span-2 grid flex-grow-0 gap-2',
-							props.secondButtonLabel && props.onClickSecondButton
-								? 'grid-cols-3'
-								: props.buttonLabel && props.onClick
+							'grid flex-grow-0 grid-flow-col justify-end gap-2',
+							buttons.length > 1 || props.wide === 'screen'
+								? 'grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
+								: buttons.length === 1
 									? 'grid-cols-2'
 									: 'grid-cols-1',
 						)}
 					>
-						{props.buttonLabel && props.onClick && (
-							<Button variant={props.buttonVariant ?? 'info'} onClick={onButtonClick}>
-								{props.buttonLabel} {isCompletingClick === 1 && <Spinner className="inline-block" noMargin={true} />}
-							</Button>
-						)}
-						{props.secondButtonLabel && props.onClickSecondButton && (
-							<Button variant={props.secondButtonVariant ?? 'indeterminate'} onClick={_onClickSecondButton}>
-								{props.secondButtonLabel}{' '}
-								{isCompletingClick === 2 && <Spinner className="inline-block" noMargin={true} />}
-							</Button>
-						)}
-						<Button variant={props.dismissVariant ?? 'outline'} onClick={onDialogClose}>
+						<Button variant={props.dismissVariant ?? 'outline'} onClick={hide} style={{ direction: 'revert' }}>
 							{props.dismissText ?? 'Cancel'}
 						</Button>
+						{buttons.map((button, i) => (
+							<ModalButton button={button} key={i} hide={hide} />
+						))}
 					</div>
 				</DialogContent>
 			</Dialog>
@@ -177,36 +203,32 @@ export function Modal(props: ModalProps) {
 			open={open}
 			onOpenChange={(val) => {
 				if (!val) {
-					onDialogClose();
+					hide();
 				} else {
-					setOpen(val);
+					show();
 				}
 			}}
 		>
 			{props.children && <DrawerTrigger asChild>{props.children}</DrawerTrigger>}
-			<DrawerContent>
-				<DrawerHeader className="flex items-center gap-4 text-left">
+			<DrawerContent className="flex max-h-[90vh] flex-col">
+				<DrawerHeader className="flex flex-grow-0 items-center gap-4 text-left">
 					{success}
 					<div>
 						<DrawerTitle>{props.title}</DrawerTitle>
 						<DrawerDescription>{props.body}</DrawerDescription>
 					</div>
 				</DrawerHeader>
-				{props.content && <div className="col-span-2 grid gap-2 px-4 pb-2">{props.content}</div>}
-				<DrawerFooter className="pt-2">
-					{props.buttonLabel && props.onClick && (
-						<Button variant={props.buttonVariant ?? 'info'} onClick={onButtonClick}>
-							{props.buttonLabel} {isCompletingClick === 1 && <Spinner className="inline-block" noMargin={true} />}
-						</Button>
-					)}
-					{props.secondButtonLabel && props.onClickSecondButton && (
-						<Button variant={props.secondButtonVariant ?? 'indeterminate'} onClick={_onClickSecondButton}>
-							{props.secondButtonLabel}{' '}
-							{isCompletingClick === 2 && <Spinner className="inline-block" noMargin={true} />}
-						</Button>
-					)}
+				{props.content && (
+					<div className="scrollable col-span-2 -mr-4 grid flex-1 gap-2 overflow-hidden overflow-y-scroll px-4 pb-2">
+						{props.content}
+					</div>
+				)}
+				<DrawerFooter className="flex-grow-0 pt-2">
+					{buttons.map((button, i) => (
+						<ModalButton button={button} key={i} hide={hide} />
+					))}
 					<DrawerClose asChild>
-						<Button variant={props.dismissVariant ?? 'outline'} onClick={onDialogClose}>
+						<Button variant={props.dismissVariant ?? 'outline'} onClick={hide}>
 							{props.dismissText ?? 'Cancel'}
 						</Button>
 					</DrawerClose>

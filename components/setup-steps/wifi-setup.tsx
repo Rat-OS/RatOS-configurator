@@ -13,9 +13,10 @@ import { StepScreenProps } from '@/hooks/useSteps';
 import { trpc } from '@/helpers/trpc';
 import { hostnameInput, joinInput } from '@/helpers/validators/wifi';
 import { Button } from '@/components/common/button';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, RefreshCcw } from 'lucide-react';
 import { InfoMessage } from '@/components/common/info-message';
 import { MutationStatus } from '@/components/common/mutation-status';
+import { Banner } from '@/components/common/banner';
 
 interface APList {
 	[id: string]: Network;
@@ -167,6 +168,12 @@ export const WifiSetup: React.FC<StepScreenProps> = (props) => {
 			<Modal
 				title="Settings saved!"
 				body={`RatOS is now setup to connect to ${selectedNetwork.ssid}! Your raspberry pi will now reboot, and join your local wifi network. Click the button below to reboot the pi and close this window. You can then reconnect to your local network where http://${hostname}.local/ should be available in a few minutes. If RatOS fails to join ${selectedNetwork.ssid}, it will recreate the "ratos" hotspot and you'll have to try again.`}
+				content={
+					<Banner color="yellow" title="Premature power removal can cause SD card corruption" Icon={RefreshCcw}>
+						Make sure to go to <a href="http://${hostname}.local/config">the machine tab in mainsail</a> and update all
+						your packages before you continue with the setup.
+					</Banner>
+				}
 				buttonLabel="Got it!"
 				onClick={rebootAndClose}
 			/>

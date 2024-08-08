@@ -223,9 +223,10 @@ export const stripDriverSections = (content: string) => {
 		.filter((l) => l != null)
 		.join('\n');
 };
-export const replaceLinesStartingWith = (content: string, start: string, replace: string) => {
+export const replaceLinesStartingWith = (content: string, start: string, replace: string | null) => {
 	return content
 		.split('\n')
 		.map((l) => (l.trim().startsWith(start) ? replace : l))
+		.filter((l) => l !== null)
 		.join('\n');
 };

@@ -13,6 +13,13 @@ import { Button, Intents } from '@/components/common/button';
 import { useChangeEffect } from '@/hooks/useChangeEffect';
 import { CheckIcon } from '@heroicons/react/24/outline';
 import { QueryStatus } from '@/components/common/query-status';
+import {
+	DropdownMenu,
+	DropdownMenuTrigger,
+	DropdownMenuContent,
+	DropdownMenuItem,
+} from '@/components/ui/dropdown-menu';
+import { Check, ChevronLast, FileClock, FileDiff, LucideIcon, Plus, Trash } from 'lucide-react';
 
 interface FileChangesProps {
 	serializedConfig: SerializedPrinterConfiguration | null;
@@ -41,6 +48,7 @@ type Action = {
 	action: (fileName: string) => void;
 	intent: Intents;
 	title: string;
+	icon: LucideIcon;
 };
 
 const ChangedFile: React.FC<ChangedFileProps> = (props) => {
@@ -86,19 +94,27 @@ const ChangedFile: React.FC<ChangedFileProps> = (props) => {
 			skip = {
 				title: 'Skip',
 				intent: 'indeterminate',
+				icon: ChevronLast,
 				action: isMarkedOverwritten ? removeFileToOverwrite : addFileToIgnore,
 			};
 		} else if (isOverwritable) {
 			overwrite = {
-				title: 'Overwrite',
+				title: 'Accept changes',
 				intent: 'warning',
-				action: isMarkedIgnored ? removeFileToIgnore : addFileToOverwrite,
+				icon: Check,
+				action: isMarkedIgnored
+					? (f) => {
+							removeFileToIgnore(f);
+							addFileToOverwrite(f);
+						}
+					: addFileToOverwrite,
 			};
 		}
-		if (isIgnorable && !isIgnored) {
+		if (isIgnorable && !isIgnored && !isOverwritten) {
 			ignore = {
-				title: 'Ignore',
-				intent: needsExplicitAction ? 'danger' : 'indeterminate',
+				title: 'Keep existing file',
+				icon: FileClock,
+				intent: needsExplicitAction ? (file.fileName === 'printer.cfg' ? 'info' : 'danger') : 'indeterminate',
 				action: addFileToIgnore,
 			};
 		} else if (isIgnored) {
@@ -106,11 +122,13 @@ const ChangedFile: React.FC<ChangedFileProps> = (props) => {
 				remove = {
 					title: 'Delete',
 					intent: 'danger',
+					icon: Trash,
 					action: removeFileToIgnore,
 				};
-			} else if (isIgnorable) {
+			} else if (isIgnorable && !isOverwritable) {
 				write = {
 					title: 'Write',
+					icon: Plus,
 					intent: 'success',
 					action: removeFileToIgnore,
 				};
@@ -168,8 +186,10 @@ const ChangedFile: React.FC<ChangedFileProps> = (props) => {
 			{file?.diff != null && (
 				<DiffModal
 					diff={file.diff}
-					title={`Changes to ${file.fileName}`}
+					fileName={file.fileName}
 					state={file.state}
+					changedOnDisk={file.changedOnDisk}
+					source={file.diskContent}
 					setIsOpen={setIsDiffModalOpen}
 					buttons={actions.map((a) => {
 						return (
@@ -181,6 +201,7 @@ const ChangedFile: React.FC<ChangedFileProps> = (props) => {
 								variant={a.intent}
 								key={a.title}
 							>
+								<a.icon className="h-4 w-4" />
 								{a.title}
 							</Button>
 						);
@@ -248,54 +269,24 @@ const ChangedFile: React.FC<ChangedFileProps> = (props) => {
 						<CheckIcon className="h-5 w-5 text-green-500 dark:text-brand-500" aria-hidden="true" />
 					)}
 				</div>
-				<Menu as="div" className="relative flex-none">
-					<Menu.Button className="-m-2.5 block p-2.5 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
+				<DropdownMenu>
+					<DropdownMenuTrigger className="-m-2.5 block p-2.5 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
 						<span className="sr-only">Open options</span>
 						<EllipsisVerticalIcon className="h-5 w-5" aria-hidden="true" />
-					</Menu.Button>
-					<Transition
-						as={Fragment}
-						enter="transition ease-out duration-100"
-						enterFrom="transform opacity-0 scale-95"
-						enterTo="transform opacity-100 scale-100"
-						leave="transition ease-in duration-75"
-						leaveFrom="transform opacity-100 scale-100"
-						leaveTo="transform opacity-0 scale-95"
-					>
-						<Menu.Items className="absolute right-0 z-10 mt-2 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-zinc-900/5 focus:outline-none dark:bg-zinc-900 dark:ring-zinc-100/5">
-							{actions.map((action) => (
-								<Menu.Item key={action.title}>
-									{({ active, disabled }) => (
-										<span
-											onClick={() => action.action(file.fileName)}
-											className={twJoin(
-												active ? 'bg-zinc-50 dark:bg-zinc-800' : '',
-												disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
-												'block px-3 py-1 text-sm leading-6 text-zinc-800 dark:text-zinc-200',
-											)}
-										>
-											{action.title}
-										</span>
-									)}
-								</Menu.Item>
-							))}
-							<Menu.Item disabled={file.diff == null}>
-								{({ active, disabled }) => (
-									<span
-										onClick={() => showDiffModal(file)}
-										className={twJoin(
-											active ? 'bg-zinc-50 dark:bg-zinc-800' : '',
-											disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
-											'block px-3 py-1 text-sm leading-6 text-zinc-800 dark:text-zinc-200',
-										)}
-									>
-										View diff
-									</span>
-								)}
-							</Menu.Item>
-						</Menu.Items>
-					</Transition>
-				</Menu>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent>
+						{actions.map((action) => (
+							<DropdownMenuItem key={action.title} onClick={() => action.action(file.fileName)} className="gap-2">
+								{<action.icon className="h-4 w-4 text-muted-foreground" />}
+								{action.title}
+							</DropdownMenuItem>
+						))}
+						<DropdownMenuItem disabled={file.diff == null} onClick={() => showDiffModal(file)} className="gap-2">
+							<FileDiff className="h-4 w-4 text-muted-foreground" />
+							View diff
+						</DropdownMenuItem>
+					</DropdownMenuContent>
+				</DropdownMenu>
 			</div>
 		</li>
 	);

@@ -1,24 +1,48 @@
 'use client';
 /* This example requires Tailwind CSS v2.0+ */
-import React, { Fragment, useCallback, useMemo, useState } from 'react';
+import React, { Fragment, ReactElement, useCallback, useMemo, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { parseDiff, Diff, DiffType, ViewType, HunkData, TokenizeOptions, tokenize, markEdits } from 'react-diff-view';
+import {
+	parseDiff,
+	Diff,
+	DiffType,
+	ViewType,
+	HunkData,
+	TokenizeOptions,
+	tokenize,
+	useTokenizeWorker,
+	markEdits,
+	Decoration,
+	withSourceExpansion,
+	Hunk,
+	useSourceExpansion,
+	useMinCollapsedLines,
+	GutterOptions,
+	computeOldLineNumber,
+	computeNewLineNumber,
+} from 'react-diff-view';
 import type { FileState } from '@/server/routers/printer';
 import 'react-diff-view/style/index.css';
 import { XMarkIcon } from '@heroicons/react/20/solid';
-import { Button } from '@/components/common/button';
+import { Button, ButtonProps } from '@/components/common/button';
 import { twJoin, twMerge } from 'tailwind-merge';
+import { Modal } from '@/components/common/modal';
+import { Minus, Plus, X } from 'lucide-react';
+import UnfoldCollapsed from '@/components/setup-steps/unfold-collapsed';
+import { InfoMessage } from '@/components/common/info-message';
 
-interface ModalProps {
-	title: string;
+interface DiffModalProps {
+	fileName: string;
 	diff: string;
 	state: FileState;
+	source?: string | null;
+	changedOnDisk?: boolean;
 	isOpen: boolean;
-	buttons?: React.ReactNode;
-	overwrite?: () => void;
-	ignore?: () => void;
+	buttons?: ReactElement<ButtonProps<string>>[];
 	setIsOpen: (open: boolean) => void;
 }
+
+const Tokenizer = new Worker(new URL('@/app/_worker/tokenizer', import.meta.url));
 
 const TwoColumns = (props: { className?: string }) => {
 	return (
@@ -74,7 +98,23 @@ const proccessTokens = (hunks: HunkData[]) => {
 	}
 };
 
-export const DiffModal: React.FC<ModalProps> = (props) => {
+function useEnhancers(hunks: HunkData[], oldSource: string | null) {
+	const [hunksWithSourceExpanded, expandRange] = useSourceExpansion(hunks, oldSource);
+	const hunksWithMinLinesCollapsed = useMinCollapsedLines(0, hunksWithSourceExpanded, oldSource);
+	const options = {
+		oldSource,
+		language: 'properties',
+		hunks: hunksWithMinLinesCollapsed,
+	};
+	const { tokens } = useTokenizeWorker(Tokenizer, options);
+	return {
+		expandRange,
+		tokens,
+		hunks: hunksWithMinLinesCollapsed,
+	};
+}
+
+export const DiffModal: React.FC<DiffModalProps> = (props) => {
 	const { isOpen, setIsOpen } = props;
 	const [viewType, setViewType] = useState<ViewType>('unified');
 
@@ -82,94 +122,117 @@ export const DiffModal: React.FC<ModalProps> = (props) => {
 		setIsOpen(false);
 	}, [setIsOpen]);
 
-	const files = useMemo(() => {
-		return parseDiff(props.diff);
+	const file = useMemo(() => {
+		return parseDiff(props.diff)[0];
 	}, [props.diff]);
+	const linesCount = props.source ? props.source.split('\n').length : 0;
+
+	const { tokens, expandRange, hunks } = useEnhancers(file.hunks, props.source ?? '');
+
+	const renderGutter = useCallback(({ change, side }: GutterOptions) => {
+		const lineNumber = side === 'old' ? computeOldLineNumber(change) : computeNewLineNumber(change);
+		const changeIcon =
+			change.type === 'delete' && side === 'old' ? (
+				<Minus className="h-4 w-4" />
+			) : change.type === 'insert' && side === 'new' ? (
+				<Plus className="h-4 w-4" />
+			) : (
+				''
+			);
+		return (
+			<div className="flex flex-1 items-center gap-1 text-left">
+				<span className="flex-1">{lineNumber === -1 ? null : lineNumber}</span>
+				{changeIcon}
+			</div>
+		);
+	}, []);
+
+	const renderHunk = (children: ReactElement[], hunk: HunkData, i: number, hunks: HunkData[]) => {
+		const previousElement = children[children.length - 1];
+		const decorationElement = props.source ? (
+			<UnfoldCollapsed
+				key={`decoration-${hunk.content}`}
+				previousHunk={previousElement && previousElement.props.hunk}
+				currentHunk={hunk}
+				linesCount={linesCount}
+				onExpand={expandRange}
+			/>
+		) : (
+			<></>
+		);
+		children.push(decorationElement);
+
+		const hunkElement = <Hunk key={`hunk-${hunk.content}`} hunk={hunk} />;
+		children.push(hunkElement);
+
+		if (i === hunks.length - 1 && props.source) {
+			const unfoldTailElement = (
+				<UnfoldCollapsed key="decoration-tail" previousHunk={hunk} linesCount={linesCount} onExpand={expandRange} />
+			);
+			children.push(unfoldTailElement);
+		}
+
+		return children;
+	};
+
 	const diffType: DiffType = props.state === 'changed' ? 'modify' : props.state === 'created' ? 'add' : 'delete';
-
 	return (
-		<Transition.Root show={isOpen} as={Fragment} appear={true}>
-			<Dialog
-				as="div"
-				className="git-diff fixed inset-0 z-50 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-400 scrollbar-thumb-rounded-md dark:scrollbar-thumb-zinc-600"
-				onClose={close}
-			>
-				<div className="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">
-					<Transition.Child
-						as={Fragment}
-						enter="ease-out duration-300"
-						enterFrom="opacity-0"
-						enterTo="opacity-100"
-						leave="ease-in duration-200"
-						leaveFrom="opacity-100"
-						leaveTo="opacity-0"
-					>
-						<Dialog.Overlay className="fixed inset-0 bg-zinc-500 bg-opacity-75 transition-opacity dark:bg-zinc-950 dark:bg-opacity-75" />
-					</Transition.Child>
-
-					{/* This element is to trick the browser into centering the modal contents. */}
-					<span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">
-						&#8203;
-					</span>
-					<Transition.Child
-						as={Fragment}
-						enter="ease-out duration-300"
-						enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-						enterTo="opacity-100 translate-y-0 sm:scale-100"
-						leave="ease-in duration-200"
-						leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-						leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-					>
-						<div className="relative inline-flex max-h-[80vh] max-w-screen-2xl transform flex-col overflow-hidden rounded-lg bg-white py-4 text-left align-bottom shadow-xl transition-all dark:bg-zinc-800 sm:my-8 sm:w-full sm:py-6 sm:align-middle">
-							<Dialog.Title
-								as="h3"
-								className="flex items-center justify-between border-b border-zinc-200 px-4 pb-4 text-lg font-semibold leading-6 text-zinc-900 dark:border-zinc-700 dark:text-zinc-100 sm:px-6"
-							>
-								<div>{props.title}</div>
-								<div className="relative flex flex-nowrap items-center space-x-2 text-zinc-500 dark:text-zinc-400">
-									<button
-										className={twJoin(
-											viewType === 'unified'
-												? 'cursor-default text-sky-600 dark:text-sky-400'
-												: 'hover:text-zinc-800 dark:hover:text-zinc-100',
-										)}
-										onClick={() => setViewType('unified')}
-										title="Unified View"
-									>
-										<SingleColumn className="h-6 w-6" />
-									</button>
-									<button
-										className={twJoin(
-											viewType === 'split'
-												? 'cursor-default text-sky-600 dark:text-sky-400'
-												: 'hover:text-zinc-800 dark:hover:text-zinc-100',
-										)}
-										onClick={() => setViewType('split')}
-										title="Split View"
-									>
-										<TwoColumns className="h-6 w-6" />
-									</button>
-									<div className="!ml-4 !mr-1 h-6 border-l border-l-zinc-200 dark:border-l-zinc-800"></div>
-									<button className="hover:text-zinc-800 dark:hover:text-zinc-100" onClick={close}>
-										<XMarkIcon className="h-6 w-6" />
-									</button>
-								</div>
-							</Dialog.Title>
-							<div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-400 scrollbar-thumb-rounded-md dark:scrollbar-thumb-zinc-600">
-								{files.map(({ hunks }, i) => (
-									<Diff key={i} hunks={hunks} viewType={viewType} diffType={diffType} tokens={proccessTokens(hunks)} />
-								))}
-							</div>
-							<div className="flex-end flex flex-row items-center justify-end space-x-2 border-t border-zinc-200 px-4 pt-4 dark:border-zinc-700 sm:px-6 sm:pt-6">
-								{props.buttons ?? null}
-								<Button variant="plain" onClick={close}>
-									Close
-								</Button>
-							</div>
+		isOpen && (
+			<Modal
+				title={`Changes to ${props.fileName}`}
+				onClosed={close}
+				noClose={true}
+				wide="screen"
+				buttons={props.buttons}
+				body={`RatOS wants to make the following changes to ${props.fileName}. Do you want to accept these changes?`}
+				dismissText="Close"
+				titleActions={
+					<div className="relative flex flex-nowrap items-center gap-2 text-muted-foreground">
+						<button
+							className={twJoin(
+								viewType === 'unified'
+									? 'cursor-default text-sky-600 dark:text-sky-400'
+									: 'hover:text-zinc-800 dark:hover:text-zinc-100',
+							)}
+							onClick={() => setViewType('unified')}
+							title="Unified View"
+						>
+							<SingleColumn className="h-6 w-6" />
+						</button>
+						<button
+							className={twJoin(
+								viewType === 'split'
+									? 'cursor-default text-sky-600 dark:text-sky-400'
+									: 'hover:text-zinc-800 dark:hover:text-zinc-100',
+							)}
+							onClick={() => setViewType('split')}
+							title="Split View"
+						>
+							<TwoColumns className="h-6 w-6" />
+						</button>
+						<div className="!ml-2 !mr-1 h-6 border-l border-l-zinc-200 dark:border-l-zinc-800"></div>
+						<button className="hover:text-zinc-800 dark:hover:text-zinc-100" onClick={close}>
+							<X className="h-6 w-6" />
+						</button>
+					</div>
+				}
+				content={
+					<>
+						<div className="git-diff flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-400 scrollbar-thumb-rounded-md dark:scrollbar-thumb-zinc-600">
+							{props.fileName === 'printer.cfg' && props.changedOnDisk && (
+								<InfoMessage title="You might not need these changes" className="mb-4">
+									RatOS currently does not have the ability to port your customizations to generated code, and
+									printer.cfg is usually only regenerated when printer limit defaults have changed or you swap hardware
+									type. If you haven't changed hardware types, you can most likely ignore these changes.
+								</InfoMessage>
+							)}
+							<Diff hunks={hunks} viewType={viewType} diffType={diffType} tokens={tokens} renderGutter={renderGutter}>
+								{(hunks) => hunks.reduce(renderHunk, [])}
+							</Diff>
 						</div>
-					</Transition.Child>
-				</div>
-			</Dialog>
-		</Transition.Root>
+					</>
+				}
+			></Modal>
+		)
 	);
 };
