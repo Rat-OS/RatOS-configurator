@@ -930,8 +930,15 @@ export const constructKlipperConfigHelpers = async (
 		renderZOffsetGuidance(additionalLinePrefix: string = '') {
 			const result: string[] = [];
 			if (config.toolheads.some((th) => th.probe?.id === 'beacon')) {
-				result.push(`Z-offset calibration: Follow along from step 6 in the official beacon guide`);
-				result.push(`${additionalLinePrefix}https://docs.beacon3d.com/quickstart/#6-calibrate-beacon`);
+				result.push(
+					`Z-offset calibration: run BEACON_RATOS_CALIBRATE to automatically calibrate your beacon for scan and contact.`,
+				);
+				result.push(
+					`${additionalLinePrefix}IMPORTANT: Ensure the beacon is properly mounted and the nozzle and meltzone is clean by unloading`,
+				);
+				result.push(
+					`${additionalLinePrefix}the filament (if it's loaded) and make sure there's no ooze or gunk on the nozzle when the hotend is at printing temperature.`,
+				);
 			} else {
 				result.push(`Z-offset calibration: https://www.klipper3d.org/Probe_Calibrate.html#calibrating-probe-z-offset`);
 			}
