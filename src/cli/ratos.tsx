@@ -8,16 +8,14 @@ import React from 'react';
 import { Box, Text, TextProps, render } from 'ink';
 import { Container } from '@/cli/components/container.jsx';
 import { APIResult, Status } from '@/cli/components/status.jsx';
-import { Table } from '@/cli/components/table.jsx';
 import { readPackageUp } from 'read-package-up';
 import { $ } from 'zx';
 import { serverSchema } from '@/env/schema.mjs';
 import dotenv from 'dotenv';
 import { existsSync } from 'fs';
 import { replaceInFileByLine } from '@/server/helpers/file-operations.js';
-import { getLogger } from '@/server/helpers/logger.js';
-
-const logger = getLogger().child({ source: 'cli' });
+import { getLogger } from '@/cli/logger.js';
+import { exit } from 'process';
 
 function renderError(str: string, options: { exitCode: number } = { exitCode: 1 }) {
 	render(
@@ -40,14 +38,6 @@ function errorColor(str: string) {
 	// Add ANSI escape codes to display text in red.
 	return `\x1b[31m${str}\x1b[0m` as const;
 }
-
-const client = createTRPCProxyClient<AppRouter>({
-	links: [
-		httpBatchLink({
-			url: `${getBaseUrl()}/api/trpc`,
-		}),
-	],
-});
 
 const getRealPath = async (p: string) => {
 	if (process.env.RATOS_BIN_CWD == null && program.getOptionValue('cwd') == null) {
@@ -74,6 +64,13 @@ program
 	.command('info')
 	.description('Print info about this RatOS installation')
 	.action(async () => {
+		const client = createTRPCProxyClient<AppRouter>({
+			links: [
+				httpBatchLink({
+					url: `${getBaseUrl()}/api/trpc`,
+				}),
+			],
+		});
 		const info = {
 			osVersion: await client.osVersion.query(),
 			version: await client.version.query(),
@@ -122,6 +119,13 @@ extensions
 	.command('list')
 	.description('List all registered extensions')
 	.action(async () => {
+		const client = createTRPCProxyClient<AppRouter>({
+			links: [
+				httpBatchLink({
+					url: `${getBaseUrl()}/api/trpc`,
+				}),
+			],
+		});
 		const klippyExtensions = await client['klippy-extensions'].list.query();
 		const moonrakerExtensions = await client['moonraker-extensions'].list.query();
 		render(
@@ -166,6 +170,13 @@ registerExtensions
 	.argument('<file>', 'The extension itself')
 	.showHelpAfterError()
 	.action(async (extName, extFile, options) => {
+		const client = createTRPCProxyClient<AppRouter>({
+			links: [
+				httpBatchLink({
+					url: `${getBaseUrl()}/api/trpc`,
+				}),
+			],
+		});
 		let realPath = '';
 		try {
 			realPath = await getRealPath(extFile);
@@ -216,6 +227,13 @@ registerExtensions
 	.showHelpAfterError()
 	.option('-e, --error-if-exists', 'Throw error if the extension already exists')
 	.action(async (extName, extFile, options) => {
+		const client = createTRPCProxyClient<AppRouter>({
+			links: [
+				httpBatchLink({
+					url: `${getBaseUrl()}/api/trpc`,
+				}),
+			],
+		});
 		let realPath = '';
 		try {
 			realPath = await getRealPath(extFile);
@@ -264,6 +282,13 @@ unregisterExtensions
 	.option('-k, --kinematics', 'Register as a kinematics extension')
 	.option('-e, --error-if-not-exists', "Throw error if the extension doesn't exist")
 	.action(async (extName, options) => {
+		const client = createTRPCProxyClient<AppRouter>({
+			links: [
+				httpBatchLink({
+					url: `${getBaseUrl()}/api/trpc`,
+				}),
+			],
+		});
 		try {
 			const result = await client['klippy-extensions'].unregister.mutate({
 				extensionName: extName,
@@ -285,6 +310,13 @@ unregisterExtensions
 	.showHelpAfterError()
 	.option('-e, --error-if-not-exists', "Throw error if the extension doesn't exist")
 	.action(async (extName, options) => {
+		const client = createTRPCProxyClient<AppRouter>({
+			links: [
+				httpBatchLink({
+					url: `${getBaseUrl()}/api/trpc`,
+				}),
+			],
+		});
 		try {
 			const result = await client['moonraker-extensions'].unregister.mutate({
 				extensionName: extName,
@@ -307,6 +339,13 @@ extensions
 	.option('-e, --error-if-exists', 'Throw error and abort if an extension already exist')
 	.description('Symlink all registered extensions')
 	.action(async (type, options) => {
+		const client = createTRPCProxyClient<AppRouter>({
+			links: [
+				httpBatchLink({
+					url: `${getBaseUrl()}/api/trpc`,
+				}),
+			],
+		});
 		try {
 			const results = [];
 			if (type === 'klipper' || type === 'all') {
@@ -338,6 +377,13 @@ program
 	.option('-p, --overwrite-printer-cfg', "Overwrite the printer.cfg file, even if it hasn't been modified")
 	.action(async (options) => {
 		try {
+			const client = createTRPCProxyClient<AppRouter>({
+				links: [
+					httpBatchLink({
+						url: `${getBaseUrl()}/api/trpc`,
+					}),
+				],
+			});
 			const overwriteFiles = [];
 			if (options.overwriteAll) {
 				overwriteFiles.push('*');
@@ -387,6 +433,13 @@ program
 	.description(`Flash all connected boards`)
 	.action(async () => {
 		try {
+			const client = createTRPCProxyClient<AppRouter>({
+				links: [
+					httpBatchLink({
+						url: `${getBaseUrl()}/api/trpc`,
+					}),
+				],
+			});
 			const res = await client['mcu'].flashAllConnected.mutate();
 			renderApiResults(res.flashResults);
 		} catch (e) {
@@ -406,24 +459,30 @@ const FluiddInstallerUI: React.FC<{
 }> = (props) => {
 	return (
 		<Container>
-			<Box flexDirection="column" rowGap={1} padding={2} paddingTop={1}>
-				<Text color={props.statusColor ?? 'white'} dimColor={false}>
+			<Box flexDirection="column" rowGap={0}>
+				<Text color={props.statusColor ?? 'white'} dimColor={false} bold={true}>
+					{['red', 'redBright'].includes(props.statusColor ?? 'white') && <Text bold={true}>✘ </Text>}
+					{['green', 'greenBright'].includes(props.statusColor ?? 'white') && <Text bold={true}>✓ </Text>}
 					{props.status}
 				</Text>
 				{props.warnings?.map((warning) => (
-					<Text color="yellow" dimColor={true} key="warning">
+					<Text color="yellow" dimColor={true} key="warning" bold={false}>
 						{warning}
 					</Text>
 				))}
-				{props.stepText && <Text color={props.stepTextColor ?? 'greenBright'}>{props.stepText}</Text>}
+				{props.stepText && (
+					<Text color={props.stepTextColor ?? 'white'} bold={false}>
+						{props.stepText}
+					</Text>
+				)}
 			</Box>
 		</Container>
 	);
 };
 
-program
-	.command('frontend')
-	.description('enable or disable experimental features')
+const frontend = program.command('frontend').description('Switch between klipper frontend UIs');
+
+frontend
 	.command('fluidd-experimental')
 	.description('Replaces Mainsail with the RatOS development fork of Fluidd')
 	.action(async () => {
@@ -492,7 +551,7 @@ program
 			);
 			const nginxValidation = await $`sudo nginx -t`;
 			if (nginxValidation.stderr) {
-				logger.error(
+				getLogger().error(
 					{ stderr: nginxValidation.stderr, stdout: nginxValidation.stdout },
 					'nginx validation failed during fluidd installation',
 				);
@@ -535,7 +594,9 @@ program
 				);
 			}
 		}
-	})
+	});
+
+frontend
 	.command('mainsail')
 	.description('Restore the default mainsail nginx configuration')
 	.action(async () => {
@@ -600,5 +661,4 @@ log
 		const log = '/etc/logrotate.d/ratos-configurator';
 		$`logrotate -f ${log}`;
 	});
-
-program.parseAsync();
+await program.parseAsync();
