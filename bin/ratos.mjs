@@ -1010,7 +1010,7 @@ var require_command = __commonJS({
           writeErr: (str) => process14.stderr.write(str),
           getOutHelpWidth: () => process14.stdout.isTTY ? process14.stdout.columns : void 0,
           getErrHelpWidth: () => process14.stderr.isTTY ? process14.stderr.columns : void 0,
-          outputError: (str, write2) => write2(str)
+          outputError: (str, write) => write(str)
         };
         this._hidden = false;
         this._hasHelpOption = true;
@@ -2665,13 +2665,13 @@ Expecting one of '${allowedValues.join("', '")}'`);
       _getHelpContext(contextOptions) {
         contextOptions = contextOptions || {};
         const context = { error: !!contextOptions.error };
-        let write2;
+        let write;
         if (context.error) {
-          write2 = (arg) => this._outputConfiguration.writeErr(arg);
+          write = (arg) => this._outputConfiguration.writeErr(arg);
         } else {
-          write2 = (arg) => this._outputConfiguration.writeOut(arg);
+          write = (arg) => this._outputConfiguration.writeOut(arg);
         }
-        context.write = contextOptions.write || write2;
+        context.write = contextOptions.write || write;
         context.command = this;
         return context;
       }
@@ -67276,7 +67276,7 @@ var require_sonic_boom = __commonJS({
         fsWrite = () => fs2.write(this.fd, this._writingBuf, this.release);
       } else if (contentMode === void 0 || contentMode === kContentModeUtf8) {
         this._writingBuf = "";
-        this.write = write2;
+        this.write = write;
         this.flush = flush;
         this.flushSync = flushSync;
         this._actualWrite = actualWrite;
@@ -67389,7 +67389,7 @@ var require_sonic_boom = __commonJS({
       }
       return Buffer.concat(bufs, len);
     }
-    function write2(data) {
+    function write(data) {
       if (this.destroyed) {
         throw new Error("SonicBoom destroyed");
       }
@@ -68005,7 +68005,7 @@ var require_thread_stream = __commonJS({
         let toWriteBytes = Buffer.byteLength(toWrite);
         if (toWriteBytes <= leftover) {
           stream[kImpl].buf = stream[kImpl].buf.slice(leftover);
-          write2(stream, toWrite, nextFlush.bind(null, stream));
+          write(stream, toWrite, nextFlush.bind(null, stream));
         } else {
           stream.flush(() => {
             if (stream.destroyed) {
@@ -68019,7 +68019,7 @@ var require_thread_stream = __commonJS({
               toWriteBytes = Buffer.byteLength(toWrite);
             }
             stream[kImpl].buf = stream[kImpl].buf.slice(leftover);
-            write2(stream, toWrite, nextFlush.bind(null, stream));
+            write(stream, toWrite, nextFlush.bind(null, stream));
           });
         }
       } else if (leftover === 0) {
@@ -68229,7 +68229,7 @@ var require_thread_stream = __commonJS({
         });
       }
     }
-    function write2(stream, data, cb) {
+    function write(stream, data, cb) {
       const current = Atomics.load(stream[kImpl].state, WRITE_INDEX);
       const length = Buffer.byteLength(data);
       stream[kImpl].data.write(data, current);
@@ -68293,7 +68293,7 @@ var require_thread_stream = __commonJS({
         let toWriteBytes = Buffer.byteLength(toWrite);
         if (toWriteBytes <= leftover) {
           stream[kImpl].buf = stream[kImpl].buf.slice(leftover);
-          write2(stream, toWrite, cb);
+          write(stream, toWrite, cb);
         } else {
           flushSync(stream);
           Atomics.store(stream[kImpl].state, READ_INDEX, 0);
@@ -68304,7 +68304,7 @@ var require_thread_stream = __commonJS({
             toWriteBytes = Buffer.byteLength(toWrite);
           }
           stream[kImpl].buf = stream[kImpl].buf.slice(leftover);
-          write2(stream, toWrite, cb);
+          write(stream, toWrite, cb);
         }
       }
     }
@@ -69037,7 +69037,7 @@ var require_proto = __commonJS({
         throw Error("levelVal is read-only");
       },
       [lsCacheSym]: initialLsCache,
-      [writeSym]: write2,
+      [writeSym]: write,
       [asJsonSym]: asJson,
       [getLevelSym]: getLevel,
       [setLevelSym]: setLevel
@@ -69127,7 +69127,7 @@ var require_proto = __commonJS({
     function defaultMixinMergeStrategy(mergeObject, mixinObject) {
       return Object.assign(mixinObject, mergeObject);
     }
-    function write2(_obj, msg, num) {
+    function write(_obj, msg, num) {
       const t = this[timeSym]();
       const mixin = this[mixinSym];
       const errorKey = this[errorKeySym];
@@ -69911,7 +69911,7 @@ var require_multistream = __commonJS({
         });
       }
       const res = {
-        write: write2,
+        write,
         add,
         flushSync,
         end,
@@ -69928,7 +69928,7 @@ var require_multistream = __commonJS({
       }
       streamsArray = null;
       return res;
-      function write2(data) {
+      function write(data) {
         let dest;
         const level = this.lastLevel;
         const { streams } = this;
@@ -70013,7 +70013,7 @@ var require_multistream = __commonJS({
           };
         }
         return {
-          write: write2,
+          write,
           add,
           minLevel: level,
           streams,
@@ -70123,7 +70123,7 @@ var require_pino = __commonJS({
     };
     var normalize = createArgsNormalizer(defaultOptions);
     var serializers = Object.assign(/* @__PURE__ */ Object.create(null), stdSerializers);
-    function pino3(...args) {
+    function pino2(...args) {
       const instance = {};
       const { opts, stream } = normalize(instance, caller(), ...args);
       const {
@@ -70220,7 +70220,7 @@ var require_pino = __commonJS({
       instance[setLevelSym](level);
       return instance;
     }
-    module.exports = pino3;
+    module.exports = pino2;
     module.exports.destination = (dest = process.stdout.fd) => {
       if (typeof dest === "object") {
         dest.dest = normalizeDestFileDescriptor(dest.dest || process.stdout.fd);
@@ -70236,8 +70236,8 @@ var require_pino = __commonJS({
     module.exports.stdTimeFunctions = Object.assign({}, time);
     module.exports.symbols = symbols;
     module.exports.version = version;
-    module.exports.default = pino3;
-    module.exports.pino = pino3;
+    module.exports.default = pino2;
+    module.exports.pino = pino2;
   }
 });
 
@@ -83959,18 +83959,11 @@ var clientEnv = {
 
 // ratos.tsx
 var import_dotenv2 = __toESM(require_main(), 1);
-import { existsSync as existsSync4 } from "fs";
+import { existsSync as existsSync3 } from "fs";
 
-// ../server/helpers/file-operations.ts
+// logger.ts
 init_cjs_shim();
-import { existsSync as existsSync2, createReadStream, createWriteStream } from "fs";
-import { copyFile, unlink } from "fs/promises";
-import { EOL } from "os";
-import { createInterface } from "readline";
-
-// ../server/helpers/logger.ts
-init_cjs_shim();
-var import_pino = __toESM(require_pino());
+var import_pino = __toESM(require_pino(), 1);
 
 // ../helpers/logger.ts
 init_cjs_shim();
@@ -83979,116 +83972,22 @@ var globalPinoOpts = {
   level: process.env.NODE_ENV === "development" ? "debug" : "info"
 };
 
-// ../server/helpers/logger.ts
+// logger.ts
+var import_dotenv = __toESM(require_main(), 1);
+import { existsSync as existsSync2, readFileSync as readFileSync2 } from "fs";
 var logger = null;
+var envFile = existsSync2("./.env.local") ? readFileSync2(".env.local") : readFileSync2(".env");
 var getLogger = () => {
   if (logger != null) {
     return logger;
-  }
-  const environment = serverSchema.parse(process.env);
-  const transportOption = process.env.NODE_ENV === "development" ? void 0 : {
-    target: "pino/file",
-    options: { destination: environment.LOG_FILE, append: true }
-  };
-  logger = (0, import_pino.default)({ ...globalPinoOpts, transport: transportOption });
-  return logger;
-};
-
-// ../server/helpers/file-operations.ts
-var replaceInFileByLine = async (filePath, searchOrReplacer, replace) => {
-  if (!existsSync2(filePath)) {
-    throw new Error("File does not exist: " + filePath);
-  }
-  const fileStream = createReadStream(filePath, { highWaterMark: 1 * 1024 * 1024 });
-  const writeStream = createWriteStream(filePath + ".tmp", { flags: "w" });
-  const rl = createInterface({
-    input: fileStream,
-    crlfDelay: Infinity
-  });
-  const rlClosed = new Promise((resolve, reject) => {
-    rl.on("close", () => {
-      resolve(null);
-    });
-  });
-  let linesChanged = 0;
-  let linesDeleted = 0;
-  let lineNumber = 0;
-  try {
-    for await (const line of rl) {
-      lineNumber++;
-      let newLine = line;
-      if (searchOrReplacer instanceof Function) {
-        newLine = searchOrReplacer(line, lineNumber);
-      } else if (replace === null) {
-        if (searchOrReplacer instanceof RegExp ? line.match(searchOrReplacer) : line.includes(searchOrReplacer)) {
-          newLine = null;
-        }
-      } else if (replace == null) {
-        getLogger().warn(`replaceInFileByLine (${filePath}): replacer wasn't provided, writing line as is`);
-      } else {
-        newLine = line.replace(searchOrReplacer, replace);
-      }
-      if (newLine !== null) {
-        writeStream.write(newLine + EOL);
-        if (newLine !== line) {
-          linesChanged++;
-        }
-      } else {
-        linesDeleted++;
-      }
-    }
-  } catch (e) {
-    getLogger().error(
-      `replaceInFileByLine (${filePath}): error encountered during replace operation, original file will not be changed. ${e instanceof Error ? e.message : e instanceof String ? e : "Unknown error"}`
-    );
-    fileStream.destroy();
-    writeStream.destroy();
-    throw e;
-  } finally {
-    rl.close();
-    await rlClosed;
-    await new Promise((resolve, reject) => {
-      writeStream.close((err) => {
-        if (err) {
-          throw reject(err);
-        }
-        resolve(null);
-      });
-    });
-    await new Promise((resolve, reject) => {
-      fileStream.close((err) => {
-        if (err) {
-          throw reject(err);
-        }
-        resolve(null);
-      });
-    });
-  }
-  if (linesChanged + linesDeleted > 0) {
-    await copyFile(filePath + ".tmp", filePath);
-  }
-  await unlink(filePath + ".tmp");
-  return { linesChanged, linesDeleted, linesTotal: lineNumber };
-};
-
-// logger.ts
-init_cjs_shim();
-var import_pino2 = __toESM(require_pino(), 1);
-var import_dotenv = __toESM(require_main(), 1);
-import { existsSync as existsSync3, readFileSync as readFileSync2 } from "fs";
-var logger2 = null;
-var envFile = existsSync3("./.env.local") ? readFileSync2(".env.local") : readFileSync2(".env");
-var getLogger2 = () => {
-  if (logger2 != null) {
-    return logger2;
   }
   const environment = serverSchema.parse({ NODE_ENV: "production", ...import_dotenv.default.parse(envFile) });
   const transportOption = process.env.NODE_ENV === "development" ? void 0 : {
     target: "pino/file",
     options: { destination: environment.LOG_FILE, append: true }
   };
-  logger2 = (0, import_pino2.pino)({ ...globalPinoOpts, transport: transportOption }).child({ source: "cli" });
-  return logger2;
+  logger = (0, import_pino.pino)({ ...globalPinoOpts, transport: transportOption }).child({ source: "cli" });
+  return logger;
 };
 
 // ratos.tsx
@@ -84117,7 +84016,7 @@ var getRealPath = async (p) => {
   return await realpath(path5.resolve(process.env.RATOS_BIN_CWD ?? program2.getOptionValue("cwd"), p));
 };
 var program2 = new Command().name("RatOS CLI").version((await readPackageUp())?.packageJson.version ?? "unknown").description("RatOS CLI for interacting with the RatOS Configurator").option("-cwd, --cwd <path>", "Set the current working directory").configureOutput({
-  outputError: (str, write2) => write2(errorColor(str))
+  outputError: (str, write) => write(errorColor(str))
 }).showSuggestionAfterError(true);
 program2.command("info").description("Print info about this RatOS installation").action(async () => {
   const client = createTRPCProxyClient({
@@ -84151,7 +84050,7 @@ extensions.command("list").description("List all registered extensions").action(
   const klippyExtensions = await client["klippy-extensions"].list.query();
   const moonrakerExtensions = await client["moonraker-extensions"].list.query();
   render_default(
-    /* @__PURE__ */ import_react28.default.createElement(Container, null, /* @__PURE__ */ import_react28.default.createElement(Box_default, { flexDirection: "column", marginBottom: 1 }, /* @__PURE__ */ import_react28.default.createElement(Text, null, klippyExtensions.length, " Registered Klipper ", klippyExtensions.length === 1 ? "Extension" : "Extensions", klippyExtensions.length ? ":" : ""), klippyExtensions.map((ext) => /* @__PURE__ */ import_react28.default.createElement(Box_default, { key: ext.extensionName, flexDirection: "row", columnGap: 2 }, /* @__PURE__ */ import_react28.default.createElement(Text, { color: existsSync4(ext.path + ext.fileName) ? "green" : "red" }, ext.extensionName, " ", "->", " ", ext.path + ext.fileName, " ")))), /* @__PURE__ */ import_react28.default.createElement(Box_default, { flexDirection: "column" }, /* @__PURE__ */ import_react28.default.createElement(Text, null, moonrakerExtensions.length, " Registered Moonraker", " ", moonrakerExtensions.length === 1 ? "Extension" : "Extensions", moonrakerExtensions.length ? ":" : ""), moonrakerExtensions.map((ext) => /* @__PURE__ */ import_react28.default.createElement(Box_default, { key: ext.extensionName, flexDirection: "row", columnGap: 2 }, /* @__PURE__ */ import_react28.default.createElement(Text, { color: existsSync4(ext.path + ext.fileName) ? "green" : "red" }, ext.extensionName, " ", "->", " ", ext.path + ext.fileName, " ")))))
+    /* @__PURE__ */ import_react28.default.createElement(Container, null, /* @__PURE__ */ import_react28.default.createElement(Box_default, { flexDirection: "column", marginBottom: 1 }, /* @__PURE__ */ import_react28.default.createElement(Text, null, klippyExtensions.length, " Registered Klipper ", klippyExtensions.length === 1 ? "Extension" : "Extensions", klippyExtensions.length ? ":" : ""), klippyExtensions.map((ext) => /* @__PURE__ */ import_react28.default.createElement(Box_default, { key: ext.extensionName, flexDirection: "row", columnGap: 2 }, /* @__PURE__ */ import_react28.default.createElement(Text, { color: existsSync3(ext.path + ext.fileName) ? "green" : "red" }, ext.extensionName, " ", "->", " ", ext.path + ext.fileName, " ")))), /* @__PURE__ */ import_react28.default.createElement(Box_default, { flexDirection: "column" }, /* @__PURE__ */ import_react28.default.createElement(Text, null, moonrakerExtensions.length, " Registered Moonraker", " ", moonrakerExtensions.length === 1 ? "Extension" : "Extensions", moonrakerExtensions.length ? ":" : ""), moonrakerExtensions.map((ext) => /* @__PURE__ */ import_react28.default.createElement(Box_default, { key: ext.extensionName, flexDirection: "row", columnGap: 2 }, /* @__PURE__ */ import_react28.default.createElement(Text, { color: existsSync3(ext.path + ext.fileName) ? "green" : "red" }, ext.extensionName, " ", "->", " ", ext.path + ext.fileName, " ")))))
   );
 });
 registerExtensions.command("klipper").description("Register a Klipper extension to be managed by the RatOS Configurator").option("-k, --kinematics", "Register as a kinematics extension").option("-e, --error-if-exists", "Throw error if the extension already exists").argument("<name>", "Name of the extension").argument("<file>", "The extension itself").showHelpAfterError().action(async (extName, extFile, options) => {
@@ -84377,16 +84276,16 @@ program2.command("flash").description(`Flash all connected boards`).action(async
   }
 });
 var FluiddInstallerUI = (props) => {
-  return /* @__PURE__ */ import_react28.default.createElement(Container, null, /* @__PURE__ */ import_react28.default.createElement(Box_default, { flexDirection: "column", rowGap: 0 }, /* @__PURE__ */ import_react28.default.createElement(Text, { color: props.statusColor ?? "white", dimColor: false, bold: true }, ["red", "redBright"].includes(props.statusColor ?? "white") && /* @__PURE__ */ import_react28.default.createElement(Text, { bold: true }, "\u2718 "), ["green", "greenBright"].includes(props.statusColor ?? "white") && /* @__PURE__ */ import_react28.default.createElement(Text, { bold: true }, "\u2713 "), props.status), props.warnings?.map((warning) => /* @__PURE__ */ import_react28.default.createElement(Text, { color: "yellow", dimColor: true, key: "warning", bold: false }, warning)), props.stepText && /* @__PURE__ */ import_react28.default.createElement(Text, { color: props.stepTextColor ?? "white", bold: false }, props.stepText)));
+  return /* @__PURE__ */ import_react28.default.createElement(Container, null, /* @__PURE__ */ import_react28.default.createElement(Box_default, { flexDirection: "column", rowGap: 0 }, /* @__PURE__ */ import_react28.default.createElement(Text, { color: props.statusColor ?? "white", dimColor: false, bold: true }, ["red", "redBright"].includes(props.statusColor ?? "white") && /* @__PURE__ */ import_react28.default.createElement(Text, { bold: true }, "\u2718 "), ["green", "greenBright"].includes(props.statusColor ?? "white") && /* @__PURE__ */ import_react28.default.createElement(Text, { bold: true }, "\u2713 "), props.status), props.warnings?.map((warning) => /* @__PURE__ */ import_react28.default.createElement(Text, { color: "yellow", dimColor: true, key: "warning", bold: false }, warning)), props.stepText && /* @__PURE__ */ import_react28.default.createElement(Text, { color: props.stepTextColor ?? "white", dimColor: true, bold: false }, props.stepText)));
 };
 var frontend = program2.command("frontend").description("Switch between klipper frontend UIs");
 frontend.command("fluidd-experimental").description("Replaces Mainsail with the RatOS development fork of Fluidd").action(async () => {
   const $$ = $({ quiet: true });
-  const envFile2 = existsSync4("./.env.local") ? await readFile(".env.local") : await readFile(".env");
+  const envFile2 = existsSync3("./.env.local") ? await readFile(".env.local") : await readFile(".env");
   const environment = serverSchema.parse({ NODE_ENV: "production", ...import_dotenv2.default.parse(envFile2) });
   let { rerender } = render_default(/* @__PURE__ */ import_react28.default.createElement(FluiddInstallerUI, { status: "Installing fluidd.." }));
-  if (!existsSync4("/etc/nginx/sites-available/mainsail")) {
-    if (existsSync4("/etc/nginx/sites-available/mainsail.bak") && existsSync4("/etc/nginx/sites-enabled/fluidd")) {
+  if (!existsSync3("/etc/nginx/sites-available/mainsail")) {
+    if (existsSync3("/etc/nginx/sites-available/mainsail.bak") && existsSync3("/etc/nginx/sites-enabled/fluidd")) {
       rerender(
         /* @__PURE__ */ import_react28.default.createElement(
           FluiddInstallerUI,
@@ -84412,7 +84311,7 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
   } else {
     const hostname = (await $`tr -d " \t\n\r" < /etc/hostname`).stdout;
     const warnings = [];
-    if (!existsSync4("/home/pi/fluidd")) {
+    if (!existsSync3("/home/pi/fluidd")) {
       rerender(
         /* @__PURE__ */ import_react28.default.createElement(
           FluiddInstallerUI,
@@ -84442,15 +84341,13 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
         }
       )
     );
-    const fluidConfigFile = `/home/${environment.USER}/fluidd-config`;
+    const fluidConfigFile = `/tmp/fluidd`;
     await $$`sudo cp /etc/nginx/sites-available/mainsail /etc/nginx/sites-available/mainsail.bak`;
     await $$`sudo cp /etc/nginx/sites-available/mainsail ${fluidConfigFile}`;
-    await $$`sudo chmod a+w ${fluidConfigFile}`;
     rerender(
       /* @__PURE__ */ import_react28.default.createElement(FluiddInstallerUI, { warnings, status: "Installing Fluidd...", stepText: "Updating nginx configuration" })
     );
-    await replaceInFileByLine(`${fluidConfigFile}`, /mainsail/g, "fluidd");
-    await $$`sudo chmod u=rw,go=r ${fluidConfigFile}`;
+    await $$`sed -i -e 's/mainsail/fluidd/g' ${fluidConfigFile}`;
     await $$`sudo mv ${fluidConfigFile} /etc/nginx/sites-available/fluidd`;
     await $$`sudo ln -s /etc/nginx/sites-available/fluidd /etc/nginx/sites-enabled/fluidd`;
     await $$`sudo rm /etc/nginx/sites-enabled/mainsail /etc/nginx/sites-available/mainsail`;
@@ -84459,7 +84356,7 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
     );
     const nginxValidation = await $$`sudo nginx -t`;
     if (nginxValidation.stderr) {
-      getLogger2().error(
+      getLogger().error(
         { stderr: nginxValidation.stderr, stdout: nginxValidation.stdout },
         "nginx validation failed during fluidd installation"
       );
@@ -84516,10 +84413,10 @@ frontend.command("mainsail").description("Restore the default mainsail nginx con
   const $$ = $({ quiet: true });
   const { rerender } = render_default(/* @__PURE__ */ import_react28.default.createElement(FluiddInstallerUI, { status: "Restoring mainsail.." }));
   const hostname = (await $$`tr -d " \t\n\r" < /etc/hostname`).stdout;
-  if (!existsSync4("/etc/nginx/sites-available/mainsail.bak")) {
+  if (!existsSync3("/etc/nginx/sites-available/mainsail.bak")) {
     return renderError("Mainsail backup configuration file not found", { exitCode: 2 });
   }
-  if (existsSync4("/etc/nginx/sites-enabled/mainsail")) {
+  if (existsSync3("/etc/nginx/sites-enabled/mainsail")) {
     return rerender(
       /* @__PURE__ */ import_react28.default.createElement(
         FluiddInstallerUI,
@@ -84537,7 +84434,7 @@ frontend.command("mainsail").description("Restore the default mainsail nginx con
   );
   await $$`sudo cp /etc/nginx/sites-available/mainsail.bak /etc/nginx/sites-available/mainsail`;
   await $$`sudo ln -s /etc/nginx/sites-available/mainsail /etc/nginx/sites-enabled/mainsail`;
-  if (existsSync4("/etc/nginx/sites-enabled/fluidd")) {
+  if (existsSync3("/etc/nginx/sites-enabled/fluidd")) {
     await $$`sudo rm /etc/nginx/sites-enabled/fluidd /etc/nginx/sites-available/fluidd`;
   }
   await $$`sudo systemctl reload nginx`;
@@ -84562,7 +84459,7 @@ log.command("tail").option("-f, --follow", "Follow the log").option("-n, --lines
   if (options.lines) {
     flags.push(`-n${options.lines}`);
   }
-  const envFile2 = existsSync4("./.env.local") ? await readFile(".env.local") : await readFile(".env");
+  const envFile2 = existsSync3("./.env.local") ? await readFile(".env.local") : await readFile(".env");
   const log2 = serverSchema.parse({ NODE_ENV: "production", ...import_dotenv2.default.parse(envFile2) }).LOG_FILE;
   $`tail ${flags} ${log2}`.pipe($`pino-pretty`);
 });
