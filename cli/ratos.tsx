@@ -541,7 +541,7 @@ frontend
 			rerender(
 				<FluiddInstallerUI warnings={warnings} status="Installing Fluidd..." stepText="Updating nginx configuration" />,
 			);
-			await $$`sed -i -e 's/mainsail/fluidd/g' ${fluidConfigFile}`;
+			await $$`sudo sed -i -e 's/mainsail/fluidd/g' ${fluidConfigFile}`;
 			await $$`sudo mv ${fluidConfigFile} /etc/nginx/sites-available/fluidd`;
 			await $$`sudo ln -s /etc/nginx/sites-available/fluidd /etc/nginx/sites-enabled/fluidd`;
 			await $$`sudo rm /etc/nginx/sites-enabled/mainsail /etc/nginx/sites-available/mainsail`;
