@@ -84523,7 +84523,7 @@ var require_pino = __commonJS({
     };
     var normalize = createArgsNormalizer(defaultOptions);
     var serializers = Object.assign(/* @__PURE__ */ Object.create(null), stdSerializers);
-    function pino2(...args) {
+    function pino3(...args) {
       const instance = {};
       const { opts, stream } = normalize(instance, caller(), ...args);
       const {
@@ -84620,7 +84620,7 @@ var require_pino = __commonJS({
       instance[setLevelSym](level);
       return instance;
     }
-    module.exports = pino2;
+    module.exports = pino3;
     module.exports.destination = (dest = process.stdout.fd) => {
       if (typeof dest === "object") {
         dest.dest = normalizeDestFileDescriptor(dest.dest || process.stdout.fd);
@@ -84636,8 +84636,8 @@ var require_pino = __commonJS({
     module.exports.stdTimeFunctions = Object.assign({}, time);
     module.exports.symbols = symbols;
     module.exports.version = version;
-    module.exports.default = pino2;
-    module.exports.pino = pino2;
+    module.exports.default = pino3;
+    module.exports.pino = pino3;
   }
 });
 
@@ -85614,8 +85614,8 @@ var TRPCUntypedClient = class {
   }
 };
 function createTRPCClient(opts) {
-  const client2 = new TRPCUntypedClient(opts);
-  return client2;
+  const client = new TRPCUntypedClient(opts);
+  return client;
 }
 var clientCallTypeMap = {
   query: "query",
@@ -85625,13 +85625,13 @@ var clientCallTypeMap = {
 var clientCallTypeToProcedureType = (clientCallType) => {
   return clientCallTypeMap[clientCallType];
 };
-function createTRPCClientProxy(client2) {
+function createTRPCClientProxy(client) {
   return createFlatProxy((key) => {
-    if (client2.hasOwnProperty(key)) {
-      return client2[key];
+    if (client.hasOwnProperty(key)) {
+      return client[key];
     }
     if (key === "__untypedClient") {
-      return client2;
+      return client;
     }
     return createRecursiveProxy(({ path: path7, args }) => {
       const pathCopy = [
@@ -85640,13 +85640,13 @@ function createTRPCClientProxy(client2) {
       ];
       const procedureType = clientCallTypeToProcedureType(pathCopy.pop());
       const fullPath = pathCopy.join(".");
-      return client2[procedureType](fullPath, ...args);
+      return client[procedureType](fullPath, ...args);
     });
   });
 }
 function createTRPCProxyClient(opts) {
-  const client2 = new TRPCUntypedClient(opts);
-  const proxy = createTRPCClientProxy(client2);
+  const client = new TRPCUntypedClient(opts);
+  const proxy = createTRPCClientProxy(client);
   return proxy;
 }
 function getTextDecoder(customTextDecoder) {
@@ -86856,7 +86856,7 @@ var QueryCache = class extends Subscribable {
     this.queries = [];
     this.queriesMap = {};
   }
-  build(client2, options, state) {
+  build(client, options, state) {
     var _options$queryHash;
     const queryKey = options.queryKey;
     const queryHash = (_options$queryHash = options.queryHash) != null ? _options$queryHash : hashQueryKeyByOptions(queryKey, options);
@@ -86864,12 +86864,12 @@ var QueryCache = class extends Subscribable {
     if (!query) {
       query = new Query({
         cache: this,
-        logger: client2.getLogger(),
+        logger: client.getLogger(),
         queryKey,
         queryHash,
-        options: client2.defaultQueryOptions(options),
+        options: client.defaultQueryOptions(options),
         state,
-        defaultOptions: client2.getQueryDefaults(queryKey)
+        defaultOptions: client.getQueryDefaults(queryKey)
       });
       this.add(query);
     }
@@ -87190,14 +87190,14 @@ var MutationCache = class extends Subscribable {
     this.mutations = [];
     this.mutationId = 0;
   }
-  build(client2, options, state) {
+  build(client, options, state) {
     const mutation = new Mutation({
       mutationCache: this,
-      logger: client2.getLogger(),
+      logger: client.getLogger(),
       mutationId: ++this.mutationId,
-      options: client2.defaultMutationOptions(options),
+      options: client.defaultMutationOptions(options),
       state,
-      defaultOptions: options.mutationKey ? client2.getMutationDefaults(options.mutationKey) : void 0
+      defaultOptions: options.mutationKey ? client.getMutationDefaults(options.mutationKey) : void 0
     });
     this.add(mutation);
     return mutation;
@@ -87654,9 +87654,9 @@ var QueryClient = class {
 // ../node_modules/.pnpm/@tanstack+query-core@4.36.1/node_modules/@tanstack/query-core/build/lib/queryObserver.mjs
 init_cjs_shim();
 var QueryObserver = class extends Subscribable {
-  constructor(client2, options) {
+  constructor(client, options) {
     super();
-    this.client = client2;
+    this.client = client;
     this.options = options;
     this.trackedProps = /* @__PURE__ */ new Set();
     this.selectError = null;
@@ -88092,9 +88092,9 @@ function shouldAssignObserverCurrentProperties(observer, optimisticResult, optio
 // ../node_modules/.pnpm/@tanstack+query-core@4.36.1/node_modules/@tanstack/query-core/build/lib/queriesObserver.mjs
 init_cjs_shim();
 var QueriesObserver = class extends Subscribable {
-  constructor(client2, queries) {
+  constructor(client, queries) {
     super();
-    this.client = client2;
+    this.client = client;
     this.queries = [];
     this.result = [];
     this.observers = [];
@@ -88231,8 +88231,8 @@ var InfiniteQueryObserver = class extends QueryObserver {
   // Type override
   // Type override
   // eslint-disable-next-line @typescript-eslint/no-useless-constructor
-  constructor(client2, options) {
-    super(client2, options);
+  constructor(client, options) {
+    super(client, options);
   }
   bindMethods() {
     super.bindMethods();
@@ -88305,9 +88305,9 @@ var InfiniteQueryObserver = class extends QueryObserver {
 // ../node_modules/.pnpm/@tanstack+query-core@4.36.1/node_modules/@tanstack/query-core/build/lib/mutationObserver.mjs
 init_cjs_shim();
 var MutationObserver = class extends Subscribable {
-  constructor(client2, options) {
+  constructor(client, options) {
     super();
-    this.client = client2;
+    this.client = client;
     this.setOptions(options);
     this.bindMethods();
     this.updateResult();
@@ -88427,12 +88427,12 @@ function defaultShouldDehydrateMutation(mutation) {
 function defaultShouldDehydrateQuery(query) {
   return query.state.status === "success";
 }
-function dehydrate(client2, options = {}) {
+function dehydrate(client, options = {}) {
   const mutations = [];
   const queries = [];
   if (options.dehydrateMutations !== false) {
     const shouldDehydrateMutation = options.shouldDehydrateMutation || defaultShouldDehydrateMutation;
-    client2.getMutationCache().getAll().forEach((mutation) => {
+    client.getMutationCache().getAll().forEach((mutation) => {
       if (shouldDehydrateMutation(mutation)) {
         mutations.push(dehydrateMutation(mutation));
       }
@@ -88440,7 +88440,7 @@ function dehydrate(client2, options = {}) {
   }
   if (options.dehydrateQueries !== false) {
     const shouldDehydrateQuery = options.shouldDehydrateQuery || defaultShouldDehydrateQuery;
-    client2.getQueryCache().getAll().forEach((query) => {
+    client.getQueryCache().getAll().forEach((query) => {
       if (shouldDehydrateQuery(query)) {
         queries.push(dehydrateQuery(query));
       }
@@ -88451,17 +88451,17 @@ function dehydrate(client2, options = {}) {
     queries
   };
 }
-function hydrate(client2, dehydratedState, options) {
+function hydrate(client, dehydratedState, options) {
   if (typeof dehydratedState !== "object" || dehydratedState === null) {
     return;
   }
-  const mutationCache = client2.getMutationCache();
-  const queryCache = client2.getQueryCache();
+  const mutationCache = client.getMutationCache();
+  const queryCache = client.getQueryCache();
   const mutations = dehydratedState.mutations || [];
   const queries = dehydratedState.queries || [];
   mutations.forEach((dehydratedMutation) => {
     var _options$defaultOptio;
-    mutationCache.build(client2, {
+    mutationCache.build(client, {
       ...options == null ? void 0 : (_options$defaultOptio = options.defaultOptions) == null ? void 0 : _options$defaultOptio.mutations,
       mutationKey: dehydratedMutation.mutationKey
     }, dehydratedMutation.state);
@@ -88484,7 +88484,7 @@ function hydrate(client2, dehydratedState, options) {
       return;
     }
     queryCache.build(
-      client2,
+      client,
       {
         ...options == null ? void 0 : (_options$defaultOptio2 = options.defaultOptions) == null ? void 0 : _options$defaultOptio2.queries,
         queryKey,
@@ -88536,25 +88536,25 @@ var useQueryClient = ({
   return queryClient;
 };
 var QueryClientProvider = ({
-  client: client2,
+  client,
   children,
   context,
   contextSharing = false
 }) => {
   React.useEffect(() => {
-    client2.mount();
+    client.mount();
     return () => {
-      client2.unmount();
+      client.unmount();
     };
-  }, [client2]);
+  }, [client]);
   if (process.env.NODE_ENV !== "production" && contextSharing) {
-    client2.getLogger().error("The contextSharing option has been deprecated and will be removed in the next major version");
+    client.getLogger().error("The contextSharing option has been deprecated and will be removed in the next major version");
   }
   const Context = getQueryClientContext(context, contextSharing);
   return /* @__PURE__ */ React.createElement(QueryClientSharingContext.Provider, {
     value: !context && contextSharing
   }, /* @__PURE__ */ React.createElement(Context.Provider, {
-    value: client2
+    value: client
   }, children));
 };
 
@@ -88967,7 +88967,7 @@ function createReactQueryUtilsProxy(context) {
     });
   });
 }
-function createUseQueriesProxy(client2) {
+function createUseQueriesProxy(client) {
   return createRecursiveProxy((opts) => {
     const path7 = opts.path.join(".");
     const [input, _opts] = opts.args;
@@ -88975,7 +88975,7 @@ function createUseQueriesProxy(client2) {
     const options = {
       queryKey,
       queryFn: () => {
-        return client2.query(path7, input, _opts?.trpc);
+        return client.query(path7, input, _opts?.trpc);
       },
       ..._opts
     };
@@ -89006,7 +89006,7 @@ function createRootHooks(config) {
     return createTRPCClient(opts);
   };
   const TRPCProvider = (props) => {
-    const { abortOnUnmount = false, client: client2, queryClient, ssrContext } = props;
+    const { abortOnUnmount = false, client, queryClient, ssrContext } = props;
     const [ssrState, setSSRState] = (0, import_react.useState)(props.ssrState ?? false);
     (0, import_react.useEffect)(() => {
       setSSRState((state) => state ? "mounted" : false);
@@ -89015,17 +89015,17 @@ function createRootHooks(config) {
       value: {
         abortOnUnmount,
         queryClient,
-        client: client2,
+        client,
         ssrContext: ssrContext ?? null,
         ssrState,
         fetchQuery: (0, import_react.useCallback)((pathAndInput, opts) => {
           return queryClient.fetchQuery({
             ...opts,
             queryKey: getArrayQueryKey(pathAndInput, "query"),
-            queryFn: () => client2.query(...getClientArgs(pathAndInput, opts))
+            queryFn: () => client.query(...getClientArgs(pathAndInput, opts))
           });
         }, [
-          client2,
+          client,
           queryClient
         ]),
         fetchInfiniteQuery: (0, import_react.useCallback)((pathAndInput, opts) => {
@@ -89038,24 +89038,24 @@ function createRootHooks(config) {
                 ...input,
                 cursor: pageParam
               };
-              return client2.query(...getClientArgs([
+              return client.query(...getClientArgs([
                 path7,
                 actualInput
               ], opts));
             }
           });
         }, [
-          client2,
+          client,
           queryClient
         ]),
         prefetchQuery: (0, import_react.useCallback)((pathAndInput, opts) => {
           return queryClient.prefetchQuery({
             ...opts,
             queryKey: getArrayQueryKey(pathAndInput, "query"),
-            queryFn: () => client2.query(...getClientArgs(pathAndInput, opts))
+            queryFn: () => client.query(...getClientArgs(pathAndInput, opts))
           });
         }, [
-          client2,
+          client,
           queryClient
         ]),
         prefetchInfiniteQuery: (0, import_react.useCallback)((pathAndInput, opts) => {
@@ -89068,24 +89068,24 @@ function createRootHooks(config) {
                 ...input,
                 cursor: pageParam
               };
-              return client2.query(...getClientArgs([
+              return client.query(...getClientArgs([
                 path7,
                 actualInput
               ], opts));
             }
           });
         }, [
-          client2,
+          client,
           queryClient
         ]),
         ensureQueryData: (0, import_react.useCallback)((pathAndInput, opts) => {
           return queryClient.ensureQueryData({
             ...opts,
             queryKey: getArrayQueryKey(pathAndInput, "query"),
-            queryFn: () => client2.query(...getClientArgs(pathAndInput, opts))
+            queryFn: () => client.query(...getClientArgs(pathAndInput, opts))
           });
         }, [
-          client2,
+          client,
           queryClient
         ]),
         invalidateQueries: (0, import_react.useCallback)((queryKey, filters, options) => {
@@ -89163,7 +89163,7 @@ function createRootHooks(config) {
     if (!context) {
       throw new Error("Unable to retrieve application context. Did you forget to wrap your App inside `withTRPC` HoC?");
     }
-    const { abortOnUnmount, client: client2, ssrState, queryClient, prefetchQuery } = context;
+    const { abortOnUnmount, client, ssrState, queryClient, prefetchQuery } = context;
     const defaultOpts = queryClient.getQueryDefaults(getArrayQueryKey(pathAndInput, "query"));
     if (typeof window === "undefined" && ssrState === "prepass" && opts?.trpc?.ssr !== false && (opts?.enabled ?? defaultOpts?.enabled) !== false && !queryClient.getQueryCache().find(getArrayQueryKey(pathAndInput, "query"))) {
       void prefetchQuery(pathAndInput, opts);
@@ -89186,7 +89186,7 @@ function createRootHooks(config) {
             } : {}
           }
         };
-        return client2.query(...getClientArgs(pathAndInput, actualOpts));
+        return client.query(...getClientArgs(pathAndInput, actualOpts));
       },
       context: ReactQueryContext
     });
@@ -89196,7 +89196,7 @@ function createRootHooks(config) {
     return hook2;
   }
   function useMutation$1(path7, opts) {
-    const { client: client2 } = useContext10();
+    const { client } = useContext10();
     const queryClient = useQueryClient({
       context: ReactQueryContext
     });
@@ -89210,7 +89210,7 @@ function createRootHooks(config) {
         actualPath.split(".")
       ],
       mutationFn: (input) => {
-        return client2.mutation(...getClientArgs([
+        return client.mutation(...getClientArgs([
           actualPath,
           input
         ], opts));
@@ -89233,7 +89233,7 @@ function createRootHooks(config) {
   function useSubscription(pathAndInput, opts) {
     const enabled = opts?.enabled ?? true;
     const queryKey = hashQueryKey(pathAndInput);
-    const { client: client2 } = useContext10();
+    const { client } = useContext10();
     const optsRef = (0, import_react.useRef)(opts);
     optsRef.current = opts;
     (0, import_react.useEffect)(() => {
@@ -89242,7 +89242,7 @@ function createRootHooks(config) {
       }
       const [path7, input] = pathAndInput;
       let isStopped = false;
-      const subscription = client2.subscription(path7, input ?? void 0, {
+      const subscription = client.subscription(path7, input ?? void 0, {
         onStarted: () => {
           if (!isStopped) {
             optsRef.current.onStarted?.();
@@ -89270,7 +89270,7 @@ function createRootHooks(config) {
   }
   function useInfiniteQuery$1(pathAndInput, opts) {
     const [path7, input] = pathAndInput;
-    const { client: client2, ssrState, prefetchInfiniteQuery, queryClient, abortOnUnmount } = useContext10();
+    const { client, ssrState, prefetchInfiniteQuery, queryClient, abortOnUnmount } = useContext10();
     const defaultOpts = queryClient.getQueryDefaults(getArrayQueryKey(pathAndInput, "infinite"));
     if (typeof window === "undefined" && ssrState === "prepass" && opts?.trpc?.ssr !== false && (opts?.enabled ?? defaultOpts?.enabled) !== false && !queryClient.getQueryCache().find(getArrayQueryKey(pathAndInput, "infinite"))) {
       void prefetchInfiniteQuery(pathAndInput, {
@@ -89300,7 +89300,7 @@ function createRootHooks(config) {
           ...input ?? {},
           cursor: queryFunctionContext.pageParam ?? opts?.initialCursor
         };
-        return client2.query(...getClientArgs([
+        return client.query(...getClientArgs([
           path7,
           actualInput
         ], actualOpts));
@@ -89313,8 +89313,8 @@ function createRootHooks(config) {
     return hook2;
   }
   const useQueries$1 = (queriesCallback, context) => {
-    const { ssrState, queryClient, prefetchQuery, client: client2 } = useContext10();
-    const proxy = createUseQueriesProxy(client2);
+    const { ssrState, queryClient, prefetchQuery, client } = useContext10();
+    const proxy = createUseQueriesProxy(client);
     const queries = queriesCallback(proxy);
     if (typeof window === "undefined" && ssrState === "prepass") {
       for (const query of queries) {
@@ -89332,15 +89332,15 @@ function createRootHooks(config) {
       context
     });
   };
-  const useDehydratedState = (client2, trpcState) => {
+  const useDehydratedState = (client, trpcState) => {
     const transformed = (0, import_react.useMemo)(() => {
       if (!trpcState) {
         return trpcState;
       }
-      return client2.runtime.transformer.deserialize(trpcState);
+      return client.runtime.transformer.deserialize(trpcState);
     }, [
       trpcState,
-      client2
+      client
     ]);
     return transformed;
   };
@@ -99325,8 +99325,8 @@ var clientEnv = {
 };
 
 // ratos.tsx
-var import_dotenv = __toESM(require_main(), 1);
-import { existsSync as existsSync3 } from "fs";
+var import_dotenv2 = __toESM(require_main(), 1);
+import { existsSync as existsSync4 } from "fs";
 
 // ../server/helpers/file-operations.ts
 init_cjs_shim();
@@ -99438,8 +99438,27 @@ var replaceInFileByLine = async (filePath, searchOrReplacer, replace) => {
   return { linesChanged, linesDeleted, linesTotal: lineNumber };
 };
 
+// logger.ts
+init_cjs_shim();
+var import_pino2 = __toESM(require_pino(), 1);
+var import_dotenv = __toESM(require_main(), 1);
+import { existsSync as existsSync3, readFileSync as readFileSync2 } from "fs";
+var logger2 = null;
+var envFile = existsSync3("./.env.local") ? readFileSync2(".env.local") : readFileSync2(".env");
+var getLogger2 = () => {
+  if (logger2 != null) {
+    return logger2;
+  }
+  const environment = serverSchema.parse({ NODE_ENV: "production", ...import_dotenv.default.parse(envFile) });
+  const transportOption = process.env.NODE_ENV === "development" ? void 0 : {
+    target: "pino/file",
+    options: { destination: environment.LOG_FILE, append: true }
+  };
+  logger2 = (0, import_pino2.pino)({ ...globalPinoOpts, transport: transportOption }).child({ source: "cli" });
+  return logger2;
+};
+
 // ratos.tsx
-var logger2 = getLogger().child({ source: "cli" });
 function renderError(str, options = { exitCode: 1 }) {
   render_default(
     /* @__PURE__ */ import_react28.default.createElement(Container, null, /* @__PURE__ */ import_react28.default.createElement(Status, { results: { message: str, result: "error" } }))
@@ -99454,13 +99473,6 @@ function renderApiResults(results) {
 function errorColor(str) {
   return `\x1B[31m${str}\x1B[0m`;
 }
-var client = createTRPCProxyClient({
-  links: [
-    httpBatchLink({
-      url: `${getBaseUrl()}/api/trpc`
-    })
-  ]
-});
 var getRealPath = async (p) => {
   if (process.env.RATOS_BIN_CWD == null && program2.getOptionValue("cwd") == null) {
     renderError(
@@ -99475,6 +99487,13 @@ var program2 = new Command().name("RatOS CLI").version((await readPackageUp())?.
   outputError: (str, write2) => write2(errorColor(str))
 }).showSuggestionAfterError(true);
 program2.command("info").description("Print info about this RatOS installation").action(async () => {
+  const client = createTRPCProxyClient({
+    links: [
+      httpBatchLink({
+        url: `${getBaseUrl()}/api/trpc`
+      })
+    ]
+  });
   const info = {
     osVersion: await client.osVersion.query(),
     version: await client.version.query(),
@@ -99489,13 +99508,27 @@ var extensions = program2.command("extensions").description("Register, unregiste
 var registerExtensions = extensions.command("register").description("Register an extension to be managed by the RatOS Configurator");
 var unregisterExtensions = extensions.command("unregister").description("Unregister an extension from the RatOS Configurator");
 extensions.command("list").description("List all registered extensions").action(async () => {
+  const client = createTRPCProxyClient({
+    links: [
+      httpBatchLink({
+        url: `${getBaseUrl()}/api/trpc`
+      })
+    ]
+  });
   const klippyExtensions = await client["klippy-extensions"].list.query();
   const moonrakerExtensions = await client["moonraker-extensions"].list.query();
   render_default(
-    /* @__PURE__ */ import_react28.default.createElement(Container, null, /* @__PURE__ */ import_react28.default.createElement(Box_default, { flexDirection: "column", marginBottom: 1 }, /* @__PURE__ */ import_react28.default.createElement(Text, null, klippyExtensions.length, " Registered Klipper ", klippyExtensions.length === 1 ? "Extension" : "Extensions", klippyExtensions.length ? ":" : ""), klippyExtensions.map((ext) => /* @__PURE__ */ import_react28.default.createElement(Box_default, { key: ext.extensionName, flexDirection: "row", columnGap: 2 }, /* @__PURE__ */ import_react28.default.createElement(Text, { color: existsSync3(ext.path + ext.fileName) ? "green" : "red" }, ext.extensionName, " ", "->", " ", ext.path + ext.fileName, " ")))), /* @__PURE__ */ import_react28.default.createElement(Box_default, { flexDirection: "column" }, /* @__PURE__ */ import_react28.default.createElement(Text, null, moonrakerExtensions.length, " Registered Moonraker", " ", moonrakerExtensions.length === 1 ? "Extension" : "Extensions", moonrakerExtensions.length ? ":" : ""), moonrakerExtensions.map((ext) => /* @__PURE__ */ import_react28.default.createElement(Box_default, { key: ext.extensionName, flexDirection: "row", columnGap: 2 }, /* @__PURE__ */ import_react28.default.createElement(Text, { color: existsSync3(ext.path + ext.fileName) ? "green" : "red" }, ext.extensionName, " ", "->", " ", ext.path + ext.fileName, " ")))))
+    /* @__PURE__ */ import_react28.default.createElement(Container, null, /* @__PURE__ */ import_react28.default.createElement(Box_default, { flexDirection: "column", marginBottom: 1 }, /* @__PURE__ */ import_react28.default.createElement(Text, null, klippyExtensions.length, " Registered Klipper ", klippyExtensions.length === 1 ? "Extension" : "Extensions", klippyExtensions.length ? ":" : ""), klippyExtensions.map((ext) => /* @__PURE__ */ import_react28.default.createElement(Box_default, { key: ext.extensionName, flexDirection: "row", columnGap: 2 }, /* @__PURE__ */ import_react28.default.createElement(Text, { color: existsSync4(ext.path + ext.fileName) ? "green" : "red" }, ext.extensionName, " ", "->", " ", ext.path + ext.fileName, " ")))), /* @__PURE__ */ import_react28.default.createElement(Box_default, { flexDirection: "column" }, /* @__PURE__ */ import_react28.default.createElement(Text, null, moonrakerExtensions.length, " Registered Moonraker", " ", moonrakerExtensions.length === 1 ? "Extension" : "Extensions", moonrakerExtensions.length ? ":" : ""), moonrakerExtensions.map((ext) => /* @__PURE__ */ import_react28.default.createElement(Box_default, { key: ext.extensionName, flexDirection: "row", columnGap: 2 }, /* @__PURE__ */ import_react28.default.createElement(Text, { color: existsSync4(ext.path + ext.fileName) ? "green" : "red" }, ext.extensionName, " ", "->", " ", ext.path + ext.fileName, " ")))))
   );
 });
 registerExtensions.command("klipper").description("Register a Klipper extension to be managed by the RatOS Configurator").option("-k, --kinematics", "Register as a kinematics extension").option("-e, --error-if-exists", "Throw error if the extension already exists").argument("<name>", "Name of the extension").argument("<file>", "The extension itself").showHelpAfterError().action(async (extName, extFile, options) => {
+  const client = createTRPCProxyClient({
+    links: [
+      httpBatchLink({
+        url: `${getBaseUrl()}/api/trpc`
+      })
+    ]
+  });
   let realPath = "";
   try {
     realPath = await getRealPath(extFile);
@@ -99538,6 +99571,13 @@ registerExtensions.command("klipper").description("Register a Klipper extension 
   );
 });
 registerExtensions.command("moonraker").description("Register a Moonraker extension to be managed by the RatOS Configurator").argument("<name>", "Name of the extension").argument("<file>", "The extension itself").showHelpAfterError().option("-e, --error-if-exists", "Throw error if the extension already exists").action(async (extName, extFile, options) => {
+  const client = createTRPCProxyClient({
+    links: [
+      httpBatchLink({
+        url: `${getBaseUrl()}/api/trpc`
+      })
+    ]
+  });
   let realPath = "";
   try {
     realPath = await getRealPath(extFile);
@@ -99579,6 +99619,13 @@ registerExtensions.command("moonraker").description("Register a Moonraker extens
   }
 });
 unregisterExtensions.command("klipper").description("Unlink and unregister a Klipper extension managed by the RatOS Configurator").argument("<name>", "Name of the extension").showHelpAfterError().option("-k, --kinematics", "Register as a kinematics extension").option("-e, --error-if-not-exists", "Throw error if the extension doesn't exist").action(async (extName, options) => {
+  const client = createTRPCProxyClient({
+    links: [
+      httpBatchLink({
+        url: `${getBaseUrl()}/api/trpc`
+      })
+    ]
+  });
   try {
     const result = await client["klippy-extensions"].unregister.mutate({
       extensionName: extName,
@@ -99593,6 +99640,13 @@ unregisterExtensions.command("klipper").description("Unlink and unregister a Kli
   }
 });
 unregisterExtensions.command("moonraker").description("Unlink and unregister a Moonraker extension managed by the RatOS Configurator").argument("<name>", "Name of the extension").showHelpAfterError().option("-e, --error-if-not-exists", "Throw error if the extension doesn't exist").action(async (extName, options) => {
+  const client = createTRPCProxyClient({
+    links: [
+      httpBatchLink({
+        url: `${getBaseUrl()}/api/trpc`
+      })
+    ]
+  });
   try {
     const result = await client["moonraker-extensions"].unregister.mutate({
       extensionName: extName,
@@ -99609,6 +99663,13 @@ unregisterExtensions.command("moonraker").description("Unlink and unregister a M
 extensions.command("symlink").addArgument(
   new Argument("[type]", "Type of the extension").default("all").choices(["all", "klipper", "moonraker"])
 ).option("-e, --error-if-exists", "Throw error and abort if an extension already exist").description("Symlink all registered extensions").action(async (type, options) => {
+  const client = createTRPCProxyClient({
+    links: [
+      httpBatchLink({
+        url: `${getBaseUrl()}/api/trpc`
+      })
+    ]
+  });
   try {
     const results = [];
     if (type === "klipper" || type === "all") {
@@ -99633,6 +99694,13 @@ extensions.command("symlink").addArgument(
 });
 program2.command("config").description("Commands for managing the RatOS configuration").command("regenerate").option("-o, --overwrite-all", "Overwrite all existing files, even if they haven't been modified").option("-p, --overwrite-printer-cfg", "Overwrite the printer.cfg file, even if it hasn't been modified").action(async (options) => {
   try {
+    const client = createTRPCProxyClient({
+      links: [
+        httpBatchLink({
+          url: `${getBaseUrl()}/api/trpc`
+        })
+      ]
+    });
     const overwriteFiles = [];
     if (options.overwriteAll) {
       overwriteFiles.push("*");
@@ -99659,6 +99727,13 @@ program2.command("config").description("Commands for managing the RatOS configur
 });
 program2.command("flash").description(`Flash all connected boards`).action(async () => {
   try {
+    const client = createTRPCProxyClient({
+      links: [
+        httpBatchLink({
+          url: `${getBaseUrl()}/api/trpc`
+        })
+      ]
+    });
     const res = await client["mcu"].flashAllConnected.mutate();
     renderApiResults(res.flashResults);
   } catch (e) {
@@ -99669,14 +99744,15 @@ program2.command("flash").description(`Flash all connected boards`).action(async
   }
 });
 var FluiddInstallerUI = (props) => {
-  return /* @__PURE__ */ import_react28.default.createElement(Container, null, /* @__PURE__ */ import_react28.default.createElement(Box_default, { flexDirection: "column", rowGap: 1, padding: 2, paddingTop: 1 }, /* @__PURE__ */ import_react28.default.createElement(Text, { color: props.statusColor ?? "white", dimColor: false }, props.status), props.warnings?.map((warning) => /* @__PURE__ */ import_react28.default.createElement(Text, { color: "yellow", dimColor: true, key: "warning" }, warning)), props.stepText && /* @__PURE__ */ import_react28.default.createElement(Text, { color: props.stepTextColor ?? "greenBright" }, props.stepText)));
+  return /* @__PURE__ */ import_react28.default.createElement(Container, null, /* @__PURE__ */ import_react28.default.createElement(Box_default, { flexDirection: "column", rowGap: 0 }, /* @__PURE__ */ import_react28.default.createElement(Text, { color: props.statusColor ?? "white", dimColor: false, bold: true }, ["red", "redBright"].includes(props.statusColor ?? "white") && /* @__PURE__ */ import_react28.default.createElement(Text, { bold: true }, "\u2718 "), ["green", "greenBright"].includes(props.statusColor ?? "white") && /* @__PURE__ */ import_react28.default.createElement(Text, { bold: true }, "\u2713 "), props.status), props.warnings?.map((warning) => /* @__PURE__ */ import_react28.default.createElement(Text, { color: "yellow", dimColor: true, key: "warning", bold: false }, warning)), props.stepText && /* @__PURE__ */ import_react28.default.createElement(Text, { color: props.stepTextColor ?? "white", bold: false }, props.stepText)));
 };
-program2.command("frontend").description("enable or disable experimental features").command("fluidd-experimental").description("Replaces Mainsail with the RatOS development fork of Fluidd").action(async () => {
-  const envFile = existsSync3("./.env.local") ? await readFile(".env.local") : await readFile(".env");
-  const environment = serverSchema.parse({ NODE_ENV: "production", ...import_dotenv.default.parse(envFile) });
+var frontend = program2.command("frontend").description("Switch between klipper frontend UIs");
+frontend.command("fluidd-experimental").description("Replaces Mainsail with the RatOS development fork of Fluidd").action(async () => {
+  const envFile2 = existsSync4("./.env.local") ? await readFile(".env.local") : await readFile(".env");
+  const environment = serverSchema.parse({ NODE_ENV: "production", ...import_dotenv2.default.parse(envFile2) });
   const { rerender } = render_default(/* @__PURE__ */ import_react28.default.createElement(Container, null));
-  if (!existsSync3("/etc/nginx/sites-available/mainsail")) {
-    if (existsSync3("/etc/nginx/sites-available/mainsail.bak") && existsSync3("/etc/nginx/sites-enabled/fluidd")) {
+  if (!existsSync4("/etc/nginx/sites-available/mainsail")) {
+    if (existsSync4("/etc/nginx/sites-available/mainsail.bak") && existsSync4("/etc/nginx/sites-enabled/fluidd")) {
       rerender(
         /* @__PURE__ */ import_react28.default.createElement(
           FluiddInstallerUI,
@@ -99702,7 +99778,7 @@ program2.command("frontend").description("enable or disable experimental feature
   } else {
     const hostname = (await $`tr -d " \t\n\r" < /etc/hostname`).stdout;
     const warnings = [];
-    if (!existsSync3("/home/pi/fluidd")) {
+    if (!existsSync4("/home/pi/fluidd")) {
       rerender(
         /* @__PURE__ */ import_react28.default.createElement(
           FluiddInstallerUI,
@@ -99748,7 +99824,7 @@ program2.command("frontend").description("enable or disable experimental feature
     );
     const nginxValidation = await $`sudo nginx -t`;
     if (nginxValidation.stderr) {
-      logger2.error(
+      getLogger2().error(
         { stderr: nginxValidation.stderr, stdout: nginxValidation.stdout },
         "nginx validation failed during fluidd installation"
       );
@@ -99800,13 +99876,14 @@ program2.command("frontend").description("enable or disable experimental feature
       );
     }
   }
-}).command("mainsail").description("Restore the default mainsail nginx configuration").action(async () => {
+});
+frontend.command("mainsail").description("Restore the default mainsail nginx configuration").action(async () => {
   const { rerender } = render_default(/* @__PURE__ */ import_react28.default.createElement(Container, null));
   const hostname = (await $`tr -d " \t\n\r" < /etc/hostname`).stdout;
-  if (!existsSync3("/etc/nginx/sites-available/mainsail.bak")) {
+  if (!existsSync4("/etc/nginx/sites-available/mainsail.bak")) {
     return renderError("Mainsail backup configuration file not found", { exitCode: 2 });
   }
-  if (existsSync3("/etc/nginx/sites-enabled/mainsail")) {
+  if (existsSync4("/etc/nginx/sites-enabled/mainsail")) {
     return rerender(
       /* @__PURE__ */ import_react28.default.createElement(
         FluiddInstallerUI,
@@ -99824,7 +99901,7 @@ program2.command("frontend").description("enable or disable experimental feature
   );
   await $`sudo cp /etc/nginx/sites-available/mainsail.bak /etc/nginx/sites-available/mainsail`;
   await $`sudo ln -s /etc/nginx/sites-available/mainsail /etc/nginx/sites-enabled/mainsail`;
-  if (existsSync3("/etc/nginx/sites-enabled/fluidd")) {
+  if (existsSync4("/etc/nginx/sites-enabled/fluidd")) {
     await $`sudo rm /etc/nginx/sites-enabled/fluidd /etc/nginx/sites-available/fluidd`;
   }
   await $`sudo systemctl reload nginx`;
@@ -99849,15 +99926,15 @@ log2.command("tail").option("-f, --follow", "Follow the log").option("-n, --line
   if (options.lines) {
     flags.push(`-n${options.lines}`);
   }
-  const envFile = existsSync3("./.env.local") ? await readFile(".env.local") : await readFile(".env");
-  const log3 = serverSchema.parse({ NODE_ENV: "production", ...import_dotenv.default.parse(envFile) }).LOG_FILE;
+  const envFile2 = existsSync4("./.env.local") ? await readFile(".env.local") : await readFile(".env");
+  const log3 = serverSchema.parse({ NODE_ENV: "production", ...import_dotenv2.default.parse(envFile2) }).LOG_FILE;
   $`tail ${flags} ${log3}`.pipe($`pino-pretty`);
 });
 log2.command("rotate").description("force rotate the RatOS configurator log").action(async () => {
   const log3 = "/etc/logrotate.d/ratos-configurator";
   $`logrotate -f ${log3}`;
 });
-program2.parseAsync();
+await program2.parseAsync();
 /*! Bundled license information:
 
 react/cjs/react.production.min.js:
