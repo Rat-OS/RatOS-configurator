@@ -470,7 +470,7 @@ const FluiddInstallerUI: React.FC<{
 					</Text>
 				))}
 				{props.stepText && (
-					<Text color={props.stepTextColor ?? 'white'} bold={false}>
+					<Text color={props.stepTextColor ?? 'white'} dimColor={true} bold={false}>
 						{props.stepText}
 					</Text>
 				)}
@@ -535,15 +535,13 @@ frontend
 					stepText="Backing up mainsail configuration"
 				/>,
 			);
-			const fluidConfigFile = `/home/${environment.USER}/fluidd-config`;
+			const fluidConfigFile = `/tmp/fluidd`;
 			await $$`sudo cp /etc/nginx/sites-available/mainsail /etc/nginx/sites-available/mainsail.bak`;
 			await $$`sudo cp /etc/nginx/sites-available/mainsail ${fluidConfigFile}`;
-			await $$`sudo chmod a+w ${fluidConfigFile}`;
 			rerender(
 				<FluiddInstallerUI warnings={warnings} status="Installing Fluidd..." stepText="Updating nginx configuration" />,
 			);
-			await replaceInFileByLine(`${fluidConfigFile}`, /mainsail/g, 'fluidd');
-			await $$`sudo chmod u=rw,go=r ${fluidConfigFile}`;
+			await $$`sed -i -e 's/mainsail/fluidd/g' ${fluidConfigFile}`;
 			await $$`sudo mv ${fluidConfigFile} /etc/nginx/sites-available/fluidd`;
 			await $$`sudo ln -s /etc/nginx/sites-available/fluidd /etc/nginx/sites-enabled/fluidd`;
 			await $$`sudo rm /etc/nginx/sites-enabled/mainsail /etc/nginx/sites-available/mainsail`;
