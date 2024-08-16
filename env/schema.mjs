@@ -6,6 +6,7 @@ import { z } from 'zod';
  * This way you can ensure the app isn't built with invalid env vars.
  */
 export const serverSchema = z.object({
+	USER: z.string().default('pi'),
 	NODE_ENV: z.enum(['development', 'test', 'production']),
 	RATOS_CONFIGURATION_PATH: z.string(),
 	RATOS_SCRIPT_DIR: z.string(),
