@@ -486,9 +486,10 @@ frontend
 	.command('fluidd-experimental')
 	.description('Replaces Mainsail with the RatOS development fork of Fluidd')
 	.action(async () => {
+		const $$ = $({ quiet: true });
 		const envFile = existsSync('./.env.local') ? await readFile('.env.local') : await readFile('.env');
 		const environment = serverSchema.parse({ NODE_ENV: 'production', ...dotenv.parse(envFile) });
-		const { rerender } = render(<Container />);
+		let { rerender } = render(<FluiddInstallerUI status="Installing fluidd.." />);
 		if (!existsSync('/etc/nginx/sites-available/mainsail')) {
 			if (existsSync('/etc/nginx/sites-available/mainsail.bak') && existsSync('/etc/nginx/sites-enabled/fluidd')) {
 				rerender(
@@ -519,12 +520,12 @@ frontend
 						stepText="Downloading latest RatOS Fluidd release"
 					/>,
 				);
-				await $`wget https://github.com/Rat-OS/fluidd/releases/latest/download/fluidd.zip -O /tmp/fluidd.zip`;
+				await $$`wget https://github.com/Rat-OS/fluidd/releases/latest/download/fluidd.zip -O /tmp/fluidd.zip`;
 				rerender(
 					<FluiddInstallerUI warnings={warnings} status="Installing Fluidd..." stepText="Extracting fluidd.zip" />,
 				);
-				await $`unzip /tmp/fluidd.zip -d /home/${environment.USER}/fluidd`;
-				await $`rm /tmp/fluidd.zip`;
+				await $$`unzip /tmp/fluidd.zip -d /home/${environment.USER}/fluidd`;
+				await $$`rm /tmp/fluidd.zip`;
 			} else {
 				warnings.push('Fluidd directory already exists, download and extraction has been skipped.');
 			}
@@ -535,21 +536,22 @@ frontend
 					stepText="Backing up mainsail configuration"
 				/>,
 			);
-			await $`sudo cp /etc/nginx/sites-available/mainsail /etc/nginx/sites-available/mainsail.bak`;
-			await $`sudo cp /etc/nginx/sites-available/mainsail /tmp/fluidd`;
-			await $`sudo chmod a+w /tmp/fluidd`;
+			const fluidConfigFile = `/home/${environment.USER}/fluidd-config`;
+			await $$`sudo cp /etc/nginx/sites-available/mainsail /etc/nginx/sites-available/mainsail.bak`;
+			await $$`sudo cp /etc/nginx/sites-available/mainsail ${fluidConfigFile}`;
+			await $$`sudo chmod a+w ${fluidConfigFile}`;
 			rerender(
 				<FluiddInstallerUI warnings={warnings} status="Installing Fluidd..." stepText="Updating nginx configuration" />,
 			);
-			await $`sudo rm /etc/nginx/sites-enabled/mainsail /etc/nginx/sites-available/mainsail`;
-			await replaceInFileByLine('/tmp/fluidd', /mainsail/g, 'fluidd');
-			await $`sudo chmod u=rw,go=r /tmp/fluidd`;
-			await $`sudo cp /tmp/fluidd /etc/nginx/sites-available/fluidd`;
-			await $`sudo ln -s /etc/nginx/sites-available/fluidd /etc/nginx/sites-enabled/fluidd`;
+			await replaceInFileByLine(`${fluidConfigFile}`, /mainsail/g, 'fluidd');
+			await $$`sudo chmod u=rw,go=r ${fluidConfigFile}`;
+			await $$`sudo mv ${fluidConfigFile} /etc/nginx/sites-available/fluidd`;
+			await $$`sudo ln -s /etc/nginx/sites-available/fluidd /etc/nginx/sites-enabled/fluidd`;
+			await $$`sudo rm /etc/nginx/sites-enabled/mainsail /etc/nginx/sites-available/mainsail`;
 			rerender(
 				<FluiddInstallerUI warnings={warnings} status="Installing Fluidd..." stepText="Validating nginx config" />,
 			);
-			const nginxValidation = await $`sudo nginx -t`;
+			const nginxValidation = await $$`sudo nginx -t`;
 			if (nginxValidation.stderr) {
 				getLogger().error(
 					{ stderr: nginxValidation.stderr, stdout: nginxValidation.stdout },
@@ -558,7 +560,7 @@ frontend
 			}
 			if (nginxValidation.stdout.includes('configuration file /etc/nginx/nginx.conf test is successful')) {
 				rerender(<FluiddInstallerUI warnings={warnings} status="Installing Fluidd..." stepText="Reloading nginx" />);
-				await $`sudo systemctl reload nginx`;
+				await $$`sudo systemctl reload nginx`;
 				return rerender(
 					<FluiddInstallerUI
 						warnings={warnings}
@@ -579,10 +581,10 @@ frontend
 						stepTextColor="yellow"
 					/>,
 				);
-				await $`sudo cp /etc/nginx/sites-available/mainsail.bak /etc/nginx/sites-available/mainsail`;
-				await $`sudo ln -s /etc/nginx/sites-available/mainsail /etc/nginx/sites-enabled/mainsail`;
-				await $`sudo rm /etc/nginx/sites-enabled/fluidd /etc/nginx/sites-available/fluidd`;
-				await $`sudo systemctl reload nginx`;
+				await $$`sudo cp /etc/nginx/sites-available/mainsail.bak /etc/nginx/sites-available/mainsail`;
+				await $$`sudo ln -s /etc/nginx/sites-available/mainsail /etc/nginx/sites-enabled/mainsail`;
+				await $$`sudo rm /etc/nginx/sites-enabled/fluidd /etc/nginx/sites-available/fluidd`;
+				await $$`sudo systemctl reload nginx`;
 				return rerender(
 					<FluiddInstallerUI
 						warnings={warnings}
@@ -600,8 +602,9 @@ frontend
 	.command('mainsail')
 	.description('Restore the default mainsail nginx configuration')
 	.action(async () => {
-		const { rerender } = render(<Container />);
-		const hostname = (await $`tr -d " \t\n\r" < /etc/hostname`).stdout;
+		const $$ = $({ quiet: true });
+		const { rerender } = render(<FluiddInstallerUI status="Restoring mainsail.." />);
+		const hostname = (await $$`tr -d " \t\n\r" < /etc/hostname`).stdout;
 		if (!existsSync('/etc/nginx/sites-available/mainsail.bak')) {
 			return renderError('Mainsail backup configuration file not found', { exitCode: 2 });
 		}
@@ -618,12 +621,12 @@ frontend
 		rerender(
 			<FluiddInstallerUI status="Restoring mainsail.." stepText="Restoring previous mainsail configuration..." />,
 		);
-		await $`sudo cp /etc/nginx/sites-available/mainsail.bak /etc/nginx/sites-available/mainsail`;
-		await $`sudo ln -s /etc/nginx/sites-available/mainsail /etc/nginx/sites-enabled/mainsail`;
+		await $$`sudo cp /etc/nginx/sites-available/mainsail.bak /etc/nginx/sites-available/mainsail`;
+		await $$`sudo ln -s /etc/nginx/sites-available/mainsail /etc/nginx/sites-enabled/mainsail`;
 		if (existsSync('/etc/nginx/sites-enabled/fluidd')) {
-			await $`sudo rm /etc/nginx/sites-enabled/fluidd /etc/nginx/sites-available/fluidd`;
+			await $$`sudo rm /etc/nginx/sites-enabled/fluidd /etc/nginx/sites-available/fluidd`;
 		}
-		await $`sudo systemctl reload nginx`;
+		await $$`sudo systemctl reload nginx`;
 		return rerender(
 			<FluiddInstallerUI
 				status="Mainsail restored"
