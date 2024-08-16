@@ -15,7 +15,6 @@ import dotenv from 'dotenv';
 import { existsSync } from 'fs';
 import { replaceInFileByLine } from '@/server/helpers/file-operations.js';
 import { getLogger } from '@/cli/logger.js';
-import { exit } from 'process';
 
 function renderError(str: string, options: { exitCode: number } = { exitCode: 1 }) {
 	render(

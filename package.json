@@ -1,6 +1,7 @@
 {
 	"name": "ratos-configurator",
 	"private": true,
+	"version": "2.1.0",
 	"scripts": {
 		"dev": "pnpm run copyScichartData && next dev | pino-pretty -c",
 		"build": "pnpm run copyScichartData && next build",

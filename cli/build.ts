@@ -57,6 +57,7 @@ let wasmPlugin = {
 await esbuild.build({
 	entryPoints: ['ratos.tsx'],
 	bundle: true,
+	external: ['zx'],
 	platform: 'node',
 	outfile: '../bin/ratos.mjs',
 	target: 'node18',
