@@ -455,6 +455,7 @@ const FluiddInstallerUI: React.FC<{
 	stepText?: string;
 	stepTextColor?: TextProps['color'];
 	warnings?: string[];
+	errors?: string[];
 }> = (props) => {
 	return (
 		<Container>
@@ -465,8 +466,13 @@ const FluiddInstallerUI: React.FC<{
 					{props.status}
 				</Text>
 				{props.warnings?.map((warning) => (
-					<Text color="yellow" dimColor={true} key="warning" bold={false}>
+					<Text color="yellow" dimColor={true} key={warning} bold={false}>
 						{warning}
+					</Text>
+				))}
+				{props.errors?.map((error) => (
+					<Text color="red" dimColor={true} key={error} bold={false}>
+						{error}
 					</Text>
 				))}
 				{props.stepText && (
@@ -511,6 +517,7 @@ frontend
 			// Download and unpack latest RatOS fluidd release
 			const hostname = (await $`tr -d " \t\n\r" < /etc/hostname`).stdout;
 			const warnings: string[] = [];
+			const errors: string[] = [];
 			if (!existsSync('/home/pi/fluidd')) {
 				rerender(
 					<FluiddInstallerUI
@@ -521,7 +528,12 @@ frontend
 				);
 				await $$`wget https://github.com/Rat-OS/fluidd/releases/latest/download/fluidd.zip -O /tmp/fluidd.zip`;
 				rerender(
-					<FluiddInstallerUI warnings={warnings} status="Installing Fluidd..." stepText="Extracting fluidd.zip" />,
+					<FluiddInstallerUI
+						warnings={warnings}
+						errors={errors}
+						status="Installing Fluidd..."
+						stepText="Extracting fluidd.zip"
+					/>,
 				);
 				await $$`unzip /tmp/fluidd.zip -d /home/${environment.USER}/fluidd`;
 				await $$`rm /tmp/fluidd.zip`;
@@ -531,22 +543,32 @@ frontend
 			rerender(
 				<FluiddInstallerUI
 					warnings={warnings}
+					errors={errors}
 					status="Installing Fluidd..."
 					stepText="Backing up mainsail configuration"
 				/>,
 			);
 			const fluidConfigFile = `/tmp/fluidd`;
-			await $$`sudo cp /etc/nginx/sites-available/mainsail /etc/nginx/sites-available/mainsail.bak`;
 			await $$`sudo cp /etc/nginx/sites-available/mainsail ${fluidConfigFile}`;
 			rerender(
-				<FluiddInstallerUI warnings={warnings} status="Installing Fluidd..." stepText="Updating nginx configuration" />,
+				<FluiddInstallerUI
+					warnings={warnings}
+					errors={errors}
+					status="Installing Fluidd..."
+					stepText="Updating nginx configuration"
+				/>,
 			);
 			await $$`sudo sed -i -e 's/mainsail/fluidd/g' ${fluidConfigFile}`;
 			await $$`sudo mv ${fluidConfigFile} /etc/nginx/sites-available/fluidd`;
 			await $$`sudo ln -s /etc/nginx/sites-available/fluidd /etc/nginx/sites-enabled/fluidd`;
-			await $$`sudo rm /etc/nginx/sites-enabled/mainsail /etc/nginx/sites-available/mainsail`;
+			await $$`sudo rm /etc/nginx/sites-enabled/mainsail`;
 			rerender(
-				<FluiddInstallerUI warnings={warnings} status="Installing Fluidd..." stepText="Validating nginx config" />,
+				<FluiddInstallerUI
+					warnings={warnings}
+					errors={errors}
+					status="Installing Fluidd..."
+					stepText="Validating nginx config"
+				/>,
 			);
 			const nginxValidation = await $$`sudo nginx -t`;
 			if (nginxValidation.stderr) {
@@ -555,43 +577,53 @@ frontend
 					'nginx validation failed during fluidd installation',
 				);
 			}
-			if (nginxValidation.stdout.includes('configuration file /etc/nginx/nginx.conf test is successful')) {
-				rerender(<FluiddInstallerUI warnings={warnings} status="Installing Fluidd..." stepText="Reloading nginx" />);
-				await $$`sudo systemctl reload nginx`;
-				return rerender(
-					<FluiddInstallerUI
-						warnings={warnings}
-						status="Fluidd installed successfully!"
-						statusColor="greenBright"
-						stepTextColor="white"
-						stepText={`Fluidd is now available at http://${hostname}.local/`}
-					/>,
-				);
-			} else {
-				warnings.push('Error: nginx validation failed');
+			if (nginxValidation.stdout.indexOf('configuration file /etc/nginx/nginx.conf test is successful') === -1) {
+				errors.push('Error: nginx validation failed');
+				warnings.push(nginxValidation.stderr);
+				warnings.push(nginxValidation.stdout);
 				rerender(
 					<FluiddInstallerUI
 						warnings={warnings}
+						errors={errors}
 						status="Fluidd installation failed."
 						statusColor="red"
 						stepText="Restoring previous mainsail configuration..."
-						stepTextColor="yellow"
 					/>,
 				);
-				await $$`sudo cp /etc/nginx/sites-available/mainsail.bak /etc/nginx/sites-available/mainsail`;
 				await $$`sudo ln -s /etc/nginx/sites-available/mainsail /etc/nginx/sites-enabled/mainsail`;
-				await $$`sudo rm /etc/nginx/sites-enabled/fluidd /etc/nginx/sites-available/fluidd`;
+				await $$`sudo rm /etc/nginx/sites-enabled/fluidd`;
 				await $$`sudo systemctl reload nginx`;
-				return rerender(
+				rerender(
 					<FluiddInstallerUI
 						warnings={warnings}
+						errors={errors}
 						status="Fluidd installation failed."
 						statusColor="red"
 						stepText={`Fluidd installation failed, previous mainsail configuration has been restored. For debugging, download the debug zip at http://${hostname}.local/configure/api/debug-zip`}
 						stepTextColor="white"
 					/>,
 				);
+				return;
 			}
+			rerender(
+				<FluiddInstallerUI
+					warnings={warnings}
+					errors={errors}
+					status="Installing Fluidd..."
+					stepText="Reloading nginx"
+				/>,
+			);
+			await $$`sudo systemctl reload nginx`;
+			rerender(
+				<FluiddInstallerUI
+					warnings={warnings}
+					errors={errors}
+					status="Fluidd installed successfully!"
+					statusColor="greenBright"
+					stepTextColor="white"
+					stepText={`Fluidd is now available at http://${hostname}.local/`}
+				/>,
+			);
 		}
 	});
 
@@ -600,14 +632,20 @@ frontend
 	.description('Restore the default mainsail nginx configuration')
 	.action(async () => {
 		const $$ = $({ quiet: true });
-		const { rerender } = render(<FluiddInstallerUI status="Restoring mainsail.." />);
+		const warnings: string[] = [];
+		const errors: string[] = [];
+		const { rerender } = render(
+			<FluiddInstallerUI warnings={warnings} errors={errors} status="Restoring mainsail.." />,
+		);
 		const hostname = (await $$`tr -d " \t\n\r" < /etc/hostname`).stdout;
-		if (!existsSync('/etc/nginx/sites-available/mainsail.bak')) {
-			return renderError('Mainsail backup configuration file not found', { exitCode: 2 });
+		if (!existsSync('/etc/nginx/sites-available/mainsail')) {
+			return renderError('Mainsail configuration file not found', { exitCode: 2 });
 		}
 		if (existsSync('/etc/nginx/sites-enabled/mainsail')) {
 			return rerender(
 				<FluiddInstallerUI
+					warnings={warnings}
+					errors={errors}
 					status="Mainsail is already configured"
 					statusColor="greenBright"
 					stepText={`Mainsail is already available at http://${hostname}.local/. Nothing to do.`}
@@ -616,22 +654,72 @@ frontend
 			);
 		}
 		rerender(
-			<FluiddInstallerUI status="Restoring mainsail.." stepText="Restoring previous mainsail configuration..." />,
+			<FluiddInstallerUI
+				warnings={warnings}
+				errors={errors}
+				status="Restoring mainsail.."
+				stepText="Restoring previous mainsail configuration..."
+			/>,
 		);
-		await $$`sudo cp /etc/nginx/sites-available/mainsail.bak /etc/nginx/sites-available/mainsail`;
 		await $$`sudo ln -s /etc/nginx/sites-available/mainsail /etc/nginx/sites-enabled/mainsail`;
 		if (existsSync('/etc/nginx/sites-enabled/fluidd')) {
-			await $$`sudo rm /etc/nginx/sites-enabled/fluidd /etc/nginx/sites-available/fluidd`;
+			await $$`sudo rm /etc/nginx/sites-enabled/fluidd`;
 		}
-		await $$`sudo systemctl reload nginx`;
-		return rerender(
+		const nginxValidation = await $$`sudo nginx -t`;
+		if (nginxValidation.stderr) {
+			getLogger().error(
+				{ stderr: nginxValidation.stderr, stdout: nginxValidation.stdout },
+				'nginx validation failed during fluidd installation',
+			);
+		}
+		if (nginxValidation.stdout.indexOf('configuration file /etc/nginx/nginx.conf test is successful') === -1) {
+			errors.push('Error: nginx validation failed');
+			warnings.push(nginxValidation.stderr);
+			warnings.push(nginxValidation.stdout);
+			rerender(
+				<FluiddInstallerUI
+					warnings={warnings}
+					errors={errors}
+					status="Fluidd installation failed."
+					statusColor="red"
+					stepText="Restoring previous fluidd configuration..."
+				/>,
+			);
+			await $$`sudo ln -s /etc/nginx/sites-available/fluidd /etc/nginx/sites-enabled/fluidd`;
+			await $$`sudo rm /etc/nginx/sites-enabled/mainsail`;
+			await $$`sudo systemctl reload nginx`;
+			rerender(
+				<FluiddInstallerUI
+					warnings={warnings}
+					errors={errors}
+					status="Restoring mainsail failed."
+					statusColor="red"
+					stepText={`Restoring mainsail failed, previous fluidd configuration has been restored. For debugging, download the debug zip at http://${hostname}.local/configure/api/debug-zip`}
+					stepTextColor="white"
+				/>,
+			);
+			return;
+		}
+		rerender(
 			<FluiddInstallerUI
-				status="Mainsail restored"
+				warnings={warnings}
+				errors={errors}
+				status="Installing Fluidd..."
+				stepText="Reloading nginx"
+			/>,
+		);
+		await $$`sudo systemctl reload nginx`;
+		rerender(
+			<FluiddInstallerUI
+				warnings={warnings}
+				errors={errors}
+				status="Mainsail restored!"
 				statusColor="greenBright"
 				stepText={`Mainsail is now available at http://${hostname}.local/`}
 				stepTextColor="white"
 			/>,
 		);
+		return;
 	});
 
 const log = program.command('logs').description('Commands for managing the RatOS log');
