@@ -70042,8 +70042,16 @@ var require_multistream = __commonJS({
 // ../node_modules/.pnpm/pino@8.17.2/node_modules/pino/pino.js
 var require_pino = __commonJS({
   "../node_modules/.pnpm/pino@8.17.2/node_modules/pino/pino.js"(exports, module) {
-    "use strict";
     init_cjs_shim();
+    function pinoBundlerAbsolutePath(p) {
+      try {
+        return __require("path").join(`${process.cwd()}${__require("path").sep}../bin`.replace(/\\/g, "/"), p);
+      } catch (e) {
+        const f = new Function("p", "return new URL(p, import.meta.url).pathname");
+        return f(p);
+      }
+    }
+    globalThis.__bundlerPathsOverrides = { ...globalThis.__bundlerPathsOverrides || {}, "thread-stream-worker": pinoBundlerAbsolutePath("./thread-stream-worker.js"), "pino-worker": pinoBundlerAbsolutePath("./pino-worker.js"), "pino/file": pinoBundlerAbsolutePath("./pino-file.js"), "pino-pipeline-worker": pinoBundlerAbsolutePath("./pino-pipeline-worker.js"), "pino-pretty": pinoBundlerAbsolutePath("./pino-pretty.js") };
     var os2 = __require("os");
     var stdSerializers = require_pino_std_serializers();
     var caller = require_caller();
@@ -84449,8 +84457,8 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
 });
 frontend.command("mainsail").description("Restore the default mainsail nginx configuration").action(async () => {
   const $$ = $({ quiet: true });
-  const warnings = [];
-  const errors = [];
+  let warnings = [];
+  let errors = [];
   const { rerender } = render_default(
     /* @__PURE__ */ import_react28.default.createElement(FluiddInstallerUI, { warnings, errors, status: "Restoring mainsail.." })
   );
@@ -84490,14 +84498,17 @@ frontend.command("mainsail").description("Restore the default mainsail nginx con
   }
   const nginxValidation = await $$`sudo nginx -t`;
   if (nginxValidation.stderr) {
+    console.log("wtf", nginxValidation.stderr);
     getLogger().error(
       { stderr: nginxValidation.stderr, stdout: nginxValidation.stdout },
       "nginx validation failed during fluidd installation"
     );
   }
-  if (nginxValidation.stdout.indexOf("configuration file /etc/nginx/nginx.conf test is successful") === -1) {
+  if (nginxValidation.stdout.indexOf("test is successful") === -1) {
+    errors = errors.slice();
+    warnings = warnings.slice();
     errors.push("Error: nginx validation failed");
-    warnings.push(nginxValidation.stderr);
+    errors.push(nginxValidation.stderr);
     warnings.push(nginxValidation.stdout);
     rerender(
       /* @__PURE__ */ import_react28.default.createElement(
@@ -84505,7 +84516,7 @@ frontend.command("mainsail").description("Restore the default mainsail nginx con
         {
           warnings,
           errors,
-          status: "Fluidd installation failed.",
+          status: "Restoring mainsail failed.",
           statusColor: "red",
           stepText: "Restoring previous fluidd configuration..."
         }

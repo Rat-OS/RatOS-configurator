@@ -632,8 +632,8 @@ frontend
 	.description('Restore the default mainsail nginx configuration')
 	.action(async () => {
 		const $$ = $({ quiet: true });
-		const warnings: string[] = [];
-		const errors: string[] = [];
+		let warnings: string[] = [];
+		let errors: string[] = [];
 		const { rerender } = render(
 			<FluiddInstallerUI warnings={warnings} errors={errors} status="Restoring mainsail.." />,
 		);
@@ -667,20 +667,24 @@ frontend
 		}
 		const nginxValidation = await $$`sudo nginx -t`;
 		if (nginxValidation.stderr) {
+			// eslint-disable-next-line no-console
+			console.log('wtf', nginxValidation.stderr);
 			getLogger().error(
 				{ stderr: nginxValidation.stderr, stdout: nginxValidation.stdout },
 				'nginx validation failed during fluidd installation',
 			);
 		}
-		if (nginxValidation.stdout.indexOf('configuration file /etc/nginx/nginx.conf test is successful') === -1) {
+		if (nginxValidation.stdout.indexOf('test is successful') === -1) {
+			errors = errors.slice();
+			warnings = warnings.slice();
 			errors.push('Error: nginx validation failed');
-			warnings.push(nginxValidation.stderr);
+			errors.push(nginxValidation.stderr);
 			warnings.push(nginxValidation.stdout);
 			rerender(
 				<FluiddInstallerUI
 					warnings={warnings}
 					errors={errors}
-					status="Fluidd installation failed."
+					status="Restoring mainsail failed."
 					statusColor="red"
 					stepText="Restoring previous fluidd configuration..."
 				/>,
