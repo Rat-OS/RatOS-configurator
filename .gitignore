@@ -4,7 +4,9 @@
 /src/build/
 
 # Bin build
-/src/bin/ratos.mjs
+/src/bin/*.js
+/src/bin/*.mjs
+/src/bin/*.wasm
 
 # misc
 .DS_Store

@@ -179,6 +179,9 @@ importers:
       esbuild:
         specifier: ^0.20.0
         version: 0.20.0
+      esbuild-plugin-pino:
+        specifier: ^2.2.0
+        version: 2.2.0(esbuild@0.20.0)
       eslint-plugin-prettier:
         specifier: ^5.1.3
         version: 5.1.3(eslint@8.56.0)(prettier@3.2.4)
@@ -2768,6 +2771,11 @@ packages:
   es-to-primitive@1.2.1:
     resolution: {integrity: sha512-QCOllgZJtaUo9miYBcLChTUaHNjJF3PYs1VidD7AwiEj1kYxKeQTctLAezAOH5ZKRH0g2IgPn6KwB4IT8iRpvA==}
     engines: {node: '>= 0.4'}
+
+  esbuild-plugin-pino@2.2.0:
+    resolution: {integrity: sha512-6T92eXmkHwad/PGeXb/DyJhwxsVUsASQyEP84QTPBuzhDp1eGRXr9CK2y/VCKiEbO2TX2v4zZ6M40W46eZZPQg==}
+    peerDependencies:
+      esbuild: ^0.17.1 || ^0.18.0 || ^0.19.0 || ^0.20.0 || ^0.21.0
 
   esbuild@0.19.11:
     resolution: {integrity: sha512-HJ96Hev2hX/6i5cDVwcqiJBBtuo9+FeIJOtZ9W1kA5M6AMJRHUZlpYZ1/SbEwtO0ioNAW8rUooVpC/WehY2SfA==}
@@ -7831,6 +7839,10 @@ snapshots:
       is-callable: 1.2.7
       is-date-object: 1.0.5
       is-symbol: 1.0.4
+
+  esbuild-plugin-pino@2.2.0(esbuild@0.20.0):
+    dependencies:
+      esbuild: 0.20.0
 
   esbuild@0.19.11:
     optionalDependencies:
