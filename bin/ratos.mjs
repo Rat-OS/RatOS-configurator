@@ -84276,7 +84276,7 @@ program2.command("flash").description(`Flash all connected boards`).action(async
   }
 });
 var FluiddInstallerUI = (props) => {
-  return /* @__PURE__ */ import_react28.default.createElement(Container, null, /* @__PURE__ */ import_react28.default.createElement(Box_default, { flexDirection: "column", rowGap: 0 }, /* @__PURE__ */ import_react28.default.createElement(Text, { color: props.statusColor ?? "white", dimColor: false, bold: true }, ["red", "redBright"].includes(props.statusColor ?? "white") && /* @__PURE__ */ import_react28.default.createElement(Text, { bold: true }, "\u2718 "), ["green", "greenBright"].includes(props.statusColor ?? "white") && /* @__PURE__ */ import_react28.default.createElement(Text, { bold: true }, "\u2713 "), props.status), props.warnings?.map((warning) => /* @__PURE__ */ import_react28.default.createElement(Text, { color: "yellow", dimColor: true, key: "warning", bold: false }, warning)), props.stepText && /* @__PURE__ */ import_react28.default.createElement(Text, { color: props.stepTextColor ?? "white", dimColor: true, bold: false }, props.stepText)));
+  return /* @__PURE__ */ import_react28.default.createElement(Container, null, /* @__PURE__ */ import_react28.default.createElement(Box_default, { flexDirection: "column", rowGap: 0 }, /* @__PURE__ */ import_react28.default.createElement(Text, { color: props.statusColor ?? "white", dimColor: false, bold: true }, ["red", "redBright"].includes(props.statusColor ?? "white") && /* @__PURE__ */ import_react28.default.createElement(Text, { bold: true }, "\u2718 "), ["green", "greenBright"].includes(props.statusColor ?? "white") && /* @__PURE__ */ import_react28.default.createElement(Text, { bold: true }, "\u2713 "), props.status), props.warnings?.map((warning) => /* @__PURE__ */ import_react28.default.createElement(Text, { color: "yellow", dimColor: true, key: warning, bold: false }, warning)), props.errors?.map((error) => /* @__PURE__ */ import_react28.default.createElement(Text, { color: "red", dimColor: true, key: error, bold: false }, error)), props.stepText && /* @__PURE__ */ import_react28.default.createElement(Text, { color: props.stepTextColor ?? "white", dimColor: true, bold: false }, props.stepText)));
 };
 var frontend = program2.command("frontend").description("Switch between klipper frontend UIs");
 frontend.command("fluidd-experimental").description("Replaces Mainsail with the RatOS development fork of Fluidd").action(async () => {
@@ -84311,6 +84311,7 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
   } else {
     const hostname = (await $`tr -d " \t\n\r" < /etc/hostname`).stdout;
     const warnings = [];
+    const errors = [];
     if (!existsSync3("/home/pi/fluidd")) {
       rerender(
         /* @__PURE__ */ import_react28.default.createElement(
@@ -84324,7 +84325,15 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
       );
       await $$`wget https://github.com/Rat-OS/fluidd/releases/latest/download/fluidd.zip -O /tmp/fluidd.zip`;
       rerender(
-        /* @__PURE__ */ import_react28.default.createElement(FluiddInstallerUI, { warnings, status: "Installing Fluidd...", stepText: "Extracting fluidd.zip" })
+        /* @__PURE__ */ import_react28.default.createElement(
+          FluiddInstallerUI,
+          {
+            warnings,
+            errors,
+            status: "Installing Fluidd...",
+            stepText: "Extracting fluidd.zip"
+          }
+        )
       );
       await $$`unzip /tmp/fluidd.zip -d /home/${environment.USER}/fluidd`;
       await $$`rm /tmp/fluidd.zip`;
@@ -84336,23 +84345,39 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
         FluiddInstallerUI,
         {
           warnings,
+          errors,
           status: "Installing Fluidd...",
           stepText: "Backing up mainsail configuration"
         }
       )
     );
     const fluidConfigFile = `/tmp/fluidd`;
-    await $$`sudo cp /etc/nginx/sites-available/mainsail /etc/nginx/sites-available/mainsail.bak`;
     await $$`sudo cp /etc/nginx/sites-available/mainsail ${fluidConfigFile}`;
     rerender(
-      /* @__PURE__ */ import_react28.default.createElement(FluiddInstallerUI, { warnings, status: "Installing Fluidd...", stepText: "Updating nginx configuration" })
+      /* @__PURE__ */ import_react28.default.createElement(
+        FluiddInstallerUI,
+        {
+          warnings,
+          errors,
+          status: "Installing Fluidd...",
+          stepText: "Updating nginx configuration"
+        }
+      )
     );
     await $$`sudo sed -i -e 's/mainsail/fluidd/g' ${fluidConfigFile}`;
     await $$`sudo mv ${fluidConfigFile} /etc/nginx/sites-available/fluidd`;
     await $$`sudo ln -s /etc/nginx/sites-available/fluidd /etc/nginx/sites-enabled/fluidd`;
-    await $$`sudo rm /etc/nginx/sites-enabled/mainsail /etc/nginx/sites-available/mainsail`;
+    await $$`sudo rm /etc/nginx/sites-enabled/mainsail`;
     rerender(
-      /* @__PURE__ */ import_react28.default.createElement(FluiddInstallerUI, { warnings, status: "Installing Fluidd...", stepText: "Validating nginx config" })
+      /* @__PURE__ */ import_react28.default.createElement(
+        FluiddInstallerUI,
+        {
+          warnings,
+          errors,
+          status: "Installing Fluidd...",
+          stepText: "Validating nginx config"
+        }
+      )
     );
     const nginxValidation = await $$`sudo nginx -t`;
     if (nginxValidation.stderr) {
@@ -84361,44 +84386,31 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
         "nginx validation failed during fluidd installation"
       );
     }
-    if (nginxValidation.stdout.includes("configuration file /etc/nginx/nginx.conf test is successful")) {
-      rerender(/* @__PURE__ */ import_react28.default.createElement(FluiddInstallerUI, { warnings, status: "Installing Fluidd...", stepText: "Reloading nginx" }));
-      await $$`sudo systemctl reload nginx`;
-      return rerender(
-        /* @__PURE__ */ import_react28.default.createElement(
-          FluiddInstallerUI,
-          {
-            warnings,
-            status: "Fluidd installed successfully!",
-            statusColor: "greenBright",
-            stepTextColor: "white",
-            stepText: `Fluidd is now available at http://${hostname}.local/`
-          }
-        )
-      );
-    } else {
-      warnings.push("Error: nginx validation failed");
+    if (nginxValidation.stdout.indexOf("configuration file /etc/nginx/nginx.conf test is successful") === -1) {
+      errors.push("Error: nginx validation failed");
+      warnings.push(nginxValidation.stderr);
+      warnings.push(nginxValidation.stdout);
       rerender(
         /* @__PURE__ */ import_react28.default.createElement(
           FluiddInstallerUI,
           {
             warnings,
+            errors,
             status: "Fluidd installation failed.",
             statusColor: "red",
-            stepText: "Restoring previous mainsail configuration...",
-            stepTextColor: "yellow"
+            stepText: "Restoring previous mainsail configuration..."
           }
         )
       );
-      await $$`sudo cp /etc/nginx/sites-available/mainsail.bak /etc/nginx/sites-available/mainsail`;
       await $$`sudo ln -s /etc/nginx/sites-available/mainsail /etc/nginx/sites-enabled/mainsail`;
-      await $$`sudo rm /etc/nginx/sites-enabled/fluidd /etc/nginx/sites-available/fluidd`;
+      await $$`sudo rm /etc/nginx/sites-enabled/fluidd`;
       await $$`sudo systemctl reload nginx`;
-      return rerender(
+      rerender(
         /* @__PURE__ */ import_react28.default.createElement(
           FluiddInstallerUI,
           {
             warnings,
+            errors,
             status: "Fluidd installation failed.",
             statusColor: "red",
             stepText: `Fluidd installation failed, previous mainsail configuration has been restored. For debugging, download the debug zip at http://${hostname}.local/configure/api/debug-zip`,
@@ -84406,21 +84418,53 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
           }
         )
       );
+      return;
     }
+    rerender(
+      /* @__PURE__ */ import_react28.default.createElement(
+        FluiddInstallerUI,
+        {
+          warnings,
+          errors,
+          status: "Installing Fluidd...",
+          stepText: "Reloading nginx"
+        }
+      )
+    );
+    await $$`sudo systemctl reload nginx`;
+    rerender(
+      /* @__PURE__ */ import_react28.default.createElement(
+        FluiddInstallerUI,
+        {
+          warnings,
+          errors,
+          status: "Fluidd installed successfully!",
+          statusColor: "greenBright",
+          stepTextColor: "white",
+          stepText: `Fluidd is now available at http://${hostname}.local/`
+        }
+      )
+    );
   }
 });
 frontend.command("mainsail").description("Restore the default mainsail nginx configuration").action(async () => {
   const $$ = $({ quiet: true });
-  const { rerender } = render_default(/* @__PURE__ */ import_react28.default.createElement(FluiddInstallerUI, { status: "Restoring mainsail.." }));
+  const warnings = [];
+  const errors = [];
+  const { rerender } = render_default(
+    /* @__PURE__ */ import_react28.default.createElement(FluiddInstallerUI, { warnings, errors, status: "Restoring mainsail.." })
+  );
   const hostname = (await $$`tr -d " \t\n\r" < /etc/hostname`).stdout;
-  if (!existsSync3("/etc/nginx/sites-available/mainsail.bak")) {
-    return renderError("Mainsail backup configuration file not found", { exitCode: 2 });
+  if (!existsSync3("/etc/nginx/sites-available/mainsail")) {
+    return renderError("Mainsail configuration file not found", { exitCode: 2 });
   }
   if (existsSync3("/etc/nginx/sites-enabled/mainsail")) {
     return rerender(
       /* @__PURE__ */ import_react28.default.createElement(
         FluiddInstallerUI,
         {
+          warnings,
+          errors,
           status: "Mainsail is already configured",
           statusColor: "greenBright",
           stepText: `Mainsail is already available at http://${hostname}.local/. Nothing to do.`,
@@ -84430,25 +84474,87 @@ frontend.command("mainsail").description("Restore the default mainsail nginx con
     );
   }
   rerender(
-    /* @__PURE__ */ import_react28.default.createElement(FluiddInstallerUI, { status: "Restoring mainsail..", stepText: "Restoring previous mainsail configuration..." })
-  );
-  await $$`sudo cp /etc/nginx/sites-available/mainsail.bak /etc/nginx/sites-available/mainsail`;
-  await $$`sudo ln -s /etc/nginx/sites-available/mainsail /etc/nginx/sites-enabled/mainsail`;
-  if (existsSync3("/etc/nginx/sites-enabled/fluidd")) {
-    await $$`sudo rm /etc/nginx/sites-enabled/fluidd /etc/nginx/sites-available/fluidd`;
-  }
-  await $$`sudo systemctl reload nginx`;
-  return rerender(
     /* @__PURE__ */ import_react28.default.createElement(
       FluiddInstallerUI,
       {
-        status: "Mainsail restored",
+        warnings,
+        errors,
+        status: "Restoring mainsail..",
+        stepText: "Restoring previous mainsail configuration..."
+      }
+    )
+  );
+  await $$`sudo ln -s /etc/nginx/sites-available/mainsail /etc/nginx/sites-enabled/mainsail`;
+  if (existsSync3("/etc/nginx/sites-enabled/fluidd")) {
+    await $$`sudo rm /etc/nginx/sites-enabled/fluidd`;
+  }
+  const nginxValidation = await $$`sudo nginx -t`;
+  if (nginxValidation.stderr) {
+    getLogger().error(
+      { stderr: nginxValidation.stderr, stdout: nginxValidation.stdout },
+      "nginx validation failed during fluidd installation"
+    );
+  }
+  if (nginxValidation.stdout.indexOf("configuration file /etc/nginx/nginx.conf test is successful") === -1) {
+    errors.push("Error: nginx validation failed");
+    warnings.push(nginxValidation.stderr);
+    warnings.push(nginxValidation.stdout);
+    rerender(
+      /* @__PURE__ */ import_react28.default.createElement(
+        FluiddInstallerUI,
+        {
+          warnings,
+          errors,
+          status: "Fluidd installation failed.",
+          statusColor: "red",
+          stepText: "Restoring previous fluidd configuration..."
+        }
+      )
+    );
+    await $$`sudo ln -s /etc/nginx/sites-available/fluidd /etc/nginx/sites-enabled/fluidd`;
+    await $$`sudo rm /etc/nginx/sites-enabled/mainsail`;
+    await $$`sudo systemctl reload nginx`;
+    rerender(
+      /* @__PURE__ */ import_react28.default.createElement(
+        FluiddInstallerUI,
+        {
+          warnings,
+          errors,
+          status: "Restoring mainsail failed.",
+          statusColor: "red",
+          stepText: `Restoring mainsail failed, previous fluidd configuration has been restored. For debugging, download the debug zip at http://${hostname}.local/configure/api/debug-zip`,
+          stepTextColor: "white"
+        }
+      )
+    );
+    return;
+  }
+  rerender(
+    /* @__PURE__ */ import_react28.default.createElement(
+      FluiddInstallerUI,
+      {
+        warnings,
+        errors,
+        status: "Installing Fluidd...",
+        stepText: "Reloading nginx"
+      }
+    )
+  );
+  await $$`sudo systemctl reload nginx`;
+  rerender(
+    /* @__PURE__ */ import_react28.default.createElement(
+      FluiddInstallerUI,
+      {
+        warnings,
+        errors,
+        status: "Mainsail restored!",
         statusColor: "greenBright",
         stepText: `Mainsail is now available at http://${hostname}.local/`,
         stepTextColor: "white"
       }
     )
   );
+  return;
 });
 var log = program2.command("logs").description("Commands for managing the RatOS log");
 log.command("tail").option("-f, --follow", "Follow the log").option("-n, --lines <lines>", "Number of lines to show").description("Tail the RatOS log").action(async (options) => {
