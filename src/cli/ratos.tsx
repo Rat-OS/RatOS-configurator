@@ -571,13 +571,13 @@ frontend
 				/>,
 			);
 			const nginxValidation = await $$`sudo nginx -t`;
-			if (nginxValidation.stderr) {
+			if (nginxValidation.exitCode !== 0) {
 				getLogger().error(
 					{ stderr: nginxValidation.stderr, stdout: nginxValidation.stdout },
 					'nginx validation failed during fluidd installation',
 				);
 			}
-			if (nginxValidation.stdout.indexOf('configuration file /etc/nginx/nginx.conf test is successful') === -1) {
+			if (nginxValidation.exitCode !== 0) {
 				errors.push('Error: nginx validation failed');
 				warnings.push(nginxValidation.stderr);
 				warnings.push(nginxValidation.stdout);
@@ -674,7 +674,7 @@ frontend
 				'nginx validation failed during fluidd installation',
 			);
 		}
-		if (nginxValidation.stdout.indexOf('test is successful') === -1) {
+		if (nginxValidation.exitCode !== 0) {
 			errors = errors.slice();
 			warnings = warnings.slice();
 			errors.push('Error: nginx validation failed');
