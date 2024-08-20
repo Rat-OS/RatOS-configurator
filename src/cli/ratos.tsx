@@ -753,4 +753,9 @@ log
 		const log = '/etc/logrotate.d/ratos-configurator';
 		$`logrotate -f ${log}`;
 	});
+
+log.command('test').action(async () => {
+	getLogger().info('test');
+});
+
 await program.parseAsync();
