@@ -36,7 +36,7 @@ export const getDebugZipFiles = async () => {
 			`${environment.KLIPPER_CONFIG_PATH}/*.${extensions}`,
 			`${environment.KLIPPER_CONFIG_PATH}/**/*.${extensions}`,
 		])
-	).filter((file) => !exclude.includes(file) && file.indexOf('printer_data/config/RatOS') === -1);
+	).filter((file) => !exclude.includes(file) && file.indexOf('printer_data/config/RatOS/') === -1);
 
 	configs = configs.filter((file, index) => configs.indexOf(file) === index);
 
