@@ -291,7 +291,7 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 					}
 					if (
 						typeof value == 'string' &&
-						(parameter.endsWith('pin') || Object.values(this.toolboardPins).includes(value))
+						(parameter.endsWith('_pin') || Object.values(this.toolboardPins).includes(value))
 					) {
 						result.push(`${parameter}: ${this.isToolboardPinInverted(value) ? '!' : ''}${this.getPinPrefix()}${value}`);
 					} else {
