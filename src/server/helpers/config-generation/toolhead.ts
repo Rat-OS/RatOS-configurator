@@ -515,6 +515,13 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 		}
 		const result = [
 			`[gcode_macro ${this.getToolCommand()}]`,
+			`variable_join: 0`,
+			`variable_remap: 0`,
+			`variable_alert: ""`,
+			`variable_filament_name: ""`,
+			`variable_filament_type: ""`,
+			`variable_filament_temp: 0`,
+			`variable_runout_sensor: ""`,
 			`variable_active: ${this.getTool() === 0 ? 'True' : 'False'}`,
 			`variable_color: "${this.getTool() === 0 ? '7bff33' : '0ea5e9'}"              # Used in frontends`,
 			`variable_hotend_type: "${this.getHotend().flowType.toUpperCase()}"`,
