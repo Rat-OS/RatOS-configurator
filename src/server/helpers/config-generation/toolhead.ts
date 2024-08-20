@@ -289,7 +289,10 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 					if (value == null) {
 						throw new Error(`Parameter "${parameter}" has no value in custom section "${sectionName}"`);
 					}
-					if (typeof value == 'string' && Object.values(this.toolboardPins).includes(value)) {
+					if (
+						typeof value == 'string' &&
+						(parameters.endsWith('pin') || Object.values(this.toolboardPins).includes(value))
+					) {
 						result.push(`${parameter}: ${this.isToolboardPinInverted(value) ? '!' : ''}${this.getPinPrefix()}${value}`);
 					} else {
 						result.push(`${parameter}: ${value}`);
