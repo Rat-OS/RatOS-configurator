@@ -289,7 +289,10 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 					if (value == null) {
 						throw new Error(`Parameter "${parameter}" has no value in custom section "${sectionName}"`);
 					}
-					if (typeof value == 'string' && Object.values(this.toolboardPins).includes(value)) {
+					if (
+						typeof value == 'string' &&
+						(parameter.endsWith('pin') || Object.values(this.toolboardPins).includes(value))
+					) {
 						result.push(`${parameter}: ${this.isToolboardPinInverted(value) ? '!' : ''}${this.getPinPrefix()}${value}`);
 					} else {
 						result.push(`${parameter}: ${value}`);
@@ -512,6 +515,13 @@ export class ToolheadGenerator<IsToolboard extends boolean> extends ToolheadHelp
 		}
 		const result = [
 			`[gcode_macro ${this.getToolCommand()}]`,
+			`variable_join: 0`,
+			`variable_remap: 0`,
+			`variable_alert: ""`,
+			`variable_filament_name: ""`,
+			`variable_filament_type: ""`,
+			`variable_filament_temp: 0`,
+			`variable_runout_sensor: ""`,
 			`variable_active: ${this.getTool() === 0 ? 'True' : 'False'}`,
 			`variable_color: "${this.getTool() === 0 ? '7bff33' : '0ea5e9'}"              # Used in frontends`,
 			`variable_hotend_type: "${this.getHotend().flowType.toUpperCase()}"`,
