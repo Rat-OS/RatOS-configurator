@@ -5,15 +5,16 @@ import { getBaseUrl } from '@/utils/trpc.js';
 import { realpath, stat, readFile } from 'fs/promises';
 import path from 'path';
 import React from 'react';
-import { Box, Text, render } from 'ink';
+import { Box, Text, TextProps, render } from 'ink';
 import { Container } from '@/cli/components/container.jsx';
 import { APIResult, Status } from '@/cli/components/status.jsx';
-import { Table } from '@/cli/components/table.jsx';
 import { readPackageUp } from 'read-package-up';
 import { $ } from 'zx';
 import { serverSchema } from '@/env/schema.mjs';
 import dotenv from 'dotenv';
 import { existsSync } from 'fs';
+// import { replaceInFileByLine } from '@/server/helpers/file-operations.js';
+// import { getLogger } from '@/cli/logger.js';
 
 function renderError(str: string, options: { exitCode: number } = { exitCode: 1 }) {
 	render(
@@ -36,14 +37,6 @@ function errorColor(str: string) {
 	// Add ANSI escape codes to display text in red.
 	return `\x1b[31m${str}\x1b[0m` as const;
 }
-
-const client = createTRPCProxyClient<AppRouter>({
-	links: [
-		httpBatchLink({
-			url: `${getBaseUrl()}/api/trpc`,
-		}),
-	],
-});
 
 const getRealPath = async (p: string) => {
 	if (process.env.RATOS_BIN_CWD == null && program.getOptionValue('cwd') == null) {
@@ -70,6 +63,13 @@ program
 	.command('info')
 	.description('Print info about this RatOS installation')
 	.action(async () => {
+		const client = createTRPCProxyClient<AppRouter>({
+			links: [
+				httpBatchLink({
+					url: `${getBaseUrl()}/api/trpc`,
+				}),
+			],
+		});
 		const info = {
 			osVersion: await client.osVersion.query(),
 			version: await client.version.query(),
@@ -118,6 +118,13 @@ extensions
 	.command('list')
 	.description('List all registered extensions')
 	.action(async () => {
+		const client = createTRPCProxyClient<AppRouter>({
+			links: [
+				httpBatchLink({
+					url: `${getBaseUrl()}/api/trpc`,
+				}),
+			],
+		});
 		const klippyExtensions = await client['klippy-extensions'].list.query();
 		const moonrakerExtensions = await client['moonraker-extensions'].list.query();
 		render(
@@ -162,6 +169,13 @@ registerExtensions
 	.argument('<file>', 'The extension itself')
 	.showHelpAfterError()
 	.action(async (extName, extFile, options) => {
+		const client = createTRPCProxyClient<AppRouter>({
+			links: [
+				httpBatchLink({
+					url: `${getBaseUrl()}/api/trpc`,
+				}),
+			],
+		});
 		let realPath = '';
 		try {
 			realPath = await getRealPath(extFile);
@@ -212,6 +226,13 @@ registerExtensions
 	.showHelpAfterError()
 	.option('-e, --error-if-exists', 'Throw error if the extension already exists')
 	.action(async (extName, extFile, options) => {
+		const client = createTRPCProxyClient<AppRouter>({
+			links: [
+				httpBatchLink({
+					url: `${getBaseUrl()}/api/trpc`,
+				}),
+			],
+		});
 		let realPath = '';
 		try {
 			realPath = await getRealPath(extFile);
@@ -260,6 +281,13 @@ unregisterExtensions
 	.option('-k, --kinematics', 'Register as a kinematics extension')
 	.option('-e, --error-if-not-exists', "Throw error if the extension doesn't exist")
 	.action(async (extName, options) => {
+		const client = createTRPCProxyClient<AppRouter>({
+			links: [
+				httpBatchLink({
+					url: `${getBaseUrl()}/api/trpc`,
+				}),
+			],
+		});
 		try {
 			const result = await client['klippy-extensions'].unregister.mutate({
 				extensionName: extName,
@@ -281,6 +309,13 @@ unregisterExtensions
 	.showHelpAfterError()
 	.option('-e, --error-if-not-exists', "Throw error if the extension doesn't exist")
 	.action(async (extName, options) => {
+		const client = createTRPCProxyClient<AppRouter>({
+			links: [
+				httpBatchLink({
+					url: `${getBaseUrl()}/api/trpc`,
+				}),
+			],
+		});
 		try {
 			const result = await client['moonraker-extensions'].unregister.mutate({
 				extensionName: extName,
@@ -303,6 +338,13 @@ extensions
 	.option('-e, --error-if-exists', 'Throw error and abort if an extension already exist')
 	.description('Symlink all registered extensions')
 	.action(async (type, options) => {
+		const client = createTRPCProxyClient<AppRouter>({
+			links: [
+				httpBatchLink({
+					url: `${getBaseUrl()}/api/trpc`,
+				}),
+			],
+		});
 		try {
 			const results = [];
 			if (type === 'klipper' || type === 'all') {
@@ -334,6 +376,13 @@ program
 	.option('-p, --overwrite-printer-cfg', "Overwrite the printer.cfg file, even if it hasn't been modified")
 	.action(async (options) => {
 		try {
+			const client = createTRPCProxyClient<AppRouter>({
+				links: [
+					httpBatchLink({
+						url: `${getBaseUrl()}/api/trpc`,
+					}),
+				],
+			});
 			const overwriteFiles = [];
 			if (options.overwriteAll) {
 				overwriteFiles.push('*');
@@ -383,6 +432,13 @@ program
 	.description(`Flash all connected boards`)
 	.action(async () => {
 		try {
+			const client = createTRPCProxyClient<AppRouter>({
+				links: [
+					httpBatchLink({
+						url: `${getBaseUrl()}/api/trpc`,
+					}),
+				],
+			});
 			const res = await client['mcu'].flashAllConnected.mutate();
 			renderApiResults(res.flashResults);
 		} catch (e) {
@@ -392,6 +448,283 @@ program
 			return renderError("Failed to flash mcu's", { exitCode: 2 });
 		}
 	});
+
+// const FluiddInstallerUI: React.FC<{
+// 	status: string;
+// 	statusColor?: TextProps['color'];
+// 	stepText?: string;
+// 	stepTextColor?: TextProps['color'];
+// 	warnings?: string[];
+// 	errors?: string[];
+// }> = (props) => {
+// 	return (
+// 		<Container>
+// 			<Box flexDirection="column" rowGap={0}>
+// 				<Text color={props.statusColor ?? 'white'} dimColor={false} bold={true}>
+// 					{['red', 'redBright'].includes(props.statusColor ?? 'white') && <Text bold={true}>✘ </Text>}
+// 					{['green', 'greenBright'].includes(props.statusColor ?? 'white') && <Text bold={true}>✓ </Text>}
+// 					{props.status}
+// 				</Text>
+// 				{props.warnings?.map((warning) => (
+// 					<Text color="yellow" dimColor={true} key={warning} bold={false}>
+// 						{warning}
+// 					</Text>
+// 				))}
+// 				{props.errors?.map((error) => (
+// 					<Text color="red" dimColor={true} key={error} bold={false}>
+// 						{error}
+// 					</Text>
+// 				))}
+// 				{props.stepText && (
+// 					<Text color={props.stepTextColor ?? 'white'} dimColor={true} bold={false}>
+// 						{props.stepText}
+// 					</Text>
+// 				)}
+// 			</Box>
+// 		</Container>
+// 	);
+// };
+
+// const frontend = program.command('frontend').description('Switch between klipper frontend UIs');
+
+// frontend
+// 	.command('fluidd-experimental')
+// 	.description('Replaces Mainsail with the RatOS development fork of Fluidd')
+// 	.action(async () => {
+// 		const $$ = $({ quiet: true });
+// 		const envFile = existsSync('./.env.local') ? await readFile('.env.local') : await readFile('.env');
+// 		const environment = serverSchema.parse({ NODE_ENV: 'production', ...dotenv.parse(envFile) });
+// 		let { rerender } = render(<FluiddInstallerUI status="Installing fluidd.." />);
+// 		if (!existsSync('/etc/nginx/sites-available/mainsail')) {
+// 			if (existsSync('/etc/nginx/sites-available/mainsail.bak') && existsSync('/etc/nginx/sites-enabled/fluidd')) {
+// 				rerender(
+// 					<FluiddInstallerUI
+// 						status="Fluidd already installed"
+// 						statusColor="greenBright"
+// 						stepText="Fluidd is already installed, nothing to do. To restore mainsail, run `ratos frontend mainsail`"
+// 					/>,
+// 				);
+// 			} else {
+// 				rerender(
+// 					<FluiddInstallerUI
+// 						status="Fluidd installation failed"
+// 						statusColor="red"
+// 						stepText="Stock mainsail configuration file not found"
+// 					/>,
+// 				);
+// 			}
+// 		} else {
+// 			// Download and unpack latest RatOS fluidd release
+// 			const hostname = (await $`tr -d " \t\n\r" < /etc/hostname`).stdout;
+// 			const warnings: string[] = [];
+// 			const errors: string[] = [];
+// 			if (!existsSync('/home/pi/fluidd')) {
+// 				rerender(
+// 					<FluiddInstallerUI
+// 						warnings={warnings}
+// 						status="Installing Fluidd..."
+// 						stepText="Downloading latest RatOS Fluidd release"
+// 					/>,
+// 				);
+// 				await $$`wget https://github.com/Rat-OS/fluidd/releases/latest/download/fluidd.zip -O /tmp/fluidd.zip`;
+// 				rerender(
+// 					<FluiddInstallerUI
+// 						warnings={warnings}
+// 						errors={errors}
+// 						status="Installing Fluidd..."
+// 						stepText="Extracting fluidd.zip"
+// 					/>,
+// 				);
+// 				await $$`unzip /tmp/fluidd.zip -d /home/${environment.USER}/fluidd`;
+// 				await $$`rm /tmp/fluidd.zip`;
+// 			} else {
+// 				warnings.push('Fluidd directory already exists, download and extraction has been skipped.');
+// 			}
+// 			rerender(
+// 				<FluiddInstallerUI
+// 					warnings={warnings}
+// 					errors={errors}
+// 					status="Installing Fluidd..."
+// 					stepText="Backing up mainsail configuration"
+// 				/>,
+// 			);
+// 			const fluidConfigFile = `/tmp/fluidd`;
+// 			await $$`sudo cp /etc/nginx/sites-available/mainsail ${fluidConfigFile}`;
+// 			rerender(
+// 				<FluiddInstallerUI
+// 					warnings={warnings}
+// 					errors={errors}
+// 					status="Installing Fluidd..."
+// 					stepText="Updating nginx configuration"
+// 				/>,
+// 			);
+// 			await $$`sudo sed -i -e 's/mainsail/fluidd/g' ${fluidConfigFile}`;
+// 			await $$`sudo mv ${fluidConfigFile} /etc/nginx/sites-available/fluidd`;
+// 			await $$`sudo ln -s /etc/nginx/sites-available/fluidd /etc/nginx/sites-enabled/fluidd`;
+// 			await $$`sudo rm /etc/nginx/sites-enabled/mainsail`;
+// 			rerender(
+// 				<FluiddInstallerUI
+// 					warnings={warnings}
+// 					errors={errors}
+// 					status="Installing Fluidd..."
+// 					stepText="Validating nginx config"
+// 				/>,
+// 			);
+// 			const nginxValidation = await $$`sudo nginx -t`;
+// 			if (nginxValidation.exitCode !== 0) {
+// 				getLogger().error(
+// 					{ stderr: nginxValidation.stderr, stdout: nginxValidation.stdout },
+// 					'nginx validation failed during fluidd installation',
+// 				);
+// 			}
+// 			if (nginxValidation.exitCode !== 0) {
+// 				errors.push('Error: nginx validation failed');
+// 				warnings.push(nginxValidation.stderr);
+// 				warnings.push(nginxValidation.stdout);
+// 				rerender(
+// 					<FluiddInstallerUI
+// 						warnings={warnings}
+// 						errors={errors}
+// 						status="Fluidd installation failed."
+// 						statusColor="red"
+// 						stepText="Restoring previous mainsail configuration..."
+// 					/>,
+// 				);
+// 				await $$`sudo ln -s /etc/nginx/sites-available/mainsail /etc/nginx/sites-enabled/mainsail`;
+// 				await $$`sudo rm /etc/nginx/sites-enabled/fluidd`;
+// 				await $$`sudo systemctl reload nginx`;
+// 				rerender(
+// 					<FluiddInstallerUI
+// 						warnings={warnings}
+// 						errors={errors}
+// 						status="Fluidd installation failed."
+// 						statusColor="red"
+// 						stepText={`Fluidd installation failed, previous mainsail configuration has been restored. For debugging, download the debug zip at http://${hostname}.local/configure/api/debug-zip`}
+// 						stepTextColor="white"
+// 					/>,
+// 				);
+// 				return;
+// 			}
+// 			rerender(
+// 				<FluiddInstallerUI
+// 					warnings={warnings}
+// 					errors={errors}
+// 					status="Installing Fluidd..."
+// 					stepText="Reloading nginx"
+// 				/>,
+// 			);
+// 			await $$`sudo systemctl reload nginx`;
+// 			rerender(
+// 				<FluiddInstallerUI
+// 					warnings={warnings}
+// 					errors={errors}
+// 					status="Fluidd installed successfully!"
+// 					statusColor="greenBright"
+// 					stepTextColor="white"
+// 					stepText={`Fluidd is now available at http://${hostname}.local/`}
+// 				/>,
+// 			);
+// 		}
+// 	});
+
+// frontend
+// 	.command('mainsail')
+// 	.description('Restore the default mainsail nginx configuration')
+// 	.action(async () => {
+// 		const $$ = $({ quiet: true });
+// 		let warnings: string[] = [];
+// 		let errors: string[] = [];
+// 		const { rerender } = render(
+// 			<FluiddInstallerUI warnings={warnings} errors={errors} status="Restoring mainsail.." />,
+// 		);
+// 		const hostname = (await $$`tr -d " \t\n\r" < /etc/hostname`).stdout;
+// 		if (!existsSync('/etc/nginx/sites-available/mainsail')) {
+// 			return renderError('Mainsail configuration file not found', { exitCode: 2 });
+// 		}
+// 		if (existsSync('/etc/nginx/sites-enabled/mainsail')) {
+// 			return rerender(
+// 				<FluiddInstallerUI
+// 					warnings={warnings}
+// 					errors={errors}
+// 					status="Mainsail is already configured"
+// 					statusColor="greenBright"
+// 					stepText={`Mainsail is already available at http://${hostname}.local/. Nothing to do.`}
+// 					stepTextColor="white"
+// 				/>,
+// 			);
+// 		}
+// 		rerender(
+// 			<FluiddInstallerUI
+// 				warnings={warnings}
+// 				errors={errors}
+// 				status="Restoring mainsail.."
+// 				stepText="Restoring previous mainsail configuration..."
+// 			/>,
+// 		);
+// 		await $$`sudo ln -s /etc/nginx/sites-available/mainsail /etc/nginx/sites-enabled/mainsail`;
+// 		if (existsSync('/etc/nginx/sites-enabled/fluidd')) {
+// 			await $$`sudo rm /etc/nginx/sites-enabled/fluidd`;
+// 		}
+// 		const nginxValidation = await $$`sudo nginx -t`;
+// 		if (nginxValidation.stderr) {
+// 			// eslint-disable-next-line no-console
+// 			console.log('wtf', nginxValidation.stderr);
+// 			getLogger().error(
+// 				{ stderr: nginxValidation.stderr, stdout: nginxValidation.stdout },
+// 				'nginx validation failed during fluidd installation',
+// 			);
+// 		}
+// 		if (nginxValidation.exitCode !== 0) {
+// 			errors = errors.slice();
+// 			warnings = warnings.slice();
+// 			errors.push('Error: nginx validation failed');
+// 			errors.push(nginxValidation.stderr);
+// 			warnings.push(nginxValidation.stdout);
+// 			rerender(
+// 				<FluiddInstallerUI
+// 					warnings={warnings}
+// 					errors={errors}
+// 					status="Restoring mainsail failed."
+// 					statusColor="red"
+// 					stepText="Restoring previous fluidd configuration..."
+// 				/>,
+// 			);
+// 			await $$`sudo ln -s /etc/nginx/sites-available/fluidd /etc/nginx/sites-enabled/fluidd`;
+// 			await $$`sudo rm /etc/nginx/sites-enabled/mainsail`;
+// 			await $$`sudo systemctl reload nginx`;
+// 			rerender(
+// 				<FluiddInstallerUI
+// 					warnings={warnings}
+// 					errors={errors}
+// 					status="Restoring mainsail failed."
+// 					statusColor="red"
+// 					stepText={`Restoring mainsail failed, previous fluidd configuration has been restored. For debugging, download the debug zip at http://${hostname}.local/configure/api/debug-zip`}
+// 					stepTextColor="white"
+// 				/>,
+// 			);
+// 			return;
+// 		}
+// 		rerender(
+// 			<FluiddInstallerUI
+// 				warnings={warnings}
+// 				errors={errors}
+// 				status="Installing Fluidd..."
+// 				stepText="Reloading nginx"
+// 			/>,
+// 		);
+// 		await $$`sudo systemctl reload nginx`;
+// 		rerender(
+// 			<FluiddInstallerUI
+// 				warnings={warnings}
+// 				errors={errors}
+// 				status="Mainsail restored!"
+// 				statusColor="greenBright"
+// 				stepText={`Mainsail is now available at http://${hostname}.local/`}
+// 				stepTextColor="white"
+// 			/>,
+// 		);
+// 		return;
+// 	});
 
 const log = program.command('logs').description('Commands for managing the RatOS log');
 
@@ -420,5 +753,4 @@ log
 		const log = '/etc/logrotate.d/ratos-configurator';
 		$`logrotate -f ${log}`;
 	});
-
-program.parseAsync();
+await program.parseAsync();

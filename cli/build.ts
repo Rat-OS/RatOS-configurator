@@ -1,6 +1,8 @@
 import * as esbuild from 'esbuild';
+import esbuildPluginPino from 'esbuild-plugin-pino';
 import path from 'node:path';
 import fs from 'node:fs';
+import { $ } from 'zx';
 
 let wasmPlugin = {
 	name: 'wasm',
@@ -55,12 +57,18 @@ let wasmPlugin = {
 };
 
 await esbuild.build({
-	entryPoints: ['ratos.tsx'],
+	entryPoints: {
+		'ratos.mjs': 'ratos.tsx',
+	},
 	bundle: true,
+	external: ['zx'],
 	platform: 'node',
-	outfile: '../bin/ratos.mjs',
+	outdir: '../bin',
 	target: 'node18',
 	format: 'esm',
 	inject: ['cjs-shim.ts'],
-	plugins: [wasmPlugin],
+	// @ts-expect-error
+	plugins: [wasmPlugin, esbuildPluginPino({ transports: ['pino-pretty'] })],
 });
+
+await $`mv ../bin/ratos.mjs.js ../bin/ratos.mjs`;

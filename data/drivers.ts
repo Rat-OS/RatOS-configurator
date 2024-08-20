@@ -13,6 +13,16 @@ export const Drivers = z.array(Driver).parse([
 		maxCurrent: 2.0,
 	},
 	{
+		id: 'LDO-NITEHAWK-TMC2209',
+		title: 'LDO TMC2209',
+		type: 'TMC2209',
+		protocol: 'UART',
+		senseResistor: 0.1,
+		coolingCurrentThreshold: 1.1,
+		voltages: [24],
+		maxCurrent: 2.0,
+	},
+	{
 		id: 'LDO-TMC5160-HV',
 		title: 'LDO TMC5160 HV',
 		type: 'TMC5160',
