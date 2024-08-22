@@ -86128,20 +86128,16 @@ var FluiddInstallerUI = (props) => {
       setCurrentCmd(cmd);
     }, [])
   );
-  return /* @__PURE__ */ import_react30.default.createElement(Container, null, /* @__PURE__ */ import_react30.default.createElement(Box_default, { flexDirection: "column", rowGap: 0 }, /* @__PURE__ */ import_react30.default.createElement(Text, { color: props.statusColor ?? "white", dimColor: false, bold: true }, ["red", "redBright"].includes(props.statusColor ?? "white") && /* @__PURE__ */ import_react30.default.createElement(Text, { bold: true }, "\u2718 "), ["green", "greenBright"].includes(props.statusColor ?? "white") && /* @__PURE__ */ import_react30.default.createElement(Text, { bold: true }, "\u2713 "), props.status), /* @__PURE__ */ import_react30.default.createElement(Static, { items: props.warnings ?? [] }, (warning) => /* @__PURE__ */ import_react30.default.createElement(Text, { color: "yellow", dimColor: true, key: warning, bold: false }, warning)), /* @__PURE__ */ import_react30.default.createElement(Static, { items: props.errors ?? [] }, (error) => /* @__PURE__ */ import_react30.default.createElement(Text, { color: "red", dimColor: true, key: error, bold: false }, error)), props.stepText && /* @__PURE__ */ import_react30.default.createElement(Text, null, props.isLoading && /* @__PURE__ */ import_react30.default.createElement(Text, { color: "green", dimColor: false }, /* @__PURE__ */ import_react30.default.createElement(build_default, { type: "dots" }), " "), /* @__PURE__ */ import_react30.default.createElement(Text, { color: props.stepTextColor ?? "white", dimColor: true, bold: false }, props.stepText))), currentCmd && /* @__PURE__ */ import_react30.default.createElement(Box_default, null, /* @__PURE__ */ import_react30.default.createElement(Text, { color: "cyan" }, "Running command: ", /* @__PURE__ */ import_react30.default.createElement(Transform, { transform: formatCmd }, currentCmd))));
+  return /* @__PURE__ */ import_react30.default.createElement(Container, null, /* @__PURE__ */ import_react30.default.createElement(Box_default, { flexDirection: "column", rowGap: 0 }, /* @__PURE__ */ import_react30.default.createElement(Text, { color: props.statusColor ?? "white", dimColor: false, bold: true }, ["red", "redBright"].includes(props.statusColor ?? "white") && /* @__PURE__ */ import_react30.default.createElement(Text, { bold: true }, "\u2718 "), ["green", "greenBright"].includes(props.statusColor ?? "white") && /* @__PURE__ */ import_react30.default.createElement(Text, { bold: true }, "\u2713 "), props.status), /* @__PURE__ */ import_react30.default.createElement(Static, { items: props.warnings ?? [] }, (warning) => /* @__PURE__ */ import_react30.default.createElement(Text, { color: "yellow", dimColor: true, key: warning, bold: false }, warning)), /* @__PURE__ */ import_react30.default.createElement(Static, { items: props.errors ?? [] }, (error) => /* @__PURE__ */ import_react30.default.createElement(Text, { color: "red", dimColor: true, key: error, bold: false }, error)), props.stepText && /* @__PURE__ */ import_react30.default.createElement(Text, null, props.isLoading && /* @__PURE__ */ import_react30.default.createElement(Text, { color: "green", dimColor: false }, /* @__PURE__ */ import_react30.default.createElement(build_default, { type: "dots" }), " "), /* @__PURE__ */ import_react30.default.createElement(Text, { color: props.stepTextColor ?? "grey", dimColor: false, bold: false }, props.stepText))), currentCmd && /* @__PURE__ */ import_react30.default.createElement(Box_default, { marginTop: 1 }, /* @__PURE__ */ import_react30.default.createElement(Text, { color: "white" }, "Running command: ", /* @__PURE__ */ import_react30.default.createElement(Transform, { transform: formatCmd }, currentCmd))));
 };
 var frontend = program2.command("frontend").description("Switch between klipper frontend UIs");
 var THEME_SECTION = `[update_manager FluiddTheme]`;
 var FLUIDD_SECTION = `[update_manager Fluidd]`;
-var escapeForGrep = (str) => {
-  return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
-};
 frontend.command("fluidd-experimental").description("Replaces Mainsail with the RatOS development fork of Fluidd").action(async () => {
   const cmdSignal = createSignal();
   const $$ = $({
     quiet: true,
     log(entry) {
-      entry.kind === "stderr" && getLogger().warn(entry.data.toString());
       if (entry.kind === "cmd") {
         cmdSignal(entry.cmd);
         getLogger().info("Running command" + entry.cmd);
@@ -86233,7 +86229,7 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
     } else {
       warnings.push("Fluidd theme already exists, git cloning has been skipped.");
     }
-    if ((await $$`grep "${escapeForGrep(FLUIDD_SECTION)}" ${moonrakerConfig}`).exitCode !== 0) {
+    if ((await $$`grep "${FLUIDD_SECTION}" ${moonrakerConfig}`).exitCode !== 0) {
       rerender(
         /* @__PURE__ */ import_react30.default.createElement(
           FluiddInstallerUI,
@@ -86248,7 +86244,7 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
         )
       );
       const fluiddUpdateSection = `
-"${FLUIDD_SECTION}"
+${FLUIDD_SECTION}
 type: web
 repo: Rat-OS/fluidd
 path: ~/fluidd
@@ -86257,7 +86253,7 @@ path: ~/fluidd
     } else {
       warnings.push("Fluidd update manager entry already exists, skipping moonraker configuration.");
     }
-    if ((await $$`grep "${escapeForGrep(THEME_SECTION)}" ${moonrakerConfig}`).exitCode !== 0) {
+    if ((await $$`grep "${THEME_SECTION}" ${moonrakerConfig}`).exitCode !== 0) {
       rerender(
         /* @__PURE__ */ import_react30.default.createElement(
           FluiddInstallerUI,
@@ -86406,7 +86402,6 @@ frontend.command("mainsail").description("Restore the default mainsail nginx con
   const $$ = $({
     quiet: true,
     log(entry) {
-      entry.kind === "stderr" && getLogger().warn(entry.data.toString());
       entry.kind === "cmd" && cmdSignal(entry.cmd);
     }
   });
@@ -86541,8 +86536,8 @@ log.command("tail").option("-f, --follow", "Follow the log").option("-n, --lines
     flags.push(`-n${options.lines}`);
   }
   const envFile2 = existsSync3("./.env.local") ? await readFile(".env.local") : await readFile(".env");
-  const log2 = serverSchema.parse({ NODE_ENV: "production", ...import_dotenv2.default.parse(envFile2) }).LOG_FILE;
-  $`tail ${flags} ${log2}`.pipe($`pino-pretty`);
+  const logFile = serverSchema.parse({ NODE_ENV: "production", ...import_dotenv2.default.parse(envFile2) }).LOG_FILE;
+  $`tail ${flags} ${logFile}`.pipe($`pnpm exec pino-pretty`);
 });
 log.command("rotate").description("force rotate the RatOS configurator log").action(async () => {
   const log2 = "/etc/logrotate.d/ratos-configurator";
