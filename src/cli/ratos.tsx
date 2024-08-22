@@ -497,6 +497,9 @@ const frontend = program.command('frontend').description('Switch between klipper
 
 const THEME_SECTION = `[update_manager FluiddTheme]`;
 const FLUIDD_SECTION = `[update_manager Fluidd]`;
+const escapeForGrep = (str: string) => {
+	return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+};
 
 frontend
 	.command('fluidd-experimental')
@@ -566,19 +569,10 @@ frontend
 					/>,
 				);
 				await $$`git clone https://github.com/Rat-OS/fluidd-theme /home/${environment.USER}/.fluidd-theme`;
-				rerender(
-					<FluiddInstallerUI
-						warnings={warnings}
-						errors={errors}
-						status="Installing Fluidd..."
-						isLoading={true}
-						stepText="Extracting fluidd.zip"
-					/>,
-				);
 			} else {
 				warnings.push('Fluidd theme already exists, git cloning has been skipped.');
 			}
-			if ((await $$`grep -q "${FLUIDD_SECTION}" ${moonrakerConfig}`).exitCode !== 0) {
+			if ((await $$`grep "${escapeForGrep(FLUIDD_SECTION)}" ${moonrakerConfig}`).exitCode !== 0) {
 				rerender(
 					<FluiddInstallerUI
 						warnings={warnings}
@@ -593,7 +587,7 @@ frontend
 			} else {
 				warnings.push('Fluidd update manager entry already exists, skipping moonraker configuration.');
 			}
-			if ((await $$`grep -q "${THEME_SECTION}" ${moonrakerConfig}`).exitCode !== 0) {
+			if ((await $$`grep "${escapeForGrep(THEME_SECTION)}" ${moonrakerConfig}`).exitCode !== 0) {
 				rerender(
 					<FluiddInstallerUI
 						warnings={warnings}
