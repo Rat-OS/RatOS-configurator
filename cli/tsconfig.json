@@ -3,7 +3,8 @@
 	"compilerOptions": {
 		"module": "Node16",
 		"moduleResolution": "Node16",
-		"target": "esnext"
+		"target": "esnext",
+		"allowImportingTsExtensions": true,
 	},
 	"exclude": []
 }
