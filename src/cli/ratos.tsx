@@ -4,8 +4,8 @@ import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
 import { getBaseUrl } from '@/utils/trpc.js';
 import { realpath, stat, readFile } from 'fs/promises';
 import path from 'path';
-import React from 'react';
-import { Box, Text, TextProps, render } from 'ink';
+import React, { useCallback, useState } from 'react';
+import { Box, Static, Text, TextProps, Transform, render } from 'ink';
 import { Container } from '@/cli/components/container.jsx';
 import { APIResult, Status } from '@/cli/components/status.jsx';
 import { readPackageUp } from 'read-package-up';
@@ -15,6 +15,8 @@ import dotenv from 'dotenv';
 import { existsSync, writeFileSync } from 'fs';
 import { getLogger } from '@/cli/logger.js';
 import Spinner from 'ink-spinner';
+import { createSignal, Signal, useSignal } from '@/app/_helpers/signal.ts';
+import { formatCmd } from '@/cli/util.ts';
 
 function renderError(str: string, options: { exitCode: number } = { exitCode: 1 }) {
 	render(
@@ -450,6 +452,7 @@ program
 	});
 
 const FluiddInstallerUI: React.FC<{
+	cmdSignal: Signal<string | null>;
 	status: string;
 	statusColor?: TextProps['color'];
 	stepText?: string;
@@ -458,6 +461,13 @@ const FluiddInstallerUI: React.FC<{
 	errors?: string[];
 	isLoading?: boolean;
 }> = (props) => {
+	const [currentCmd, setCurrentCmd] = useState<string | null>(null);
+	useSignal(
+		props.cmdSignal,
+		useCallback((cmd) => {
+			setCurrentCmd(cmd);
+		}, []),
+	);
 	return (
 		<Container>
 			<Box flexDirection="column" rowGap={0}>
@@ -466,16 +476,20 @@ const FluiddInstallerUI: React.FC<{
 					{['green', 'greenBright'].includes(props.statusColor ?? 'white') && <Text bold={true}>✓ </Text>}
 					{props.status}
 				</Text>
-				{props.warnings?.map((warning) => (
-					<Text color="yellow" dimColor={true} key={warning} bold={false}>
-						{warning}
-					</Text>
-				))}
-				{props.errors?.map((error) => (
-					<Text color="red" dimColor={true} key={error} bold={false}>
-						{error}
-					</Text>
-				))}
+				<Static items={props.warnings ?? []}>
+					{(warning) => (
+						<Text color="yellow" dimColor={true} key={warning} bold={false}>
+							{warning}
+						</Text>
+					)}
+				</Static>
+				<Static items={props.errors ?? []}>
+					{(error) => (
+						<Text color="red" dimColor={true} key={error} bold={false}>
+							{error}
+						</Text>
+					)}
+				</Static>
 				{props.stepText && (
 					<Text>
 						{props.isLoading && (
@@ -489,6 +503,13 @@ const FluiddInstallerUI: React.FC<{
 					</Text>
 				)}
 			</Box>
+			{currentCmd && (
+				<Box>
+					<Text color="cyan">
+						Running command: <Transform transform={formatCmd}>{currentCmd}</Transform>
+					</Text>
+				</Box>
+			)}
 		</Container>
 	);
 };
@@ -505,15 +526,26 @@ frontend
 	.command('fluidd-experimental')
 	.description('Replaces Mainsail with the RatOS development fork of Fluidd')
 	.action(async () => {
-		const $$ = $({ quiet: true });
+		const cmdSignal = createSignal<string | null>();
+		const $$ = $({
+			quiet: true,
+			log(entry) {
+				entry.kind === 'stderr' && getLogger().warn(entry.data.toString());
+				if (entry.kind === 'cmd') {
+					cmdSignal(entry.cmd);
+					getLogger().info('Running command' + entry.cmd);
+				}
+			},
+		});
 		const envFile = existsSync('./.env.local') ? await readFile('.env.local') : await readFile('.env');
 		const environment = serverSchema.parse({ NODE_ENV: 'production', ...dotenv.parse(envFile) });
 		const moonrakerConfig = environment.KLIPPER_CONFIG_PATH + '/moonraker.conf';
-		let { rerender } = render(<FluiddInstallerUI status="Installing fluidd.." />);
+		let { rerender } = render(<FluiddInstallerUI status="Installing fluidd.." cmdSignal={cmdSignal} />);
 		if (!existsSync('/etc/nginx/sites-available/mainsail')) {
 			if (existsSync('/etc/nginx/sites-available/mainsail.bak') && existsSync('/etc/nginx/sites-enabled/fluidd')) {
 				rerender(
 					<FluiddInstallerUI
+						cmdSignal={cmdSignal}
 						status="Fluidd already installed"
 						statusColor="greenBright"
 						stepText="Fluidd is already installed, nothing to do. To restore mainsail, run `ratos frontend mainsail`"
@@ -522,6 +554,7 @@ frontend
 			} else {
 				rerender(
 					<FluiddInstallerUI
+						cmdSignal={cmdSignal}
 						status="Fluidd installation failed"
 						statusColor="red"
 						stepText="Stock mainsail configuration file not found"
@@ -530,12 +563,13 @@ frontend
 			}
 		} else {
 			// Download and unpack latest RatOS fluidd release
-			const hostname = (await $`tr -d " \t\n\r" < /etc/hostname`).stdout;
+			const hostname = (await $$`tr -d " \t\n\r" < /etc/hostname`).text();
 			const warnings: string[] = [];
 			const errors: string[] = [];
 			if (!existsSync(`/home/${environment.USER}/fluidd`)) {
 				rerender(
 					<FluiddInstallerUI
+						cmdSignal={cmdSignal}
 						warnings={warnings}
 						errors={errors}
 						status="Installing Fluidd..."
@@ -546,6 +580,7 @@ frontend
 				await $$`wget https://github.com/Rat-OS/fluidd/releases/latest/download/fluidd.zip -O /tmp/fluidd.zip`;
 				rerender(
 					<FluiddInstallerUI
+						cmdSignal={cmdSignal}
 						warnings={warnings}
 						errors={errors}
 						status="Installing Fluidd..."
@@ -561,6 +596,7 @@ frontend
 			if (!existsSync(`/home/${environment.USER}/.fluidd-theme`)) {
 				rerender(
 					<FluiddInstallerUI
+						cmdSignal={cmdSignal}
 						warnings={warnings}
 						errors={errors}
 						status="Installing Fluidd..."
@@ -575,6 +611,7 @@ frontend
 			if ((await $$`grep "${escapeForGrep(FLUIDD_SECTION)}" ${moonrakerConfig}`).exitCode !== 0) {
 				rerender(
 					<FluiddInstallerUI
+						cmdSignal={cmdSignal}
 						warnings={warnings}
 						errors={errors}
 						status="Installing Fluidd..."
@@ -590,6 +627,7 @@ frontend
 			if ((await $$`grep "${escapeForGrep(THEME_SECTION)}" ${moonrakerConfig}`).exitCode !== 0) {
 				rerender(
 					<FluiddInstallerUI
+						cmdSignal={cmdSignal}
 						warnings={warnings}
 						errors={errors}
 						status="Installing Fluidd..."
@@ -604,6 +642,7 @@ frontend
 			}
 			rerender(
 				<FluiddInstallerUI
+					cmdSignal={cmdSignal}
 					warnings={warnings}
 					errors={errors}
 					status="Installing Fluidd..."
@@ -615,6 +654,7 @@ frontend
 			await $$`sudo cp /etc/nginx/sites-available/mainsail ${fluidConfigFile}`;
 			rerender(
 				<FluiddInstallerUI
+					cmdSignal={cmdSignal}
 					warnings={warnings}
 					errors={errors}
 					status="Installing Fluidd..."
@@ -628,6 +668,7 @@ frontend
 			await $$`sudo rm /etc/nginx/sites-enabled/mainsail`;
 			rerender(
 				<FluiddInstallerUI
+					cmdSignal={cmdSignal}
 					warnings={warnings}
 					errors={errors}
 					status="Installing Fluidd..."
@@ -646,6 +687,7 @@ frontend
 				warnings.push(nginxValidation.stdout);
 				rerender(
 					<FluiddInstallerUI
+						cmdSignal={cmdSignal}
 						warnings={warnings}
 						errors={errors}
 						status="Fluidd installation failed."
@@ -656,8 +698,10 @@ frontend
 				await $$`sudo ln -s /etc/nginx/sites-available/mainsail /etc/nginx/sites-enabled/mainsail`;
 				await $$`sudo rm /etc/nginx/sites-enabled/fluidd`;
 				await $$`sudo systemctl reload nginx`;
+				cmdSignal(null);
 				rerender(
 					<FluiddInstallerUI
+						cmdSignal={cmdSignal}
 						warnings={warnings}
 						errors={errors}
 						status="Fluidd installation failed."
@@ -670,6 +714,7 @@ frontend
 			}
 			rerender(
 				<FluiddInstallerUI
+					cmdSignal={cmdSignal}
 					warnings={warnings}
 					errors={errors}
 					status="Installing Fluidd..."
@@ -678,8 +723,10 @@ frontend
 				/>,
 			);
 			await $$`sudo systemctl reload nginx`;
+			cmdSignal(null);
 			rerender(
 				<FluiddInstallerUI
+					cmdSignal={cmdSignal}
 					warnings={warnings}
 					errors={errors}
 					status="Fluidd installed successfully!"
@@ -695,19 +742,28 @@ frontend
 	.command('mainsail')
 	.description('Restore the default mainsail nginx configuration')
 	.action(async () => {
-		const $$ = $({ quiet: true });
+		const cmdSignal = createSignal<string | null>();
+		const $$ = $({
+			quiet: true,
+			log(entry) {
+				entry.kind === 'stderr' && getLogger().warn(entry.data.toString());
+				entry.kind === 'cmd' && cmdSignal(entry.cmd);
+			},
+		});
 		let warnings: string[] = [];
 		let errors: string[] = [];
 		const { rerender } = render(
-			<FluiddInstallerUI warnings={warnings} errors={errors} status="Restoring mainsail.." />,
+			<FluiddInstallerUI cmdSignal={cmdSignal} warnings={warnings} errors={errors} status="Restoring mainsail.." />,
 		);
 		const hostname = (await $$`tr -d " \t\n\r" < /etc/hostname`).stdout;
 		if (!existsSync('/etc/nginx/sites-available/mainsail')) {
 			return renderError('Mainsail configuration file not found', { exitCode: 2 });
 		}
 		if (existsSync('/etc/nginx/sites-enabled/mainsail')) {
-			return rerender(
+			cmdSignal(null);
+			rerender(
 				<FluiddInstallerUI
+					cmdSignal={cmdSignal}
 					warnings={warnings}
 					errors={errors}
 					status="Mainsail is already configured"
@@ -716,9 +772,11 @@ frontend
 					stepTextColor="white"
 				/>,
 			);
+			return;
 		}
 		rerender(
 			<FluiddInstallerUI
+				cmdSignal={cmdSignal}
 				warnings={warnings}
 				errors={errors}
 				status="Restoring mainsail.."
@@ -746,6 +804,7 @@ frontend
 			warnings.push(nginxValidation.stdout);
 			rerender(
 				<FluiddInstallerUI
+					cmdSignal={cmdSignal}
 					warnings={warnings}
 					errors={errors}
 					status="Restoring mainsail failed."
@@ -756,8 +815,10 @@ frontend
 			await $$`sudo ln -s /etc/nginx/sites-available/fluidd /etc/nginx/sites-enabled/fluidd`;
 			await $$`sudo rm /etc/nginx/sites-enabled/mainsail`;
 			await $$`sudo systemctl reload nginx`;
+			cmdSignal(null);
 			rerender(
 				<FluiddInstallerUI
+					cmdSignal={cmdSignal}
 					warnings={warnings}
 					errors={errors}
 					status="Restoring mainsail failed."
@@ -770,6 +831,7 @@ frontend
 		}
 		rerender(
 			<FluiddInstallerUI
+				cmdSignal={cmdSignal}
 				warnings={warnings}
 				errors={errors}
 				status="Restoring mainsail..."
@@ -778,8 +840,10 @@ frontend
 			/>,
 		);
 		await $$`sudo systemctl reload nginx`;
+		cmdSignal(null);
 		rerender(
 			<FluiddInstallerUI
+				cmdSignal={cmdSignal}
 				warnings={warnings}
 				errors={errors}
 				status="Mainsail restored!"
