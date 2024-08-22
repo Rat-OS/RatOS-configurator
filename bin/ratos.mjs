@@ -81869,7 +81869,7 @@ async function readPackageUp(options) {
 }
 
 // ratos.tsx
-import { $ } from "zx";
+import { $, echo, which } from "zx";
 
 // ../env/schema.mjs
 init_cjs_shim();
@@ -86131,16 +86131,19 @@ var FluiddInstallerUI = (props) => {
   return /* @__PURE__ */ import_react30.default.createElement(Container, null, /* @__PURE__ */ import_react30.default.createElement(Box_default, { flexDirection: "column", rowGap: 0 }, /* @__PURE__ */ import_react30.default.createElement(Text, { color: props.statusColor ?? "white", dimColor: false, bold: true }, ["red", "redBright"].includes(props.statusColor ?? "white") && /* @__PURE__ */ import_react30.default.createElement(Text, { bold: true }, "\u2718 "), ["green", "greenBright"].includes(props.statusColor ?? "white") && /* @__PURE__ */ import_react30.default.createElement(Text, { bold: true }, "\u2713 "), props.status), /* @__PURE__ */ import_react30.default.createElement(Static, { items: props.warnings ?? [] }, (warning) => /* @__PURE__ */ import_react30.default.createElement(Text, { color: "yellow", dimColor: true, key: warning, bold: false }, warning)), /* @__PURE__ */ import_react30.default.createElement(Static, { items: props.errors ?? [] }, (error) => /* @__PURE__ */ import_react30.default.createElement(Text, { color: "red", dimColor: true, key: error, bold: false }, error)), props.stepText && /* @__PURE__ */ import_react30.default.createElement(Text, null, props.isLoading && /* @__PURE__ */ import_react30.default.createElement(Text, { color: "green", dimColor: false }, /* @__PURE__ */ import_react30.default.createElement(build_default, { type: "dots" }), " "), /* @__PURE__ */ import_react30.default.createElement(Text, { color: props.stepTextColor ?? "grey", dimColor: false, bold: false }, props.stepText))), currentCmd && /* @__PURE__ */ import_react30.default.createElement(Box_default, { marginTop: 1 }, /* @__PURE__ */ import_react30.default.createElement(Text, { color: "white" }, "Running command: ", /* @__PURE__ */ import_react30.default.createElement(Transform, { transform: formatCmd }, currentCmd))));
 };
 var frontend = program2.command("frontend").description("Switch between klipper frontend UIs");
-var THEME_SECTION = `[update_manager FluiddTheme]`;
-var FLUIDD_SECTION = `[update_manager Fluidd]`;
+var ensureSudo = async () => {
+  echo("Checking for sudo permissions. If you're prompted for a password, please enter it.");
+  await $({ verbose: false, quiet: false })`sudo echo "Sudo permissions acquired"`;
+};
 frontend.command("fluidd-experimental").description("Replaces Mainsail with the RatOS development fork of Fluidd").action(async () => {
+  await ensureSudo();
   const cmdSignal = createSignal();
   const $$ = $({
     quiet: true,
     log(entry) {
       if (entry.kind === "cmd") {
         cmdSignal(entry.cmd);
-        getLogger().info("Running command" + entry.cmd);
+        getLogger().info("Running command: " + entry.cmd);
       }
     }
   });
@@ -86229,7 +86232,7 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
     } else {
       warnings.push("Fluidd theme already exists, git cloning has been skipped.");
     }
-    if ((await $$`grep ${FLUIDD_SECTION} ${moonrakerConfig}`).exitCode !== 0) {
+    if ((await $$`grep "\\[update_manager Fluidd\\]" ${moonrakerConfig}`).exitCode !== 0) {
       rerender(
         /* @__PURE__ */ import_react30.default.createElement(
           FluiddInstallerUI,
@@ -86244,7 +86247,7 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
         )
       );
       const fluiddUpdateSection = `
-${FLUIDD_SECTION}
+[update_manager Fluidd]
 type: web
 repo: Rat-OS/fluidd
 path: ~/fluidd
@@ -86253,7 +86256,7 @@ path: ~/fluidd
     } else {
       warnings.push("Fluidd update manager entry already exists, skipping moonraker configuration.");
     }
-    if ((await $$`grep ${THEME_SECTION} ${moonrakerConfig}`).exitCode !== 0) {
+    if ((await $$`grep "\\[update_manager FluiddTheme\\]" ${moonrakerConfig}`).exitCode !== 0) {
       rerender(
         /* @__PURE__ */ import_react30.default.createElement(
           FluiddInstallerUI,
@@ -86268,7 +86271,7 @@ path: ~/fluidd
         )
       );
       const fluiddThemeUpdateSection = `
-${THEME_SECTION}
+[update_manager FluiddTheme]
 type: git_repo
 path: ~/fluidd
 primary_branch: main
@@ -86398,6 +86401,7 @@ is_system_service: false
   }
 });
 frontend.command("mainsail").description("Restore the default mainsail nginx configuration").action(async () => {
+  await ensureSudo();
   const cmdSignal = createSignal();
   const $$ = $({
     quiet: true,
@@ -86528,6 +86532,7 @@ frontend.command("mainsail").description("Restore the default mainsail nginx con
 });
 var log = program2.command("logs").description("Commands for managing the RatOS log");
 log.command("tail").option("-f, --follow", "Follow the log").option("-n, --lines <lines>", "Number of lines to show").description("Tail the RatOS log").action(async (options) => {
+  const $$ = $({ verbose: true });
   const flags = [];
   if (options.follow) {
     flags.push("-f");
@@ -86537,11 +86542,16 @@ log.command("tail").option("-f, --follow", "Follow the log").option("-n, --lines
   }
   const envFile2 = existsSync3("./.env.local") ? await readFile(".env.local") : await readFile(".env");
   const logFile = serverSchema.parse({ NODE_ENV: "production", ...import_dotenv2.default.parse(envFile2) }).LOG_FILE;
-  $`tail ${flags} ${logFile}`.pipe($`pnpm exec pino-pretty`);
+  const whichPretty = await which("pino-pretty");
+  if (whichPretty.trim() === "") {
+    echo("pino-pretty not found, installing (requires sudo permissions)...");
+    await $$`sudo npm install -g pino-pretty`;
+  }
+  $$`tail ${flags} ${logFile} | pino-pretty --colorize`;
 });
 log.command("rotate").description("force rotate the RatOS configurator log").action(async () => {
   const log2 = "/etc/logrotate.d/ratos-configurator";
-  $`logrotate -f ${log2}`;
+  $({ verbose: true })`logrotate -f ${log2}`;
 });
 await program2.parseAsync();
 /*! Bundled license information:
