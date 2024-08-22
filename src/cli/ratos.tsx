@@ -825,14 +825,4 @@ log
 		$`logrotate -f ${log}`;
 	});
 
-log.command('test').action(async () => {
-	const { rerender } = render(
-		<FluiddInstallerUI status="Testing things" stepText="Pretending to do stuff.." isLoading={true} />,
-	);
-	await new Promise((resolve) => {
-		setTimeout(resolve, 1000);
-	});
-	rerender(<FluiddInstallerUI status="Testing things" stepText="Stuff was done.." />);
-});
-
 await program.parseAsync();
