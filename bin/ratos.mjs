@@ -86228,7 +86228,7 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
           }
         )
       );
-      await $$`git clone https://github.com/Rat-OS/fluidd-theme /home/${environment.USER}/.fluidd-theme`;
+      await $$`git clone https://github.com/Rat-OS/fluidd-theme /home/${environment.USER}/printer_data/config/.fluidd-theme`;
     } else {
       warnings.push("Fluidd theme already exists, git cloning has been skipped.");
     }
@@ -86273,7 +86273,7 @@ path: ~/fluidd
       const fluiddThemeUpdateSection = `
 [update_manager FluiddTheme]
 type: git_repo
-path: ~/fluidd
+path: ~/printer_data/config/.fluidd-theme
 primary_branch: main
 origin: https://github.com/Rat-OS/fluidd-theme
 is_system_service: false
