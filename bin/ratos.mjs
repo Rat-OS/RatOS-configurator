@@ -85949,6 +85949,9 @@ var FluiddInstallerUI = (props) => {
 var frontend = program2.command("frontend").description("Switch between klipper frontend UIs");
 var THEME_SECTION = `[update_manager FluiddTheme]`;
 var FLUIDD_SECTION = `[update_manager Fluidd]`;
+var escapeForGrep = (str) => {
+  return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+};
 frontend.command("fluidd-experimental").description("Replaces Mainsail with the RatOS development fork of Fluidd").action(async () => {
   const $$ = $({ quiet: true });
   const envFile2 = existsSync3("./.env.local") ? await readFile(".env.local") : await readFile(".env");
@@ -86028,22 +86031,10 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
         )
       );
       await $$`git clone https://github.com/Rat-OS/fluidd-theme /home/${environment.USER}/.fluidd-theme`;
-      rerender(
-        /* @__PURE__ */ import_react29.default.createElement(
-          FluiddInstallerUI,
-          {
-            warnings,
-            errors,
-            status: "Installing Fluidd...",
-            isLoading: true,
-            stepText: "Extracting fluidd.zip"
-          }
-        )
-      );
     } else {
       warnings.push("Fluidd theme already exists, git cloning has been skipped.");
     }
-    if ((await $$`grep -q "${FLUIDD_SECTION}" ${moonrakerConfig}`).exitCode !== 0) {
+    if ((await $$`grep "${escapeForGrep(FLUIDD_SECTION)}" ${moonrakerConfig}`).exitCode !== 0) {
       rerender(
         /* @__PURE__ */ import_react29.default.createElement(
           FluiddInstallerUI,
@@ -86066,7 +86057,7 @@ path: ~/fluidd
     } else {
       warnings.push("Fluidd update manager entry already exists, skipping moonraker configuration.");
     }
-    if ((await $$`grep -q "${THEME_SECTION}" ${moonrakerConfig}`).exitCode !== 0) {
+    if ((await $$`grep "${escapeForGrep(THEME_SECTION)}" ${moonrakerConfig}`).exitCode !== 0) {
       rerender(
         /* @__PURE__ */ import_react29.default.createElement(
           FluiddInstallerUI,
