@@ -497,15 +497,15 @@ const FluiddInstallerUI: React.FC<{
 								<Spinner type="dots" />{' '}
 							</Text>
 						)}
-						<Text color={props.stepTextColor ?? 'white'} dimColor={true} bold={false}>
+						<Text color={props.stepTextColor ?? 'grey'} dimColor={false} bold={false}>
 							{props.stepText}
 						</Text>
 					</Text>
 				)}
 			</Box>
 			{currentCmd && (
-				<Box>
-					<Text color="cyan">
+				<Box marginTop={1}>
+					<Text color="white">
 						Running command: <Transform transform={formatCmd}>{currentCmd}</Transform>
 					</Text>
 				</Box>
@@ -519,7 +519,7 @@ const frontend = program.command('frontend').description('Switch between klipper
 const THEME_SECTION = `[update_manager FluiddTheme]`;
 const FLUIDD_SECTION = `[update_manager Fluidd]`;
 const escapeForGrep = (str: string) => {
-	return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+	return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\&');
 };
 
 frontend
@@ -530,7 +530,6 @@ frontend
 		const $$ = $({
 			quiet: true,
 			log(entry) {
-				entry.kind === 'stderr' && getLogger().warn(entry.data.toString());
 				if (entry.kind === 'cmd') {
 					cmdSignal(entry.cmd);
 					getLogger().info('Running command' + entry.cmd);
@@ -608,7 +607,7 @@ frontend
 			} else {
 				warnings.push('Fluidd theme already exists, git cloning has been skipped.');
 			}
-			if ((await $$`grep "${escapeForGrep(FLUIDD_SECTION)}" ${moonrakerConfig}`).exitCode !== 0) {
+			if ((await $$`grep "${FLUIDD_SECTION}" ${moonrakerConfig}`).exitCode !== 0) {
 				rerender(
 					<FluiddInstallerUI
 						cmdSignal={cmdSignal}
@@ -619,12 +618,12 @@ frontend
 						stepText="Adding moonraker entry for RatOS Fluidd fork"
 					/>,
 				);
-				const fluiddUpdateSection = `\n"${FLUIDD_SECTION}"\ntype: web\nrepo: Rat-OS/fluidd\npath: ~/fluidd\n`;
+				const fluiddUpdateSection = `\n${FLUIDD_SECTION}\ntype: web\nrepo: Rat-OS/fluidd\npath: ~/fluidd\n`;
 				writeFileSync(moonrakerConfig, fluiddUpdateSection, { flag: 'a' });
 			} else {
 				warnings.push('Fluidd update manager entry already exists, skipping moonraker configuration.');
 			}
-			if ((await $$`grep "${escapeForGrep(THEME_SECTION)}" ${moonrakerConfig}`).exitCode !== 0) {
+			if ((await $$`grep "${THEME_SECTION}" ${moonrakerConfig}`).exitCode !== 0) {
 				rerender(
 					<FluiddInstallerUI
 						cmdSignal={cmdSignal}
@@ -746,7 +745,6 @@ frontend
 		const $$ = $({
 			quiet: true,
 			log(entry) {
-				entry.kind === 'stderr' && getLogger().warn(entry.data.toString());
 				entry.kind === 'cmd' && cmdSignal(entry.cmd);
 			},
 		});
@@ -871,8 +869,8 @@ log
 			flags.push(`-n${options.lines}`);
 		}
 		const envFile = existsSync('./.env.local') ? await readFile('.env.local') : await readFile('.env');
-		const log = serverSchema.parse({ NODE_ENV: 'production', ...dotenv.parse(envFile) }).LOG_FILE;
-		$`tail ${flags} ${log}`.pipe($`pino-pretty`);
+		const logFile = serverSchema.parse({ NODE_ENV: 'production', ...dotenv.parse(envFile) }).LOG_FILE;
+		$`tail ${flags} ${logFile}`.pipe($`pnpm exec pino-pretty`);
 	});
 
 log
