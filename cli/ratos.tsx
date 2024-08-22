@@ -451,7 +451,7 @@ program
 		}
 	});
 
-const FluiddInstallerUI: React.FC<{
+const InstallProgressUI: React.FC<{
 	cmdSignal: Signal<string | null>;
 	status: string;
 	statusColor?: TextProps['color'];
@@ -539,11 +539,11 @@ frontend
 		const envFile = existsSync('./.env.local') ? await readFile('.env.local') : await readFile('.env');
 		const environment = serverSchema.parse({ NODE_ENV: 'production', ...dotenv.parse(envFile) });
 		const moonrakerConfig = environment.KLIPPER_CONFIG_PATH + '/moonraker.conf';
-		let { rerender } = render(<FluiddInstallerUI status="Installing fluidd.." cmdSignal={cmdSignal} />);
+		let { rerender } = render(<InstallProgressUI status="Installing fluidd.." cmdSignal={cmdSignal} />);
 		if (!existsSync('/etc/nginx/sites-available/mainsail')) {
 			if (existsSync('/etc/nginx/sites-available/mainsail.bak') && existsSync('/etc/nginx/sites-enabled/fluidd')) {
 				rerender(
-					<FluiddInstallerUI
+					<InstallProgressUI
 						cmdSignal={cmdSignal}
 						status="Fluidd already installed"
 						statusColor="greenBright"
@@ -552,7 +552,7 @@ frontend
 				);
 			} else {
 				rerender(
-					<FluiddInstallerUI
+					<InstallProgressUI
 						cmdSignal={cmdSignal}
 						status="Fluidd installation failed"
 						statusColor="red"
@@ -567,7 +567,7 @@ frontend
 			const errors: string[] = [];
 			if (!existsSync(`/home/${environment.USER}/fluidd`)) {
 				rerender(
-					<FluiddInstallerUI
+					<InstallProgressUI
 						cmdSignal={cmdSignal}
 						warnings={warnings}
 						errors={errors}
@@ -578,7 +578,7 @@ frontend
 				);
 				await $$`wget https://github.com/Rat-OS/fluidd/releases/latest/download/fluidd.zip -O /tmp/fluidd.zip`;
 				rerender(
-					<FluiddInstallerUI
+					<InstallProgressUI
 						cmdSignal={cmdSignal}
 						warnings={warnings}
 						errors={errors}
@@ -592,9 +592,9 @@ frontend
 			} else {
 				warnings.push('Fluidd directory already exists, download and extraction has been skipped.');
 			}
-			if (!existsSync(`/home/${environment.USER}/.fluidd-theme`)) {
+			if (!existsSync(`/home/${environment.USER}/printer_data/config/.fluidd-theme`)) {
 				rerender(
-					<FluiddInstallerUI
+					<InstallProgressUI
 						cmdSignal={cmdSignal}
 						warnings={warnings}
 						errors={errors}
@@ -609,7 +609,7 @@ frontend
 			}
 			if ((await $$`grep "\\[update_manager Fluidd\\]" ${moonrakerConfig}`.exitCode) !== 0) {
 				rerender(
-					<FluiddInstallerUI
+					<InstallProgressUI
 						cmdSignal={cmdSignal}
 						warnings={warnings}
 						errors={errors}
@@ -625,7 +625,7 @@ frontend
 			}
 			if ((await $$`grep "\\[update_manager FluiddTheme\\]" ${moonrakerConfig}`.exitCode) !== 0) {
 				rerender(
-					<FluiddInstallerUI
+					<InstallProgressUI
 						cmdSignal={cmdSignal}
 						warnings={warnings}
 						errors={errors}
@@ -640,7 +640,7 @@ frontend
 				warnings.push('Fluidd theme update manager entry already exists, skipping moonraker configuration.');
 			}
 			rerender(
-				<FluiddInstallerUI
+				<InstallProgressUI
 					cmdSignal={cmdSignal}
 					warnings={warnings}
 					errors={errors}
@@ -652,7 +652,7 @@ frontend
 			const fluidConfigFile = `/tmp/fluidd`;
 			await $$`sudo cp /etc/nginx/sites-available/mainsail ${fluidConfigFile}`;
 			rerender(
-				<FluiddInstallerUI
+				<InstallProgressUI
 					cmdSignal={cmdSignal}
 					warnings={warnings}
 					errors={errors}
@@ -666,7 +666,7 @@ frontend
 			await $$`sudo ln -s /etc/nginx/sites-available/fluidd /etc/nginx/sites-enabled/fluidd`;
 			await $$`sudo rm /etc/nginx/sites-enabled/mainsail`;
 			rerender(
-				<FluiddInstallerUI
+				<InstallProgressUI
 					cmdSignal={cmdSignal}
 					warnings={warnings}
 					errors={errors}
@@ -685,7 +685,7 @@ frontend
 				warnings.push(nginxValidation.stderr);
 				warnings.push(nginxValidation.stdout);
 				rerender(
-					<FluiddInstallerUI
+					<InstallProgressUI
 						cmdSignal={cmdSignal}
 						warnings={warnings}
 						errors={errors}
@@ -699,7 +699,7 @@ frontend
 				await $$`sudo systemctl reload nginx`;
 				cmdSignal(null);
 				rerender(
-					<FluiddInstallerUI
+					<InstallProgressUI
 						cmdSignal={cmdSignal}
 						warnings={warnings}
 						errors={errors}
@@ -712,7 +712,7 @@ frontend
 				return;
 			}
 			rerender(
-				<FluiddInstallerUI
+				<InstallProgressUI
 					cmdSignal={cmdSignal}
 					warnings={warnings}
 					errors={errors}
@@ -724,7 +724,7 @@ frontend
 			await $$`sudo systemctl reload nginx`;
 			cmdSignal(null);
 			rerender(
-				<FluiddInstallerUI
+				<InstallProgressUI
 					cmdSignal={cmdSignal}
 					warnings={warnings}
 					errors={errors}
@@ -752,7 +752,7 @@ frontend
 		let warnings: string[] = [];
 		let errors: string[] = [];
 		const { rerender } = render(
-			<FluiddInstallerUI cmdSignal={cmdSignal} warnings={warnings} errors={errors} status="Restoring mainsail.." />,
+			<InstallProgressUI cmdSignal={cmdSignal} warnings={warnings} errors={errors} status="Restoring mainsail.." />,
 		);
 		const hostname = (await $$`tr -d " \t\n\r" < /etc/hostname`).text();
 		if (!existsSync('/etc/nginx/sites-available/mainsail')) {
@@ -761,7 +761,7 @@ frontend
 		if (existsSync('/etc/nginx/sites-enabled/mainsail')) {
 			cmdSignal(null);
 			rerender(
-				<FluiddInstallerUI
+				<InstallProgressUI
 					cmdSignal={cmdSignal}
 					warnings={warnings}
 					errors={errors}
@@ -774,7 +774,7 @@ frontend
 			return;
 		}
 		rerender(
-			<FluiddInstallerUI
+			<InstallProgressUI
 				cmdSignal={cmdSignal}
 				warnings={warnings}
 				errors={errors}
@@ -802,7 +802,7 @@ frontend
 			errors.push(nginxValidation.stderr);
 			warnings.push(nginxValidation.stdout);
 			rerender(
-				<FluiddInstallerUI
+				<InstallProgressUI
 					cmdSignal={cmdSignal}
 					warnings={warnings}
 					errors={errors}
@@ -816,7 +816,7 @@ frontend
 			await $$`sudo systemctl reload nginx`;
 			cmdSignal(null);
 			rerender(
-				<FluiddInstallerUI
+				<InstallProgressUI
 					cmdSignal={cmdSignal}
 					warnings={warnings}
 					errors={errors}
@@ -829,7 +829,7 @@ frontend
 			return;
 		}
 		rerender(
-			<FluiddInstallerUI
+			<InstallProgressUI
 				cmdSignal={cmdSignal}
 				warnings={warnings}
 				errors={errors}
@@ -841,7 +841,7 @@ frontend
 		await $$`sudo systemctl reload nginx`;
 		cmdSignal(null);
 		rerender(
-			<FluiddInstallerUI
+			<InstallProgressUI
 				cmdSignal={cmdSignal}
 				warnings={warnings}
 				errors={errors}
@@ -886,6 +886,14 @@ log
 	.action(async () => {
 		const log = '/etc/logrotate.d/ratos-configurator';
 		$({ verbose: true })`logrotate -f ${log}`;
+	});
+
+const doctor = program
+	.command('doctor')
+	.description('Diagnose and fix common issues on a RatOS installation')
+	.action(() => {
+		ensureSudo();
+		$({ verbose: true })`sudo `;
 	});
 
 await program.parseAsync();
