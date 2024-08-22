@@ -603,7 +603,7 @@ frontend
 						stepText="Cloning RatOS fluidd theme"
 					/>,
 				);
-				await $$`git clone https://github.com/Rat-OS/fluidd-theme /home/${environment.USER}/.fluidd-theme`;
+				await $$`git clone https://github.com/Rat-OS/fluidd-theme /home/${environment.USER}/printer_data/config/.fluidd-theme`;
 			} else {
 				warnings.push('Fluidd theme already exists, git cloning has been skipped.');
 			}
@@ -634,7 +634,7 @@ frontend
 						stepText="Adding moonraker entry for RatOS Fluidd theme"
 					/>,
 				);
-				const fluiddThemeUpdateSection = `\n[update_manager FluiddTheme]\ntype: git_repo\npath: ~/fluidd\nprimary_branch: main\norigin: https://github.com/Rat-OS/fluidd-theme\nis_system_service: false\n`;
+				const fluiddThemeUpdateSection = `\n[update_manager FluiddTheme]\ntype: git_repo\npath: ~/printer_data/config/.fluidd-theme\nprimary_branch: main\norigin: https://github.com/Rat-OS/fluidd-theme\nis_system_service: false\n`;
 				writeFileSync(moonrakerConfig, fluiddThemeUpdateSection, { flag: 'a' });
 			} else {
 				warnings.push('Fluidd theme update manager entry already exists, skipping moonraker configuration.');
