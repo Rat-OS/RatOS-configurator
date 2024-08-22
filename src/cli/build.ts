@@ -64,11 +64,12 @@ let wasmPlugin = {
 
 await esbuild.build({
 	entryPoints: {
-		'ratos.mjs': 'ratos.tsx',
+		ratos: 'ratos.tsx',
 	},
 	bundle: true,
 	external: ['zx'],
 	platform: 'node',
+	outExtension: { '.js': '.mjs' },
 	outdir: '../bin',
 	target: 'node18',
 	format: 'esm',
@@ -76,4 +77,4 @@ await esbuild.build({
 	plugins: [wasmPlugin, pinoshim({ transports: ['pino-pretty'] })],
 });
 
-await $`mv ../bin/ratos.mjs.js ../bin/ratos.mjs`;
+// await $`mv ../bin/ratos.mjs.js ../bin/ratos.mjs`;

@@ -174,8 +174,7 @@ export default function esbuildPluginPino({ transports = [] }: { transports: str
 					...transportsEntrypoints,
 				})
 					.map((id) => {
-						console.log(id, extension);
-						return `'${id === 'pino-file' ? 'pino/file' : id}': '${id === 'pino-file' ? 'pino/file' : `./bin/${id}${extension}`}'`;
+						return `'${id === 'pino-file' ? 'pino/file' : id}': '${id === 'pino-file' ? `./pino-file${extension}` : `./bin/${id}${extension}`}'`;
 					})
 					.join(',');
 
