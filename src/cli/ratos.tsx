@@ -9,7 +9,7 @@ import { Box, Static, Text, TextProps, Transform, render } from 'ink';
 import { Container } from '@/cli/components/container.jsx';
 import { APIResult, Status } from '@/cli/components/status.jsx';
 import { readPackageUp } from 'read-package-up';
-import { $ } from 'zx';
+import { $, echo, which } from 'zx';
 import { serverSchema } from '@/env/schema.mjs';
 import dotenv from 'dotenv';
 import { existsSync, writeFileSync } from 'fs';
@@ -516,23 +516,23 @@ const FluiddInstallerUI: React.FC<{
 
 const frontend = program.command('frontend').description('Switch between klipper frontend UIs');
 
-const THEME_SECTION = `[update_manager FluiddTheme]`;
-const FLUIDD_SECTION = `[update_manager Fluidd]`;
-const escapeForGrep = (str: string) => {
-	return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+const ensureSudo = async () => {
+	echo("Checking for sudo permissions. If you're prompted for a password, please enter it.");
+	await $({ verbose: false, quiet: false })`sudo echo "Sudo permissions acquired"`;
 };
 
 frontend
 	.command('fluidd-experimental')
 	.description('Replaces Mainsail with the RatOS development fork of Fluidd')
 	.action(async () => {
+		await ensureSudo();
 		const cmdSignal = createSignal<string | null>();
 		const $$ = $({
 			quiet: true,
 			log(entry) {
 				if (entry.kind === 'cmd') {
 					cmdSignal(entry.cmd);
-					getLogger().info('Running command' + entry.cmd);
+					getLogger().info('Running command: ' + entry.cmd);
 				}
 			},
 		});
@@ -607,7 +607,7 @@ frontend
 			} else {
 				warnings.push('Fluidd theme already exists, git cloning has been skipped.');
 			}
-			if ((await $$`grep ${FLUIDD_SECTION} ${moonrakerConfig}`).exitCode !== 0) {
+			if ((await $$`grep "\\[update_manager Fluidd\\]" ${moonrakerConfig}`).exitCode !== 0) {
 				rerender(
 					<FluiddInstallerUI
 						cmdSignal={cmdSignal}
@@ -618,12 +618,12 @@ frontend
 						stepText="Adding moonraker entry for RatOS Fluidd fork"
 					/>,
 				);
-				const fluiddUpdateSection = `\n${FLUIDD_SECTION}\ntype: web\nrepo: Rat-OS/fluidd\npath: ~/fluidd\n`;
+				const fluiddUpdateSection = `\n[update_manager Fluidd]\ntype: web\nrepo: Rat-OS/fluidd\npath: ~/fluidd\n`;
 				writeFileSync(moonrakerConfig, fluiddUpdateSection, { flag: 'a' });
 			} else {
 				warnings.push('Fluidd update manager entry already exists, skipping moonraker configuration.');
 			}
-			if ((await $$`grep ${THEME_SECTION} ${moonrakerConfig}`).exitCode !== 0) {
+			if ((await $$`grep "\\[update_manager FluiddTheme\\]" ${moonrakerConfig}`).exitCode !== 0) {
 				rerender(
 					<FluiddInstallerUI
 						cmdSignal={cmdSignal}
@@ -634,7 +634,7 @@ frontend
 						stepText="Adding moonraker entry for RatOS Fluidd theme"
 					/>,
 				);
-				const fluiddThemeUpdateSection = `\n${THEME_SECTION}\ntype: git_repo\npath: ~/fluidd\nprimary_branch: main\norigin: https://github.com/Rat-OS/fluidd-theme\nis_system_service: false\n`;
+				const fluiddThemeUpdateSection = `\n[update_manager FluiddTheme]\ntype: git_repo\npath: ~/fluidd\nprimary_branch: main\norigin: https://github.com/Rat-OS/fluidd-theme\nis_system_service: false\n`;
 				writeFileSync(moonrakerConfig, fluiddThemeUpdateSection, { flag: 'a' });
 			} else {
 				warnings.push('Fluidd theme update manager entry already exists, skipping moonraker configuration.');
@@ -741,6 +741,7 @@ frontend
 	.command('mainsail')
 	.description('Restore the default mainsail nginx configuration')
 	.action(async () => {
+		await ensureSudo();
 		const cmdSignal = createSignal<string | null>();
 		const $$ = $({
 			quiet: true,
@@ -861,6 +862,7 @@ log
 	.option('-n, --lines <lines>', 'Number of lines to show')
 	.description('Tail the RatOS log')
 	.action(async (options) => {
+		const $$ = $({ verbose: true });
 		const flags = [];
 		if (options.follow) {
 			flags.push('-f');
@@ -870,7 +872,12 @@ log
 		}
 		const envFile = existsSync('./.env.local') ? await readFile('.env.local') : await readFile('.env');
 		const logFile = serverSchema.parse({ NODE_ENV: 'production', ...dotenv.parse(envFile) }).LOG_FILE;
-		$`tail ${flags} ${logFile}`.pipe($`pnpm exec pino-pretty`);
+		const whichPretty = await which('pino-pretty');
+		if (whichPretty.trim() === '') {
+			echo('pino-pretty not found, installing (requires sudo permissions)...');
+			await $$`sudo npm install -g pino-pretty`;
+		}
+		$$`tail ${flags} ${logFile} | pino-pretty --colorize`;
 	});
 
 log
@@ -878,7 +885,7 @@ log
 	.description('force rotate the RatOS configurator log')
 	.action(async () => {
 		const log = '/etc/logrotate.d/ratos-configurator';
-		$`logrotate -f ${log}`;
+		$({ verbose: true })`logrotate -f ${log}`;
 	});
 
 await program.parseAsync();
