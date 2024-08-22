@@ -86120,7 +86120,7 @@ program2.command("flash").description(`Flash all connected boards`).action(async
     return renderError("Failed to flash mcu's", { exitCode: 2 });
   }
 });
-var FluiddInstallerUI = (props) => {
+var InstallProgressUI = (props) => {
   const [currentCmd, setCurrentCmd] = (0, import_react30.useState)(null);
   useSignal(
     props.cmdSignal,
@@ -86150,12 +86150,12 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
   const envFile2 = existsSync3("./.env.local") ? await readFile(".env.local") : await readFile(".env");
   const environment = serverSchema.parse({ NODE_ENV: "production", ...import_dotenv2.default.parse(envFile2) });
   const moonrakerConfig = environment.KLIPPER_CONFIG_PATH + "/moonraker.conf";
-  let { rerender } = render_default(/* @__PURE__ */ import_react30.default.createElement(FluiddInstallerUI, { status: "Installing fluidd..", cmdSignal }));
+  let { rerender } = render_default(/* @__PURE__ */ import_react30.default.createElement(InstallProgressUI, { status: "Installing fluidd..", cmdSignal }));
   if (!existsSync3("/etc/nginx/sites-available/mainsail")) {
     if (existsSync3("/etc/nginx/sites-available/mainsail.bak") && existsSync3("/etc/nginx/sites-enabled/fluidd")) {
       rerender(
         /* @__PURE__ */ import_react30.default.createElement(
-          FluiddInstallerUI,
+          InstallProgressUI,
           {
             cmdSignal,
             status: "Fluidd already installed",
@@ -86167,7 +86167,7 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
     } else {
       rerender(
         /* @__PURE__ */ import_react30.default.createElement(
-          FluiddInstallerUI,
+          InstallProgressUI,
           {
             cmdSignal,
             status: "Fluidd installation failed",
@@ -86184,7 +86184,7 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
     if (!existsSync3(`/home/${environment.USER}/fluidd`)) {
       rerender(
         /* @__PURE__ */ import_react30.default.createElement(
-          FluiddInstallerUI,
+          InstallProgressUI,
           {
             cmdSignal,
             warnings,
@@ -86198,7 +86198,7 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
       await $$`wget https://github.com/Rat-OS/fluidd/releases/latest/download/fluidd.zip -O /tmp/fluidd.zip`;
       rerender(
         /* @__PURE__ */ import_react30.default.createElement(
-          FluiddInstallerUI,
+          InstallProgressUI,
           {
             cmdSignal,
             warnings,
@@ -86214,10 +86214,10 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
     } else {
       warnings.push("Fluidd directory already exists, download and extraction has been skipped.");
     }
-    if (!existsSync3(`/home/${environment.USER}/.fluidd-theme`)) {
+    if (!existsSync3(`/home/${environment.USER}/printer_data/config/.fluidd-theme`)) {
       rerender(
         /* @__PURE__ */ import_react30.default.createElement(
-          FluiddInstallerUI,
+          InstallProgressUI,
           {
             cmdSignal,
             warnings,
@@ -86235,7 +86235,7 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
     if (await $$`grep "\\[update_manager Fluidd\\]" ${moonrakerConfig}`.exitCode !== 0) {
       rerender(
         /* @__PURE__ */ import_react30.default.createElement(
-          FluiddInstallerUI,
+          InstallProgressUI,
           {
             cmdSignal,
             warnings,
@@ -86259,7 +86259,7 @@ path: ~/fluidd
     if (await $$`grep "\\[update_manager FluiddTheme\\]" ${moonrakerConfig}`.exitCode !== 0) {
       rerender(
         /* @__PURE__ */ import_react30.default.createElement(
-          FluiddInstallerUI,
+          InstallProgressUI,
           {
             cmdSignal,
             warnings,
@@ -86284,7 +86284,7 @@ is_system_service: false
     }
     rerender(
       /* @__PURE__ */ import_react30.default.createElement(
-        FluiddInstallerUI,
+        InstallProgressUI,
         {
           cmdSignal,
           warnings,
@@ -86299,7 +86299,7 @@ is_system_service: false
     await $$`sudo cp /etc/nginx/sites-available/mainsail ${fluidConfigFile}`;
     rerender(
       /* @__PURE__ */ import_react30.default.createElement(
-        FluiddInstallerUI,
+        InstallProgressUI,
         {
           cmdSignal,
           warnings,
@@ -86316,7 +86316,7 @@ is_system_service: false
     await $$`sudo rm /etc/nginx/sites-enabled/mainsail`;
     rerender(
       /* @__PURE__ */ import_react30.default.createElement(
-        FluiddInstallerUI,
+        InstallProgressUI,
         {
           cmdSignal,
           warnings,
@@ -86338,7 +86338,7 @@ is_system_service: false
       warnings.push(nginxValidation.stdout);
       rerender(
         /* @__PURE__ */ import_react30.default.createElement(
-          FluiddInstallerUI,
+          InstallProgressUI,
           {
             cmdSignal,
             warnings,
@@ -86355,7 +86355,7 @@ is_system_service: false
       cmdSignal(null);
       rerender(
         /* @__PURE__ */ import_react30.default.createElement(
-          FluiddInstallerUI,
+          InstallProgressUI,
           {
             cmdSignal,
             warnings,
@@ -86371,7 +86371,7 @@ is_system_service: false
     }
     rerender(
       /* @__PURE__ */ import_react30.default.createElement(
-        FluiddInstallerUI,
+        InstallProgressUI,
         {
           cmdSignal,
           warnings,
@@ -86386,7 +86386,7 @@ is_system_service: false
     cmdSignal(null);
     rerender(
       /* @__PURE__ */ import_react30.default.createElement(
-        FluiddInstallerUI,
+        InstallProgressUI,
         {
           cmdSignal,
           warnings,
@@ -86412,7 +86412,7 @@ frontend.command("mainsail").description("Restore the default mainsail nginx con
   let warnings = [];
   let errors = [];
   const { rerender } = render_default(
-    /* @__PURE__ */ import_react30.default.createElement(FluiddInstallerUI, { cmdSignal, warnings, errors, status: "Restoring mainsail.." })
+    /* @__PURE__ */ import_react30.default.createElement(InstallProgressUI, { cmdSignal, warnings, errors, status: "Restoring mainsail.." })
   );
   const hostname = (await $$`tr -d " \t\n\r" < /etc/hostname`).text();
   if (!existsSync3("/etc/nginx/sites-available/mainsail")) {
@@ -86422,7 +86422,7 @@ frontend.command("mainsail").description("Restore the default mainsail nginx con
     cmdSignal(null);
     rerender(
       /* @__PURE__ */ import_react30.default.createElement(
-        FluiddInstallerUI,
+        InstallProgressUI,
         {
           cmdSignal,
           warnings,
@@ -86438,7 +86438,7 @@ frontend.command("mainsail").description("Restore the default mainsail nginx con
   }
   rerender(
     /* @__PURE__ */ import_react30.default.createElement(
-      FluiddInstallerUI,
+      InstallProgressUI,
       {
         cmdSignal,
         warnings,
@@ -86468,7 +86468,7 @@ frontend.command("mainsail").description("Restore the default mainsail nginx con
     warnings.push(nginxValidation.stdout);
     rerender(
       /* @__PURE__ */ import_react30.default.createElement(
-        FluiddInstallerUI,
+        InstallProgressUI,
         {
           cmdSignal,
           warnings,
@@ -86485,7 +86485,7 @@ frontend.command("mainsail").description("Restore the default mainsail nginx con
     cmdSignal(null);
     rerender(
       /* @__PURE__ */ import_react30.default.createElement(
-        FluiddInstallerUI,
+        InstallProgressUI,
         {
           cmdSignal,
           warnings,
@@ -86501,7 +86501,7 @@ frontend.command("mainsail").description("Restore the default mainsail nginx con
   }
   rerender(
     /* @__PURE__ */ import_react30.default.createElement(
-      FluiddInstallerUI,
+      InstallProgressUI,
       {
         cmdSignal,
         warnings,
@@ -86516,7 +86516,7 @@ frontend.command("mainsail").description("Restore the default mainsail nginx con
   cmdSignal(null);
   rerender(
     /* @__PURE__ */ import_react30.default.createElement(
-      FluiddInstallerUI,
+      InstallProgressUI,
       {
         cmdSignal,
         warnings,
@@ -86552,6 +86552,10 @@ log.command("tail").option("-f, --follow", "Follow the log").option("-n, --lines
 log.command("rotate").description("force rotate the RatOS configurator log").action(async () => {
   const log2 = "/etc/logrotate.d/ratos-configurator";
   $({ verbose: true })`logrotate -f ${log2}`;
+});
+var doctor = program2.command("doctor").description("Diagnose and fix common issues on a RatOS installation").action(() => {
+  ensureSudo();
+  $({ verbose: true })`sudo `;
 });
 await program2.parseAsync();
 /*! Bundled license information:
