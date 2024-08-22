@@ -26,6 +26,21 @@ export interface SignalDispatcher<T> {
 export type Signal<T> = SignalSubscriber<T> & SignalDispatcher<T>;
 export type SignalReturn = SignalUnsubscriber & void;
 
+export function createSignal<T = void>(): Signal<T> {
+	const subscribers = new Set<SignalListener<T>>();
+	const signal = (eventOrListener: any): any => {
+		if (typeof eventOrListener === 'function') {
+			subscribers.add(eventOrListener);
+			return () => {
+				subscribers.delete(eventOrListener);
+			};
+		} else {
+			subscribers.forEach((listener) => listener(eventOrListener));
+		}
+	};
+	return signal;
+}
+
 export function useNewSignal<T = void>(): Signal<T> {
 	const subscribers = useRef(new Set<SignalListener<T>>());
 	return useCallback((eventOrListener: any): any => {

@@ -4192,7 +4192,7 @@ var require_react_development = __commonJS({
           }
           return dispatcher.useContext(Context);
         }
-        function useState9(initialState) {
+        function useState10(initialState) {
           var dispatcher = resolveDispatcher();
           return dispatcher.useState(initialState);
         }
@@ -4200,11 +4200,11 @@ var require_react_development = __commonJS({
           var dispatcher = resolveDispatcher();
           return dispatcher.useReducer(reducer, initialArg, init);
         }
-        function useRef3(initialValue) {
+        function useRef4(initialValue) {
           var dispatcher = resolveDispatcher();
           return dispatcher.useRef(initialValue);
         }
-        function useEffect10(create2, deps) {
+        function useEffect11(create2, deps) {
           var dispatcher = resolveDispatcher();
           return dispatcher.useEffect(create2, deps);
         }
@@ -4216,7 +4216,7 @@ var require_react_development = __commonJS({
           var dispatcher = resolveDispatcher();
           return dispatcher.useLayoutEffect(create2, deps);
         }
-        function useCallback5(callback, deps) {
+        function useCallback7(callback, deps) {
           var dispatcher = resolveDispatcher();
           return dispatcher.useCallback(callback, deps);
         }
@@ -4982,19 +4982,19 @@ var require_react_development = __commonJS({
         exports.memo = memo;
         exports.startTransition = startTransition;
         exports.unstable_act = act;
-        exports.useCallback = useCallback5;
+        exports.useCallback = useCallback7;
         exports.useContext = useContext10;
         exports.useDebugValue = useDebugValue;
         exports.useDeferredValue = useDeferredValue;
-        exports.useEffect = useEffect10;
+        exports.useEffect = useEffect11;
         exports.useId = useId;
         exports.useImperativeHandle = useImperativeHandle;
         exports.useInsertionEffect = useInsertionEffect;
         exports.useLayoutEffect = useLayoutEffect2;
         exports.useMemo = useMemo8;
         exports.useReducer = useReducer;
-        exports.useRef = useRef3;
-        exports.useState = useState9;
+        exports.useRef = useRef4;
+        exports.useState = useState10;
         exports.useSyncExternalStore = useSyncExternalStore2;
         exports.useTransition = useTransition;
         exports.version = ReactVersion;
@@ -5109,7 +5109,7 @@ var require_use_sync_external_store_shim_development = __commonJS({
           return x === y && (x !== 0 || 1 / x === 1 / y) || x !== x && y !== y;
         }
         var objectIs = typeof Object.is === "function" ? Object.is : is;
-        var useState9 = React24.useState, useEffect10 = React24.useEffect, useLayoutEffect2 = React24.useLayoutEffect, useDebugValue = React24.useDebugValue;
+        var useState10 = React24.useState, useEffect11 = React24.useEffect, useLayoutEffect2 = React24.useLayoutEffect, useDebugValue = React24.useDebugValue;
         var didWarnOld18Alpha = false;
         var didWarnUncachedGetSnapshot = false;
         function useSyncExternalStore2(subscribe, getSnapshot, getServerSnapshot) {
@@ -5131,7 +5131,7 @@ var require_use_sync_external_store_shim_development = __commonJS({
               }
             }
           }
-          var _useState = useState9({
+          var _useState = useState10({
             inst: {
               value,
               getSnapshot
@@ -5146,7 +5146,7 @@ var require_use_sync_external_store_shim_development = __commonJS({
               });
             }
           }, [subscribe, value, getSnapshot]);
-          useEffect10(function() {
+          useEffect11(function() {
             if (checkIfSnapshotChanged(inst)) {
               forceUpdate({
                 inst
@@ -12558,7 +12558,7 @@ var require_react_dom_server_legacy_node_development = __commonJS({
         function basicStateReducer(state, action) {
           return typeof action === "function" ? action(state) : action;
         }
-        function useState9(initialState) {
+        function useState10(initialState) {
           {
             currentHookNameInDev = "useState";
           }
@@ -12648,7 +12648,7 @@ var require_react_dom_server_legacy_node_development = __commonJS({
           workInProgressHook.memoizedState = [nextValue, nextDeps];
           return nextValue;
         }
-        function useRef3(initialValue) {
+        function useRef4(initialValue) {
           currentlyRenderingComponent = resolveCurrentlyRenderingComponent();
           workInProgressHook = createWorkInProgressHook();
           var previousRef = workInProgressHook.memoizedState;
@@ -12696,7 +12696,7 @@ var require_react_dom_server_legacy_node_development = __commonJS({
             }
           }
         }
-        function useCallback5(callback, deps) {
+        function useCallback7(callback, deps) {
           return useMemo8(function() {
             return callback;
           }, deps);
@@ -12739,11 +12739,11 @@ var require_react_dom_server_legacy_node_development = __commonJS({
           useContext: useContext10,
           useMemo: useMemo8,
           useReducer,
-          useRef: useRef3,
-          useState: useState9,
+          useRef: useRef4,
+          useState: useState10,
           useInsertionEffect: noop5,
           useLayoutEffect: useLayoutEffect2,
-          useCallback: useCallback5,
+          useCallback: useCallback7,
           // useImperativeHandle is not run in the server environment
           useImperativeHandle: noop5,
           // Effects are not run in the server environment.
@@ -17989,7 +17989,7 @@ var require_react_dom_server_node_development = __commonJS({
         function basicStateReducer(state, action) {
           return typeof action === "function" ? action(state) : action;
         }
-        function useState9(initialState) {
+        function useState10(initialState) {
           {
             currentHookNameInDev = "useState";
           }
@@ -18079,7 +18079,7 @@ var require_react_dom_server_node_development = __commonJS({
           workInProgressHook.memoizedState = [nextValue, nextDeps];
           return nextValue;
         }
-        function useRef3(initialValue) {
+        function useRef4(initialValue) {
           currentlyRenderingComponent = resolveCurrentlyRenderingComponent();
           workInProgressHook = createWorkInProgressHook();
           var previousRef = workInProgressHook.memoizedState;
@@ -18127,7 +18127,7 @@ var require_react_dom_server_node_development = __commonJS({
             }
           }
         }
-        function useCallback5(callback, deps) {
+        function useCallback7(callback, deps) {
           return useMemo8(function() {
             return callback;
           }, deps);
@@ -18170,11 +18170,11 @@ var require_react_dom_server_node_development = __commonJS({
           useContext: useContext10,
           useMemo: useMemo8,
           useReducer,
-          useRef: useRef3,
-          useState: useState9,
+          useRef: useRef4,
+          useState: useState10,
           useInsertionEffect: noop5,
           useLayoutEffect: useLayoutEffect2,
-          useCallback: useCallback5,
+          useCallback: useCallback7,
           // useImperativeHandle is not run in the server environment
           useImperativeHandle: noop5,
           // Effects are not run in the server environment.
@@ -54020,7 +54020,7 @@ var require_backend = __commonJS({
                 return function() {
                 };
               },
-              useCallback: function useCallback5(a) {
+              useCallback: function useCallback7(a) {
                 var b = F();
                 z2.push({
                   primitive: "Callback",
@@ -54037,7 +54037,7 @@ var require_backend = __commonJS({
                 });
                 return a._currentValue;
               },
-              useEffect: function useEffect10(a) {
+              useEffect: function useEffect11(a) {
                 F();
                 z2.push({
                   primitive: "Effect",
@@ -54099,7 +54099,7 @@ var require_backend = __commonJS({
                 return [b, function() {
                 }];
               },
-              useRef: function useRef3(a) {
+              useRef: function useRef4(a) {
                 var b = F();
                 a = null !== b ? b.memoizedState : {
                   current: a
@@ -54111,7 +54111,7 @@ var require_backend = __commonJS({
                 });
                 return a;
               },
-              useState: function useState9(a) {
+              useState: function useState10(a) {
                 var b = F();
                 a = null !== b ? b.memoizedState : "function" === typeof a ? a() : a;
                 z2.push({
@@ -59344,14 +59344,14 @@ var require_keyword = __commonJS({
     exports.isStrictBindOnlyReservedWord = isStrictBindOnlyReservedWord;
     exports.isStrictBindReservedWord = isStrictBindReservedWord;
     exports.isStrictReservedWord = isStrictReservedWord;
-    var reservedWords = {
+    var reservedWords2 = {
       keyword: ["break", "case", "catch", "continue", "debugger", "default", "do", "else", "finally", "for", "function", "if", "return", "switch", "throw", "try", "var", "const", "while", "with", "new", "this", "super", "class", "extends", "export", "import", "null", "true", "false", "in", "instanceof", "typeof", "void", "delete"],
       strict: ["implements", "interface", "let", "package", "private", "protected", "public", "static", "yield"],
       strictBind: ["eval", "arguments"]
     };
-    var keywords = new Set(reservedWords.keyword);
-    var reservedWordsStrictSet = new Set(reservedWords.strict);
-    var reservedWordsStrictBindSet = new Set(reservedWords.strictBind);
+    var keywords = new Set(reservedWords2.keyword);
+    var reservedWordsStrictSet = new Set(reservedWords2.strict);
+    var reservedWordsStrictBindSet = new Set(reservedWords2.strictBind);
     function isReservedWord(word, inModule) {
       return inModule && word === "await" || word === "enum";
     }
@@ -60761,14 +60761,14 @@ var require_templates = __commonJS({
       }
       return results;
     }
-    function buildStyle(chalk2, styles5) {
+    function buildStyle(chalk3, styles5) {
       const enabled = {};
       for (const layer of styles5) {
         for (const style of layer.styles) {
           enabled[style[0]] = layer.inverse ? null : style.slice(1);
         }
       }
-      let current = chalk2;
+      let current = chalk3;
       for (const styleName of Object.keys(enabled)) {
         if (Array.isArray(enabled[styleName])) {
           if (!(styleName in current)) {
@@ -60783,7 +60783,7 @@ var require_templates = __commonJS({
       }
       return current;
     }
-    module.exports = (chalk2, tmp) => {
+    module.exports = (chalk3, tmp) => {
       const styles5 = [];
       const chunks = [];
       let chunk = [];
@@ -60793,13 +60793,13 @@ var require_templates = __commonJS({
         } else if (style) {
           const str = chunk.join("");
           chunk = [];
-          chunks.push(styles5.length === 0 ? str : buildStyle(chalk2, styles5)(str));
+          chunks.push(styles5.length === 0 ? str : buildStyle(chalk3, styles5)(str));
           styles5.push({ inverse, styles: parseStyle(style) });
         } else if (close) {
           if (styles5.length === 0) {
             throw new Error("Found extraneous } in Chalk template literal");
           }
-          chunks.push(buildStyle(chalk2, styles5)(chunk.join("")));
+          chunks.push(buildStyle(chalk3, styles5)(chunk.join("")));
           chunk = [];
           styles5.pop();
         } else {
@@ -60837,16 +60837,16 @@ var require_chalk = __commonJS({
     }
     function Chalk(options) {
       if (!this || !(this instanceof Chalk) || this.template) {
-        const chalk2 = {};
-        applyOptions2(chalk2, options);
-        chalk2.template = function() {
+        const chalk3 = {};
+        applyOptions2(chalk3, options);
+        chalk3.template = function() {
           const args = [].slice.call(arguments);
-          return chalkTag.apply(null, [chalk2.template].concat(args));
+          return chalkTag.apply(null, [chalk3.template].concat(args));
         };
-        Object.setPrototypeOf(chalk2, Chalk.prototype);
-        Object.setPrototypeOf(chalk2.template, chalk2);
-        chalk2.template.constructor = Chalk;
-        return chalk2.template;
+        Object.setPrototypeOf(chalk3, Chalk.prototype);
+        Object.setPrototypeOf(chalk3.template, chalk3);
+        chalk3.template.constructor = Chalk;
+        return chalk3.template;
       }
       applyOptions2(this, options);
     }
@@ -60965,7 +60965,7 @@ var require_chalk = __commonJS({
       ansiStyles3.dim.open = originalDim;
       return str;
     }
-    function chalkTag(chalk2, strings) {
+    function chalkTag(chalk3, strings) {
       if (!Array.isArray(strings)) {
         return [].slice.call(arguments, 1).join(" ");
       }
@@ -60975,7 +60975,7 @@ var require_chalk = __commonJS({
         parts.push(String(args[i - 1]).replace(/[{}\\]/g, "\\$&"));
         parts.push(String(strings.raw[i]));
       }
-      return template(chalk2, parts.join(""));
+      return template(chalk3, parts.join(""));
     }
     Object.defineProperties(Chalk.prototype, styles5);
     module.exports = Chalk();
@@ -61022,17 +61022,17 @@ var require_lib2 = __commonJS({
       return n.default = e, t && t.set(e, n), n;
     }
     var sometimesKeywords = /* @__PURE__ */ new Set(["as", "async", "from", "get", "of", "set"]);
-    function getDefs(chalk2) {
+    function getDefs(chalk3) {
       return {
-        keyword: chalk2.cyan,
-        capitalized: chalk2.yellow,
-        jsxIdentifier: chalk2.yellow,
-        punctuator: chalk2.yellow,
-        number: chalk2.magenta,
-        string: chalk2.green,
-        regex: chalk2.magenta,
-        comment: chalk2.grey,
-        invalid: chalk2.white.bgRed.bold
+        keyword: chalk3.cyan,
+        capitalized: chalk3.yellow,
+        jsxIdentifier: chalk3.yellow,
+        punctuator: chalk3.yellow,
+        number: chalk3.magenta,
+        string: chalk3.green,
+        regex: chalk3.magenta,
+        comment: chalk3.grey,
+        invalid: chalk3.white.bgRed.bold
       };
     }
     var NEWLINE = /\r\n|[\n\r\u2028\u2029]/;
@@ -61164,11 +61164,11 @@ var require_lib3 = __commonJS({
       return _chalk.default;
     }
     var deprecationWarningShown = false;
-    function getDefs(chalk2) {
+    function getDefs(chalk3) {
       return {
-        gutter: chalk2.grey,
-        marker: chalk2.red.bold,
-        message: chalk2.red.bold
+        gutter: chalk3.grey,
+        marker: chalk3.red.bold,
+        message: chalk3.red.bold
       };
     }
     var NEWLINE = /\r\n|[\n\r\u2028\u2029]/;
@@ -61230,8 +61230,8 @@ var require_lib3 = __commonJS({
     }
     function codeFrameColumns2(rawLines, loc, opts = {}) {
       const highlighted = (opts.highlightCode || opts.forceColor) && (0, _highlight.shouldHighlight)(opts);
-      const chalk2 = getChalk(opts.forceColor);
-      const defs = getDefs(chalk2);
+      const chalk3 = getChalk(opts.forceColor);
+      const defs = getDefs(chalk3);
       const maybeHighlight = (chalkFn, string) => {
         return highlighted ? chalkFn(string) : string;
       };
@@ -61270,7 +61270,7 @@ var require_lib3 = __commonJS({
 ${frame}`;
       }
       if (highlighted) {
-        return chalk2.reset(frame);
+        return chalk3.reset(frame);
       } else {
         return frame;
       }
@@ -76884,7 +76884,7 @@ var proxyClient = createTRPCProxyClient({
 });
 
 // ratos.tsx
-var import_react29 = __toESM(require_react(), 1);
+var import_react30 = __toESM(require_react(), 1);
 import { realpath, stat, readFile } from "fs/promises";
 import path5 from "path";
 
@@ -79803,10 +79803,10 @@ var applyOptions = (object, options = {}) => {
   object.level = options.level === void 0 ? colorLevel : options.level;
 };
 var chalkFactory = (options) => {
-  const chalk2 = (...strings) => strings.join(" ");
-  applyOptions(chalk2, options);
-  Object.setPrototypeOf(chalk2, createChalk.prototype);
-  return chalk2;
+  const chalk3 = (...strings) => strings.join(" ");
+  applyOptions(chalk3, options);
+  Object.setPrototypeOf(chalk3, createChalk.prototype);
+  return chalk3;
 };
 function createChalk(options) {
   return chalkFactory(options);
@@ -81523,10 +81523,35 @@ var getInstance = (stdout, createInstance) => {
 // ../node_modules/.pnpm/ink@5.0.0_@types+react@18.2.21_react-devtools-core@4.19.1_react@18.2.0/node_modules/ink/build/components/Static.js
 init_cjs_shim();
 var import_react15 = __toESM(require_react(), 1);
+function Static(props) {
+  const { items, children: render2, style: customStyle } = props;
+  const [index, setIndex] = (0, import_react15.useState)(0);
+  const itemsToRender = (0, import_react15.useMemo)(() => {
+    return items.slice(index);
+  }, [items, index]);
+  (0, import_react15.useLayoutEffect)(() => {
+    setIndex(items.length);
+  }, [items.length]);
+  const children = itemsToRender.map((item, itemIndex) => {
+    return render2(item, index + itemIndex);
+  });
+  const style = (0, import_react15.useMemo)(() => ({
+    position: "absolute",
+    flexDirection: "column",
+    ...customStyle
+  }), [customStyle]);
+  return import_react15.default.createElement("ink-box", { internal_static: true, style }, children);
+}
 
 // ../node_modules/.pnpm/ink@5.0.0_@types+react@18.2.21_react-devtools-core@4.19.1_react@18.2.0/node_modules/ink/build/components/Transform.js
 init_cjs_shim();
 var import_react16 = __toESM(require_react(), 1);
+function Transform({ children, transform }) {
+  if (children === void 0 || children === null) {
+    return null;
+  }
+  return import_react16.default.createElement("ink-text", { style: { flexGrow: 0, flexShrink: 1, flexDirection: "row" }, internal_transform: transform }, children);
+}
 
 // ../node_modules/.pnpm/ink@5.0.0_@types+react@18.2.21_react-devtools-core@4.19.1_react@18.2.0/node_modules/ink/build/components/Newline.js
 init_cjs_shim();
@@ -85658,16 +85683,168 @@ function Spinner({ type = "dots" }) {
 }
 var build_default = Spinner;
 
+// ../app/_helpers/signal.ts
+init_cjs_shim();
+var import_react29 = __toESM(require_react());
+function createSignal() {
+  const subscribers = /* @__PURE__ */ new Set();
+  const signal = (eventOrListener) => {
+    if (typeof eventOrListener === "function") {
+      subscribers.add(eventOrListener);
+      return () => {
+        subscribers.delete(eventOrListener);
+      };
+    } else {
+      subscribers.forEach((listener) => listener(eventOrListener));
+    }
+  };
+  return signal;
+}
+function useSignal(signal, listener) {
+  (0, import_react29.useEffect)(() => {
+    const unsubscribe = signal(listener);
+    return unsubscribe;
+  }, [signal, listener]);
+}
+
+// util.ts
+init_cjs_shim();
+import { chalk as chalk2 } from "zx";
+var reservedWords = [
+  "if",
+  "then",
+  "else",
+  "elif",
+  "fi",
+  "case",
+  "esac",
+  "for",
+  "select",
+  "while",
+  "until",
+  "do",
+  "done",
+  "in"
+];
+function formatCmd(cmd) {
+  if (cmd == void 0)
+    return chalk2.grey("undefined");
+  const chars = [...cmd];
+  let out = "$ ";
+  let buf = "";
+  let ch;
+  let state = root;
+  let wordCount = 0;
+  while (state) {
+    ch = chars.shift() || "EOF";
+    if (ch == "\n") {
+      out += style(state, buf) + "\n> ";
+      buf = "";
+      continue;
+    }
+    const next = ch == "EOF" ? void 0 : state();
+    if (next != state) {
+      out += style(state, buf);
+      buf = "";
+    }
+    state = next == root ? next() : next;
+    buf += ch;
+  }
+  function style(state2, s) {
+    if (s == "")
+      return "";
+    if (reservedWords.includes(s)) {
+      return chalk2.cyanBright(s);
+    }
+    if (state2 == word && wordCount == 0) {
+      wordCount++;
+      return chalk2.greenBright(s);
+    }
+    if (state2 == syntax) {
+      wordCount = 0;
+      return chalk2.cyanBright(s);
+    }
+    if (state2 == dollar)
+      return chalk2.yellowBright(s);
+    if (state2?.name.startsWith("str"))
+      return chalk2.yellowBright(s);
+    return s;
+  }
+  function isSyntax(ch2) {
+    return "()[]{}<>;:+|&=".includes(ch2);
+  }
+  function root() {
+    if (/\s/.test(ch))
+      return space;
+    if (isSyntax(ch))
+      return syntax;
+    if (/[$]/.test(ch))
+      return dollar;
+    if (/["]/.test(ch))
+      return strDouble;
+    if (/[']/.test(ch))
+      return strSingle;
+    return word;
+  }
+  function space() {
+    if (/\s/.test(ch))
+      return space;
+    return root;
+  }
+  function word() {
+    if (/[0-9a-z/_.]/i.test(ch))
+      return word;
+    return root;
+  }
+  function syntax() {
+    if (isSyntax(ch))
+      return syntax;
+    return root;
+  }
+  function dollar() {
+    if (/[']/.test(ch))
+      return str;
+    return root;
+  }
+  function str() {
+    if (/[']/.test(ch))
+      return strEnd;
+    if (/[\\]/.test(ch))
+      return strBackslash;
+    return str;
+  }
+  function strBackslash() {
+    return strEscape;
+  }
+  function strEscape() {
+    return str;
+  }
+  function strDouble() {
+    if (/["]/.test(ch))
+      return strEnd;
+    return strDouble;
+  }
+  function strSingle() {
+    if (/[']/.test(ch))
+      return strEnd;
+    return strSingle;
+  }
+  function strEnd() {
+    return root;
+  }
+  return out + "\n";
+}
+
 // ratos.tsx
 function renderError(str, options = { exitCode: 1 }) {
   render_default(
-    /* @__PURE__ */ import_react29.default.createElement(Container, null, /* @__PURE__ */ import_react29.default.createElement(Status, { results: { message: str, result: "error" } }))
+    /* @__PURE__ */ import_react30.default.createElement(Container, null, /* @__PURE__ */ import_react30.default.createElement(Status, { results: { message: str, result: "error" } }))
   );
   process.exit(options.exitCode);
 }
 function renderApiResults(results) {
   render_default(
-    /* @__PURE__ */ import_react29.default.createElement(Container, null, /* @__PURE__ */ import_react29.default.createElement(Status, { results }))
+    /* @__PURE__ */ import_react30.default.createElement(Container, null, /* @__PURE__ */ import_react30.default.createElement(Status, { results }))
   );
 }
 function errorColor(str) {
@@ -85701,7 +85878,7 @@ program2.command("info").description("Print info about this RatOS installation")
     ip: await client.ipAddress.query()
   };
   render_default(
-    /* @__PURE__ */ import_react29.default.createElement(Box_default, { flexDirection: "row", columnGap: 5, padding: 2, paddingTop: 1 }, /* @__PURE__ */ import_react29.default.createElement(Box_default, { flexDirection: "column", rowGap: 1 }, /* @__PURE__ */ import_react29.default.createElement(Text, { color: "white", dimColor: true }, "Machine IP"), /* @__PURE__ */ import_react29.default.createElement(Text, { color: "white", dimColor: true }, "RatOS Version"), /* @__PURE__ */ import_react29.default.createElement(Text, { color: "white", dimColor: true }, "Configurator Version"), /* @__PURE__ */ import_react29.default.createElement(Text, { color: "white", dimColor: true }, "Klipper Version")), /* @__PURE__ */ import_react29.default.createElement(Box_default, { flexDirection: "column", rowGap: 1 }, /* @__PURE__ */ import_react29.default.createElement(Text, null, info.ip), /* @__PURE__ */ import_react29.default.createElement(Text, null, info.osVersion), /* @__PURE__ */ import_react29.default.createElement(Text, null, info.version), /* @__PURE__ */ import_react29.default.createElement(Text, null, info.klipperVersion)))
+    /* @__PURE__ */ import_react30.default.createElement(Box_default, { flexDirection: "row", columnGap: 5, padding: 2, paddingTop: 1 }, /* @__PURE__ */ import_react30.default.createElement(Box_default, { flexDirection: "column", rowGap: 1 }, /* @__PURE__ */ import_react30.default.createElement(Text, { color: "white", dimColor: true }, "Machine IP"), /* @__PURE__ */ import_react30.default.createElement(Text, { color: "white", dimColor: true }, "RatOS Version"), /* @__PURE__ */ import_react30.default.createElement(Text, { color: "white", dimColor: true }, "Configurator Version"), /* @__PURE__ */ import_react30.default.createElement(Text, { color: "white", dimColor: true }, "Klipper Version")), /* @__PURE__ */ import_react30.default.createElement(Box_default, { flexDirection: "column", rowGap: 1 }, /* @__PURE__ */ import_react30.default.createElement(Text, null, info.ip), /* @__PURE__ */ import_react30.default.createElement(Text, null, info.osVersion), /* @__PURE__ */ import_react30.default.createElement(Text, null, info.version), /* @__PURE__ */ import_react30.default.createElement(Text, null, info.klipperVersion)))
   );
 });
 var extensions = program2.command("extensions").description("Register, unregister or symlink extensions managed by the RatOS Configurator");
@@ -85718,7 +85895,7 @@ extensions.command("list").description("List all registered extensions").action(
   const klippyExtensions = await client["klippy-extensions"].list.query();
   const moonrakerExtensions = await client["moonraker-extensions"].list.query();
   render_default(
-    /* @__PURE__ */ import_react29.default.createElement(Container, null, /* @__PURE__ */ import_react29.default.createElement(Box_default, { flexDirection: "column", marginBottom: 1 }, /* @__PURE__ */ import_react29.default.createElement(Text, null, klippyExtensions.length, " Registered Klipper ", klippyExtensions.length === 1 ? "Extension" : "Extensions", klippyExtensions.length ? ":" : ""), klippyExtensions.map((ext) => /* @__PURE__ */ import_react29.default.createElement(Box_default, { key: ext.extensionName, flexDirection: "row", columnGap: 2 }, /* @__PURE__ */ import_react29.default.createElement(Text, { color: existsSync3(ext.path + ext.fileName) ? "green" : "red" }, ext.extensionName, " ", "->", " ", ext.path + ext.fileName, " ")))), /* @__PURE__ */ import_react29.default.createElement(Box_default, { flexDirection: "column" }, /* @__PURE__ */ import_react29.default.createElement(Text, null, moonrakerExtensions.length, " Registered Moonraker", " ", moonrakerExtensions.length === 1 ? "Extension" : "Extensions", moonrakerExtensions.length ? ":" : ""), moonrakerExtensions.map((ext) => /* @__PURE__ */ import_react29.default.createElement(Box_default, { key: ext.extensionName, flexDirection: "row", columnGap: 2 }, /* @__PURE__ */ import_react29.default.createElement(Text, { color: existsSync3(ext.path + ext.fileName) ? "green" : "red" }, ext.extensionName, " ", "->", " ", ext.path + ext.fileName, " ")))))
+    /* @__PURE__ */ import_react30.default.createElement(Container, null, /* @__PURE__ */ import_react30.default.createElement(Box_default, { flexDirection: "column", marginBottom: 1 }, /* @__PURE__ */ import_react30.default.createElement(Text, null, klippyExtensions.length, " Registered Klipper ", klippyExtensions.length === 1 ? "Extension" : "Extensions", klippyExtensions.length ? ":" : ""), klippyExtensions.map((ext) => /* @__PURE__ */ import_react30.default.createElement(Box_default, { key: ext.extensionName, flexDirection: "row", columnGap: 2 }, /* @__PURE__ */ import_react30.default.createElement(Text, { color: existsSync3(ext.path + ext.fileName) ? "green" : "red" }, ext.extensionName, " ", "->", " ", ext.path + ext.fileName, " ")))), /* @__PURE__ */ import_react30.default.createElement(Box_default, { flexDirection: "column" }, /* @__PURE__ */ import_react30.default.createElement(Text, null, moonrakerExtensions.length, " Registered Moonraker", " ", moonrakerExtensions.length === 1 ? "Extension" : "Extensions", moonrakerExtensions.length ? ":" : ""), moonrakerExtensions.map((ext) => /* @__PURE__ */ import_react30.default.createElement(Box_default, { key: ext.extensionName, flexDirection: "row", columnGap: 2 }, /* @__PURE__ */ import_react30.default.createElement(Text, { color: existsSync3(ext.path + ext.fileName) ? "green" : "red" }, ext.extensionName, " ", "->", " ", ext.path + ext.fileName, " ")))))
   );
 });
 registerExtensions.command("klipper").description("Register a Klipper extension to be managed by the RatOS Configurator").option("-k, --kinematics", "Register as a kinematics extension").option("-e, --error-if-exists", "Throw error if the extension already exists").argument("<name>", "Name of the extension").argument("<file>", "The extension itself").showHelpAfterError().action(async (extName, extFile, options) => {
@@ -85759,7 +85936,7 @@ registerExtensions.command("klipper").description("Register a Klipper extension 
     return renderError("Failed to register extension", { exitCode: 2 });
   }
   render_default(
-    /* @__PURE__ */ import_react29.default.createElement(Container, null, /* @__PURE__ */ import_react29.default.createElement(
+    /* @__PURE__ */ import_react30.default.createElement(Container, null, /* @__PURE__ */ import_react30.default.createElement(
       Status,
       {
         results: {
@@ -85801,7 +85978,7 @@ registerExtensions.command("moonraker").description("Register a Moonraker extens
       }
     });
     render_default(
-      /* @__PURE__ */ import_react29.default.createElement(Container, null, /* @__PURE__ */ import_react29.default.createElement(
+      /* @__PURE__ */ import_react30.default.createElement(Container, null, /* @__PURE__ */ import_react30.default.createElement(
         Status,
         {
           results: {
@@ -85944,7 +86121,14 @@ program2.command("flash").description(`Flash all connected boards`).action(async
   }
 });
 var FluiddInstallerUI = (props) => {
-  return /* @__PURE__ */ import_react29.default.createElement(Container, null, /* @__PURE__ */ import_react29.default.createElement(Box_default, { flexDirection: "column", rowGap: 0 }, /* @__PURE__ */ import_react29.default.createElement(Text, { color: props.statusColor ?? "white", dimColor: false, bold: true }, ["red", "redBright"].includes(props.statusColor ?? "white") && /* @__PURE__ */ import_react29.default.createElement(Text, { bold: true }, "\u2718 "), ["green", "greenBright"].includes(props.statusColor ?? "white") && /* @__PURE__ */ import_react29.default.createElement(Text, { bold: true }, "\u2713 "), props.status), props.warnings?.map((warning) => /* @__PURE__ */ import_react29.default.createElement(Text, { color: "yellow", dimColor: true, key: warning, bold: false }, warning)), props.errors?.map((error) => /* @__PURE__ */ import_react29.default.createElement(Text, { color: "red", dimColor: true, key: error, bold: false }, error)), props.stepText && /* @__PURE__ */ import_react29.default.createElement(Text, null, props.isLoading && /* @__PURE__ */ import_react29.default.createElement(Text, { color: "green", dimColor: false }, /* @__PURE__ */ import_react29.default.createElement(build_default, { type: "dots" }), " "), /* @__PURE__ */ import_react29.default.createElement(Text, { color: props.stepTextColor ?? "white", dimColor: true, bold: false }, props.stepText))));
+  const [currentCmd, setCurrentCmd] = (0, import_react30.useState)(null);
+  useSignal(
+    props.cmdSignal,
+    (0, import_react30.useCallback)((cmd) => {
+      setCurrentCmd(cmd);
+    }, [])
+  );
+  return /* @__PURE__ */ import_react30.default.createElement(Container, null, /* @__PURE__ */ import_react30.default.createElement(Box_default, { flexDirection: "column", rowGap: 0 }, /* @__PURE__ */ import_react30.default.createElement(Text, { color: props.statusColor ?? "white", dimColor: false, bold: true }, ["red", "redBright"].includes(props.statusColor ?? "white") && /* @__PURE__ */ import_react30.default.createElement(Text, { bold: true }, "\u2718 "), ["green", "greenBright"].includes(props.statusColor ?? "white") && /* @__PURE__ */ import_react30.default.createElement(Text, { bold: true }, "\u2713 "), props.status), /* @__PURE__ */ import_react30.default.createElement(Static, { items: props.warnings ?? [] }, (warning) => /* @__PURE__ */ import_react30.default.createElement(Text, { color: "yellow", dimColor: true, key: warning, bold: false }, warning)), /* @__PURE__ */ import_react30.default.createElement(Static, { items: props.errors ?? [] }, (error) => /* @__PURE__ */ import_react30.default.createElement(Text, { color: "red", dimColor: true, key: error, bold: false }, error)), props.stepText && /* @__PURE__ */ import_react30.default.createElement(Text, null, props.isLoading && /* @__PURE__ */ import_react30.default.createElement(Text, { color: "green", dimColor: false }, /* @__PURE__ */ import_react30.default.createElement(build_default, { type: "dots" }), " "), /* @__PURE__ */ import_react30.default.createElement(Text, { color: props.stepTextColor ?? "white", dimColor: true, bold: false }, props.stepText))), currentCmd && /* @__PURE__ */ import_react30.default.createElement(Box_default, null, /* @__PURE__ */ import_react30.default.createElement(Text, { color: "cyan" }, "Running command: ", /* @__PURE__ */ import_react30.default.createElement(Transform, { transform: formatCmd }, currentCmd))));
 };
 var frontend = program2.command("frontend").description("Switch between klipper frontend UIs");
 var THEME_SECTION = `[update_manager FluiddTheme]`;
@@ -85953,17 +86137,28 @@ var escapeForGrep = (str) => {
   return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
 };
 frontend.command("fluidd-experimental").description("Replaces Mainsail with the RatOS development fork of Fluidd").action(async () => {
-  const $$ = $({ quiet: true });
+  const cmdSignal = createSignal();
+  const $$ = $({
+    quiet: true,
+    log(entry) {
+      entry.kind === "stderr" && getLogger().warn(entry.data.toString());
+      if (entry.kind === "cmd") {
+        cmdSignal(entry.cmd);
+        getLogger().info("Running command" + entry.cmd);
+      }
+    }
+  });
   const envFile2 = existsSync3("./.env.local") ? await readFile(".env.local") : await readFile(".env");
   const environment = serverSchema.parse({ NODE_ENV: "production", ...import_dotenv2.default.parse(envFile2) });
   const moonrakerConfig = environment.KLIPPER_CONFIG_PATH + "/moonraker.conf";
-  let { rerender } = render_default(/* @__PURE__ */ import_react29.default.createElement(FluiddInstallerUI, { status: "Installing fluidd.." }));
+  let { rerender } = render_default(/* @__PURE__ */ import_react30.default.createElement(FluiddInstallerUI, { status: "Installing fluidd..", cmdSignal }));
   if (!existsSync3("/etc/nginx/sites-available/mainsail")) {
     if (existsSync3("/etc/nginx/sites-available/mainsail.bak") && existsSync3("/etc/nginx/sites-enabled/fluidd")) {
       rerender(
-        /* @__PURE__ */ import_react29.default.createElement(
+        /* @__PURE__ */ import_react30.default.createElement(
           FluiddInstallerUI,
           {
+            cmdSignal,
             status: "Fluidd already installed",
             statusColor: "greenBright",
             stepText: "Fluidd is already installed, nothing to do. To restore mainsail, run `ratos frontend mainsail`"
@@ -85972,9 +86167,10 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
       );
     } else {
       rerender(
-        /* @__PURE__ */ import_react29.default.createElement(
+        /* @__PURE__ */ import_react30.default.createElement(
           FluiddInstallerUI,
           {
+            cmdSignal,
             status: "Fluidd installation failed",
             statusColor: "red",
             stepText: "Stock mainsail configuration file not found"
@@ -85983,14 +86179,15 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
       );
     }
   } else {
-    const hostname = (await $`tr -d " \t\n\r" < /etc/hostname`).stdout;
+    const hostname = (await $$`tr -d " \t\n\r" < /etc/hostname`).text();
     const warnings = [];
     const errors = [];
     if (!existsSync3(`/home/${environment.USER}/fluidd`)) {
       rerender(
-        /* @__PURE__ */ import_react29.default.createElement(
+        /* @__PURE__ */ import_react30.default.createElement(
           FluiddInstallerUI,
           {
+            cmdSignal,
             warnings,
             errors,
             status: "Installing Fluidd...",
@@ -86001,9 +86198,10 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
       );
       await $$`wget https://github.com/Rat-OS/fluidd/releases/latest/download/fluidd.zip -O /tmp/fluidd.zip`;
       rerender(
-        /* @__PURE__ */ import_react29.default.createElement(
+        /* @__PURE__ */ import_react30.default.createElement(
           FluiddInstallerUI,
           {
+            cmdSignal,
             warnings,
             errors,
             status: "Installing Fluidd...",
@@ -86019,9 +86217,10 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
     }
     if (!existsSync3(`/home/${environment.USER}/.fluidd-theme`)) {
       rerender(
-        /* @__PURE__ */ import_react29.default.createElement(
+        /* @__PURE__ */ import_react30.default.createElement(
           FluiddInstallerUI,
           {
+            cmdSignal,
             warnings,
             errors,
             status: "Installing Fluidd...",
@@ -86036,9 +86235,10 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
     }
     if ((await $$`grep "${escapeForGrep(FLUIDD_SECTION)}" ${moonrakerConfig}`).exitCode !== 0) {
       rerender(
-        /* @__PURE__ */ import_react29.default.createElement(
+        /* @__PURE__ */ import_react30.default.createElement(
           FluiddInstallerUI,
           {
+            cmdSignal,
             warnings,
             errors,
             status: "Installing Fluidd...",
@@ -86059,9 +86259,10 @@ path: ~/fluidd
     }
     if ((await $$`grep "${escapeForGrep(THEME_SECTION)}" ${moonrakerConfig}`).exitCode !== 0) {
       rerender(
-        /* @__PURE__ */ import_react29.default.createElement(
+        /* @__PURE__ */ import_react30.default.createElement(
           FluiddInstallerUI,
           {
+            cmdSignal,
             warnings,
             errors,
             status: "Installing Fluidd...",
@@ -86083,9 +86284,10 @@ is_system_service: false
       warnings.push("Fluidd theme update manager entry already exists, skipping moonraker configuration.");
     }
     rerender(
-      /* @__PURE__ */ import_react29.default.createElement(
+      /* @__PURE__ */ import_react30.default.createElement(
         FluiddInstallerUI,
         {
+          cmdSignal,
           warnings,
           errors,
           status: "Installing Fluidd...",
@@ -86097,9 +86299,10 @@ is_system_service: false
     const fluidConfigFile = `/tmp/fluidd`;
     await $$`sudo cp /etc/nginx/sites-available/mainsail ${fluidConfigFile}`;
     rerender(
-      /* @__PURE__ */ import_react29.default.createElement(
+      /* @__PURE__ */ import_react30.default.createElement(
         FluiddInstallerUI,
         {
+          cmdSignal,
           warnings,
           errors,
           status: "Installing Fluidd...",
@@ -86113,9 +86316,10 @@ is_system_service: false
     await $$`sudo ln -s /etc/nginx/sites-available/fluidd /etc/nginx/sites-enabled/fluidd`;
     await $$`sudo rm /etc/nginx/sites-enabled/mainsail`;
     rerender(
-      /* @__PURE__ */ import_react29.default.createElement(
+      /* @__PURE__ */ import_react30.default.createElement(
         FluiddInstallerUI,
         {
+          cmdSignal,
           warnings,
           errors,
           status: "Installing Fluidd...",
@@ -86134,9 +86338,10 @@ is_system_service: false
       warnings.push(nginxValidation.stderr);
       warnings.push(nginxValidation.stdout);
       rerender(
-        /* @__PURE__ */ import_react29.default.createElement(
+        /* @__PURE__ */ import_react30.default.createElement(
           FluiddInstallerUI,
           {
+            cmdSignal,
             warnings,
             errors,
             status: "Fluidd installation failed.",
@@ -86148,10 +86353,12 @@ is_system_service: false
       await $$`sudo ln -s /etc/nginx/sites-available/mainsail /etc/nginx/sites-enabled/mainsail`;
       await $$`sudo rm /etc/nginx/sites-enabled/fluidd`;
       await $$`sudo systemctl reload nginx`;
+      cmdSignal(null);
       rerender(
-        /* @__PURE__ */ import_react29.default.createElement(
+        /* @__PURE__ */ import_react30.default.createElement(
           FluiddInstallerUI,
           {
+            cmdSignal,
             warnings,
             errors,
             status: "Fluidd installation failed.",
@@ -86164,9 +86371,10 @@ is_system_service: false
       return;
     }
     rerender(
-      /* @__PURE__ */ import_react29.default.createElement(
+      /* @__PURE__ */ import_react30.default.createElement(
         FluiddInstallerUI,
         {
+          cmdSignal,
           warnings,
           errors,
           status: "Installing Fluidd...",
@@ -86176,10 +86384,12 @@ is_system_service: false
       )
     );
     await $$`sudo systemctl reload nginx`;
+    cmdSignal(null);
     rerender(
-      /* @__PURE__ */ import_react29.default.createElement(
+      /* @__PURE__ */ import_react30.default.createElement(
         FluiddInstallerUI,
         {
+          cmdSignal,
           warnings,
           errors,
           status: "Fluidd installed successfully!",
@@ -86192,21 +86402,30 @@ is_system_service: false
   }
 });
 frontend.command("mainsail").description("Restore the default mainsail nginx configuration").action(async () => {
-  const $$ = $({ quiet: true });
+  const cmdSignal = createSignal();
+  const $$ = $({
+    quiet: true,
+    log(entry) {
+      entry.kind === "stderr" && getLogger().warn(entry.data.toString());
+      entry.kind === "cmd" && cmdSignal(entry.cmd);
+    }
+  });
   let warnings = [];
   let errors = [];
   const { rerender } = render_default(
-    /* @__PURE__ */ import_react29.default.createElement(FluiddInstallerUI, { warnings, errors, status: "Restoring mainsail.." })
+    /* @__PURE__ */ import_react30.default.createElement(FluiddInstallerUI, { cmdSignal, warnings, errors, status: "Restoring mainsail.." })
   );
   const hostname = (await $$`tr -d " \t\n\r" < /etc/hostname`).stdout;
   if (!existsSync3("/etc/nginx/sites-available/mainsail")) {
     return renderError("Mainsail configuration file not found", { exitCode: 2 });
   }
   if (existsSync3("/etc/nginx/sites-enabled/mainsail")) {
-    return rerender(
-      /* @__PURE__ */ import_react29.default.createElement(
+    cmdSignal(null);
+    rerender(
+      /* @__PURE__ */ import_react30.default.createElement(
         FluiddInstallerUI,
         {
+          cmdSignal,
           warnings,
           errors,
           status: "Mainsail is already configured",
@@ -86216,11 +86435,13 @@ frontend.command("mainsail").description("Restore the default mainsail nginx con
         }
       )
     );
+    return;
   }
   rerender(
-    /* @__PURE__ */ import_react29.default.createElement(
+    /* @__PURE__ */ import_react30.default.createElement(
       FluiddInstallerUI,
       {
+        cmdSignal,
         warnings,
         errors,
         status: "Restoring mainsail..",
@@ -86247,9 +86468,10 @@ frontend.command("mainsail").description("Restore the default mainsail nginx con
     errors.push(nginxValidation.stderr);
     warnings.push(nginxValidation.stdout);
     rerender(
-      /* @__PURE__ */ import_react29.default.createElement(
+      /* @__PURE__ */ import_react30.default.createElement(
         FluiddInstallerUI,
         {
+          cmdSignal,
           warnings,
           errors,
           status: "Restoring mainsail failed.",
@@ -86261,10 +86483,12 @@ frontend.command("mainsail").description("Restore the default mainsail nginx con
     await $$`sudo ln -s /etc/nginx/sites-available/fluidd /etc/nginx/sites-enabled/fluidd`;
     await $$`sudo rm /etc/nginx/sites-enabled/mainsail`;
     await $$`sudo systemctl reload nginx`;
+    cmdSignal(null);
     rerender(
-      /* @__PURE__ */ import_react29.default.createElement(
+      /* @__PURE__ */ import_react30.default.createElement(
         FluiddInstallerUI,
         {
+          cmdSignal,
           warnings,
           errors,
           status: "Restoring mainsail failed.",
@@ -86277,9 +86501,10 @@ frontend.command("mainsail").description("Restore the default mainsail nginx con
     return;
   }
   rerender(
-    /* @__PURE__ */ import_react29.default.createElement(
+    /* @__PURE__ */ import_react30.default.createElement(
       FluiddInstallerUI,
       {
+        cmdSignal,
         warnings,
         errors,
         status: "Restoring mainsail...",
@@ -86289,10 +86514,12 @@ frontend.command("mainsail").description("Restore the default mainsail nginx con
     )
   );
   await $$`sudo systemctl reload nginx`;
+  cmdSignal(null);
   rerender(
-    /* @__PURE__ */ import_react29.default.createElement(
+    /* @__PURE__ */ import_react30.default.createElement(
       FluiddInstallerUI,
       {
+        cmdSignal,
         warnings,
         errors,
         status: "Mainsail restored!",
