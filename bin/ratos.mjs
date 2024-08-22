@@ -4192,7 +4192,7 @@ var require_react_development = __commonJS({
           }
           return dispatcher.useContext(Context);
         }
-        function useState8(initialState) {
+        function useState9(initialState) {
           var dispatcher = resolveDispatcher();
           return dispatcher.useState(initialState);
         }
@@ -4204,7 +4204,7 @@ var require_react_development = __commonJS({
           var dispatcher = resolveDispatcher();
           return dispatcher.useRef(initialValue);
         }
-        function useEffect9(create2, deps) {
+        function useEffect10(create2, deps) {
           var dispatcher = resolveDispatcher();
           return dispatcher.useEffect(create2, deps);
         }
@@ -4986,7 +4986,7 @@ var require_react_development = __commonJS({
         exports.useContext = useContext10;
         exports.useDebugValue = useDebugValue;
         exports.useDeferredValue = useDeferredValue;
-        exports.useEffect = useEffect9;
+        exports.useEffect = useEffect10;
         exports.useId = useId;
         exports.useImperativeHandle = useImperativeHandle;
         exports.useInsertionEffect = useInsertionEffect;
@@ -4994,7 +4994,7 @@ var require_react_development = __commonJS({
         exports.useMemo = useMemo8;
         exports.useReducer = useReducer;
         exports.useRef = useRef3;
-        exports.useState = useState8;
+        exports.useState = useState9;
         exports.useSyncExternalStore = useSyncExternalStore2;
         exports.useTransition = useTransition;
         exports.version = ReactVersion;
@@ -5078,8 +5078,8 @@ var require_use_sync_external_store_shim_development = __commonJS({
         if (typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ !== "undefined" && typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart === "function") {
           __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(new Error());
         }
-        var React23 = require_react();
-        var ReactSharedInternals = React23.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+        var React24 = require_react();
+        var ReactSharedInternals = React24.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
         function error(format) {
           {
             {
@@ -5109,13 +5109,13 @@ var require_use_sync_external_store_shim_development = __commonJS({
           return x === y && (x !== 0 || 1 / x === 1 / y) || x !== x && y !== y;
         }
         var objectIs = typeof Object.is === "function" ? Object.is : is;
-        var useState8 = React23.useState, useEffect9 = React23.useEffect, useLayoutEffect2 = React23.useLayoutEffect, useDebugValue = React23.useDebugValue;
+        var useState9 = React24.useState, useEffect10 = React24.useEffect, useLayoutEffect2 = React24.useLayoutEffect, useDebugValue = React24.useDebugValue;
         var didWarnOld18Alpha = false;
         var didWarnUncachedGetSnapshot = false;
         function useSyncExternalStore2(subscribe, getSnapshot, getServerSnapshot) {
           {
             if (!didWarnOld18Alpha) {
-              if (React23.startTransition !== void 0) {
+              if (React24.startTransition !== void 0) {
                 didWarnOld18Alpha = true;
                 error("You are using an outdated, pre-release alpha of React 18 that does not support useSyncExternalStore. The use-sync-external-store shim will not work correctly. Upgrade to a newer pre-release.");
               }
@@ -5131,7 +5131,7 @@ var require_use_sync_external_store_shim_development = __commonJS({
               }
             }
           }
-          var _useState = useState8({
+          var _useState = useState9({
             inst: {
               value,
               getSnapshot
@@ -5146,7 +5146,7 @@ var require_use_sync_external_store_shim_development = __commonJS({
               });
             }
           }, [subscribe, value, getSnapshot]);
-          useEffect9(function() {
+          useEffect10(function() {
             if (checkIfSnapshotChanged(inst)) {
               forceUpdate({
                 inst
@@ -5180,7 +5180,7 @@ var require_use_sync_external_store_shim_development = __commonJS({
         var canUseDOM = !!(typeof window !== "undefined" && typeof window.document !== "undefined" && typeof window.document.createElement !== "undefined");
         var isServerEnvironment = !canUseDOM;
         var shim = isServerEnvironment ? useSyncExternalStore$12 : useSyncExternalStore2;
-        var useSyncExternalStore$2 = React23.useSyncExternalStore !== void 0 ? React23.useSyncExternalStore : shim;
+        var useSyncExternalStore$2 = React24.useSyncExternalStore !== void 0 ? React24.useSyncExternalStore : shim;
         exports.useSyncExternalStore = useSyncExternalStore$2;
         if (typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ !== "undefined" && typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop === "function") {
           __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop(new Error());
@@ -8665,10 +8665,10 @@ var require_react_dom_server_legacy_node_development = __commonJS({
     if (process.env.NODE_ENV !== "production") {
       (function() {
         "use strict";
-        var React23 = require_react();
+        var React24 = require_react();
         var stream = __require("stream");
         var ReactVersion = "18.2.0";
-        var ReactSharedInternals = React23.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+        var ReactSharedInternals = React24.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
         function warn(format) {
           {
             {
@@ -10564,7 +10564,7 @@ var require_react_dom_server_legacy_node_development = __commonJS({
         }
         function flattenOptionChildren(children) {
           var content = "";
-          React23.Children.forEach(children, function(child) {
+          React24.Children.forEach(children, function(child) {
             if (child == null) {
               return;
             }
@@ -12558,7 +12558,7 @@ var require_react_dom_server_legacy_node_development = __commonJS({
         function basicStateReducer(state, action) {
           return typeof action === "function" ? action(state) : action;
         }
-        function useState8(initialState) {
+        function useState9(initialState) {
           {
             currentHookNameInDev = "useState";
           }
@@ -12740,7 +12740,7 @@ var require_react_dom_server_legacy_node_development = __commonJS({
           useMemo: useMemo8,
           useReducer,
           useRef: useRef3,
-          useState: useState8,
+          useState: useState9,
           useInsertionEffect: noop5,
           useLayoutEffect: useLayoutEffect2,
           useCallback: useCallback5,
@@ -14063,10 +14063,10 @@ var require_react_dom_server_node_development = __commonJS({
     if (process.env.NODE_ENV !== "production") {
       (function() {
         "use strict";
-        var React23 = require_react();
+        var React24 = require_react();
         var util2 = __require("util");
         var ReactVersion = "18.2.0";
-        var ReactSharedInternals = React23.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+        var ReactSharedInternals = React24.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
         function warn(format) {
           {
             {
@@ -16059,7 +16059,7 @@ var require_react_dom_server_node_development = __commonJS({
         }
         function flattenOptionChildren(children) {
           var content = "";
-          React23.Children.forEach(children, function(child) {
+          React24.Children.forEach(children, function(child) {
             if (child == null) {
               return;
             }
@@ -17989,7 +17989,7 @@ var require_react_dom_server_node_development = __commonJS({
         function basicStateReducer(state, action) {
           return typeof action === "function" ? action(state) : action;
         }
-        function useState8(initialState) {
+        function useState9(initialState) {
           {
             currentHookNameInDev = "useState";
           }
@@ -18171,7 +18171,7 @@ var require_react_dom_server_node_development = __commonJS({
           useMemo: useMemo8,
           useReducer,
           useRef: useRef3,
-          useState: useState8,
+          useState: useState9,
           useInsertionEffect: noop5,
           useLayoutEffect: useLayoutEffect2,
           useCallback: useCallback5,
@@ -25885,9 +25885,9 @@ var require_react_reconciler_development = __commonJS({
       module.exports = function $$$reconciler($$$hostConfig) {
         var exports2 = {};
         "use strict";
-        var React23 = require_react();
+        var React24 = require_react();
         var Scheduler = require_scheduler();
-        var ReactSharedInternals = React23.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+        var ReactSharedInternals = React24.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
         var suppressWarning = false;
         function setSuppressWarning(newSuppressWarning) {
           {
@@ -29685,7 +29685,7 @@ var require_react_reconciler_development = __commonJS({
           }
         }
         var fakeInternalInstance = {};
-        var emptyRefsObject = new React23.Component().refs;
+        var emptyRefsObject = new React24.Component().refs;
         var didWarnAboutStateAssignmentForComponent;
         var didWarnAboutUninitializedState;
         var didWarnAboutGetSnapshotBeforeUpdateWithoutDidUpdate;
@@ -54037,7 +54037,7 @@ var require_backend = __commonJS({
                 });
                 return a._currentValue;
               },
-              useEffect: function useEffect9(a) {
+              useEffect: function useEffect10(a) {
                 F();
                 z2.push({
                   primitive: "Effect",
@@ -54111,7 +54111,7 @@ var require_backend = __commonJS({
                 });
                 return a;
               },
-              useState: function useState8(a) {
+              useState: function useState9(a) {
                 var b = F();
                 a = null !== b ? b.memoizedState : "function" === typeof a ? a() : a;
                 z2.push({
@@ -70241,6 +70241,1652 @@ var require_pino = __commonJS({
   }
 });
 
+// ../node_modules/.pnpm/cli-spinners@2.9.2/node_modules/cli-spinners/spinners.json
+var require_spinners = __commonJS({
+  "../node_modules/.pnpm/cli-spinners@2.9.2/node_modules/cli-spinners/spinners.json"(exports, module) {
+    module.exports = {
+      dots: {
+        interval: 80,
+        frames: [
+          "\u280B",
+          "\u2819",
+          "\u2839",
+          "\u2838",
+          "\u283C",
+          "\u2834",
+          "\u2826",
+          "\u2827",
+          "\u2807",
+          "\u280F"
+        ]
+      },
+      dots2: {
+        interval: 80,
+        frames: [
+          "\u28FE",
+          "\u28FD",
+          "\u28FB",
+          "\u28BF",
+          "\u287F",
+          "\u28DF",
+          "\u28EF",
+          "\u28F7"
+        ]
+      },
+      dots3: {
+        interval: 80,
+        frames: [
+          "\u280B",
+          "\u2819",
+          "\u281A",
+          "\u281E",
+          "\u2816",
+          "\u2826",
+          "\u2834",
+          "\u2832",
+          "\u2833",
+          "\u2813"
+        ]
+      },
+      dots4: {
+        interval: 80,
+        frames: [
+          "\u2804",
+          "\u2806",
+          "\u2807",
+          "\u280B",
+          "\u2819",
+          "\u2838",
+          "\u2830",
+          "\u2820",
+          "\u2830",
+          "\u2838",
+          "\u2819",
+          "\u280B",
+          "\u2807",
+          "\u2806"
+        ]
+      },
+      dots5: {
+        interval: 80,
+        frames: [
+          "\u280B",
+          "\u2819",
+          "\u281A",
+          "\u2812",
+          "\u2802",
+          "\u2802",
+          "\u2812",
+          "\u2832",
+          "\u2834",
+          "\u2826",
+          "\u2816",
+          "\u2812",
+          "\u2810",
+          "\u2810",
+          "\u2812",
+          "\u2813",
+          "\u280B"
+        ]
+      },
+      dots6: {
+        interval: 80,
+        frames: [
+          "\u2801",
+          "\u2809",
+          "\u2819",
+          "\u281A",
+          "\u2812",
+          "\u2802",
+          "\u2802",
+          "\u2812",
+          "\u2832",
+          "\u2834",
+          "\u2824",
+          "\u2804",
+          "\u2804",
+          "\u2824",
+          "\u2834",
+          "\u2832",
+          "\u2812",
+          "\u2802",
+          "\u2802",
+          "\u2812",
+          "\u281A",
+          "\u2819",
+          "\u2809",
+          "\u2801"
+        ]
+      },
+      dots7: {
+        interval: 80,
+        frames: [
+          "\u2808",
+          "\u2809",
+          "\u280B",
+          "\u2813",
+          "\u2812",
+          "\u2810",
+          "\u2810",
+          "\u2812",
+          "\u2816",
+          "\u2826",
+          "\u2824",
+          "\u2820",
+          "\u2820",
+          "\u2824",
+          "\u2826",
+          "\u2816",
+          "\u2812",
+          "\u2810",
+          "\u2810",
+          "\u2812",
+          "\u2813",
+          "\u280B",
+          "\u2809",
+          "\u2808"
+        ]
+      },
+      dots8: {
+        interval: 80,
+        frames: [
+          "\u2801",
+          "\u2801",
+          "\u2809",
+          "\u2819",
+          "\u281A",
+          "\u2812",
+          "\u2802",
+          "\u2802",
+          "\u2812",
+          "\u2832",
+          "\u2834",
+          "\u2824",
+          "\u2804",
+          "\u2804",
+          "\u2824",
+          "\u2820",
+          "\u2820",
+          "\u2824",
+          "\u2826",
+          "\u2816",
+          "\u2812",
+          "\u2810",
+          "\u2810",
+          "\u2812",
+          "\u2813",
+          "\u280B",
+          "\u2809",
+          "\u2808",
+          "\u2808"
+        ]
+      },
+      dots9: {
+        interval: 80,
+        frames: [
+          "\u28B9",
+          "\u28BA",
+          "\u28BC",
+          "\u28F8",
+          "\u28C7",
+          "\u2867",
+          "\u2857",
+          "\u284F"
+        ]
+      },
+      dots10: {
+        interval: 80,
+        frames: [
+          "\u2884",
+          "\u2882",
+          "\u2881",
+          "\u2841",
+          "\u2848",
+          "\u2850",
+          "\u2860"
+        ]
+      },
+      dots11: {
+        interval: 100,
+        frames: [
+          "\u2801",
+          "\u2802",
+          "\u2804",
+          "\u2840",
+          "\u2880",
+          "\u2820",
+          "\u2810",
+          "\u2808"
+        ]
+      },
+      dots12: {
+        interval: 80,
+        frames: [
+          "\u2880\u2800",
+          "\u2840\u2800",
+          "\u2804\u2800",
+          "\u2882\u2800",
+          "\u2842\u2800",
+          "\u2805\u2800",
+          "\u2883\u2800",
+          "\u2843\u2800",
+          "\u280D\u2800",
+          "\u288B\u2800",
+          "\u284B\u2800",
+          "\u280D\u2801",
+          "\u288B\u2801",
+          "\u284B\u2801",
+          "\u280D\u2809",
+          "\u280B\u2809",
+          "\u280B\u2809",
+          "\u2809\u2819",
+          "\u2809\u2819",
+          "\u2809\u2829",
+          "\u2808\u2899",
+          "\u2808\u2859",
+          "\u2888\u2829",
+          "\u2840\u2899",
+          "\u2804\u2859",
+          "\u2882\u2829",
+          "\u2842\u2898",
+          "\u2805\u2858",
+          "\u2883\u2828",
+          "\u2843\u2890",
+          "\u280D\u2850",
+          "\u288B\u2820",
+          "\u284B\u2880",
+          "\u280D\u2841",
+          "\u288B\u2801",
+          "\u284B\u2801",
+          "\u280D\u2809",
+          "\u280B\u2809",
+          "\u280B\u2809",
+          "\u2809\u2819",
+          "\u2809\u2819",
+          "\u2809\u2829",
+          "\u2808\u2899",
+          "\u2808\u2859",
+          "\u2808\u2829",
+          "\u2800\u2899",
+          "\u2800\u2859",
+          "\u2800\u2829",
+          "\u2800\u2898",
+          "\u2800\u2858",
+          "\u2800\u2828",
+          "\u2800\u2890",
+          "\u2800\u2850",
+          "\u2800\u2820",
+          "\u2800\u2880",
+          "\u2800\u2840"
+        ]
+      },
+      dots13: {
+        interval: 80,
+        frames: [
+          "\u28FC",
+          "\u28F9",
+          "\u28BB",
+          "\u283F",
+          "\u285F",
+          "\u28CF",
+          "\u28E7",
+          "\u28F6"
+        ]
+      },
+      dots8Bit: {
+        interval: 80,
+        frames: [
+          "\u2800",
+          "\u2801",
+          "\u2802",
+          "\u2803",
+          "\u2804",
+          "\u2805",
+          "\u2806",
+          "\u2807",
+          "\u2840",
+          "\u2841",
+          "\u2842",
+          "\u2843",
+          "\u2844",
+          "\u2845",
+          "\u2846",
+          "\u2847",
+          "\u2808",
+          "\u2809",
+          "\u280A",
+          "\u280B",
+          "\u280C",
+          "\u280D",
+          "\u280E",
+          "\u280F",
+          "\u2848",
+          "\u2849",
+          "\u284A",
+          "\u284B",
+          "\u284C",
+          "\u284D",
+          "\u284E",
+          "\u284F",
+          "\u2810",
+          "\u2811",
+          "\u2812",
+          "\u2813",
+          "\u2814",
+          "\u2815",
+          "\u2816",
+          "\u2817",
+          "\u2850",
+          "\u2851",
+          "\u2852",
+          "\u2853",
+          "\u2854",
+          "\u2855",
+          "\u2856",
+          "\u2857",
+          "\u2818",
+          "\u2819",
+          "\u281A",
+          "\u281B",
+          "\u281C",
+          "\u281D",
+          "\u281E",
+          "\u281F",
+          "\u2858",
+          "\u2859",
+          "\u285A",
+          "\u285B",
+          "\u285C",
+          "\u285D",
+          "\u285E",
+          "\u285F",
+          "\u2820",
+          "\u2821",
+          "\u2822",
+          "\u2823",
+          "\u2824",
+          "\u2825",
+          "\u2826",
+          "\u2827",
+          "\u2860",
+          "\u2861",
+          "\u2862",
+          "\u2863",
+          "\u2864",
+          "\u2865",
+          "\u2866",
+          "\u2867",
+          "\u2828",
+          "\u2829",
+          "\u282A",
+          "\u282B",
+          "\u282C",
+          "\u282D",
+          "\u282E",
+          "\u282F",
+          "\u2868",
+          "\u2869",
+          "\u286A",
+          "\u286B",
+          "\u286C",
+          "\u286D",
+          "\u286E",
+          "\u286F",
+          "\u2830",
+          "\u2831",
+          "\u2832",
+          "\u2833",
+          "\u2834",
+          "\u2835",
+          "\u2836",
+          "\u2837",
+          "\u2870",
+          "\u2871",
+          "\u2872",
+          "\u2873",
+          "\u2874",
+          "\u2875",
+          "\u2876",
+          "\u2877",
+          "\u2838",
+          "\u2839",
+          "\u283A",
+          "\u283B",
+          "\u283C",
+          "\u283D",
+          "\u283E",
+          "\u283F",
+          "\u2878",
+          "\u2879",
+          "\u287A",
+          "\u287B",
+          "\u287C",
+          "\u287D",
+          "\u287E",
+          "\u287F",
+          "\u2880",
+          "\u2881",
+          "\u2882",
+          "\u2883",
+          "\u2884",
+          "\u2885",
+          "\u2886",
+          "\u2887",
+          "\u28C0",
+          "\u28C1",
+          "\u28C2",
+          "\u28C3",
+          "\u28C4",
+          "\u28C5",
+          "\u28C6",
+          "\u28C7",
+          "\u2888",
+          "\u2889",
+          "\u288A",
+          "\u288B",
+          "\u288C",
+          "\u288D",
+          "\u288E",
+          "\u288F",
+          "\u28C8",
+          "\u28C9",
+          "\u28CA",
+          "\u28CB",
+          "\u28CC",
+          "\u28CD",
+          "\u28CE",
+          "\u28CF",
+          "\u2890",
+          "\u2891",
+          "\u2892",
+          "\u2893",
+          "\u2894",
+          "\u2895",
+          "\u2896",
+          "\u2897",
+          "\u28D0",
+          "\u28D1",
+          "\u28D2",
+          "\u28D3",
+          "\u28D4",
+          "\u28D5",
+          "\u28D6",
+          "\u28D7",
+          "\u2898",
+          "\u2899",
+          "\u289A",
+          "\u289B",
+          "\u289C",
+          "\u289D",
+          "\u289E",
+          "\u289F",
+          "\u28D8",
+          "\u28D9",
+          "\u28DA",
+          "\u28DB",
+          "\u28DC",
+          "\u28DD",
+          "\u28DE",
+          "\u28DF",
+          "\u28A0",
+          "\u28A1",
+          "\u28A2",
+          "\u28A3",
+          "\u28A4",
+          "\u28A5",
+          "\u28A6",
+          "\u28A7",
+          "\u28E0",
+          "\u28E1",
+          "\u28E2",
+          "\u28E3",
+          "\u28E4",
+          "\u28E5",
+          "\u28E6",
+          "\u28E7",
+          "\u28A8",
+          "\u28A9",
+          "\u28AA",
+          "\u28AB",
+          "\u28AC",
+          "\u28AD",
+          "\u28AE",
+          "\u28AF",
+          "\u28E8",
+          "\u28E9",
+          "\u28EA",
+          "\u28EB",
+          "\u28EC",
+          "\u28ED",
+          "\u28EE",
+          "\u28EF",
+          "\u28B0",
+          "\u28B1",
+          "\u28B2",
+          "\u28B3",
+          "\u28B4",
+          "\u28B5",
+          "\u28B6",
+          "\u28B7",
+          "\u28F0",
+          "\u28F1",
+          "\u28F2",
+          "\u28F3",
+          "\u28F4",
+          "\u28F5",
+          "\u28F6",
+          "\u28F7",
+          "\u28B8",
+          "\u28B9",
+          "\u28BA",
+          "\u28BB",
+          "\u28BC",
+          "\u28BD",
+          "\u28BE",
+          "\u28BF",
+          "\u28F8",
+          "\u28F9",
+          "\u28FA",
+          "\u28FB",
+          "\u28FC",
+          "\u28FD",
+          "\u28FE",
+          "\u28FF"
+        ]
+      },
+      sand: {
+        interval: 80,
+        frames: [
+          "\u2801",
+          "\u2802",
+          "\u2804",
+          "\u2840",
+          "\u2848",
+          "\u2850",
+          "\u2860",
+          "\u28C0",
+          "\u28C1",
+          "\u28C2",
+          "\u28C4",
+          "\u28CC",
+          "\u28D4",
+          "\u28E4",
+          "\u28E5",
+          "\u28E6",
+          "\u28EE",
+          "\u28F6",
+          "\u28F7",
+          "\u28FF",
+          "\u287F",
+          "\u283F",
+          "\u289F",
+          "\u281F",
+          "\u285B",
+          "\u281B",
+          "\u282B",
+          "\u288B",
+          "\u280B",
+          "\u280D",
+          "\u2849",
+          "\u2809",
+          "\u2811",
+          "\u2821",
+          "\u2881"
+        ]
+      },
+      line: {
+        interval: 130,
+        frames: [
+          "-",
+          "\\",
+          "|",
+          "/"
+        ]
+      },
+      line2: {
+        interval: 100,
+        frames: [
+          "\u2802",
+          "-",
+          "\u2013",
+          "\u2014",
+          "\u2013",
+          "-"
+        ]
+      },
+      pipe: {
+        interval: 100,
+        frames: [
+          "\u2524",
+          "\u2518",
+          "\u2534",
+          "\u2514",
+          "\u251C",
+          "\u250C",
+          "\u252C",
+          "\u2510"
+        ]
+      },
+      simpleDots: {
+        interval: 400,
+        frames: [
+          ".  ",
+          ".. ",
+          "...",
+          "   "
+        ]
+      },
+      simpleDotsScrolling: {
+        interval: 200,
+        frames: [
+          ".  ",
+          ".. ",
+          "...",
+          " ..",
+          "  .",
+          "   "
+        ]
+      },
+      star: {
+        interval: 70,
+        frames: [
+          "\u2736",
+          "\u2738",
+          "\u2739",
+          "\u273A",
+          "\u2739",
+          "\u2737"
+        ]
+      },
+      star2: {
+        interval: 80,
+        frames: [
+          "+",
+          "x",
+          "*"
+        ]
+      },
+      flip: {
+        interval: 70,
+        frames: [
+          "_",
+          "_",
+          "_",
+          "-",
+          "`",
+          "`",
+          "'",
+          "\xB4",
+          "-",
+          "_",
+          "_",
+          "_"
+        ]
+      },
+      hamburger: {
+        interval: 100,
+        frames: [
+          "\u2631",
+          "\u2632",
+          "\u2634"
+        ]
+      },
+      growVertical: {
+        interval: 120,
+        frames: [
+          "\u2581",
+          "\u2583",
+          "\u2584",
+          "\u2585",
+          "\u2586",
+          "\u2587",
+          "\u2586",
+          "\u2585",
+          "\u2584",
+          "\u2583"
+        ]
+      },
+      growHorizontal: {
+        interval: 120,
+        frames: [
+          "\u258F",
+          "\u258E",
+          "\u258D",
+          "\u258C",
+          "\u258B",
+          "\u258A",
+          "\u2589",
+          "\u258A",
+          "\u258B",
+          "\u258C",
+          "\u258D",
+          "\u258E"
+        ]
+      },
+      balloon: {
+        interval: 140,
+        frames: [
+          " ",
+          ".",
+          "o",
+          "O",
+          "@",
+          "*",
+          " "
+        ]
+      },
+      balloon2: {
+        interval: 120,
+        frames: [
+          ".",
+          "o",
+          "O",
+          "\xB0",
+          "O",
+          "o",
+          "."
+        ]
+      },
+      noise: {
+        interval: 100,
+        frames: [
+          "\u2593",
+          "\u2592",
+          "\u2591"
+        ]
+      },
+      bounce: {
+        interval: 120,
+        frames: [
+          "\u2801",
+          "\u2802",
+          "\u2804",
+          "\u2802"
+        ]
+      },
+      boxBounce: {
+        interval: 120,
+        frames: [
+          "\u2596",
+          "\u2598",
+          "\u259D",
+          "\u2597"
+        ]
+      },
+      boxBounce2: {
+        interval: 100,
+        frames: [
+          "\u258C",
+          "\u2580",
+          "\u2590",
+          "\u2584"
+        ]
+      },
+      triangle: {
+        interval: 50,
+        frames: [
+          "\u25E2",
+          "\u25E3",
+          "\u25E4",
+          "\u25E5"
+        ]
+      },
+      binary: {
+        interval: 80,
+        frames: [
+          "010010",
+          "001100",
+          "100101",
+          "111010",
+          "111101",
+          "010111",
+          "101011",
+          "111000",
+          "110011",
+          "110101"
+        ]
+      },
+      arc: {
+        interval: 100,
+        frames: [
+          "\u25DC",
+          "\u25E0",
+          "\u25DD",
+          "\u25DE",
+          "\u25E1",
+          "\u25DF"
+        ]
+      },
+      circle: {
+        interval: 120,
+        frames: [
+          "\u25E1",
+          "\u2299",
+          "\u25E0"
+        ]
+      },
+      squareCorners: {
+        interval: 180,
+        frames: [
+          "\u25F0",
+          "\u25F3",
+          "\u25F2",
+          "\u25F1"
+        ]
+      },
+      circleQuarters: {
+        interval: 120,
+        frames: [
+          "\u25F4",
+          "\u25F7",
+          "\u25F6",
+          "\u25F5"
+        ]
+      },
+      circleHalves: {
+        interval: 50,
+        frames: [
+          "\u25D0",
+          "\u25D3",
+          "\u25D1",
+          "\u25D2"
+        ]
+      },
+      squish: {
+        interval: 100,
+        frames: [
+          "\u256B",
+          "\u256A"
+        ]
+      },
+      toggle: {
+        interval: 250,
+        frames: [
+          "\u22B6",
+          "\u22B7"
+        ]
+      },
+      toggle2: {
+        interval: 80,
+        frames: [
+          "\u25AB",
+          "\u25AA"
+        ]
+      },
+      toggle3: {
+        interval: 120,
+        frames: [
+          "\u25A1",
+          "\u25A0"
+        ]
+      },
+      toggle4: {
+        interval: 100,
+        frames: [
+          "\u25A0",
+          "\u25A1",
+          "\u25AA",
+          "\u25AB"
+        ]
+      },
+      toggle5: {
+        interval: 100,
+        frames: [
+          "\u25AE",
+          "\u25AF"
+        ]
+      },
+      toggle6: {
+        interval: 300,
+        frames: [
+          "\u101D",
+          "\u1040"
+        ]
+      },
+      toggle7: {
+        interval: 80,
+        frames: [
+          "\u29BE",
+          "\u29BF"
+        ]
+      },
+      toggle8: {
+        interval: 100,
+        frames: [
+          "\u25CD",
+          "\u25CC"
+        ]
+      },
+      toggle9: {
+        interval: 100,
+        frames: [
+          "\u25C9",
+          "\u25CE"
+        ]
+      },
+      toggle10: {
+        interval: 100,
+        frames: [
+          "\u3282",
+          "\u3280",
+          "\u3281"
+        ]
+      },
+      toggle11: {
+        interval: 50,
+        frames: [
+          "\u29C7",
+          "\u29C6"
+        ]
+      },
+      toggle12: {
+        interval: 120,
+        frames: [
+          "\u2617",
+          "\u2616"
+        ]
+      },
+      toggle13: {
+        interval: 80,
+        frames: [
+          "=",
+          "*",
+          "-"
+        ]
+      },
+      arrow: {
+        interval: 100,
+        frames: [
+          "\u2190",
+          "\u2196",
+          "\u2191",
+          "\u2197",
+          "\u2192",
+          "\u2198",
+          "\u2193",
+          "\u2199"
+        ]
+      },
+      arrow2: {
+        interval: 80,
+        frames: [
+          "\u2B06\uFE0F ",
+          "\u2197\uFE0F ",
+          "\u27A1\uFE0F ",
+          "\u2198\uFE0F ",
+          "\u2B07\uFE0F ",
+          "\u2199\uFE0F ",
+          "\u2B05\uFE0F ",
+          "\u2196\uFE0F "
+        ]
+      },
+      arrow3: {
+        interval: 120,
+        frames: [
+          "\u25B9\u25B9\u25B9\u25B9\u25B9",
+          "\u25B8\u25B9\u25B9\u25B9\u25B9",
+          "\u25B9\u25B8\u25B9\u25B9\u25B9",
+          "\u25B9\u25B9\u25B8\u25B9\u25B9",
+          "\u25B9\u25B9\u25B9\u25B8\u25B9",
+          "\u25B9\u25B9\u25B9\u25B9\u25B8"
+        ]
+      },
+      bouncingBar: {
+        interval: 80,
+        frames: [
+          "[    ]",
+          "[=   ]",
+          "[==  ]",
+          "[=== ]",
+          "[====]",
+          "[ ===]",
+          "[  ==]",
+          "[   =]",
+          "[    ]",
+          "[   =]",
+          "[  ==]",
+          "[ ===]",
+          "[====]",
+          "[=== ]",
+          "[==  ]",
+          "[=   ]"
+        ]
+      },
+      bouncingBall: {
+        interval: 80,
+        frames: [
+          "( \u25CF    )",
+          "(  \u25CF   )",
+          "(   \u25CF  )",
+          "(    \u25CF )",
+          "(     \u25CF)",
+          "(    \u25CF )",
+          "(   \u25CF  )",
+          "(  \u25CF   )",
+          "( \u25CF    )",
+          "(\u25CF     )"
+        ]
+      },
+      smiley: {
+        interval: 200,
+        frames: [
+          "\u{1F604} ",
+          "\u{1F61D} "
+        ]
+      },
+      monkey: {
+        interval: 300,
+        frames: [
+          "\u{1F648} ",
+          "\u{1F648} ",
+          "\u{1F649} ",
+          "\u{1F64A} "
+        ]
+      },
+      hearts: {
+        interval: 100,
+        frames: [
+          "\u{1F49B} ",
+          "\u{1F499} ",
+          "\u{1F49C} ",
+          "\u{1F49A} ",
+          "\u2764\uFE0F "
+        ]
+      },
+      clock: {
+        interval: 100,
+        frames: [
+          "\u{1F55B} ",
+          "\u{1F550} ",
+          "\u{1F551} ",
+          "\u{1F552} ",
+          "\u{1F553} ",
+          "\u{1F554} ",
+          "\u{1F555} ",
+          "\u{1F556} ",
+          "\u{1F557} ",
+          "\u{1F558} ",
+          "\u{1F559} ",
+          "\u{1F55A} "
+        ]
+      },
+      earth: {
+        interval: 180,
+        frames: [
+          "\u{1F30D} ",
+          "\u{1F30E} ",
+          "\u{1F30F} "
+        ]
+      },
+      material: {
+        interval: 17,
+        frames: [
+          "\u2588\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581",
+          "\u2588\u2588\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581",
+          "\u2588\u2588\u2588\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581",
+          "\u2588\u2588\u2588\u2588\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581",
+          "\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581",
+          "\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581",
+          "\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581",
+          "\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581",
+          "\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581",
+          "\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581",
+          "\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581",
+          "\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581",
+          "\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581\u2581\u2581\u2581\u2581",
+          "\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581\u2581\u2581\u2581",
+          "\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581\u2581\u2581\u2581",
+          "\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581\u2581\u2581",
+          "\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581\u2581\u2581",
+          "\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581\u2581\u2581",
+          "\u2581\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581\u2581",
+          "\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581",
+          "\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581",
+          "\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581",
+          "\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581",
+          "\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581",
+          "\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581",
+          "\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588\u2588",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588",
+          "\u2588\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588",
+          "\u2588\u2588\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588",
+          "\u2588\u2588\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588",
+          "\u2588\u2588\u2588\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588",
+          "\u2588\u2588\u2588\u2588\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588",
+          "\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588",
+          "\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588",
+          "\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588",
+          "\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581",
+          "\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581",
+          "\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581",
+          "\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581",
+          "\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581",
+          "\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581",
+          "\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581",
+          "\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581",
+          "\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581\u2581\u2581\u2581",
+          "\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581\u2581\u2581\u2581",
+          "\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581\u2581\u2581",
+          "\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581\u2581\u2581",
+          "\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581\u2581",
+          "\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581",
+          "\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581\u2581",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581\u2581",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2581",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588\u2588\u2588",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588\u2588",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588\u2588",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588\u2588",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588\u2588",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2588",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581",
+          "\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581\u2581"
+        ]
+      },
+      moon: {
+        interval: 80,
+        frames: [
+          "\u{1F311} ",
+          "\u{1F312} ",
+          "\u{1F313} ",
+          "\u{1F314} ",
+          "\u{1F315} ",
+          "\u{1F316} ",
+          "\u{1F317} ",
+          "\u{1F318} "
+        ]
+      },
+      runner: {
+        interval: 140,
+        frames: [
+          "\u{1F6B6} ",
+          "\u{1F3C3} "
+        ]
+      },
+      pong: {
+        interval: 80,
+        frames: [
+          "\u2590\u2802       \u258C",
+          "\u2590\u2808       \u258C",
+          "\u2590 \u2802      \u258C",
+          "\u2590 \u2820      \u258C",
+          "\u2590  \u2840     \u258C",
+          "\u2590  \u2820     \u258C",
+          "\u2590   \u2802    \u258C",
+          "\u2590   \u2808    \u258C",
+          "\u2590    \u2802   \u258C",
+          "\u2590    \u2820   \u258C",
+          "\u2590     \u2840  \u258C",
+          "\u2590     \u2820  \u258C",
+          "\u2590      \u2802 \u258C",
+          "\u2590      \u2808 \u258C",
+          "\u2590       \u2802\u258C",
+          "\u2590       \u2820\u258C",
+          "\u2590       \u2840\u258C",
+          "\u2590      \u2820 \u258C",
+          "\u2590      \u2802 \u258C",
+          "\u2590     \u2808  \u258C",
+          "\u2590     \u2802  \u258C",
+          "\u2590    \u2820   \u258C",
+          "\u2590    \u2840   \u258C",
+          "\u2590   \u2820    \u258C",
+          "\u2590   \u2802    \u258C",
+          "\u2590  \u2808     \u258C",
+          "\u2590  \u2802     \u258C",
+          "\u2590 \u2820      \u258C",
+          "\u2590 \u2840      \u258C",
+          "\u2590\u2820       \u258C"
+        ]
+      },
+      shark: {
+        interval: 120,
+        frames: [
+          "\u2590|\\____________\u258C",
+          "\u2590_|\\___________\u258C",
+          "\u2590__|\\__________\u258C",
+          "\u2590___|\\_________\u258C",
+          "\u2590____|\\________\u258C",
+          "\u2590_____|\\_______\u258C",
+          "\u2590______|\\______\u258C",
+          "\u2590_______|\\_____\u258C",
+          "\u2590________|\\____\u258C",
+          "\u2590_________|\\___\u258C",
+          "\u2590__________|\\__\u258C",
+          "\u2590___________|\\_\u258C",
+          "\u2590____________|\\\u258C",
+          "\u2590____________/|\u258C",
+          "\u2590___________/|_\u258C",
+          "\u2590__________/|__\u258C",
+          "\u2590_________/|___\u258C",
+          "\u2590________/|____\u258C",
+          "\u2590_______/|_____\u258C",
+          "\u2590______/|______\u258C",
+          "\u2590_____/|_______\u258C",
+          "\u2590____/|________\u258C",
+          "\u2590___/|_________\u258C",
+          "\u2590__/|__________\u258C",
+          "\u2590_/|___________\u258C",
+          "\u2590/|____________\u258C"
+        ]
+      },
+      dqpb: {
+        interval: 100,
+        frames: [
+          "d",
+          "q",
+          "p",
+          "b"
+        ]
+      },
+      weather: {
+        interval: 100,
+        frames: [
+          "\u2600\uFE0F ",
+          "\u2600\uFE0F ",
+          "\u2600\uFE0F ",
+          "\u{1F324} ",
+          "\u26C5\uFE0F ",
+          "\u{1F325} ",
+          "\u2601\uFE0F ",
+          "\u{1F327} ",
+          "\u{1F328} ",
+          "\u{1F327} ",
+          "\u{1F328} ",
+          "\u{1F327} ",
+          "\u{1F328} ",
+          "\u26C8 ",
+          "\u{1F328} ",
+          "\u{1F327} ",
+          "\u{1F328} ",
+          "\u2601\uFE0F ",
+          "\u{1F325} ",
+          "\u26C5\uFE0F ",
+          "\u{1F324} ",
+          "\u2600\uFE0F ",
+          "\u2600\uFE0F "
+        ]
+      },
+      christmas: {
+        interval: 400,
+        frames: [
+          "\u{1F332}",
+          "\u{1F384}"
+        ]
+      },
+      grenade: {
+        interval: 80,
+        frames: [
+          "\u060C  ",
+          "\u2032  ",
+          " \xB4 ",
+          " \u203E ",
+          "  \u2E0C",
+          "  \u2E0A",
+          "  |",
+          "  \u204E",
+          "  \u2055",
+          " \u0DF4 ",
+          "  \u2053",
+          "   ",
+          "   ",
+          "   "
+        ]
+      },
+      point: {
+        interval: 125,
+        frames: [
+          "\u2219\u2219\u2219",
+          "\u25CF\u2219\u2219",
+          "\u2219\u25CF\u2219",
+          "\u2219\u2219\u25CF",
+          "\u2219\u2219\u2219"
+        ]
+      },
+      layer: {
+        interval: 150,
+        frames: [
+          "-",
+          "=",
+          "\u2261"
+        ]
+      },
+      betaWave: {
+        interval: 80,
+        frames: [
+          "\u03C1\u03B2\u03B2\u03B2\u03B2\u03B2\u03B2",
+          "\u03B2\u03C1\u03B2\u03B2\u03B2\u03B2\u03B2",
+          "\u03B2\u03B2\u03C1\u03B2\u03B2\u03B2\u03B2",
+          "\u03B2\u03B2\u03B2\u03C1\u03B2\u03B2\u03B2",
+          "\u03B2\u03B2\u03B2\u03B2\u03C1\u03B2\u03B2",
+          "\u03B2\u03B2\u03B2\u03B2\u03B2\u03C1\u03B2",
+          "\u03B2\u03B2\u03B2\u03B2\u03B2\u03B2\u03C1"
+        ]
+      },
+      fingerDance: {
+        interval: 160,
+        frames: [
+          "\u{1F918} ",
+          "\u{1F91F} ",
+          "\u{1F596} ",
+          "\u270B ",
+          "\u{1F91A} ",
+          "\u{1F446} "
+        ]
+      },
+      fistBump: {
+        interval: 80,
+        frames: [
+          "\u{1F91C}\u3000\u3000\u3000\u3000\u{1F91B} ",
+          "\u{1F91C}\u3000\u3000\u3000\u3000\u{1F91B} ",
+          "\u{1F91C}\u3000\u3000\u3000\u3000\u{1F91B} ",
+          "\u3000\u{1F91C}\u3000\u3000\u{1F91B}\u3000 ",
+          "\u3000\u3000\u{1F91C}\u{1F91B}\u3000\u3000 ",
+          "\u3000\u{1F91C}\u2728\u{1F91B}\u3000\u3000 ",
+          "\u{1F91C}\u3000\u2728\u3000\u{1F91B}\u3000 "
+        ]
+      },
+      soccerHeader: {
+        interval: 80,
+        frames: [
+          " \u{1F9D1}\u26BD\uFE0F       \u{1F9D1} ",
+          "\u{1F9D1}  \u26BD\uFE0F      \u{1F9D1} ",
+          "\u{1F9D1}   \u26BD\uFE0F     \u{1F9D1} ",
+          "\u{1F9D1}    \u26BD\uFE0F    \u{1F9D1} ",
+          "\u{1F9D1}     \u26BD\uFE0F   \u{1F9D1} ",
+          "\u{1F9D1}      \u26BD\uFE0F  \u{1F9D1} ",
+          "\u{1F9D1}       \u26BD\uFE0F\u{1F9D1}  ",
+          "\u{1F9D1}      \u26BD\uFE0F  \u{1F9D1} ",
+          "\u{1F9D1}     \u26BD\uFE0F   \u{1F9D1} ",
+          "\u{1F9D1}    \u26BD\uFE0F    \u{1F9D1} ",
+          "\u{1F9D1}   \u26BD\uFE0F     \u{1F9D1} ",
+          "\u{1F9D1}  \u26BD\uFE0F      \u{1F9D1} "
+        ]
+      },
+      mindblown: {
+        interval: 160,
+        frames: [
+          "\u{1F610} ",
+          "\u{1F610} ",
+          "\u{1F62E} ",
+          "\u{1F62E} ",
+          "\u{1F626} ",
+          "\u{1F626} ",
+          "\u{1F627} ",
+          "\u{1F627} ",
+          "\u{1F92F} ",
+          "\u{1F4A5} ",
+          "\u2728 ",
+          "\u3000 ",
+          "\u3000 ",
+          "\u3000 "
+        ]
+      },
+      speaker: {
+        interval: 160,
+        frames: [
+          "\u{1F508} ",
+          "\u{1F509} ",
+          "\u{1F50A} ",
+          "\u{1F509} "
+        ]
+      },
+      orangePulse: {
+        interval: 100,
+        frames: [
+          "\u{1F538} ",
+          "\u{1F536} ",
+          "\u{1F7E0} ",
+          "\u{1F7E0} ",
+          "\u{1F536} "
+        ]
+      },
+      bluePulse: {
+        interval: 100,
+        frames: [
+          "\u{1F539} ",
+          "\u{1F537} ",
+          "\u{1F535} ",
+          "\u{1F535} ",
+          "\u{1F537} "
+        ]
+      },
+      orangeBluePulse: {
+        interval: 100,
+        frames: [
+          "\u{1F538} ",
+          "\u{1F536} ",
+          "\u{1F7E0} ",
+          "\u{1F7E0} ",
+          "\u{1F536} ",
+          "\u{1F539} ",
+          "\u{1F537} ",
+          "\u{1F535} ",
+          "\u{1F535} ",
+          "\u{1F537} "
+        ]
+      },
+      timeTravel: {
+        interval: 100,
+        frames: [
+          "\u{1F55B} ",
+          "\u{1F55A} ",
+          "\u{1F559} ",
+          "\u{1F558} ",
+          "\u{1F557} ",
+          "\u{1F556} ",
+          "\u{1F555} ",
+          "\u{1F554} ",
+          "\u{1F553} ",
+          "\u{1F552} ",
+          "\u{1F551} ",
+          "\u{1F550} "
+        ]
+      },
+      aesthetic: {
+        interval: 80,
+        frames: [
+          "\u25B0\u25B1\u25B1\u25B1\u25B1\u25B1\u25B1",
+          "\u25B0\u25B0\u25B1\u25B1\u25B1\u25B1\u25B1",
+          "\u25B0\u25B0\u25B0\u25B1\u25B1\u25B1\u25B1",
+          "\u25B0\u25B0\u25B0\u25B0\u25B1\u25B1\u25B1",
+          "\u25B0\u25B0\u25B0\u25B0\u25B0\u25B1\u25B1",
+          "\u25B0\u25B0\u25B0\u25B0\u25B0\u25B0\u25B1",
+          "\u25B0\u25B0\u25B0\u25B0\u25B0\u25B0\u25B0",
+          "\u25B0\u25B1\u25B1\u25B1\u25B1\u25B1\u25B1"
+        ]
+      },
+      dwarfFortress: {
+        interval: 80,
+        frames: [
+          " \u2588\u2588\u2588\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          "\u263A\u2588\u2588\u2588\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          "\u263A\u2588\u2588\u2588\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          "\u263A\u2593\u2588\u2588\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          "\u263A\u2593\u2588\u2588\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          "\u263A\u2592\u2588\u2588\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          "\u263A\u2592\u2588\u2588\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          "\u263A\u2591\u2588\u2588\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          "\u263A\u2591\u2588\u2588\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          "\u263A \u2588\u2588\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          " \u263A\u2588\u2588\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          " \u263A\u2588\u2588\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          " \u263A\u2593\u2588\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          " \u263A\u2593\u2588\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          " \u263A\u2592\u2588\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          " \u263A\u2592\u2588\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          " \u263A\u2591\u2588\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          " \u263A\u2591\u2588\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          " \u263A \u2588\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          "  \u263A\u2588\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          "  \u263A\u2588\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          "  \u263A\u2593\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          "  \u263A\u2593\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          "  \u263A\u2592\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          "  \u263A\u2592\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          "  \u263A\u2591\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          "  \u263A\u2591\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          "  \u263A \u2588\u2588\u2588\xA3\xA3\xA3  ",
+          "   \u263A\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          "   \u263A\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          "   \u263A\u2593\u2588\u2588\xA3\xA3\xA3  ",
+          "   \u263A\u2593\u2588\u2588\xA3\xA3\xA3  ",
+          "   \u263A\u2592\u2588\u2588\xA3\xA3\xA3  ",
+          "   \u263A\u2592\u2588\u2588\xA3\xA3\xA3  ",
+          "   \u263A\u2591\u2588\u2588\xA3\xA3\xA3  ",
+          "   \u263A\u2591\u2588\u2588\xA3\xA3\xA3  ",
+          "   \u263A \u2588\u2588\xA3\xA3\xA3  ",
+          "    \u263A\u2588\u2588\xA3\xA3\xA3  ",
+          "    \u263A\u2588\u2588\xA3\xA3\xA3  ",
+          "    \u263A\u2593\u2588\xA3\xA3\xA3  ",
+          "    \u263A\u2593\u2588\xA3\xA3\xA3  ",
+          "    \u263A\u2592\u2588\xA3\xA3\xA3  ",
+          "    \u263A\u2592\u2588\xA3\xA3\xA3  ",
+          "    \u263A\u2591\u2588\xA3\xA3\xA3  ",
+          "    \u263A\u2591\u2588\xA3\xA3\xA3  ",
+          "    \u263A \u2588\xA3\xA3\xA3  ",
+          "     \u263A\u2588\xA3\xA3\xA3  ",
+          "     \u263A\u2588\xA3\xA3\xA3  ",
+          "     \u263A\u2593\xA3\xA3\xA3  ",
+          "     \u263A\u2593\xA3\xA3\xA3  ",
+          "     \u263A\u2592\xA3\xA3\xA3  ",
+          "     \u263A\u2592\xA3\xA3\xA3  ",
+          "     \u263A\u2591\xA3\xA3\xA3  ",
+          "     \u263A\u2591\xA3\xA3\xA3  ",
+          "     \u263A \xA3\xA3\xA3  ",
+          "      \u263A\xA3\xA3\xA3  ",
+          "      \u263A\xA3\xA3\xA3  ",
+          "      \u263A\u2593\xA3\xA3  ",
+          "      \u263A\u2593\xA3\xA3  ",
+          "      \u263A\u2592\xA3\xA3  ",
+          "      \u263A\u2592\xA3\xA3  ",
+          "      \u263A\u2591\xA3\xA3  ",
+          "      \u263A\u2591\xA3\xA3  ",
+          "      \u263A \xA3\xA3  ",
+          "       \u263A\xA3\xA3  ",
+          "       \u263A\xA3\xA3  ",
+          "       \u263A\u2593\xA3  ",
+          "       \u263A\u2593\xA3  ",
+          "       \u263A\u2592\xA3  ",
+          "       \u263A\u2592\xA3  ",
+          "       \u263A\u2591\xA3  ",
+          "       \u263A\u2591\xA3  ",
+          "       \u263A \xA3  ",
+          "        \u263A\xA3  ",
+          "        \u263A\xA3  ",
+          "        \u263A\u2593  ",
+          "        \u263A\u2593  ",
+          "        \u263A\u2592  ",
+          "        \u263A\u2592  ",
+          "        \u263A\u2591  ",
+          "        \u263A\u2591  ",
+          "        \u263A   ",
+          "        \u263A  &",
+          "        \u263A \u263C&",
+          "       \u263A \u263C &",
+          "       \u263A\u263C  &",
+          "      \u263A\u263C  & ",
+          "      \u203C   & ",
+          "     \u263A   &  ",
+          "    \u203C    &  ",
+          "   \u263A    &   ",
+          "  \u203C     &   ",
+          " \u263A     &    ",
+          "\u203C      &    ",
+          "      &     ",
+          "      &     ",
+          "     &   \u2591  ",
+          "     &   \u2592  ",
+          "    &    \u2593  ",
+          "    &    \xA3  ",
+          "   &    \u2591\xA3  ",
+          "   &    \u2592\xA3  ",
+          "  &     \u2593\xA3  ",
+          "  &     \xA3\xA3  ",
+          " &     \u2591\xA3\xA3  ",
+          " &     \u2592\xA3\xA3  ",
+          "&      \u2593\xA3\xA3  ",
+          "&      \xA3\xA3\xA3  ",
+          "      \u2591\xA3\xA3\xA3  ",
+          "      \u2592\xA3\xA3\xA3  ",
+          "      \u2593\xA3\xA3\xA3  ",
+          "      \u2588\xA3\xA3\xA3  ",
+          "     \u2591\u2588\xA3\xA3\xA3  ",
+          "     \u2592\u2588\xA3\xA3\xA3  ",
+          "     \u2593\u2588\xA3\xA3\xA3  ",
+          "     \u2588\u2588\xA3\xA3\xA3  ",
+          "    \u2591\u2588\u2588\xA3\xA3\xA3  ",
+          "    \u2592\u2588\u2588\xA3\xA3\xA3  ",
+          "    \u2593\u2588\u2588\xA3\xA3\xA3  ",
+          "    \u2588\u2588\u2588\xA3\xA3\xA3  ",
+          "   \u2591\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          "   \u2592\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          "   \u2593\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          "   \u2588\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          "  \u2591\u2588\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          "  \u2592\u2588\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          "  \u2593\u2588\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          "  \u2588\u2588\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          " \u2591\u2588\u2588\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          " \u2592\u2588\u2588\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          " \u2593\u2588\u2588\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          " \u2588\u2588\u2588\u2588\u2588\u2588\xA3\xA3\xA3  ",
+          " \u2588\u2588\u2588\u2588\u2588\u2588\xA3\xA3\xA3  "
+        ]
+      }
+    };
+  }
+});
+
+// ../node_modules/.pnpm/cli-spinners@2.9.2/node_modules/cli-spinners/index.js
+var require_cli_spinners = __commonJS({
+  "../node_modules/.pnpm/cli-spinners@2.9.2/node_modules/cli-spinners/index.js"(exports, module) {
+    "use strict";
+    init_cjs_shim();
+    var spinners2 = Object.assign({}, require_spinners());
+    var spinnersList = Object.keys(spinners2);
+    Object.defineProperty(spinners2, "random", {
+      get() {
+        const randomIndex = Math.floor(Math.random() * spinnersList.length);
+        const spinnerName = spinnersList[randomIndex];
+        return spinners2[spinnerName];
+      }
+    });
+    module.exports = spinners2;
+  }
+});
+
 // ratos.tsx
 init_cjs_shim();
 
@@ -75238,7 +76884,7 @@ var proxyClient = createTRPCProxyClient({
 });
 
 // ratos.tsx
-var import_react28 = __toESM(require_react(), 1);
+var import_react29 = __toESM(require_react(), 1);
 import { realpath, stat, readFile } from "fs/promises";
 import path5 from "path";
 
@@ -83990,16 +85636,38 @@ var getLogger = () => {
   return logger;
 };
 
+// ../node_modules/.pnpm/ink-spinner@5.0.0_ink@5.0.0_@types+react@18.2.21_react-devtools-core@4.19.1_react@18.2.0__react@18.2.0/node_modules/ink-spinner/build/index.js
+init_cjs_shim();
+var import_react28 = __toESM(require_react(), 1);
+var import_cli_spinners = __toESM(require_cli_spinners(), 1);
+function Spinner({ type = "dots" }) {
+  const [frame, setFrame] = (0, import_react28.useState)(0);
+  const spinner = import_cli_spinners.default[type];
+  (0, import_react28.useEffect)(() => {
+    const timer = setInterval(() => {
+      setFrame((previousFrame) => {
+        const isLastFrame = previousFrame === spinner.frames.length - 1;
+        return isLastFrame ? 0 : previousFrame + 1;
+      });
+    }, spinner.interval);
+    return () => {
+      clearInterval(timer);
+    };
+  }, [spinner]);
+  return import_react28.default.createElement(Text, null, spinner.frames[frame]);
+}
+var build_default = Spinner;
+
 // ratos.tsx
 function renderError(str, options = { exitCode: 1 }) {
   render_default(
-    /* @__PURE__ */ import_react28.default.createElement(Container, null, /* @__PURE__ */ import_react28.default.createElement(Status, { results: { message: str, result: "error" } }))
+    /* @__PURE__ */ import_react29.default.createElement(Container, null, /* @__PURE__ */ import_react29.default.createElement(Status, { results: { message: str, result: "error" } }))
   );
   process.exit(options.exitCode);
 }
 function renderApiResults(results) {
   render_default(
-    /* @__PURE__ */ import_react28.default.createElement(Container, null, /* @__PURE__ */ import_react28.default.createElement(Status, { results }))
+    /* @__PURE__ */ import_react29.default.createElement(Container, null, /* @__PURE__ */ import_react29.default.createElement(Status, { results }))
   );
 }
 function errorColor(str) {
@@ -84033,7 +85701,7 @@ program2.command("info").description("Print info about this RatOS installation")
     ip: await client.ipAddress.query()
   };
   render_default(
-    /* @__PURE__ */ import_react28.default.createElement(Box_default, { flexDirection: "row", columnGap: 5, padding: 2, paddingTop: 1 }, /* @__PURE__ */ import_react28.default.createElement(Box_default, { flexDirection: "column", rowGap: 1 }, /* @__PURE__ */ import_react28.default.createElement(Text, { color: "white", dimColor: true }, "Machine IP"), /* @__PURE__ */ import_react28.default.createElement(Text, { color: "white", dimColor: true }, "RatOS Version"), /* @__PURE__ */ import_react28.default.createElement(Text, { color: "white", dimColor: true }, "Configurator Version"), /* @__PURE__ */ import_react28.default.createElement(Text, { color: "white", dimColor: true }, "Klipper Version")), /* @__PURE__ */ import_react28.default.createElement(Box_default, { flexDirection: "column", rowGap: 1 }, /* @__PURE__ */ import_react28.default.createElement(Text, null, info.ip), /* @__PURE__ */ import_react28.default.createElement(Text, null, info.osVersion), /* @__PURE__ */ import_react28.default.createElement(Text, null, info.version), /* @__PURE__ */ import_react28.default.createElement(Text, null, info.klipperVersion)))
+    /* @__PURE__ */ import_react29.default.createElement(Box_default, { flexDirection: "row", columnGap: 5, padding: 2, paddingTop: 1 }, /* @__PURE__ */ import_react29.default.createElement(Box_default, { flexDirection: "column", rowGap: 1 }, /* @__PURE__ */ import_react29.default.createElement(Text, { color: "white", dimColor: true }, "Machine IP"), /* @__PURE__ */ import_react29.default.createElement(Text, { color: "white", dimColor: true }, "RatOS Version"), /* @__PURE__ */ import_react29.default.createElement(Text, { color: "white", dimColor: true }, "Configurator Version"), /* @__PURE__ */ import_react29.default.createElement(Text, { color: "white", dimColor: true }, "Klipper Version")), /* @__PURE__ */ import_react29.default.createElement(Box_default, { flexDirection: "column", rowGap: 1 }, /* @__PURE__ */ import_react29.default.createElement(Text, null, info.ip), /* @__PURE__ */ import_react29.default.createElement(Text, null, info.osVersion), /* @__PURE__ */ import_react29.default.createElement(Text, null, info.version), /* @__PURE__ */ import_react29.default.createElement(Text, null, info.klipperVersion)))
   );
 });
 var extensions = program2.command("extensions").description("Register, unregister or symlink extensions managed by the RatOS Configurator");
@@ -84050,7 +85718,7 @@ extensions.command("list").description("List all registered extensions").action(
   const klippyExtensions = await client["klippy-extensions"].list.query();
   const moonrakerExtensions = await client["moonraker-extensions"].list.query();
   render_default(
-    /* @__PURE__ */ import_react28.default.createElement(Container, null, /* @__PURE__ */ import_react28.default.createElement(Box_default, { flexDirection: "column", marginBottom: 1 }, /* @__PURE__ */ import_react28.default.createElement(Text, null, klippyExtensions.length, " Registered Klipper ", klippyExtensions.length === 1 ? "Extension" : "Extensions", klippyExtensions.length ? ":" : ""), klippyExtensions.map((ext) => /* @__PURE__ */ import_react28.default.createElement(Box_default, { key: ext.extensionName, flexDirection: "row", columnGap: 2 }, /* @__PURE__ */ import_react28.default.createElement(Text, { color: existsSync3(ext.path + ext.fileName) ? "green" : "red" }, ext.extensionName, " ", "->", " ", ext.path + ext.fileName, " ")))), /* @__PURE__ */ import_react28.default.createElement(Box_default, { flexDirection: "column" }, /* @__PURE__ */ import_react28.default.createElement(Text, null, moonrakerExtensions.length, " Registered Moonraker", " ", moonrakerExtensions.length === 1 ? "Extension" : "Extensions", moonrakerExtensions.length ? ":" : ""), moonrakerExtensions.map((ext) => /* @__PURE__ */ import_react28.default.createElement(Box_default, { key: ext.extensionName, flexDirection: "row", columnGap: 2 }, /* @__PURE__ */ import_react28.default.createElement(Text, { color: existsSync3(ext.path + ext.fileName) ? "green" : "red" }, ext.extensionName, " ", "->", " ", ext.path + ext.fileName, " ")))))
+    /* @__PURE__ */ import_react29.default.createElement(Container, null, /* @__PURE__ */ import_react29.default.createElement(Box_default, { flexDirection: "column", marginBottom: 1 }, /* @__PURE__ */ import_react29.default.createElement(Text, null, klippyExtensions.length, " Registered Klipper ", klippyExtensions.length === 1 ? "Extension" : "Extensions", klippyExtensions.length ? ":" : ""), klippyExtensions.map((ext) => /* @__PURE__ */ import_react29.default.createElement(Box_default, { key: ext.extensionName, flexDirection: "row", columnGap: 2 }, /* @__PURE__ */ import_react29.default.createElement(Text, { color: existsSync3(ext.path + ext.fileName) ? "green" : "red" }, ext.extensionName, " ", "->", " ", ext.path + ext.fileName, " ")))), /* @__PURE__ */ import_react29.default.createElement(Box_default, { flexDirection: "column" }, /* @__PURE__ */ import_react29.default.createElement(Text, null, moonrakerExtensions.length, " Registered Moonraker", " ", moonrakerExtensions.length === 1 ? "Extension" : "Extensions", moonrakerExtensions.length ? ":" : ""), moonrakerExtensions.map((ext) => /* @__PURE__ */ import_react29.default.createElement(Box_default, { key: ext.extensionName, flexDirection: "row", columnGap: 2 }, /* @__PURE__ */ import_react29.default.createElement(Text, { color: existsSync3(ext.path + ext.fileName) ? "green" : "red" }, ext.extensionName, " ", "->", " ", ext.path + ext.fileName, " ")))))
   );
 });
 registerExtensions.command("klipper").description("Register a Klipper extension to be managed by the RatOS Configurator").option("-k, --kinematics", "Register as a kinematics extension").option("-e, --error-if-exists", "Throw error if the extension already exists").argument("<name>", "Name of the extension").argument("<file>", "The extension itself").showHelpAfterError().action(async (extName, extFile, options) => {
@@ -84091,7 +85759,7 @@ registerExtensions.command("klipper").description("Register a Klipper extension 
     return renderError("Failed to register extension", { exitCode: 2 });
   }
   render_default(
-    /* @__PURE__ */ import_react28.default.createElement(Container, null, /* @__PURE__ */ import_react28.default.createElement(
+    /* @__PURE__ */ import_react29.default.createElement(Container, null, /* @__PURE__ */ import_react29.default.createElement(
       Status,
       {
         results: {
@@ -84133,7 +85801,7 @@ registerExtensions.command("moonraker").description("Register a Moonraker extens
       }
     });
     render_default(
-      /* @__PURE__ */ import_react28.default.createElement(Container, null, /* @__PURE__ */ import_react28.default.createElement(
+      /* @__PURE__ */ import_react29.default.createElement(Container, null, /* @__PURE__ */ import_react29.default.createElement(
         Status,
         {
           results: {
@@ -84276,7 +85944,7 @@ program2.command("flash").description(`Flash all connected boards`).action(async
   }
 });
 var FluiddInstallerUI = (props) => {
-  return /* @__PURE__ */ import_react28.default.createElement(Container, null, /* @__PURE__ */ import_react28.default.createElement(Box_default, { flexDirection: "column", rowGap: 0 }, /* @__PURE__ */ import_react28.default.createElement(Text, { color: props.statusColor ?? "white", dimColor: false, bold: true }, ["red", "redBright"].includes(props.statusColor ?? "white") && /* @__PURE__ */ import_react28.default.createElement(Text, { bold: true }, "\u2718 "), ["green", "greenBright"].includes(props.statusColor ?? "white") && /* @__PURE__ */ import_react28.default.createElement(Text, { bold: true }, "\u2713 "), props.status), props.warnings?.map((warning) => /* @__PURE__ */ import_react28.default.createElement(Text, { color: "yellow", dimColor: true, key: warning, bold: false }, warning)), props.errors?.map((error) => /* @__PURE__ */ import_react28.default.createElement(Text, { color: "red", dimColor: true, key: error, bold: false }, error)), props.stepText && /* @__PURE__ */ import_react28.default.createElement(Text, { color: props.stepTextColor ?? "white", dimColor: true, bold: false }, props.stepText)));
+  return /* @__PURE__ */ import_react29.default.createElement(Container, null, /* @__PURE__ */ import_react29.default.createElement(Box_default, { flexDirection: "column", rowGap: 0 }, /* @__PURE__ */ import_react29.default.createElement(Text, { color: props.statusColor ?? "white", dimColor: false, bold: true }, ["red", "redBright"].includes(props.statusColor ?? "white") && /* @__PURE__ */ import_react29.default.createElement(Text, { bold: true }, "\u2718 "), ["green", "greenBright"].includes(props.statusColor ?? "white") && /* @__PURE__ */ import_react29.default.createElement(Text, { bold: true }, "\u2713 "), props.status), props.warnings?.map((warning) => /* @__PURE__ */ import_react29.default.createElement(Text, { color: "yellow", dimColor: true, key: warning, bold: false }, warning)), props.errors?.map((error) => /* @__PURE__ */ import_react29.default.createElement(Text, { color: "red", dimColor: true, key: error, bold: false }, error)), props.stepText && /* @__PURE__ */ import_react29.default.createElement(Text, null, props.isLoading && /* @__PURE__ */ import_react29.default.createElement(Text, { color: "green", dimColor: false }, /* @__PURE__ */ import_react29.default.createElement(build_default, { type: "dots" }), " "), /* @__PURE__ */ import_react29.default.createElement(Text, { color: props.stepTextColor ?? "white", dimColor: true, bold: false }, props.stepText))));
 };
 var frontend = program2.command("frontend").description("Switch between klipper frontend UIs");
 var THEME_SECTION = `[update_manager FluiddTheme]`;
@@ -84285,11 +85953,12 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
   const $$ = $({ quiet: true });
   const envFile2 = existsSync3("./.env.local") ? await readFile(".env.local") : await readFile(".env");
   const environment = serverSchema.parse({ NODE_ENV: "production", ...import_dotenv2.default.parse(envFile2) });
-  let { rerender } = render_default(/* @__PURE__ */ import_react28.default.createElement(FluiddInstallerUI, { status: "Installing fluidd.." }));
+  const moonrakerConfig = environment.KLIPPER_CONFIG_PATH + "/moonraker.conf";
+  let { rerender } = render_default(/* @__PURE__ */ import_react29.default.createElement(FluiddInstallerUI, { status: "Installing fluidd.." }));
   if (!existsSync3("/etc/nginx/sites-available/mainsail")) {
     if (existsSync3("/etc/nginx/sites-available/mainsail.bak") && existsSync3("/etc/nginx/sites-enabled/fluidd")) {
       rerender(
-        /* @__PURE__ */ import_react28.default.createElement(
+        /* @__PURE__ */ import_react29.default.createElement(
           FluiddInstallerUI,
           {
             status: "Fluidd already installed",
@@ -84300,7 +85969,7 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
       );
     } else {
       rerender(
-        /* @__PURE__ */ import_react28.default.createElement(
+        /* @__PURE__ */ import_react29.default.createElement(
           FluiddInstallerUI,
           {
             status: "Fluidd installation failed",
@@ -84316,24 +85985,26 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
     const errors = [];
     if (!existsSync3(`/home/${environment.USER}/fluidd`)) {
       rerender(
-        /* @__PURE__ */ import_react28.default.createElement(
+        /* @__PURE__ */ import_react29.default.createElement(
           FluiddInstallerUI,
           {
             warnings,
             errors,
             status: "Installing Fluidd...",
+            isLoading: true,
             stepText: "Downloading latest RatOS Fluidd release"
           }
         )
       );
       await $$`wget https://github.com/Rat-OS/fluidd/releases/latest/download/fluidd.zip -O /tmp/fluidd.zip`;
       rerender(
-        /* @__PURE__ */ import_react28.default.createElement(
+        /* @__PURE__ */ import_react29.default.createElement(
           FluiddInstallerUI,
           {
             warnings,
             errors,
             status: "Installing Fluidd...",
+            isLoading: true,
             stepText: "Extracting fluidd.zip"
           }
         )
@@ -84345,24 +86016,26 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
     }
     if (!existsSync3(`/home/${environment.USER}/.fluidd-theme`)) {
       rerender(
-        /* @__PURE__ */ import_react28.default.createElement(
+        /* @__PURE__ */ import_react29.default.createElement(
           FluiddInstallerUI,
           {
             warnings,
             errors,
             status: "Installing Fluidd...",
+            isLoading: true,
             stepText: "Cloning RatOS fluidd theme"
           }
         )
       );
       await $$`git clone https://github.com/Rat-OS/fluidd-theme /home/${environment.USER}/.fluidd-theme`;
       rerender(
-        /* @__PURE__ */ import_react28.default.createElement(
+        /* @__PURE__ */ import_react29.default.createElement(
           FluiddInstallerUI,
           {
             warnings,
             errors,
             status: "Installing Fluidd...",
+            isLoading: true,
             stepText: "Extracting fluidd.zip"
           }
         )
@@ -84370,14 +86043,15 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
     } else {
       warnings.push("Fluidd theme already exists, git cloning has been skipped.");
     }
-    if ((await $$`grep -q "${FLUIDD_SECTION}"`).exitCode !== 0) {
+    if ((await $$`grep -q "${FLUIDD_SECTION}" ${moonrakerConfig}`).exitCode !== 0) {
       rerender(
-        /* @__PURE__ */ import_react28.default.createElement(
+        /* @__PURE__ */ import_react29.default.createElement(
           FluiddInstallerUI,
           {
             warnings,
             errors,
             status: "Installing Fluidd...",
+            isLoading: true,
             stepText: "Adding moonraker entry for RatOS Fluidd fork"
           }
         )
@@ -84388,18 +86062,19 @@ type: web
 repo: Rat-OS/fluidd
 path: ~/fluidd
 `;
-      writeFileSync(environment.KLIPPER_CONFIG_PATH + "/moonraker.conf", fluiddUpdateSection, { flag: "a" });
+      writeFileSync(moonrakerConfig, fluiddUpdateSection, { flag: "a" });
     } else {
       warnings.push("Fluidd update manager entry already exists, skipping moonraker configuration.");
     }
-    if ((await $$`grep -q "${THEME_SECTION}"`).exitCode !== 0) {
+    if ((await $$`grep -q "${THEME_SECTION}" ${moonrakerConfig}`).exitCode !== 0) {
       rerender(
-        /* @__PURE__ */ import_react28.default.createElement(
+        /* @__PURE__ */ import_react29.default.createElement(
           FluiddInstallerUI,
           {
             warnings,
             errors,
             status: "Installing Fluidd...",
+            isLoading: true,
             stepText: "Adding moonraker entry for RatOS Fluidd theme"
           }
         )
@@ -84412,17 +86087,18 @@ primary_branch: main
 origin: https://github.com/Rat-OS/fluidd-theme
 is_system_service: false
 `;
-      writeFileSync(environment.KLIPPER_CONFIG_PATH + "/moonraker.conf", fluiddThemeUpdateSection, { flag: "a" });
+      writeFileSync(moonrakerConfig, fluiddThemeUpdateSection, { flag: "a" });
     } else {
       warnings.push("Fluidd theme update manager entry already exists, skipping moonraker configuration.");
     }
     rerender(
-      /* @__PURE__ */ import_react28.default.createElement(
+      /* @__PURE__ */ import_react29.default.createElement(
         FluiddInstallerUI,
         {
           warnings,
           errors,
           status: "Installing Fluidd...",
+          isLoading: true,
           stepText: "Backing up mainsail configuration"
         }
       )
@@ -84430,12 +86106,13 @@ is_system_service: false
     const fluidConfigFile = `/tmp/fluidd`;
     await $$`sudo cp /etc/nginx/sites-available/mainsail ${fluidConfigFile}`;
     rerender(
-      /* @__PURE__ */ import_react28.default.createElement(
+      /* @__PURE__ */ import_react29.default.createElement(
         FluiddInstallerUI,
         {
           warnings,
           errors,
           status: "Installing Fluidd...",
+          isLoading: true,
           stepText: "Updating nginx configuration"
         }
       )
@@ -84445,12 +86122,13 @@ is_system_service: false
     await $$`sudo ln -s /etc/nginx/sites-available/fluidd /etc/nginx/sites-enabled/fluidd`;
     await $$`sudo rm /etc/nginx/sites-enabled/mainsail`;
     rerender(
-      /* @__PURE__ */ import_react28.default.createElement(
+      /* @__PURE__ */ import_react29.default.createElement(
         FluiddInstallerUI,
         {
           warnings,
           errors,
           status: "Installing Fluidd...",
+          isLoading: true,
           stepText: "Validating nginx config"
         }
       )
@@ -84461,13 +86139,11 @@ is_system_service: false
         { stderr: nginxValidation.stderr, stdout: nginxValidation.stdout },
         "nginx validation failed during fluidd installation"
       );
-    }
-    if (nginxValidation.exitCode !== 0) {
       errors.push("Error: nginx validation failed");
       warnings.push(nginxValidation.stderr);
       warnings.push(nginxValidation.stdout);
       rerender(
-        /* @__PURE__ */ import_react28.default.createElement(
+        /* @__PURE__ */ import_react29.default.createElement(
           FluiddInstallerUI,
           {
             warnings,
@@ -84482,7 +86158,7 @@ is_system_service: false
       await $$`sudo rm /etc/nginx/sites-enabled/fluidd`;
       await $$`sudo systemctl reload nginx`;
       rerender(
-        /* @__PURE__ */ import_react28.default.createElement(
+        /* @__PURE__ */ import_react29.default.createElement(
           FluiddInstallerUI,
           {
             warnings,
@@ -84497,19 +86173,20 @@ is_system_service: false
       return;
     }
     rerender(
-      /* @__PURE__ */ import_react28.default.createElement(
+      /* @__PURE__ */ import_react29.default.createElement(
         FluiddInstallerUI,
         {
           warnings,
           errors,
           status: "Installing Fluidd...",
+          isLoading: true,
           stepText: "Reloading nginx"
         }
       )
     );
     await $$`sudo systemctl reload nginx`;
     rerender(
-      /* @__PURE__ */ import_react28.default.createElement(
+      /* @__PURE__ */ import_react29.default.createElement(
         FluiddInstallerUI,
         {
           warnings,
@@ -84528,7 +86205,7 @@ frontend.command("mainsail").description("Restore the default mainsail nginx con
   let warnings = [];
   let errors = [];
   const { rerender } = render_default(
-    /* @__PURE__ */ import_react28.default.createElement(FluiddInstallerUI, { warnings, errors, status: "Restoring mainsail.." })
+    /* @__PURE__ */ import_react29.default.createElement(FluiddInstallerUI, { warnings, errors, status: "Restoring mainsail.." })
   );
   const hostname = (await $$`tr -d " \t\n\r" < /etc/hostname`).stdout;
   if (!existsSync3("/etc/nginx/sites-available/mainsail")) {
@@ -84536,7 +86213,7 @@ frontend.command("mainsail").description("Restore the default mainsail nginx con
   }
   if (existsSync3("/etc/nginx/sites-enabled/mainsail")) {
     return rerender(
-      /* @__PURE__ */ import_react28.default.createElement(
+      /* @__PURE__ */ import_react29.default.createElement(
         FluiddInstallerUI,
         {
           warnings,
@@ -84550,12 +86227,13 @@ frontend.command("mainsail").description("Restore the default mainsail nginx con
     );
   }
   rerender(
-    /* @__PURE__ */ import_react28.default.createElement(
+    /* @__PURE__ */ import_react29.default.createElement(
       FluiddInstallerUI,
       {
         warnings,
         errors,
         status: "Restoring mainsail..",
+        isLoading: true,
         stepText: "Restoring previous mainsail configuration..."
       }
     )
@@ -84565,21 +86243,20 @@ frontend.command("mainsail").description("Restore the default mainsail nginx con
     await $$`sudo rm /etc/nginx/sites-enabled/fluidd`;
   }
   const nginxValidation = await $$`sudo nginx -t`;
-  if (nginxValidation.stderr) {
-    console.log("wtf", nginxValidation.stderr);
-    getLogger().error(
-      { stderr: nginxValidation.stderr, stdout: nginxValidation.stdout },
-      "nginx validation failed during fluidd installation"
-    );
-  }
   if (nginxValidation.exitCode !== 0) {
+    if (nginxValidation.stderr.trim() != "") {
+      getLogger().error(
+        { stderr: nginxValidation.stderr, stdout: nginxValidation.stdout },
+        "nginx validation failed during fluidd installation"
+      );
+    }
     errors = errors.slice();
     warnings = warnings.slice();
     errors.push("Error: nginx validation failed");
     errors.push(nginxValidation.stderr);
     warnings.push(nginxValidation.stdout);
     rerender(
-      /* @__PURE__ */ import_react28.default.createElement(
+      /* @__PURE__ */ import_react29.default.createElement(
         FluiddInstallerUI,
         {
           warnings,
@@ -84594,7 +86271,7 @@ frontend.command("mainsail").description("Restore the default mainsail nginx con
     await $$`sudo rm /etc/nginx/sites-enabled/mainsail`;
     await $$`sudo systemctl reload nginx`;
     rerender(
-      /* @__PURE__ */ import_react28.default.createElement(
+      /* @__PURE__ */ import_react29.default.createElement(
         FluiddInstallerUI,
         {
           warnings,
@@ -84609,19 +86286,20 @@ frontend.command("mainsail").description("Restore the default mainsail nginx con
     return;
   }
   rerender(
-    /* @__PURE__ */ import_react28.default.createElement(
+    /* @__PURE__ */ import_react29.default.createElement(
       FluiddInstallerUI,
       {
         warnings,
         errors,
-        status: "Installing Fluidd...",
+        status: "Restoring mainsail...",
+        isLoading: true,
         stepText: "Reloading nginx"
       }
     )
   );
   await $$`sudo systemctl reload nginx`;
   rerender(
-    /* @__PURE__ */ import_react28.default.createElement(
+    /* @__PURE__ */ import_react29.default.createElement(
       FluiddInstallerUI,
       {
         warnings,
@@ -84651,9 +86329,6 @@ log.command("tail").option("-f, --follow", "Follow the log").option("-n, --lines
 log.command("rotate").description("force rotate the RatOS configurator log").action(async () => {
   const log2 = "/etc/logrotate.d/ratos-configurator";
   $`logrotate -f ${log2}`;
-});
-log.command("test").action(async () => {
-  getLogger().info("test");
 });
 await program2.parseAsync();
 /*! Bundled license information:

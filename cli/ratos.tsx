@@ -14,6 +14,7 @@ import { serverSchema } from '@/env/schema.mjs';
 import dotenv from 'dotenv';
 import { existsSync, writeFileSync } from 'fs';
 import { getLogger } from '@/cli/logger.js';
+import Spinner from 'ink-spinner';
 
 function renderError(str: string, options: { exitCode: number } = { exitCode: 1 }) {
 	render(
@@ -455,6 +456,7 @@ const FluiddInstallerUI: React.FC<{
 	stepTextColor?: TextProps['color'];
 	warnings?: string[];
 	errors?: string[];
+	isLoading?: boolean;
 }> = (props) => {
 	return (
 		<Container>
@@ -475,8 +477,15 @@ const FluiddInstallerUI: React.FC<{
 					</Text>
 				))}
 				{props.stepText && (
-					<Text color={props.stepTextColor ?? 'white'} dimColor={true} bold={false}>
-						{props.stepText}
+					<Text>
+						{props.isLoading && (
+							<Text color="green" dimColor={false}>
+								<Spinner type="dots" />{' '}
+							</Text>
+						)}
+						<Text color={props.stepTextColor ?? 'white'} dimColor={true} bold={false}>
+							{props.stepText}
+						</Text>
 					</Text>
 				)}
 			</Box>
@@ -496,6 +505,7 @@ frontend
 		const $$ = $({ quiet: true });
 		const envFile = existsSync('./.env.local') ? await readFile('.env.local') : await readFile('.env');
 		const environment = serverSchema.parse({ NODE_ENV: 'production', ...dotenv.parse(envFile) });
+		const moonrakerConfig = environment.KLIPPER_CONFIG_PATH + '/moonraker.conf';
 		let { rerender } = render(<FluiddInstallerUI status="Installing fluidd.." />);
 		if (!existsSync('/etc/nginx/sites-available/mainsail')) {
 			if (existsSync('/etc/nginx/sites-available/mainsail.bak') && existsSync('/etc/nginx/sites-enabled/fluidd')) {
@@ -526,6 +536,7 @@ frontend
 						warnings={warnings}
 						errors={errors}
 						status="Installing Fluidd..."
+						isLoading={true}
 						stepText="Downloading latest RatOS Fluidd release"
 					/>,
 				);
@@ -535,6 +546,7 @@ frontend
 						warnings={warnings}
 						errors={errors}
 						status="Installing Fluidd..."
+						isLoading={true}
 						stepText="Extracting fluidd.zip"
 					/>,
 				);
@@ -549,6 +561,7 @@ frontend
 						warnings={warnings}
 						errors={errors}
 						status="Installing Fluidd..."
+						isLoading={true}
 						stepText="Cloning RatOS fluidd theme"
 					/>,
 				);
@@ -558,37 +571,40 @@ frontend
 						warnings={warnings}
 						errors={errors}
 						status="Installing Fluidd..."
+						isLoading={true}
 						stepText="Extracting fluidd.zip"
 					/>,
 				);
 			} else {
 				warnings.push('Fluidd theme already exists, git cloning has been skipped.');
 			}
-			if ((await $$`grep -q "${FLUIDD_SECTION}"`).exitCode !== 0) {
+			if ((await $$`grep -q "${FLUIDD_SECTION}" ${moonrakerConfig}`).exitCode !== 0) {
 				rerender(
 					<FluiddInstallerUI
 						warnings={warnings}
 						errors={errors}
 						status="Installing Fluidd..."
+						isLoading={true}
 						stepText="Adding moonraker entry for RatOS Fluidd fork"
 					/>,
 				);
 				const fluiddUpdateSection = `\n"${FLUIDD_SECTION}"\ntype: web\nrepo: Rat-OS/fluidd\npath: ~/fluidd\n`;
-				writeFileSync(environment.KLIPPER_CONFIG_PATH + '/moonraker.conf', fluiddUpdateSection, { flag: 'a' });
+				writeFileSync(moonrakerConfig, fluiddUpdateSection, { flag: 'a' });
 			} else {
 				warnings.push('Fluidd update manager entry already exists, skipping moonraker configuration.');
 			}
-			if ((await $$`grep -q "${THEME_SECTION}"`).exitCode !== 0) {
+			if ((await $$`grep -q "${THEME_SECTION}" ${moonrakerConfig}`).exitCode !== 0) {
 				rerender(
 					<FluiddInstallerUI
 						warnings={warnings}
 						errors={errors}
 						status="Installing Fluidd..."
+						isLoading={true}
 						stepText="Adding moonraker entry for RatOS Fluidd theme"
 					/>,
 				);
 				const fluiddThemeUpdateSection = `\n${THEME_SECTION}\ntype: git_repo\npath: ~/fluidd\nprimary_branch: main\norigin: https://github.com/Rat-OS/fluidd-theme\nis_system_service: false\n`;
-				writeFileSync(environment.KLIPPER_CONFIG_PATH + '/moonraker.conf', fluiddThemeUpdateSection, { flag: 'a' });
+				writeFileSync(moonrakerConfig, fluiddThemeUpdateSection, { flag: 'a' });
 			} else {
 				warnings.push('Fluidd theme update manager entry already exists, skipping moonraker configuration.');
 			}
@@ -597,6 +613,7 @@ frontend
 					warnings={warnings}
 					errors={errors}
 					status="Installing Fluidd..."
+					isLoading={true}
 					stepText="Backing up mainsail configuration"
 				/>,
 			);
@@ -607,6 +624,7 @@ frontend
 					warnings={warnings}
 					errors={errors}
 					status="Installing Fluidd..."
+					isLoading={true}
 					stepText="Updating nginx configuration"
 				/>,
 			);
@@ -619,6 +637,7 @@ frontend
 					warnings={warnings}
 					errors={errors}
 					status="Installing Fluidd..."
+					isLoading={true}
 					stepText="Validating nginx config"
 				/>,
 			);
@@ -628,8 +647,6 @@ frontend
 					{ stderr: nginxValidation.stderr, stdout: nginxValidation.stdout },
 					'nginx validation failed during fluidd installation',
 				);
-			}
-			if (nginxValidation.exitCode !== 0) {
 				errors.push('Error: nginx validation failed');
 				warnings.push(nginxValidation.stderr);
 				warnings.push(nginxValidation.stdout);
@@ -662,6 +679,7 @@ frontend
 					warnings={warnings}
 					errors={errors}
 					status="Installing Fluidd..."
+					isLoading={true}
 					stepText="Reloading nginx"
 				/>,
 			);
@@ -710,6 +728,7 @@ frontend
 				warnings={warnings}
 				errors={errors}
 				status="Restoring mainsail.."
+				isLoading={true}
 				stepText="Restoring previous mainsail configuration..."
 			/>,
 		);
@@ -718,15 +737,14 @@ frontend
 			await $$`sudo rm /etc/nginx/sites-enabled/fluidd`;
 		}
 		const nginxValidation = await $$`sudo nginx -t`;
-		if (nginxValidation.stderr) {
-			// eslint-disable-next-line no-console
-			console.log('wtf', nginxValidation.stderr);
-			getLogger().error(
-				{ stderr: nginxValidation.stderr, stdout: nginxValidation.stdout },
-				'nginx validation failed during fluidd installation',
-			);
-		}
 		if (nginxValidation.exitCode !== 0) {
+			if (nginxValidation.stderr.trim() != '') {
+				// eslint-disable-next-line no-console
+				getLogger().error(
+					{ stderr: nginxValidation.stderr, stdout: nginxValidation.stdout },
+					'nginx validation failed during fluidd installation',
+				);
+			}
 			errors = errors.slice();
 			warnings = warnings.slice();
 			errors.push('Error: nginx validation failed');
@@ -760,7 +778,8 @@ frontend
 			<FluiddInstallerUI
 				warnings={warnings}
 				errors={errors}
-				status="Installing Fluidd..."
+				status="Restoring mainsail..."
+				isLoading={true}
 				stepText="Reloading nginx"
 			/>,
 		);
@@ -805,9 +824,5 @@ log
 		const log = '/etc/logrotate.d/ratos-configurator';
 		$`logrotate -f ${log}`;
 	});
-
-log.command('test').action(async () => {
-	getLogger().info('test');
-});
 
 await program.parseAsync();
