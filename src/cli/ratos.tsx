@@ -607,7 +607,7 @@ frontend
 			} else {
 				warnings.push('Fluidd theme already exists, git cloning has been skipped.');
 			}
-			if ((await $$`grep "\\[update_manager Fluidd\\]" ${moonrakerConfig}`).exitCode !== 0) {
+			if ((await $$`grep "\\[update_manager Fluidd\\]" ${moonrakerConfig}`.exitCode) !== 0) {
 				rerender(
 					<FluiddInstallerUI
 						cmdSignal={cmdSignal}
@@ -623,7 +623,7 @@ frontend
 			} else {
 				warnings.push('Fluidd update manager entry already exists, skipping moonraker configuration.');
 			}
-			if ((await $$`grep "\\[update_manager FluiddTheme\\]" ${moonrakerConfig}`).exitCode !== 0) {
+			if ((await $$`grep "\\[update_manager FluiddTheme\\]" ${moonrakerConfig}`.exitCode) !== 0) {
 				rerender(
 					<FluiddInstallerUI
 						cmdSignal={cmdSignal}
@@ -675,7 +675,7 @@ frontend
 					stepText="Validating nginx config"
 				/>,
 			);
-			const nginxValidation = await $$`sudo nginx -t`;
+			const nginxValidation = await $$({ nothrow: true })`sudo nginx -t`;
 			if (nginxValidation.exitCode !== 0) {
 				getLogger().error(
 					{ stderr: nginxValidation.stderr, stdout: nginxValidation.stdout },
@@ -754,7 +754,7 @@ frontend
 		const { rerender } = render(
 			<FluiddInstallerUI cmdSignal={cmdSignal} warnings={warnings} errors={errors} status="Restoring mainsail.." />,
 		);
-		const hostname = (await $$`tr -d " \t\n\r" < /etc/hostname`).stdout;
+		const hostname = (await $$`tr -d " \t\n\r" < /etc/hostname`).text();
 		if (!existsSync('/etc/nginx/sites-available/mainsail')) {
 			return renderError('Mainsail configuration file not found', { exitCode: 2 });
 		}
@@ -787,7 +787,7 @@ frontend
 		if (existsSync('/etc/nginx/sites-enabled/fluidd')) {
 			await $$`sudo rm /etc/nginx/sites-enabled/fluidd`;
 		}
-		const nginxValidation = await $$`sudo nginx -t`;
+		const nginxValidation = await $$({ nothrow: true })`sudo nginx -t`;
 		if (nginxValidation.exitCode !== 0) {
 			if (nginxValidation.stderr.trim() != '') {
 				// eslint-disable-next-line no-console
