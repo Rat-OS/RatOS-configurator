@@ -519,7 +519,7 @@ const frontend = program.command('frontend').description('Switch between klipper
 const THEME_SECTION = `[update_manager FluiddTheme]`;
 const FLUIDD_SECTION = `[update_manager Fluidd]`;
 const escapeForGrep = (str: string) => {
-	return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\&');
+	return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 };
 
 frontend
@@ -607,7 +607,7 @@ frontend
 			} else {
 				warnings.push('Fluidd theme already exists, git cloning has been skipped.');
 			}
-			if ((await $$`grep "${FLUIDD_SECTION}" ${moonrakerConfig}`).exitCode !== 0) {
+			if ((await $$`grep ${FLUIDD_SECTION} ${moonrakerConfig}`).exitCode !== 0) {
 				rerender(
 					<FluiddInstallerUI
 						cmdSignal={cmdSignal}
@@ -623,7 +623,7 @@ frontend
 			} else {
 				warnings.push('Fluidd update manager entry already exists, skipping moonraker configuration.');
 			}
-			if ((await $$`grep "${THEME_SECTION}" ${moonrakerConfig}`).exitCode !== 0) {
+			if ((await $$`grep ${THEME_SECTION} ${moonrakerConfig}`).exitCode !== 0) {
 				rerender(
 					<FluiddInstallerUI
 						cmdSignal={cmdSignal}

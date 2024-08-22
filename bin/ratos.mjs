@@ -86229,7 +86229,7 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
     } else {
       warnings.push("Fluidd theme already exists, git cloning has been skipped.");
     }
-    if ((await $$`grep "${FLUIDD_SECTION}" ${moonrakerConfig}`).exitCode !== 0) {
+    if ((await $$`grep ${FLUIDD_SECTION} ${moonrakerConfig}`).exitCode !== 0) {
       rerender(
         /* @__PURE__ */ import_react30.default.createElement(
           FluiddInstallerUI,
@@ -86253,7 +86253,7 @@ path: ~/fluidd
     } else {
       warnings.push("Fluidd update manager entry already exists, skipping moonraker configuration.");
     }
-    if ((await $$`grep "${THEME_SECTION}" ${moonrakerConfig}`).exitCode !== 0) {
+    if ((await $$`grep ${THEME_SECTION} ${moonrakerConfig}`).exitCode !== 0) {
       rerender(
         /* @__PURE__ */ import_react30.default.createElement(
           FluiddInstallerUI,
