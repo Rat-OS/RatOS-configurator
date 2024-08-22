@@ -86232,7 +86232,7 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
     } else {
       warnings.push("Fluidd theme already exists, git cloning has been skipped.");
     }
-    if ((await $$`grep "\\[update_manager Fluidd\\]" ${moonrakerConfig}`).exitCode !== 0) {
+    if (await $$`grep "\\[update_manager Fluidd\\]" ${moonrakerConfig}`.exitCode !== 0) {
       rerender(
         /* @__PURE__ */ import_react30.default.createElement(
           FluiddInstallerUI,
@@ -86256,7 +86256,7 @@ path: ~/fluidd
     } else {
       warnings.push("Fluidd update manager entry already exists, skipping moonraker configuration.");
     }
-    if ((await $$`grep "\\[update_manager FluiddTheme\\]" ${moonrakerConfig}`).exitCode !== 0) {
+    if (await $$`grep "\\[update_manager FluiddTheme\\]" ${moonrakerConfig}`.exitCode !== 0) {
       rerender(
         /* @__PURE__ */ import_react30.default.createElement(
           FluiddInstallerUI,
@@ -86327,7 +86327,7 @@ is_system_service: false
         }
       )
     );
-    const nginxValidation = await $$`sudo nginx -t`;
+    const nginxValidation = await $$({ nothrow: true })`sudo nginx -t`;
     if (nginxValidation.exitCode !== 0) {
       getLogger().error(
         { stderr: nginxValidation.stderr, stdout: nginxValidation.stdout },
@@ -86414,7 +86414,7 @@ frontend.command("mainsail").description("Restore the default mainsail nginx con
   const { rerender } = render_default(
     /* @__PURE__ */ import_react30.default.createElement(FluiddInstallerUI, { cmdSignal, warnings, errors, status: "Restoring mainsail.." })
   );
-  const hostname = (await $$`tr -d " \t\n\r" < /etc/hostname`).stdout;
+  const hostname = (await $$`tr -d " \t\n\r" < /etc/hostname`).text();
   if (!existsSync3("/etc/nginx/sites-available/mainsail")) {
     return renderError("Mainsail configuration file not found", { exitCode: 2 });
   }
@@ -86453,7 +86453,7 @@ frontend.command("mainsail").description("Restore the default mainsail nginx con
   if (existsSync3("/etc/nginx/sites-enabled/fluidd")) {
     await $$`sudo rm /etc/nginx/sites-enabled/fluidd`;
   }
-  const nginxValidation = await $$`sudo nginx -t`;
+  const nginxValidation = await $$({ nothrow: true })`sudo nginx -t`;
   if (nginxValidation.exitCode !== 0) {
     if (nginxValidation.stderr.trim() != "") {
       getLogger().error(
