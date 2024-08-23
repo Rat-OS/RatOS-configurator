@@ -86187,7 +86187,7 @@ frontend.command("fluidd-experimental").addArgument(
   const moonrakerConfig = environment.KLIPPER_CONFIG_PATH + "/moonraker.conf";
   let moonrakerConfigContents = await readFile(moonrakerConfig, "utf-8");
   let { rerender } = render_default(/* @__PURE__ */ import_react30.default.createElement(InstallProgressUI, { status: "Installing fluidd..", cmdSignal, steps }));
-  if (!existsSync3("/etc/nginx/sites-available/mainsail") || !existsSync3("/etc/nginx/sites-available/mainsail.bak") && !existsSync3("/etc/nginx/sites-enabled/fluidd")) {
+  if (!existsSync3("/etc/nginx/sites-available/mainsail")) {
     rerender(
       /* @__PURE__ */ import_react30.default.createElement(
         InstallProgressUI,
@@ -86354,7 +86354,7 @@ is_system_service: false
 `;
     moonrakerConfigContents += fluiddThemeUpdateSection;
     steps.push({ name: "New Fluidd Theme update manager entry added", status: "success" });
-    if (!existsSync3("/etc/nginx/sites-enabled/fluidd")) {
+    if (!existsSync3("/etc/nginx/sites-available/fluidd")) {
       rerender(
         /* @__PURE__ */ import_react30.default.createElement(
           InstallProgressUI,
@@ -86365,13 +86365,18 @@ is_system_service: false
             errors,
             status: "Installing Fluidd...",
             isLoading: true,
-            stepText: "Backing up mainsail configuration"
+            stepText: "Creating nginx fluidd configuration"
           }
         )
       );
-      const fluidConfigFile = `/tmp/fluidd`;
+      if (existsSync3("/etc/nginx/sites-enabled/fluidd")) {
+        await $$`sudo rm /etc/nginx/sites-enabled/fluidd`;
+        steps.push({ name: "Old nginx fluidd configuration removed", status: "success" });
+      }
+      const fluidConfigFile = `/etc/nginx/sites-available/fluidd`;
       await $$`sudo cp /etc/nginx/sites-available/mainsail ${fluidConfigFile}`;
-      steps.push({ name: "Mainsail configuration backup created", status: "success" });
+      await $$`sudo sed -i -e 's/mainsail/fluidd/g' ${fluidConfigFile}`;
+      steps.push({ name: "Nginx fluidd configuration created", status: "success" });
       rerender(
         /* @__PURE__ */ import_react30.default.createElement(
           InstallProgressUI,
@@ -86386,9 +86391,7 @@ is_system_service: false
           }
         )
       );
-      await $$`sudo sed -i -e 's/mainsail/fluidd/g' ${fluidConfigFile}`;
-      await $$`sudo mv ${fluidConfigFile} /etc/nginx/sites-available/fluidd`;
-      await $$`sudo ln -s /etc/nginx/sites-available/fluidd /etc/nginx/sites-enabled/fluidd`;
+      await $$`sudo ln -s ${fluidConfigFile} /etc/nginx/sites-enabled/fluidd`;
       await $$`sudo rm /etc/nginx/sites-enabled/mainsail`;
       steps.push({ name: "Nginx configuration updated", status: "success" });
     }
