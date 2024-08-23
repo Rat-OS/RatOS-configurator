@@ -85858,7 +85858,7 @@ var findSection = (section, content) => {
     }, {});
     matches.push({ header, body, properties, start: match.index, end: regex2.lastIndex, content: match[0] });
   }
-  if (!match) {
+  if (matches.length === 0) {
     return null;
   }
   return matches;
