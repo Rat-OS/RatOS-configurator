@@ -479,32 +479,34 @@ const InstallProgressUI: React.FC<{
 	return (
 		<Container>
 			<Box flexDirection="column" rowGap={0}>
-				<Text color={props.statusColor ?? 'white'} dimColor={false} bold={true}>
-					{['red', 'redBright'].includes(props.statusColor ?? 'white') ? (
-						<Text bold={true}>✘{'  '}</Text>
-					) : ['green', 'greenBright'].includes(props.statusColor ?? 'white') ? (
-						<Text bold={true}>✓ {'  '}</Text>
-					) : (
-						'   '
-					)}
-					{props.status}
-				</Text>
-				{props.stepText && props.stepTextBeforeSteps && (
-					<Text>
-						{props.isLoading ? (
-							<Text color="green" dimColor={false}>
-								<Spinner type="dots" />
-								{'  '}
-							</Text>
+				<Box marginBottom={1}>
+					<Text color={props.statusColor ?? 'white'} dimColor={false} bold={true}>
+						{['red', 'redBright'].includes(props.statusColor ?? 'white') ? (
+							<Text bold={true}>✘{'  '}</Text>
+						) : ['green', 'greenBright'].includes(props.statusColor ?? 'white') ? (
+							<Text bold={true}>✓{'  '}</Text>
 						) : (
 							'   '
 						)}
-						<Text color={props.stepTextColor ?? 'gray'} dimColor={false} bold={false}>
-							{props.stepText}
-						</Text>
+						{props.status}
 					</Text>
-				)}
-				<Static items={props.warnings ?? []} style={{ marginTop: 1 }}>
+					{props.stepText && props.stepTextBeforeSteps && (
+						<Text>
+							{props.isLoading ? (
+								<Text color="green" dimColor={false}>
+									<Spinner type="dots" />
+									{'  '}
+								</Text>
+							) : (
+								'   '
+							)}
+							<Text color={props.stepTextColor ?? 'gray'} dimColor={false} bold={false}>
+								{props.stepText}
+							</Text>
+						</Text>
+					)}
+				</Box>
+				<Static items={props.warnings ?? []}>
 					{(warning) => (
 						<Text color="yellow" dimColor={true} key={warning} bold={false}>
 							{'   '}
@@ -1111,6 +1113,7 @@ frontend
 					errors={errors}
 					status="Restoring mainsail failed."
 					statusColor="red"
+					stepTextBeforeSteps={true}
 					stepText={`Restoring mainsail failed, previous fluidd configuration has been restored. For debugging, download the debug zip at http://${hostname}.local/configure/api/debug-zip`}
 					stepTextColor="white"
 				/>,
@@ -1139,6 +1142,7 @@ frontend
 				errors={errors}
 				status="Mainsail restored!"
 				statusColor="greenBright"
+				stepTextBeforeSteps={true}
 				stepText={`Mainsail is now available at http://${hostname}.local/`}
 				stepTextColor="white"
 			/>,
