@@ -461,6 +461,7 @@ const InstallProgressUI: React.FC<{
 	cmdSignal: Signal<string | null>;
 	status: string;
 	statusColor?: TextProps['color'];
+	stepTextBeforeSteps?: boolean;
 	stepText?: string;
 	stepTextColor?: TextProps['color'];
 	warnings?: string[];
@@ -479,13 +480,34 @@ const InstallProgressUI: React.FC<{
 		<Container>
 			<Box flexDirection="column" rowGap={0}>
 				<Text color={props.statusColor ?? 'white'} dimColor={false} bold={true}>
-					{['red', 'redBright'].includes(props.statusColor ?? 'white') && <Text bold={true}>✘ </Text>}
-					{['green', 'greenBright'].includes(props.statusColor ?? 'white') && <Text bold={true}>✓ </Text>}
+					{['red', 'redBright'].includes(props.statusColor ?? 'white') ? (
+						<Text bold={true}>✘{'  '}</Text>
+					) : ['green', 'greenBright'].includes(props.statusColor ?? 'white') ? (
+						<Text bold={true}>✓ {'  '}</Text>
+					) : (
+						'   '
+					)}
 					{props.status}
 				</Text>
-				<Static items={props.warnings ?? []}>
+				{props.stepText && props.stepTextBeforeSteps && (
+					<Text>
+						{props.isLoading ? (
+							<Text color="green" dimColor={false}>
+								<Spinner type="dots" />
+								{'  '}
+							</Text>
+						) : (
+							'   '
+						)}
+						<Text color={props.stepTextColor ?? 'gray'} dimColor={false} bold={false}>
+							{props.stepText}
+						</Text>
+					</Text>
+				)}
+				<Static items={props.warnings ?? []} style={{ marginTop: 1 }}>
 					{(warning) => (
 						<Text color="yellow" dimColor={true} key={warning} bold={false}>
+							{'   '}
 							{warning}
 						</Text>
 					)}
@@ -493,6 +515,7 @@ const InstallProgressUI: React.FC<{
 				<Static items={props.errors ?? []}>
 					{(error) => (
 						<Text color="red" dimColor={true} key={error} bold={false}>
+							{'   '}
 							{error}
 						</Text>
 					)}
@@ -502,27 +525,28 @@ const InstallProgressUI: React.FC<{
 						<Text key={step.name}>
 							{step.status === 'running' && (
 								<Text bold={true}>
-									<Spinner type="dots" />{' '}
+									<Spinner type="dots" />
+									{'  '}
 								</Text>
 							)}
 							{step.status === 'success' && (
 								<Text bold={true} color="green">
-									✓{' '}
+									✓{'  '}
 								</Text>
 							)}
 							{step.status === 'error' && (
 								<Text bold={true} color="red">
-									✘{' '}
+									✘{'  '}
 								</Text>
 							)}
 							{step.status === 'warning' && (
 								<Text bold={true} color="yellow">
-									⚠{' '}
+									⚠{'  '}
 								</Text>
 							)}
 							{step.status === 'pending' && (
 								<Text bold={true} color="gray">
-									•{' '}
+									•{'  '}
 								</Text>
 							)}
 							<Text color="gray" bold={false}>
@@ -530,12 +554,15 @@ const InstallProgressUI: React.FC<{
 							</Text>
 						</Text>
 					))}
-				{props.stepText && (
+				{props.stepText && !props.stepTextBeforeSteps && (
 					<Text>
-						{props.isLoading && (
+						{props.isLoading ? (
 							<Text color="green" dimColor={false}>
-								<Spinner type="dots" />{' '}
+								<Spinner type="dots" />
+								{'  '}
 							</Text>
+						) : (
+							'   '
 						)}
 						<Text color={props.stepTextColor ?? 'gray'} dimColor={false} bold={false}>
 							{props.stepText}
@@ -607,6 +634,7 @@ frontend
 					status="Fluidd installation failed"
 					statusColor="red"
 					stepText="Stock mainsail configuration file not found"
+					stepTextBeforeSteps={true}
 					stepTextColor="white"
 				/>,
 			);
@@ -744,37 +772,39 @@ frontend
 			steps.push({ name: 'New Fluidd Theme update manager entry added', status: 'success' });
 
 			// Handle nginx configuration
-			rerender(
-				<InstallProgressUI
-					cmdSignal={cmdSignal}
-					steps={steps}
-					warnings={warnings}
-					errors={errors}
-					status="Installing Fluidd..."
-					isLoading={true}
-					stepText="Backing up mainsail configuration"
-				/>,
-			);
-			const fluidConfigFile = `/tmp/fluidd`;
-			await $$`sudo cp /etc/nginx/sites-available/mainsail ${fluidConfigFile}`;
-			steps.push({ name: 'Mainsail configuration backup created', status: 'success' });
+			if (!existsSync('/etc/nginx/sites-enabled/fluidd')) {
+				rerender(
+					<InstallProgressUI
+						cmdSignal={cmdSignal}
+						steps={steps}
+						warnings={warnings}
+						errors={errors}
+						status="Installing Fluidd..."
+						isLoading={true}
+						stepText="Backing up mainsail configuration"
+					/>,
+				);
+				const fluidConfigFile = `/tmp/fluidd`;
+				await $$`sudo cp /etc/nginx/sites-available/mainsail ${fluidConfigFile}`;
+				steps.push({ name: 'Mainsail configuration backup created', status: 'success' });
 
-			rerender(
-				<InstallProgressUI
-					cmdSignal={cmdSignal}
-					steps={steps}
-					warnings={warnings}
-					errors={errors}
-					status="Installing Fluidd..."
-					isLoading={true}
-					stepText="Updating nginx configuration"
-				/>,
-			);
-			await $$`sudo sed -i -e 's/mainsail/fluidd/g' ${fluidConfigFile}`;
-			await $$`sudo mv ${fluidConfigFile} /etc/nginx/sites-available/fluidd`;
-			await $$`sudo ln -s /etc/nginx/sites-available/fluidd /etc/nginx/sites-enabled/fluidd`;
-			await $$`sudo rm /etc/nginx/sites-enabled/mainsail`;
-			steps.push({ name: 'Nginx configuration updated', status: 'success' });
+				rerender(
+					<InstallProgressUI
+						cmdSignal={cmdSignal}
+						steps={steps}
+						warnings={warnings}
+						errors={errors}
+						status="Installing Fluidd..."
+						isLoading={true}
+						stepText="Updating nginx configuration"
+					/>,
+				);
+				await $$`sudo sed -i -e 's/mainsail/fluidd/g' ${fluidConfigFile}`;
+				await $$`sudo mv ${fluidConfigFile} /etc/nginx/sites-available/fluidd`;
+				await $$`sudo ln -s /etc/nginx/sites-available/fluidd /etc/nginx/sites-enabled/fluidd`;
+				await $$`sudo rm /etc/nginx/sites-enabled/mainsail`;
+				steps.push({ name: 'Nginx configuration updated', status: 'success' });
+			}
 
 			rerender(
 				<InstallProgressUI
@@ -827,6 +857,7 @@ frontend
 						statusColor="red"
 						stepText={`Fluidd installation failed, previous mainsail configuration has been restored. For debugging, download the debug zip at http://${hostname}.local/configure/api/debug-zip`}
 						stepTextColor="white"
+						stepTextBeforeSteps={true}
 					/>,
 				);
 				// Return so we don't write the moonraker config.
@@ -877,6 +908,7 @@ frontend
 				/>,
 			);
 			await $$`sudo systemctl restart moonraker`;
+			cmdSignal(null);
 			steps.push({ name: 'Moonraker restarted', status: 'success' });
 
 			// Success!
@@ -890,6 +922,7 @@ frontend
 					statusColor="greenBright"
 					stepTextColor="white"
 					stepText={`Fluidd is now available at http://${hostname}.local/`}
+					stepTextBeforeSteps={true}
 				/>,
 			);
 		}
@@ -971,6 +1004,38 @@ frontend
 			const mainsailUpdateSection = `\n[update_manager mainsail]\nchannel: ${channel}`;
 			moonrakerConfigContents += mainsailUpdateSection;
 			steps.push({ name: `Mainsail update manager override added (channel: ${channel})`, status: 'success' });
+
+			// Write moonraker configuration
+			cmdSignal(null);
+			rerender(
+				<InstallProgressUI
+					cmdSignal={cmdSignal}
+					steps={steps}
+					warnings={warnings}
+					errors={errors}
+					status="Installing Fluidd..."
+					isLoading={true}
+					stepText="Writing moonraker configuration.."
+				/>,
+			);
+			await writeFile(moonrakerConfig, moonrakerConfigContents);
+			cmdSignal(null);
+			steps.push({ name: 'Moonraker configuration written to disk', status: 'success' });
+			// Restart moonraker
+			rerender(
+				<InstallProgressUI
+					cmdSignal={cmdSignal}
+					steps={steps}
+					warnings={warnings}
+					errors={errors}
+					status="Installing Fluidd..."
+					isLoading={true}
+					stepText={`Restarting moonraker`}
+				/>,
+			);
+			await $$`sudo systemctl restart moonraker`;
+			cmdSignal(null);
+			steps.push({ name: 'Moonraker restarted', status: 'success' });
 		}
 		if (existsSync('/etc/nginx/sites-enabled/mainsail')) {
 			cmdSignal(null);
@@ -1003,6 +1068,7 @@ frontend
 		steps.push({ name: 'Restored mainsail configuration', status: 'success' });
 		if (existsSync('/etc/nginx/sites-enabled/fluidd')) {
 			await $$`sudo rm /etc/nginx/sites-enabled/fluidd`;
+			cmdSignal(null);
 			steps.push({ name: 'Disabled fluidd configuration', status: 'success' });
 		}
 		const nginxValidation = await $$({ nothrow: true })`sudo nginx -t`;
@@ -1035,8 +1101,8 @@ frontend
 			await $$`sudo ln -s /etc/nginx/sites-available/fluidd /etc/nginx/sites-enabled/fluidd`;
 			await $$`sudo rm /etc/nginx/sites-enabled/mainsail`;
 			await $$`sudo systemctl reload nginx`;
-			steps.push({ name: 'Restored previous fluidd configuration', status: 'success' });
 			cmdSignal(null);
+			steps.push({ name: 'Restored previous fluidd configuration', status: 'success' });
 			rerender(
 				<InstallProgressUI
 					cmdSignal={cmdSignal}
