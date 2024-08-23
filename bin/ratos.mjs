@@ -76885,7 +76885,7 @@ var proxyClient = createTRPCProxyClient({
 
 // ratos.tsx
 var import_react30 = __toESM(require_react(), 1);
-import { realpath, stat, readFile } from "fs/promises";
+import { realpath, stat, readFile, writeFile } from "fs/promises";
 import path5 from "path";
 
 // ../node_modules/.pnpm/ink@5.0.0_@types+react@18.2.21_react-devtools-core@4.19.1_react@18.2.0/node_modules/ink/build/index.js
@@ -85630,7 +85630,7 @@ var clientEnv = {
 
 // ratos.tsx
 var import_dotenv2 = __toESM(require_main(), 1);
-import { existsSync as existsSync3, writeFileSync } from "fs";
+import { existsSync as existsSync3 } from "fs";
 
 // logger.ts
 init_cjs_shim();
@@ -85834,6 +85834,35 @@ function formatCmd(cmd) {
   }
   return out + "\n";
 }
+
+// ../server/helpers/config-parsing.ts
+init_cjs_shim();
+var findSection = (section, content) => {
+  const regex2 = new RegExp(`(?<header>\\[${section}\\])\\n(?<body>(?:^(?:\\S| )+$(\\n?))+)`, "gm");
+  let match = null;
+  const matches = [];
+  while ((match = regex2.exec(content)) != null) {
+    const header = match.groups?.header;
+    const body = match.groups?.body;
+    if (header == null || body == null) {
+      continue;
+    }
+    const properties = body.split("\n").reduce((acc, line) => {
+      if (line.trim() === "") {
+        return acc;
+      }
+      const [property, ...valueFragments] = line.split(":");
+      const value = valueFragments.join(":").trim();
+      acc[property] = value;
+      return acc;
+    }, {});
+    matches.push({ header, body, properties, start: match.index, end: regex2.lastIndex, content: match[0] });
+  }
+  if (!match) {
+    return null;
+  }
+  return matches;
+};
 
 // ratos.tsx
 function renderError(str, options = { exitCode: 1 }) {
@@ -86128,14 +86157,16 @@ var InstallProgressUI = (props) => {
       setCurrentCmd(cmd);
     }, [])
   );
-  return /* @__PURE__ */ import_react30.default.createElement(Container, null, /* @__PURE__ */ import_react30.default.createElement(Box_default, { flexDirection: "column", rowGap: 0 }, /* @__PURE__ */ import_react30.default.createElement(Text, { color: props.statusColor ?? "white", dimColor: false, bold: true }, ["red", "redBright"].includes(props.statusColor ?? "white") && /* @__PURE__ */ import_react30.default.createElement(Text, { bold: true }, "\u2718 "), ["green", "greenBright"].includes(props.statusColor ?? "white") && /* @__PURE__ */ import_react30.default.createElement(Text, { bold: true }, "\u2713 "), props.status), /* @__PURE__ */ import_react30.default.createElement(Static, { items: props.warnings ?? [] }, (warning) => /* @__PURE__ */ import_react30.default.createElement(Text, { color: "yellow", dimColor: true, key: warning, bold: false }, warning)), /* @__PURE__ */ import_react30.default.createElement(Static, { items: props.errors ?? [] }, (error) => /* @__PURE__ */ import_react30.default.createElement(Text, { color: "red", dimColor: true, key: error, bold: false }, error)), props.stepText && /* @__PURE__ */ import_react30.default.createElement(Text, null, props.isLoading && /* @__PURE__ */ import_react30.default.createElement(Text, { color: "green", dimColor: false }, /* @__PURE__ */ import_react30.default.createElement(build_default, { type: "dots" }), " "), /* @__PURE__ */ import_react30.default.createElement(Text, { color: props.stepTextColor ?? "grey", dimColor: false, bold: false }, props.stepText))), currentCmd && /* @__PURE__ */ import_react30.default.createElement(Box_default, { marginTop: 1 }, /* @__PURE__ */ import_react30.default.createElement(Text, { color: "white" }, "Running command: ", /* @__PURE__ */ import_react30.default.createElement(Transform, { transform: formatCmd }, currentCmd))));
+  return /* @__PURE__ */ import_react30.default.createElement(Container, null, /* @__PURE__ */ import_react30.default.createElement(Box_default, { flexDirection: "column", rowGap: 0 }, /* @__PURE__ */ import_react30.default.createElement(Box_default, { marginBottom: 1 }, /* @__PURE__ */ import_react30.default.createElement(Text, { color: props.statusColor ?? "white", dimColor: false, bold: true }, ["red", "redBright"].includes(props.statusColor ?? "white") ? /* @__PURE__ */ import_react30.default.createElement(Text, { bold: true }, "\u2718", "  ") : ["green", "greenBright"].includes(props.statusColor ?? "white") ? /* @__PURE__ */ import_react30.default.createElement(Text, { bold: true }, "\u2713", "  ") : "   ", props.status), props.stepText && props.stepTextBeforeSteps && /* @__PURE__ */ import_react30.default.createElement(Text, null, props.isLoading ? /* @__PURE__ */ import_react30.default.createElement(Text, { color: "green", dimColor: false }, /* @__PURE__ */ import_react30.default.createElement(build_default, { type: "dots" }), "  ") : "   ", /* @__PURE__ */ import_react30.default.createElement(Text, { color: props.stepTextColor ?? "gray", dimColor: false, bold: false }, props.stepText))), /* @__PURE__ */ import_react30.default.createElement(Static, { items: props.warnings ?? [] }, (warning) => /* @__PURE__ */ import_react30.default.createElement(Text, { color: "yellow", dimColor: true, key: warning, bold: false }, "   ", warning)), /* @__PURE__ */ import_react30.default.createElement(Static, { items: props.errors ?? [] }, (error) => /* @__PURE__ */ import_react30.default.createElement(Text, { color: "red", dimColor: true, key: error, bold: false }, "   ", error)), props.steps && props.steps.map((step) => /* @__PURE__ */ import_react30.default.createElement(Text, { key: step.name }, step.status === "running" && /* @__PURE__ */ import_react30.default.createElement(Text, { bold: true }, /* @__PURE__ */ import_react30.default.createElement(build_default, { type: "dots" }), "  "), step.status === "success" && /* @__PURE__ */ import_react30.default.createElement(Text, { bold: true, color: "green" }, "\u2713", "  "), step.status === "error" && /* @__PURE__ */ import_react30.default.createElement(Text, { bold: true, color: "red" }, "\u2718", "  "), step.status === "warning" && /* @__PURE__ */ import_react30.default.createElement(Text, { bold: true, color: "yellow" }, "\u26A0", "  "), step.status === "pending" && /* @__PURE__ */ import_react30.default.createElement(Text, { bold: true, color: "gray" }, "\u2022", "  "), /* @__PURE__ */ import_react30.default.createElement(Text, { color: "gray", bold: false }, step.name))), props.stepText && !props.stepTextBeforeSteps && /* @__PURE__ */ import_react30.default.createElement(Text, null, props.isLoading ? /* @__PURE__ */ import_react30.default.createElement(Text, { color: "green", dimColor: false }, /* @__PURE__ */ import_react30.default.createElement(build_default, { type: "dots" }), "  ") : "   ", /* @__PURE__ */ import_react30.default.createElement(Text, { color: props.stepTextColor ?? "gray", dimColor: false, bold: false }, props.stepText))), currentCmd && /* @__PURE__ */ import_react30.default.createElement(Box_default, { marginTop: 1 }, /* @__PURE__ */ import_react30.default.createElement(Text, { color: "white" }, "Running command: ", /* @__PURE__ */ import_react30.default.createElement(Transform, { transform: formatCmd }, currentCmd))));
 };
 var frontend = program2.command("frontend").description("Switch between klipper frontend UIs");
 var ensureSudo = async () => {
   echo("Checking for sudo permissions. If you're prompted for a password, please enter it.");
   await $({ verbose: false, quiet: false })`sudo echo "Sudo permissions acquired"`;
 };
-frontend.command("fluidd-experimental").description("Replaces Mainsail with the RatOS development fork of Fluidd").action(async () => {
+frontend.command("fluidd-experimental").addArgument(
+  new Argument("[channel]", "Release channel to use for updates through moonraker").default("stable").choices(["stable", "beta"])
+).option("-N, --nightly", "Use pre-releases instead of stable releases").description("Use experimental RatOS fork of Fluidd").action(async (channel) => {
   await ensureSudo();
   const cmdSignal = createSignal();
   const $$ = $({
@@ -86149,44 +86180,36 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
   });
   const envFile2 = existsSync3("./.env.local") ? await readFile(".env.local") : await readFile(".env");
   const environment = serverSchema.parse({ NODE_ENV: "production", ...import_dotenv2.default.parse(envFile2) });
+  const hostname = (await $$`tr -d " \t\n\r" < /etc/hostname`).text();
+  const warnings = [];
+  const errors = [];
+  const steps = [];
   const moonrakerConfig = environment.KLIPPER_CONFIG_PATH + "/moonraker.conf";
-  let { rerender } = render_default(/* @__PURE__ */ import_react30.default.createElement(InstallProgressUI, { status: "Installing fluidd..", cmdSignal }));
-  if (!existsSync3("/etc/nginx/sites-available/mainsail")) {
-    if (existsSync3("/etc/nginx/sites-available/mainsail.bak") && existsSync3("/etc/nginx/sites-enabled/fluidd")) {
-      rerender(
-        /* @__PURE__ */ import_react30.default.createElement(
-          InstallProgressUI,
-          {
-            cmdSignal,
-            status: "Fluidd already installed",
-            statusColor: "greenBright",
-            stepText: "Fluidd is already installed, nothing to do. To restore mainsail, run `ratos frontend mainsail`"
-          }
-        )
-      );
-    } else {
-      rerender(
-        /* @__PURE__ */ import_react30.default.createElement(
-          InstallProgressUI,
-          {
-            cmdSignal,
-            status: "Fluidd installation failed",
-            statusColor: "red",
-            stepText: "Stock mainsail configuration file not found"
-          }
-        )
-      );
-    }
+  let moonrakerConfigContents = await readFile(moonrakerConfig, "utf-8");
+  let { rerender } = render_default(/* @__PURE__ */ import_react30.default.createElement(InstallProgressUI, { status: "Installing fluidd..", cmdSignal, steps }));
+  if (!existsSync3("/etc/nginx/sites-available/mainsail") || !existsSync3("/etc/nginx/sites-available/mainsail.bak") && !existsSync3("/etc/nginx/sites-enabled/fluidd")) {
+    rerender(
+      /* @__PURE__ */ import_react30.default.createElement(
+        InstallProgressUI,
+        {
+          cmdSignal,
+          steps,
+          status: "Fluidd installation failed",
+          statusColor: "red",
+          stepText: "Stock mainsail configuration file not found",
+          stepTextBeforeSteps: true,
+          stepTextColor: "white"
+        }
+      )
+    );
   } else {
-    const hostname = (await $$`tr -d " \t\n\r" < /etc/hostname`).text();
-    const warnings = [];
-    const errors = [];
     if (!existsSync3(`/home/${environment.USER}/fluidd`)) {
       rerender(
         /* @__PURE__ */ import_react30.default.createElement(
           InstallProgressUI,
           {
             cmdSignal,
+            steps,
             warnings,
             errors,
             status: "Installing Fluidd...",
@@ -86196,11 +86219,13 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
         )
       );
       await $$`wget https://github.com/Rat-OS/fluidd/releases/latest/download/fluidd.zip -O /tmp/fluidd.zip`;
+      steps.push({ name: "Download RatOS Fluidd", status: "success" });
       rerender(
         /* @__PURE__ */ import_react30.default.createElement(
           InstallProgressUI,
           {
             cmdSignal,
+            steps,
             warnings,
             errors,
             status: "Installing Fluidd...",
@@ -86211,8 +86236,12 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
       );
       await $$`unzip /tmp/fluidd.zip -d /home/${environment.USER}/fluidd`;
       await $$`rm /tmp/fluidd.zip`;
+      steps.push({ name: "Extract RatOS Fluidd", status: "success" });
     } else {
-      warnings.push("Fluidd directory already exists, download and extraction has been skipped.");
+      steps.push({
+        name: "Fluidd is already installed, download and extraction has been skipped.",
+        status: "warning"
+      });
     }
     if (!existsSync3(`/home/${environment.USER}/printer_data/config/.fluidd-theme`)) {
       rerender(
@@ -86220,6 +86249,7 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
           InstallProgressUI,
           {
             cmdSignal,
+            steps,
             warnings,
             errors,
             status: "Installing Fluidd...",
@@ -86229,48 +86259,92 @@ frontend.command("fluidd-experimental").description("Replaces Mainsail with the 
         )
       );
       await $$`git clone https://github.com/Rat-OS/fluidd-theme /home/${environment.USER}/printer_data/config/.fluidd-theme`;
+      steps.push({ name: "Clone RatOS fluidd theme", status: "success" });
     } else {
-      warnings.push("Fluidd theme already exists, git cloning has been skipped.");
+      steps.push({
+        name: "RatOS fluidd theme is already installed, git cloning has been skipped.",
+        status: "warning"
+      });
     }
-    if (await $$`grep "\\[update_manager Fluidd\\]" ${moonrakerConfig}`.exitCode !== 0) {
+    const fluiddSection = findSection("update_manager Fluidd", moonrakerConfigContents);
+    if (fluiddSection != null) {
       rerender(
         /* @__PURE__ */ import_react30.default.createElement(
           InstallProgressUI,
           {
             cmdSignal,
+            steps,
             warnings,
             errors,
             status: "Installing Fluidd...",
             isLoading: true,
-            stepText: "Adding moonraker entry for RatOS Fluidd fork"
+            stepText: "Removing existing Fluidd update manager entries"
           }
         )
       );
-      const fluiddUpdateSection = `
+      fluiddSection.forEach((section) => {
+        moonrakerConfigContents = moonrakerConfigContents.slice(0, section.start) + moonrakerConfigContents.slice(section.end);
+      });
+      steps.push({ name: "Existing Fluidd update manager entries removed", status: "warning" });
+    }
+    rerender(
+      /* @__PURE__ */ import_react30.default.createElement(
+        InstallProgressUI,
+        {
+          cmdSignal,
+          steps,
+          warnings,
+          errors,
+          status: "Installing Fluidd...",
+          isLoading: true,
+          stepText: "Adding moonraker entry for RatOS Fluidd fork"
+        }
+      )
+    );
+    const fluiddUpdateSection = `
 [update_manager Fluidd]
 type: web
 repo: Rat-OS/fluidd
 path: ~/fluidd
-`;
-      writeFileSync(moonrakerConfig, fluiddUpdateSection, { flag: "a" });
-    } else {
-      warnings.push("Fluidd update manager entry already exists, skipping moonraker configuration.");
-    }
-    if (await $$`grep "\\[update_manager FluiddTheme\\]" ${moonrakerConfig}`.exitCode !== 0) {
+${channel === "beta" ? "channel: beta\n" : "channel: stable"}`;
+    moonrakerConfigContents += fluiddUpdateSection;
+    steps.push({ name: `New Fluidd update manager entry added (channel: ${channel})`, status: "success" });
+    const fluiddThemeSection = findSection("update_manager FluiddTheme", moonrakerConfigContents);
+    if (fluiddThemeSection != null) {
       rerender(
         /* @__PURE__ */ import_react30.default.createElement(
           InstallProgressUI,
           {
             cmdSignal,
+            steps,
             warnings,
             errors,
             status: "Installing Fluidd...",
             isLoading: true,
-            stepText: "Adding moonraker entry for RatOS Fluidd theme"
+            stepText: "Removing existing Fluidd Theme update manager entries"
           }
         )
       );
-      const fluiddThemeUpdateSection = `
+      fluiddThemeSection.forEach((section) => {
+        moonrakerConfigContents = moonrakerConfigContents.slice(0, section.start) + moonrakerConfigContents.slice(section.end);
+      });
+      steps.push({ name: "Existing Fluidd Theme update manager entries removed", status: "warning" });
+    }
+    rerender(
+      /* @__PURE__ */ import_react30.default.createElement(
+        InstallProgressUI,
+        {
+          cmdSignal,
+          steps,
+          warnings,
+          errors,
+          status: "Installing Fluidd...",
+          isLoading: true,
+          stepText: "Adding moonraker entry for RatOS Fluidd theme"
+        }
+      )
+    );
+    const fluiddThemeUpdateSection = `
 [update_manager FluiddTheme]
 type: git_repo
 path: ~/printer_data/config/.fluidd-theme
@@ -86278,47 +86352,52 @@ primary_branch: main
 origin: https://github.com/Rat-OS/fluidd-theme
 is_system_service: false
 `;
-      writeFileSync(moonrakerConfig, fluiddThemeUpdateSection, { flag: "a" });
-    } else {
-      warnings.push("Fluidd theme update manager entry already exists, skipping moonraker configuration.");
+    moonrakerConfigContents += fluiddThemeUpdateSection;
+    steps.push({ name: "New Fluidd Theme update manager entry added", status: "success" });
+    if (!existsSync3("/etc/nginx/sites-enabled/fluidd")) {
+      rerender(
+        /* @__PURE__ */ import_react30.default.createElement(
+          InstallProgressUI,
+          {
+            cmdSignal,
+            steps,
+            warnings,
+            errors,
+            status: "Installing Fluidd...",
+            isLoading: true,
+            stepText: "Backing up mainsail configuration"
+          }
+        )
+      );
+      const fluidConfigFile = `/tmp/fluidd`;
+      await $$`sudo cp /etc/nginx/sites-available/mainsail ${fluidConfigFile}`;
+      steps.push({ name: "Mainsail configuration backup created", status: "success" });
+      rerender(
+        /* @__PURE__ */ import_react30.default.createElement(
+          InstallProgressUI,
+          {
+            cmdSignal,
+            steps,
+            warnings,
+            errors,
+            status: "Installing Fluidd...",
+            isLoading: true,
+            stepText: "Updating nginx configuration"
+          }
+        )
+      );
+      await $$`sudo sed -i -e 's/mainsail/fluidd/g' ${fluidConfigFile}`;
+      await $$`sudo mv ${fluidConfigFile} /etc/nginx/sites-available/fluidd`;
+      await $$`sudo ln -s /etc/nginx/sites-available/fluidd /etc/nginx/sites-enabled/fluidd`;
+      await $$`sudo rm /etc/nginx/sites-enabled/mainsail`;
+      steps.push({ name: "Nginx configuration updated", status: "success" });
     }
     rerender(
       /* @__PURE__ */ import_react30.default.createElement(
         InstallProgressUI,
         {
           cmdSignal,
-          warnings,
-          errors,
-          status: "Installing Fluidd...",
-          isLoading: true,
-          stepText: "Backing up mainsail configuration"
-        }
-      )
-    );
-    const fluidConfigFile = `/tmp/fluidd`;
-    await $$`sudo cp /etc/nginx/sites-available/mainsail ${fluidConfigFile}`;
-    rerender(
-      /* @__PURE__ */ import_react30.default.createElement(
-        InstallProgressUI,
-        {
-          cmdSignal,
-          warnings,
-          errors,
-          status: "Installing Fluidd...",
-          isLoading: true,
-          stepText: "Updating nginx configuration"
-        }
-      )
-    );
-    await $$`sudo sed -i -e 's/mainsail/fluidd/g' ${fluidConfigFile}`;
-    await $$`sudo mv ${fluidConfigFile} /etc/nginx/sites-available/fluidd`;
-    await $$`sudo ln -s /etc/nginx/sites-available/fluidd /etc/nginx/sites-enabled/fluidd`;
-    await $$`sudo rm /etc/nginx/sites-enabled/mainsail`;
-    rerender(
-      /* @__PURE__ */ import_react30.default.createElement(
-        InstallProgressUI,
-        {
-          cmdSignal,
+          steps,
           warnings,
           errors,
           status: "Installing Fluidd...",
@@ -86333,14 +86412,19 @@ is_system_service: false
         { stderr: nginxValidation.stderr, stdout: nginxValidation.stdout },
         "nginx validation failed during fluidd installation"
       );
-      errors.push("Error: nginx validation failed");
-      warnings.push(nginxValidation.stderr);
-      warnings.push(nginxValidation.stdout);
+      steps.push({ name: "Nginx validation failed.", status: "error" });
+      if (nginxValidation.stderr.trim() != "") {
+        warnings.push(nginxValidation.stderr);
+      }
+      if (nginxValidation.stdout.trim() != "") {
+        warnings.push(nginxValidation.stdout);
+      }
       rerender(
         /* @__PURE__ */ import_react30.default.createElement(
           InstallProgressUI,
           {
             cmdSignal,
+            steps,
             warnings,
             errors,
             status: "Fluidd installation failed.",
@@ -86352,18 +86436,21 @@ is_system_service: false
       await $$`sudo ln -s /etc/nginx/sites-available/mainsail /etc/nginx/sites-enabled/mainsail`;
       await $$`sudo rm /etc/nginx/sites-enabled/fluidd`;
       await $$`sudo systemctl reload nginx`;
+      steps.push({ name: "Restored previous mainsail configuration", status: "success" });
       cmdSignal(null);
       rerender(
         /* @__PURE__ */ import_react30.default.createElement(
           InstallProgressUI,
           {
             cmdSignal,
+            steps,
             warnings,
             errors,
             status: "Fluidd installation failed.",
             statusColor: "red",
             stepText: `Fluidd installation failed, previous mainsail configuration has been restored. For debugging, download the debug zip at http://${hostname}.local/configure/api/debug-zip`,
-            stepTextColor: "white"
+            stepTextColor: "white",
+            stepTextBeforeSteps: true
           }
         )
       );
@@ -86374,6 +86461,7 @@ is_system_service: false
         InstallProgressUI,
         {
           cmdSignal,
+          steps,
           warnings,
           errors,
           status: "Installing Fluidd...",
@@ -86383,24 +86471,62 @@ is_system_service: false
       )
     );
     await $$`sudo systemctl reload nginx`;
+    steps.push({ name: "Nginx reloaded", status: "success" });
     cmdSignal(null);
     rerender(
       /* @__PURE__ */ import_react30.default.createElement(
         InstallProgressUI,
         {
           cmdSignal,
+          steps,
+          warnings,
+          errors,
+          status: "Installing Fluidd...",
+          isLoading: true,
+          stepText: "Writing moonraker configuration.."
+        }
+      )
+    );
+    await writeFile(moonrakerConfig, moonrakerConfigContents);
+    steps.push({ name: "Moonraker configuration written to disk", status: "success" });
+    rerender(
+      /* @__PURE__ */ import_react30.default.createElement(
+        InstallProgressUI,
+        {
+          cmdSignal,
+          steps,
+          warnings,
+          errors,
+          status: "Installing Fluidd...",
+          isLoading: true,
+          stepText: `Restarting moonraker`
+        }
+      )
+    );
+    await $$`sudo systemctl restart moonraker`;
+    cmdSignal(null);
+    steps.push({ name: "Moonraker restarted", status: "success" });
+    rerender(
+      /* @__PURE__ */ import_react30.default.createElement(
+        InstallProgressUI,
+        {
+          cmdSignal,
+          steps,
           warnings,
           errors,
           status: "Fluidd installed successfully!",
           statusColor: "greenBright",
           stepTextColor: "white",
-          stepText: `Fluidd is now available at http://${hostname}.local/`
+          stepText: `Fluidd is now available at http://${hostname}.local/`,
+          stepTextBeforeSteps: true
         }
       )
     );
   }
 });
-frontend.command("mainsail").description("Restore the default mainsail nginx configuration").action(async () => {
+frontend.command("mainsail").addArgument(
+  new Argument("[channel]", "Release channel to use for updates through moonraker").default("stable").choices(["stable", "beta"])
+).description("Use official mainsail").action(async (channel) => {
   await ensureSudo();
   const cmdSignal = createSignal();
   const $$ = $({
@@ -86411,12 +86537,102 @@ frontend.command("mainsail").description("Restore the default mainsail nginx con
   });
   let warnings = [];
   let errors = [];
-  const { rerender } = render_default(
-    /* @__PURE__ */ import_react30.default.createElement(InstallProgressUI, { cmdSignal, warnings, errors, status: "Restoring mainsail.." })
-  );
+  const steps = [];
+  const envFile2 = existsSync3("./.env.local") ? await readFile(".env.local") : await readFile(".env");
+  const environment = serverSchema.parse({ NODE_ENV: "production", ...import_dotenv2.default.parse(envFile2) });
+  const moonrakerConfig = environment.KLIPPER_CONFIG_PATH + "/moonraker.conf";
+  let moonrakerConfigContents = await readFile(moonrakerConfig, "utf-8");
+  const mainsailOverrideSection = findSection("update_manager mainsail", moonrakerConfigContents);
   const hostname = (await $$`tr -d " \t\n\r" < /etc/hostname`).text();
   if (!existsSync3("/etc/nginx/sites-available/mainsail")) {
     return renderError("Mainsail configuration file not found", { exitCode: 2 });
+  }
+  const { rerender } = render_default(
+    /* @__PURE__ */ import_react30.default.createElement(
+      InstallProgressUI,
+      {
+        cmdSignal,
+        steps,
+        warnings,
+        errors,
+        status: "Switching to mainsail.."
+      }
+    )
+  );
+  if (mainsailOverrideSection != null && mainsailOverrideSection[0].properties.channel !== channel) {
+    rerender(
+      /* @__PURE__ */ import_react30.default.createElement(
+        InstallProgressUI,
+        {
+          cmdSignal,
+          steps,
+          warnings,
+          errors,
+          status: "Installing Mainsail...",
+          isLoading: true,
+          stepText: "Removing existing mainsail update manager entries"
+        }
+      )
+    );
+    mainsailOverrideSection.forEach((section) => {
+      moonrakerConfigContents = moonrakerConfigContents.slice(0, section.start) + moonrakerConfigContents.slice(section.end);
+    });
+    steps.push({ name: `Switched mainsail update manager to use ${channel} releases`, status: "warning" });
+  } else if (mainsailOverrideSection == null && channel !== "stable") {
+    rerender(
+      /* @__PURE__ */ import_react30.default.createElement(
+        InstallProgressUI,
+        {
+          cmdSignal,
+          steps,
+          warnings,
+          errors,
+          status: "Installing Mainsail...",
+          isLoading: true,
+          stepText: "Adding moonraker entry for mainsail"
+        }
+      )
+    );
+    const mainsailUpdateSection = `
+[update_manager mainsail]
+channel: ${channel}`;
+    moonrakerConfigContents += mainsailUpdateSection;
+    steps.push({ name: `Mainsail update manager override added (channel: ${channel})`, status: "success" });
+    cmdSignal(null);
+    rerender(
+      /* @__PURE__ */ import_react30.default.createElement(
+        InstallProgressUI,
+        {
+          cmdSignal,
+          steps,
+          warnings,
+          errors,
+          status: "Installing Fluidd...",
+          isLoading: true,
+          stepText: "Writing moonraker configuration.."
+        }
+      )
+    );
+    await writeFile(moonrakerConfig, moonrakerConfigContents);
+    cmdSignal(null);
+    steps.push({ name: "Moonraker configuration written to disk", status: "success" });
+    rerender(
+      /* @__PURE__ */ import_react30.default.createElement(
+        InstallProgressUI,
+        {
+          cmdSignal,
+          steps,
+          warnings,
+          errors,
+          status: "Installing Fluidd...",
+          isLoading: true,
+          stepText: `Restarting moonraker`
+        }
+      )
+    );
+    await $$`sudo systemctl restart moonraker`;
+    cmdSignal(null);
+    steps.push({ name: "Moonraker restarted", status: "success" });
   }
   if (existsSync3("/etc/nginx/sites-enabled/mainsail")) {
     cmdSignal(null);
@@ -86425,11 +86641,12 @@ frontend.command("mainsail").description("Restore the default mainsail nginx con
         InstallProgressUI,
         {
           cmdSignal,
+          steps,
           warnings,
           errors,
-          status: "Mainsail is already configured",
+          status: "Mainsail is enabled!",
           statusColor: "greenBright",
-          stepText: `Mainsail is already available at http://${hostname}.local/. Nothing to do.`,
+          stepText: `Mainsail is available at http://${hostname}.local/.`,
           stepTextColor: "white"
         }
       )
@@ -86441,6 +86658,7 @@ frontend.command("mainsail").description("Restore the default mainsail nginx con
       InstallProgressUI,
       {
         cmdSignal,
+        steps,
         warnings,
         errors,
         status: "Restoring mainsail..",
@@ -86450,8 +86668,11 @@ frontend.command("mainsail").description("Restore the default mainsail nginx con
     )
   );
   await $$`sudo ln -s /etc/nginx/sites-available/mainsail /etc/nginx/sites-enabled/mainsail`;
+  steps.push({ name: "Restored mainsail configuration", status: "success" });
   if (existsSync3("/etc/nginx/sites-enabled/fluidd")) {
     await $$`sudo rm /etc/nginx/sites-enabled/fluidd`;
+    cmdSignal(null);
+    steps.push({ name: "Disabled fluidd configuration", status: "success" });
   }
   const nginxValidation = await $$({ nothrow: true })`sudo nginx -t`;
   if (nginxValidation.exitCode !== 0) {
@@ -86461,16 +86682,19 @@ frontend.command("mainsail").description("Restore the default mainsail nginx con
         "nginx validation failed during fluidd installation"
       );
     }
-    errors = errors.slice();
-    warnings = warnings.slice();
-    errors.push("Error: nginx validation failed");
-    errors.push(nginxValidation.stderr);
-    warnings.push(nginxValidation.stdout);
+    steps.push({ name: "Nginx validation failed.", status: "error" });
+    if (nginxValidation.stderr.trim() != "") {
+      warnings.push(nginxValidation.stderr);
+    }
+    if (nginxValidation.stdout.trim() != "") {
+      warnings.push(nginxValidation.stdout);
+    }
     rerender(
       /* @__PURE__ */ import_react30.default.createElement(
         InstallProgressUI,
         {
           cmdSignal,
+          steps,
           warnings,
           errors,
           status: "Restoring mainsail failed.",
@@ -86483,15 +86707,18 @@ frontend.command("mainsail").description("Restore the default mainsail nginx con
     await $$`sudo rm /etc/nginx/sites-enabled/mainsail`;
     await $$`sudo systemctl reload nginx`;
     cmdSignal(null);
+    steps.push({ name: "Restored previous fluidd configuration", status: "success" });
     rerender(
       /* @__PURE__ */ import_react30.default.createElement(
         InstallProgressUI,
         {
           cmdSignal,
+          steps,
           warnings,
           errors,
           status: "Restoring mainsail failed.",
           statusColor: "red",
+          stepTextBeforeSteps: true,
           stepText: `Restoring mainsail failed, previous fluidd configuration has been restored. For debugging, download the debug zip at http://${hostname}.local/configure/api/debug-zip`,
           stepTextColor: "white"
         }
@@ -86504,6 +86731,7 @@ frontend.command("mainsail").description("Restore the default mainsail nginx con
       InstallProgressUI,
       {
         cmdSignal,
+        steps,
         warnings,
         errors,
         status: "Restoring mainsail...",
@@ -86513,16 +86741,19 @@ frontend.command("mainsail").description("Restore the default mainsail nginx con
     )
   );
   await $$`sudo systemctl reload nginx`;
+  steps.push({ name: "Nginx reloaded", status: "success" });
   cmdSignal(null);
   rerender(
     /* @__PURE__ */ import_react30.default.createElement(
       InstallProgressUI,
       {
         cmdSignal,
+        steps,
         warnings,
         errors,
         status: "Mainsail restored!",
         statusColor: "greenBright",
+        stepTextBeforeSteps: true,
         stepText: `Mainsail is now available at http://${hostname}.local/`,
         stepTextColor: "white"
       }
