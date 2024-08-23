@@ -589,6 +589,8 @@ const ensureSudo = async () => {
 	echo("Checking for sudo permissions. If you're prompted for a password, please enter it.");
 	await $({ verbose: false, quiet: false })`sudo echo "Sudo permissions acquired"`;
 };
+const fluidConfigFile = `/etc/nginx/sites-available/fluidd`;
+const mainsailConfigFile = `/etc/nginx/sites-available/mainsail`;
 
 frontend
 	.command('fluidd-experimental')
@@ -624,7 +626,7 @@ frontend
 		let moonrakerConfigContents = await readFile(moonrakerConfig, 'utf-8');
 
 		let { rerender } = render(<InstallProgressUI status="Installing fluidd.." cmdSignal={cmdSignal} steps={steps} />);
-		if (!existsSync('/etc/nginx/sites-available/mainsail')) {
+		if (!existsSync(mainsailConfigFile)) {
 			rerender(
 				<InstallProgressUI
 					cmdSignal={cmdSignal}
@@ -710,8 +712,9 @@ frontend
 					/>,
 				);
 				fluiddSection.forEach((section) => {
+					// section.start - 1 to get the /n before the section
 					moonrakerConfigContents =
-						moonrakerConfigContents.slice(0, section.start + 1) + moonrakerConfigContents.slice(section.end);
+						moonrakerConfigContents.slice(0, section.start - 1) + moonrakerConfigContents.slice(section.end);
 				});
 				steps.push({ name: 'Existing Fluidd update manager entries removed', status: 'warning' });
 			}
@@ -748,8 +751,9 @@ frontend
 					/>,
 				);
 				fluiddThemeSection.forEach((section) => {
+					// section.start - 1 to get the /n before the section
 					moonrakerConfigContents =
-						moonrakerConfigContents.slice(0, section.start + 1) + moonrakerConfigContents.slice(section.end);
+						moonrakerConfigContents.slice(0, section.start - 1) + moonrakerConfigContents.slice(section.end);
 				});
 				steps.push({ name: 'Existing Fluidd Theme update manager entries removed', status: 'warning' });
 			}
@@ -786,26 +790,27 @@ frontend
 					await $$`sudo rm /etc/nginx/sites-enabled/fluidd`;
 					steps.push({ name: 'Old nginx fluidd configuration removed', status: 'success' });
 				}
-				const fluidConfigFile = `/etc/nginx/sites-available/fluidd`;
-				await $$`sudo cp /etc/nginx/sites-available/mainsail ${fluidConfigFile}`;
+				await $$`sudo cp ${mainsailConfigFile} ${fluidConfigFile}`;
 				await $$`sudo sed -i -e 's/mainsail/fluidd/g' ${fluidConfigFile}`;
 				steps.push({ name: 'Nginx fluidd configuration created', status: 'success' });
-
-				rerender(
-					<InstallProgressUI
-						cmdSignal={cmdSignal}
-						steps={steps}
-						warnings={warnings}
-						errors={errors}
-						status="Installing Fluidd..."
-						isLoading={true}
-						stepText="Updating nginx configuration"
-					/>,
-				);
-				await $$`sudo ln -s ${fluidConfigFile} /etc/nginx/sites-enabled/fluidd`;
-				await $$`sudo rm /etc/nginx/sites-enabled/mainsail`;
-				steps.push({ name: 'Nginx configuration updated', status: 'success' });
 			}
+
+			rerender(
+				<InstallProgressUI
+					cmdSignal={cmdSignal}
+					steps={steps}
+					warnings={warnings}
+					errors={errors}
+					status="Installing Fluidd..."
+					isLoading={true}
+					stepText="Updating nginx configuration"
+				/>,
+			);
+			await $$`sudo ln -s ${fluidConfigFile} /etc/nginx/sites-enabled/fluidd`;
+			if (existsSync('/etc/nginx/sites-enabled/mainsail')) {
+				await $$`sudo rm /etc/nginx/sites-enabled/mainsail`;
+			}
+			steps.push({ name: 'Nginx configuration updated', status: 'success' });
 
 			rerender(
 				<InstallProgressUI
@@ -843,7 +848,7 @@ frontend
 						stepText="Restoring previous mainsail configuration..."
 					/>,
 				);
-				await $$`sudo ln -s /etc/nginx/sites-available/mainsail /etc/nginx/sites-enabled/mainsail`;
+				await $$`sudo ln -s ${mainsailConfigFile} /etc/nginx/sites-enabled/mainsail`;
 				await $$`sudo rm /etc/nginx/sites-enabled/fluidd`;
 				await $$`sudo systemctl reload nginx`;
 				steps.push({ name: 'Restored previous mainsail configuration', status: 'success' });
@@ -957,7 +962,7 @@ frontend
 		const mainsailOverrideSection = findSection('update_manager mainsail', moonrakerConfigContents);
 
 		const hostname = (await $$`tr -d " \t\n\r" < /etc/hostname`).text();
-		if (!existsSync('/etc/nginx/sites-available/mainsail')) {
+		if (!existsSync(mainsailConfigFile)) {
 			return renderError('Mainsail configuration file not found', { exitCode: 2 });
 		}
 
@@ -1065,7 +1070,7 @@ frontend
 				stepText="Restoring previous mainsail configuration..."
 			/>,
 		);
-		await $$`sudo ln -s /etc/nginx/sites-available/mainsail /etc/nginx/sites-enabled/mainsail`;
+		await $$`sudo ln -s ${mainsailConfigFile} /etc/nginx/sites-enabled/mainsail`;
 		steps.push({ name: 'Restored mainsail configuration', status: 'success' });
 		if (existsSync('/etc/nginx/sites-enabled/fluidd')) {
 			await $$`sudo rm /etc/nginx/sites-enabled/fluidd`;
@@ -1099,7 +1104,7 @@ frontend
 					stepText="Restoring previous fluidd configuration..."
 				/>,
 			);
-			await $$`sudo ln -s /etc/nginx/sites-available/fluidd /etc/nginx/sites-enabled/fluidd`;
+			await $$`sudo ln -s ${fluidConfigFile} /etc/nginx/sites-enabled/fluidd`;
 			await $$`sudo rm /etc/nginx/sites-enabled/mainsail`;
 			await $$`sudo systemctl reload nginx`;
 			cmdSignal(null);
