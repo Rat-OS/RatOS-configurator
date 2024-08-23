@@ -479,7 +479,7 @@ const InstallProgressUI: React.FC<{
 	return (
 		<Container>
 			<Box flexDirection="column" rowGap={0}>
-				<Box marginBottom={1}>
+				<Box marginBottom={1} flexDirection="column">
 					<Text color={props.statusColor ?? 'white'} dimColor={false} bold={true}>
 						{['red', 'redBright'].includes(props.statusColor ?? 'white') ? (
 							<Text bold={true}>✘{'  '}</Text>
@@ -573,9 +573,9 @@ const InstallProgressUI: React.FC<{
 				)}
 			</Box>
 			{currentCmd && (
-				<Box marginTop={1}>
+				<Box marginTop={1} flexDirection="column">
 					<Text color="white">
-						Running command: <Transform transform={formatCmd}>{currentCmd}</Transform>
+						Running: <Transform transform={formatCmd}>{currentCmd}</Transform>
 					</Text>
 				</Box>
 			)}
@@ -597,7 +597,6 @@ frontend
 			.default('stable')
 			.choices(['stable', 'beta']),
 	)
-	.option('-N, --nightly', 'Use pre-releases instead of stable releases')
 	.description('Use experimental RatOS fork of Fluidd')
 	.action(async (channel) => {
 		await ensureSudo();
@@ -715,7 +714,7 @@ frontend
 				);
 				fluiddSection.forEach((section) => {
 					moonrakerConfigContents =
-						moonrakerConfigContents.slice(0, section.start) + moonrakerConfigContents.slice(section.end);
+						moonrakerConfigContents.slice(0, section.start + 1) + moonrakerConfigContents.slice(section.end);
 				});
 				steps.push({ name: 'Existing Fluidd update manager entries removed', status: 'warning' });
 			}
@@ -731,7 +730,7 @@ frontend
 					stepText="Adding moonraker entry for RatOS Fluidd fork"
 				/>,
 			);
-			const fluiddUpdateSection = `\n[update_manager Fluidd]\ntype: web\nrepo: Rat-OS/fluidd\npath: ~/fluidd\n${channel === 'beta' ? 'channel: beta\n' : 'channel: stable'}`;
+			const fluiddUpdateSection = `\n[update_manager Fluidd]\ntype: web\nrepo: Rat-OS/fluidd\npath: ~/fluidd\n${channel === 'beta' ? 'channel: beta\n' : 'channel: stable\n'}`;
 			moonrakerConfigContents += fluiddUpdateSection;
 			steps.push({ name: `New Fluidd update manager entry added (channel: ${channel})`, status: 'success' });
 
@@ -753,7 +752,7 @@ frontend
 				);
 				fluiddThemeSection.forEach((section) => {
 					moonrakerConfigContents =
-						moonrakerConfigContents.slice(0, section.start) + moonrakerConfigContents.slice(section.end);
+						moonrakerConfigContents.slice(0, section.start + 1) + moonrakerConfigContents.slice(section.end);
 				});
 				steps.push({ name: 'Existing Fluidd Theme update manager entries removed', status: 'warning' });
 			}
@@ -987,7 +986,7 @@ frontend
 			);
 			mainsailOverrideSection.forEach((section) => {
 				moonrakerConfigContents =
-					moonrakerConfigContents.slice(0, section.start) + moonrakerConfigContents.slice(section.end);
+					moonrakerConfigContents.slice(0, section.start + 1) + moonrakerConfigContents.slice(section.end);
 			});
 			steps.push({ name: `Switched mainsail update manager to use ${channel} releases`, status: 'warning' });
 		} else if (mainsailOverrideSection == null && channel !== 'stable') {

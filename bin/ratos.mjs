@@ -86157,7 +86157,7 @@ var InstallProgressUI = (props) => {
       setCurrentCmd(cmd);
     }, [])
   );
-  return /* @__PURE__ */ import_react30.default.createElement(Container, null, /* @__PURE__ */ import_react30.default.createElement(Box_default, { flexDirection: "column", rowGap: 0 }, /* @__PURE__ */ import_react30.default.createElement(Box_default, { marginBottom: 1 }, /* @__PURE__ */ import_react30.default.createElement(Text, { color: props.statusColor ?? "white", dimColor: false, bold: true }, ["red", "redBright"].includes(props.statusColor ?? "white") ? /* @__PURE__ */ import_react30.default.createElement(Text, { bold: true }, "\u2718", "  ") : ["green", "greenBright"].includes(props.statusColor ?? "white") ? /* @__PURE__ */ import_react30.default.createElement(Text, { bold: true }, "\u2713", "  ") : "   ", props.status), props.stepText && props.stepTextBeforeSteps && /* @__PURE__ */ import_react30.default.createElement(Text, null, props.isLoading ? /* @__PURE__ */ import_react30.default.createElement(Text, { color: "green", dimColor: false }, /* @__PURE__ */ import_react30.default.createElement(build_default, { type: "dots" }), "  ") : "   ", /* @__PURE__ */ import_react30.default.createElement(Text, { color: props.stepTextColor ?? "gray", dimColor: false, bold: false }, props.stepText))), /* @__PURE__ */ import_react30.default.createElement(Static, { items: props.warnings ?? [] }, (warning) => /* @__PURE__ */ import_react30.default.createElement(Text, { color: "yellow", dimColor: true, key: warning, bold: false }, "   ", warning)), /* @__PURE__ */ import_react30.default.createElement(Static, { items: props.errors ?? [] }, (error) => /* @__PURE__ */ import_react30.default.createElement(Text, { color: "red", dimColor: true, key: error, bold: false }, "   ", error)), props.steps && props.steps.map((step) => /* @__PURE__ */ import_react30.default.createElement(Text, { key: step.name }, step.status === "running" && /* @__PURE__ */ import_react30.default.createElement(Text, { bold: true }, /* @__PURE__ */ import_react30.default.createElement(build_default, { type: "dots" }), "  "), step.status === "success" && /* @__PURE__ */ import_react30.default.createElement(Text, { bold: true, color: "green" }, "\u2713", "  "), step.status === "error" && /* @__PURE__ */ import_react30.default.createElement(Text, { bold: true, color: "red" }, "\u2718", "  "), step.status === "warning" && /* @__PURE__ */ import_react30.default.createElement(Text, { bold: true, color: "yellow" }, "\u26A0", "  "), step.status === "pending" && /* @__PURE__ */ import_react30.default.createElement(Text, { bold: true, color: "gray" }, "\u2022", "  "), /* @__PURE__ */ import_react30.default.createElement(Text, { color: "gray", bold: false }, step.name))), props.stepText && !props.stepTextBeforeSteps && /* @__PURE__ */ import_react30.default.createElement(Text, null, props.isLoading ? /* @__PURE__ */ import_react30.default.createElement(Text, { color: "green", dimColor: false }, /* @__PURE__ */ import_react30.default.createElement(build_default, { type: "dots" }), "  ") : "   ", /* @__PURE__ */ import_react30.default.createElement(Text, { color: props.stepTextColor ?? "gray", dimColor: false, bold: false }, props.stepText))), currentCmd && /* @__PURE__ */ import_react30.default.createElement(Box_default, { marginTop: 1 }, /* @__PURE__ */ import_react30.default.createElement(Text, { color: "white" }, "Running command: ", /* @__PURE__ */ import_react30.default.createElement(Transform, { transform: formatCmd }, currentCmd))));
+  return /* @__PURE__ */ import_react30.default.createElement(Container, null, /* @__PURE__ */ import_react30.default.createElement(Box_default, { flexDirection: "column", rowGap: 0 }, /* @__PURE__ */ import_react30.default.createElement(Box_default, { marginBottom: 1, flexDirection: "column" }, /* @__PURE__ */ import_react30.default.createElement(Text, { color: props.statusColor ?? "white", dimColor: false, bold: true }, ["red", "redBright"].includes(props.statusColor ?? "white") ? /* @__PURE__ */ import_react30.default.createElement(Text, { bold: true }, "\u2718", "  ") : ["green", "greenBright"].includes(props.statusColor ?? "white") ? /* @__PURE__ */ import_react30.default.createElement(Text, { bold: true }, "\u2713", "  ") : "   ", props.status), props.stepText && props.stepTextBeforeSteps && /* @__PURE__ */ import_react30.default.createElement(Text, null, props.isLoading ? /* @__PURE__ */ import_react30.default.createElement(Text, { color: "green", dimColor: false }, /* @__PURE__ */ import_react30.default.createElement(build_default, { type: "dots" }), "  ") : "   ", /* @__PURE__ */ import_react30.default.createElement(Text, { color: props.stepTextColor ?? "gray", dimColor: false, bold: false }, props.stepText))), /* @__PURE__ */ import_react30.default.createElement(Static, { items: props.warnings ?? [] }, (warning) => /* @__PURE__ */ import_react30.default.createElement(Text, { color: "yellow", dimColor: true, key: warning, bold: false }, "   ", warning)), /* @__PURE__ */ import_react30.default.createElement(Static, { items: props.errors ?? [] }, (error) => /* @__PURE__ */ import_react30.default.createElement(Text, { color: "red", dimColor: true, key: error, bold: false }, "   ", error)), props.steps && props.steps.map((step) => /* @__PURE__ */ import_react30.default.createElement(Text, { key: step.name }, step.status === "running" && /* @__PURE__ */ import_react30.default.createElement(Text, { bold: true }, /* @__PURE__ */ import_react30.default.createElement(build_default, { type: "dots" }), "  "), step.status === "success" && /* @__PURE__ */ import_react30.default.createElement(Text, { bold: true, color: "green" }, "\u2713", "  "), step.status === "error" && /* @__PURE__ */ import_react30.default.createElement(Text, { bold: true, color: "red" }, "\u2718", "  "), step.status === "warning" && /* @__PURE__ */ import_react30.default.createElement(Text, { bold: true, color: "yellow" }, "\u26A0", "  "), step.status === "pending" && /* @__PURE__ */ import_react30.default.createElement(Text, { bold: true, color: "gray" }, "\u2022", "  "), /* @__PURE__ */ import_react30.default.createElement(Text, { color: "gray", bold: false }, step.name))), props.stepText && !props.stepTextBeforeSteps && /* @__PURE__ */ import_react30.default.createElement(Text, null, props.isLoading ? /* @__PURE__ */ import_react30.default.createElement(Text, { color: "green", dimColor: false }, /* @__PURE__ */ import_react30.default.createElement(build_default, { type: "dots" }), "  ") : "   ", /* @__PURE__ */ import_react30.default.createElement(Text, { color: props.stepTextColor ?? "gray", dimColor: false, bold: false }, props.stepText))), currentCmd && /* @__PURE__ */ import_react30.default.createElement(Box_default, { marginTop: 1, flexDirection: "column" }, /* @__PURE__ */ import_react30.default.createElement(Text, { color: "white" }, "Running: ", /* @__PURE__ */ import_react30.default.createElement(Transform, { transform: formatCmd }, currentCmd))));
 };
 var frontend = program2.command("frontend").description("Switch between klipper frontend UIs");
 var ensureSudo = async () => {
@@ -86166,7 +86166,7 @@ var ensureSudo = async () => {
 };
 frontend.command("fluidd-experimental").addArgument(
   new Argument("[channel]", "Release channel to use for updates through moonraker").default("stable").choices(["stable", "beta"])
-).option("-N, --nightly", "Use pre-releases instead of stable releases").description("Use experimental RatOS fork of Fluidd").action(async (channel) => {
+).description("Use experimental RatOS fork of Fluidd").action(async (channel) => {
   await ensureSudo();
   const cmdSignal = createSignal();
   const $$ = $({
@@ -86283,7 +86283,7 @@ frontend.command("fluidd-experimental").addArgument(
         )
       );
       fluiddSection.forEach((section) => {
-        moonrakerConfigContents = moonrakerConfigContents.slice(0, section.start) + moonrakerConfigContents.slice(section.end);
+        moonrakerConfigContents = moonrakerConfigContents.slice(0, section.start + 1) + moonrakerConfigContents.slice(section.end);
       });
       steps.push({ name: "Existing Fluidd update manager entries removed", status: "warning" });
     }
@@ -86306,7 +86306,7 @@ frontend.command("fluidd-experimental").addArgument(
 type: web
 repo: Rat-OS/fluidd
 path: ~/fluidd
-${channel === "beta" ? "channel: beta\n" : "channel: stable"}`;
+${channel === "beta" ? "channel: beta\n" : "channel: stable\n"}`;
     moonrakerConfigContents += fluiddUpdateSection;
     steps.push({ name: `New Fluidd update manager entry added (channel: ${channel})`, status: "success" });
     const fluiddThemeSection = findSection("update_manager FluiddTheme", moonrakerConfigContents);
@@ -86326,7 +86326,7 @@ ${channel === "beta" ? "channel: beta\n" : "channel: stable"}`;
         )
       );
       fluiddThemeSection.forEach((section) => {
-        moonrakerConfigContents = moonrakerConfigContents.slice(0, section.start) + moonrakerConfigContents.slice(section.end);
+        moonrakerConfigContents = moonrakerConfigContents.slice(0, section.start + 1) + moonrakerConfigContents.slice(section.end);
       });
       steps.push({ name: "Existing Fluidd Theme update manager entries removed", status: "warning" });
     }
@@ -86575,7 +86575,7 @@ frontend.command("mainsail").addArgument(
       )
     );
     mainsailOverrideSection.forEach((section) => {
-      moonrakerConfigContents = moonrakerConfigContents.slice(0, section.start) + moonrakerConfigContents.slice(section.end);
+      moonrakerConfigContents = moonrakerConfigContents.slice(0, section.start + 1) + moonrakerConfigContents.slice(section.end);
     });
     steps.push({ name: `Switched mainsail update manager to use ${channel} releases`, status: "warning" });
   } else if (mainsailOverrideSection == null && channel !== "stable") {
