@@ -27,7 +27,7 @@ export const findSection = (section: string, content: string) => {
 		}, {} as SectionProperties);
 		matches.push({ header, body, properties, start: match.index, end: regex.lastIndex, content: match[0] });
 	}
-	if (!matches) {
+	if (!match) {
 		return null;
 	}
 	return matches;
