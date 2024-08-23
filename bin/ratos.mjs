@@ -86164,6 +86164,8 @@ var ensureSudo = async () => {
   echo("Checking for sudo permissions. If you're prompted for a password, please enter it.");
   await $({ verbose: false, quiet: false })`sudo echo "Sudo permissions acquired"`;
 };
+var fluidConfigFile = `/etc/nginx/sites-available/fluidd`;
+var mainsailConfigFile = `/etc/nginx/sites-available/mainsail`;
 frontend.command("fluidd-experimental").addArgument(
   new Argument("[channel]", "Release channel to use for updates through moonraker").default("stable").choices(["stable", "beta"])
 ).description("Use experimental RatOS fork of Fluidd").action(async (channel) => {
@@ -86187,7 +86189,7 @@ frontend.command("fluidd-experimental").addArgument(
   const moonrakerConfig = environment.KLIPPER_CONFIG_PATH + "/moonraker.conf";
   let moonrakerConfigContents = await readFile(moonrakerConfig, "utf-8");
   let { rerender } = render_default(/* @__PURE__ */ import_react30.default.createElement(InstallProgressUI, { status: "Installing fluidd..", cmdSignal, steps }));
-  if (!existsSync3("/etc/nginx/sites-available/mainsail")) {
+  if (!existsSync3(mainsailConfigFile)) {
     rerender(
       /* @__PURE__ */ import_react30.default.createElement(
         InstallProgressUI,
@@ -86283,7 +86285,7 @@ frontend.command("fluidd-experimental").addArgument(
         )
       );
       fluiddSection.forEach((section) => {
-        moonrakerConfigContents = moonrakerConfigContents.slice(0, section.start + 1) + moonrakerConfigContents.slice(section.end);
+        moonrakerConfigContents = moonrakerConfigContents.slice(0, section.start - 1) + moonrakerConfigContents.slice(section.end);
       });
       steps.push({ name: "Existing Fluidd update manager entries removed", status: "warning" });
     }
@@ -86326,7 +86328,7 @@ ${channel === "beta" ? "channel: beta\n" : "channel: stable\n"}`;
         )
       );
       fluiddThemeSection.forEach((section) => {
-        moonrakerConfigContents = moonrakerConfigContents.slice(0, section.start + 1) + moonrakerConfigContents.slice(section.end);
+        moonrakerConfigContents = moonrakerConfigContents.slice(0, section.start - 1) + moonrakerConfigContents.slice(section.end);
       });
       steps.push({ name: "Existing Fluidd Theme update manager entries removed", status: "warning" });
     }
@@ -86373,28 +86375,29 @@ is_system_service: false
         await $$`sudo rm /etc/nginx/sites-enabled/fluidd`;
         steps.push({ name: "Old nginx fluidd configuration removed", status: "success" });
       }
-      const fluidConfigFile = `/etc/nginx/sites-available/fluidd`;
-      await $$`sudo cp /etc/nginx/sites-available/mainsail ${fluidConfigFile}`;
+      await $$`sudo cp ${mainsailConfigFile} ${fluidConfigFile}`;
       await $$`sudo sed -i -e 's/mainsail/fluidd/g' ${fluidConfigFile}`;
       steps.push({ name: "Nginx fluidd configuration created", status: "success" });
-      rerender(
-        /* @__PURE__ */ import_react30.default.createElement(
-          InstallProgressUI,
-          {
-            cmdSignal,
-            steps,
-            warnings,
-            errors,
-            status: "Installing Fluidd...",
-            isLoading: true,
-            stepText: "Updating nginx configuration"
-          }
-        )
-      );
-      await $$`sudo ln -s ${fluidConfigFile} /etc/nginx/sites-enabled/fluidd`;
-      await $$`sudo rm /etc/nginx/sites-enabled/mainsail`;
-      steps.push({ name: "Nginx configuration updated", status: "success" });
     }
+    rerender(
+      /* @__PURE__ */ import_react30.default.createElement(
+        InstallProgressUI,
+        {
+          cmdSignal,
+          steps,
+          warnings,
+          errors,
+          status: "Installing Fluidd...",
+          isLoading: true,
+          stepText: "Updating nginx configuration"
+        }
+      )
+    );
+    await $$`sudo ln -s ${fluidConfigFile} /etc/nginx/sites-enabled/fluidd`;
+    if (existsSync3("/etc/nginx/sites-enabled/mainsail")) {
+      await $$`sudo rm /etc/nginx/sites-enabled/mainsail`;
+    }
+    steps.push({ name: "Nginx configuration updated", status: "success" });
     rerender(
       /* @__PURE__ */ import_react30.default.createElement(
         InstallProgressUI,
@@ -86436,7 +86439,7 @@ is_system_service: false
           }
         )
       );
-      await $$`sudo ln -s /etc/nginx/sites-available/mainsail /etc/nginx/sites-enabled/mainsail`;
+      await $$`sudo ln -s ${mainsailConfigFile} /etc/nginx/sites-enabled/mainsail`;
       await $$`sudo rm /etc/nginx/sites-enabled/fluidd`;
       await $$`sudo systemctl reload nginx`;
       steps.push({ name: "Restored previous mainsail configuration", status: "success" });
@@ -86547,7 +86550,7 @@ frontend.command("mainsail").addArgument(
   let moonrakerConfigContents = await readFile(moonrakerConfig, "utf-8");
   const mainsailOverrideSection = findSection("update_manager mainsail", moonrakerConfigContents);
   const hostname = (await $$`tr -d " \t\n\r" < /etc/hostname`).text();
-  if (!existsSync3("/etc/nginx/sites-available/mainsail")) {
+  if (!existsSync3(mainsailConfigFile)) {
     return renderError("Mainsail configuration file not found", { exitCode: 2 });
   }
   const { rerender } = render_default(
@@ -86670,7 +86673,7 @@ channel: ${channel}`;
       }
     )
   );
-  await $$`sudo ln -s /etc/nginx/sites-available/mainsail /etc/nginx/sites-enabled/mainsail`;
+  await $$`sudo ln -s ${mainsailConfigFile} /etc/nginx/sites-enabled/mainsail`;
   steps.push({ name: "Restored mainsail configuration", status: "success" });
   if (existsSync3("/etc/nginx/sites-enabled/fluidd")) {
     await $$`sudo rm /etc/nginx/sites-enabled/fluidd`;
@@ -86706,7 +86709,7 @@ channel: ${channel}`;
         }
       )
     );
-    await $$`sudo ln -s /etc/nginx/sites-available/fluidd /etc/nginx/sites-enabled/fluidd`;
+    await $$`sudo ln -s ${fluidConfigFile} /etc/nginx/sites-enabled/fluidd`;
     await $$`sudo rm /etc/nginx/sites-enabled/mainsail`;
     await $$`sudo systemctl reload nginx`;
     cmdSignal(null);
