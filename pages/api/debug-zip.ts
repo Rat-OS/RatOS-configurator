@@ -72,6 +72,24 @@ export const getDebugZipFiles = async () => {
 	return files;
 };
 
+const getConsoleHistory = async () => {
+	let consoleHistory = JSON.stringify({ result: 'error', msg: 'Failed to fetch console history' });
+	try {
+		consoleHistory = await (await fetch('http://localhost:7125/server/gcode_store?count=1000')).json();
+	} catch (e) {
+		getLogger().error(
+			e,
+			"Couldn't fetch console history: " +
+				(e instanceof Error ? e.message : 'Unknown error while fetching console history'),
+		);
+		consoleHistory = JSON.stringify({
+			result: 'error',
+			msg: e instanceof Error ? e.message : 'Unknown error while fetching console history',
+		});
+	}
+	return consoleHistory;
+};
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
 		if (req.method === 'GET') {
@@ -81,6 +99,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 				getLogger().info(f, `Adding file to zip... (${files.length - (i + 1)} remaining)`);
 				zip.file(path.join(f.dest, f.name), createReadStream(f.path));
 			});
+			zip.file('logs/console_history.json', await getConsoleHistory());
 
 			try {
 				res.setHeader('Content-Type', 'application/x-zip');

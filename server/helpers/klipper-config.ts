@@ -1009,7 +1009,15 @@ export const constructKlipperConfigHelpers = async (
 				result.push(''); // Add a newline for readability.
 				result.push(`# Physical Z endstop configuration`);
 				result.push(`[stepper_z]`);
-				result.push(`pin: z_endstop_pin`);
+				try {
+					result.push(`endstop_pin: ${utils.getRailPinValue(PrinterAxis.z, '_endstop_pin')}`);
+				} catch (e) {
+					try {
+						result.push(`endstop_pin: ${utils.getRailPinValue(PrinterAxis.z, '_diag_pin')}`);
+					} catch (e) {
+						result.push(`# endstop_pin: <pin> # Override this with the correct pin in printer.cfg`);
+					}
+				}
 				result.push(`position_endstop: -0.1`);
 				result.push(`second_homing_speed: 3.0`);
 				result.push(`homing_retract_dist: 3.0`);

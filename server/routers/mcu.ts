@@ -311,7 +311,7 @@ export const mcuRouter = router({
 					cause: error,
 				});
 			}
-			const versionRegEx = /Version:\s(v\d+\.\d+\.\d+-\d+-\w{9})/;
+			const versionRegEx = /Version:\s(v\d+\.\d+\.\d+-\d+-\w+$)/;
 			return version.stdout.match(versionRegEx)?.[1];
 		}),
 	compile: mcuProcedure
