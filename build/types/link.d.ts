@@ -39,14 +39,14 @@ declare namespace __next_route_internal_types__ {
     | `/toolhead`
     | `/wizard`
     | `/analysis/macros/new`
-    | `/analysis/macros`
     | `/analysis`
+    | `/analysis/macros`
   type DynamicRoutes<T extends string = string> = 
     | `/api/trpc/${SafeSlug<T>}`
     | `/analysis/macros/${SafeSlug<T>}/edit`
     | `/analysis/macros/${SafeSlug<T>}`
-    | `/analysis/macros/${SafeSlug<T>}/recordings/${SafeSlug<T>}`
     | `/analysis/macros/${SafeSlug<T>}/recordings`
+    | `/analysis/macros/${SafeSlug<T>}/recordings/${SafeSlug<T>}`
 
   type RouteImpl<T> = 
     | StaticRoutes
