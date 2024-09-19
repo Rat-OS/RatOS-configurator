@@ -422,7 +422,7 @@ export const mcuRouter = router({
 					flashResults.push({
 						board: b.board,
 						result: 'success',
-						message: `${b.board.manufacturer} ${b.board.name} on ${b.toolhead ? ` ${b.toolhead.getToolCommand}` : ''} was successfully flashed.`,
+						message: `${b.board.manufacturer} ${b.board.name} on ${b.toolhead ? ` ${b.toolhead.getToolCommand()}` : ''} was successfully flashed.`,
 					});
 				} catch (e) {
 					const message = e instanceof Error ? e.message : e;
