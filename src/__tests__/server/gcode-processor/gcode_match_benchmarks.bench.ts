@@ -38,6 +38,19 @@ const rxParseCommonCommandsOptimised =
 const rxParseCommonCommandsOptimisedVaseMode =
 	/^(?:T(?<T>\d+))|(?:(?<G>G0|G1)(?=\s)(?:(\sZ(?<Z>[\d.]+))|(?=.*(\sZ(?<Z2>[\d.]+)))|)(?:(\sX(?<X>[\d.]+))|(?=.*(\sX(?<X2>[\d.]+)))|)(?:(\sY(?<Y>[\d.]+))|(?=.*(\sY(?<Y2>[\d.]+)))|)(?:(\sE(?<E>[\d.]+))|(?=.*(\sE(?<E2>[\d.]+)))|)(?=.*(\sF(?<F>[\d.]+))|))/i;
 
+const rxParseCommonCommandsOptimisedV2 =
+	/^(?:T(?<T>\d+))|(?:(?<G>G0|G1)(?=\s)(?:(\sX(?<X>[+-]?[\d.]+))|(?=.*(\sX(?<X2>[+-]?[\d.]+)))|)(?:(\sY(?<Y>[+-]?[\d.]+))|(?=.*(\sY(?<Y2>[+-]?[\d.]+)))|)(?:(\sE(?<E>[+-]?[\d.]+))|(?=.*(\sE(?<E2>[+-]?[\d.]+)))|)(?:(\sZ(?<Z>[+-]?[\d.]+))|(?=.*(\sZ(?<Z2>[+-]?[\d.]+)))|)(?=.*(\sF(?<F>[\d.]+))|))/i;
+
+const rxParseCommonCommandsOptimisedV2CaseSensitive =
+	/^(?:T(?<T>\d+))|(?:(?<G>G0|G1)(?=\s)(?:(\sX(?<X>[+-]?[\d.]+))|(?=.*(\sX(?<X2>[+-]?[\d.]+)))|)(?:(\sY(?<Y>[+-]?[\d.]+))|(?=.*(\sY(?<Y2>[+-]?[\d.]+)))|)(?:(\sE(?<E>[+-]?[\d.]+))|(?=.*(\sE(?<E2>[+-]?[\d.]+)))|)(?:(\sZ(?<Z>[+-]?[\d.]+))|(?=.*(\sZ(?<Z2>[+-]?[\d.]+)))|)(?=.*(\sF(?<F>[\d.]+))|))/;
+
+const rxParseCommonCommandsOptimisedV2CaseSensitiveNoNames =
+	/^(?:T(\d+))|(?:(G0|G1)(?=\s)(?:(?:\sX([+-]?[\d.]+))|(?=.*(?:\sX([+-]?[\d.]+)))|)(?:(?:\sY([+-]?[\d.]+))|(?=.*(?:\sY([+-]?[\d.]+)))|)(?:(?:\sE([+-]?[\d.]+))|(?=.*(?:\sE([+-]?[\d.]+)))|)(?:(?:\sZ([+-]?[\d.]+))|(?=.*(?:\sZ([+-]?[\d.]+)))|)(?=.*(?:\sF([\d.]+))|))/;
+
+// Adds /d flag, which adds the indices array to the result of exec. This requires es2022, and takes more that twice as long as without /d.
+// const rxParseCommonCommandsOptimisedV2CaseSensitiveNoNamesWithIndices =
+// 	/^(?:T(\d+))|(?:(G0|G1)(?=\s)(?:(?:\sX([+-]?[\d.]+))|(?=.*(?:\sX([+-]?[\d.]+)))|)(?:(?:\sY([+-]?[\d.]+))|(?=.*(?:\sY([+-]?[\d.]+)))|)(?:(?:\sE([+-]?[\d.]+))|(?=.*(?:\sE([+-]?[\d.]+)))|)(?:(?:\sZ([+-]?[\d.]+))|(?=.*(?:\sZ([+-]?[\d.]+)))|)(?=.*(?:\sF([\d.]+))|))/d;
+
 describe('G1 XYE', () => {
 	bench('rx naive', () => {
 		rxParseCommonCommands.exec('G1 X234.55 Y257.654 E.01224');
@@ -50,6 +63,23 @@ describe('G1 XYE', () => {
 	bench('rx ZXYE-optimised', () => {
 		rxParseCommonCommandsOptimisedVaseMode.exec('G1 X234.55 Y257.654 E.01224');
 	});
+
+	bench('rx XYE-optimised V2', () => {
+		rxParseCommonCommandsOptimisedV2.exec('G1 X234.55 Y257.654 E.01224');
+	});
+
+	bench('rx XYE-optimised V2-CS', () => {
+		rxParseCommonCommandsOptimisedV2CaseSensitive.exec('G1 X234.55 Y257.654 E.01224');
+	});
+
+	bench('rx XYE-optimised V2-CS-NN', () => {
+		rxParseCommonCommandsOptimisedV2CaseSensitiveNoNames.exec('G1 X234.55 Y257.654 E.01224');
+	});
+
+	// Adds /d flag, which adds the indices array to the result of exec. This requires es2022, and takes more that twice as long as without /d.
+	// bench('rx XYE-optimised V2-CS-NN-IX', () => {
+	// 	rxParseCommonCommandsOptimisedV2CaseSensitiveNoNamesWithIndices.exec('G1 X234.55 Y257.654 E.01224');
+	// });
 });
 
 describe('G1 ZXYE (vase mode)', () => {

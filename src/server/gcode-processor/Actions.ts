@@ -27,6 +27,7 @@ import {
 } from '@/server/gcode-processor/errors';
 import { GCodeInfo, GCodeFlavour } from '@/server/gcode-processor/GCodeInfo';
 import { State, BookmarkedLine } from '@/server/gcode-processor/State';
+import { CommonGCodeCommand } from '@/server/gcode-processor/CommonGCodeCommand';
 
 // TODO: Review pad lengths.
 
@@ -41,17 +42,6 @@ SET_PRESSURE_ADVANCE ADVANCE=0.03; Override pressure advance value
 
 export const CHANGED_BY_RATOS = ' ; Changed by RatOS post processor: ';
 export const REMOVED_BY_RATOS = '; Removed by RatOS post processor: ';
-
-/**
- * Matches `G0|G1|Tn` followed by args like `X1.2` for X, Y, Z, E and F in any order, each being optional.
- * Groups:
- * 'G' - will be 'G0' or 'G1'
- * 'T' - will be 'n', like '0' or '1', accepts any number of digits.
- * 'X' - will be the (decimal) number after 'X', like '12.3' in 'X12.3'.
- * ditto for Y, Z, E and F.
- */
-const rxParseCommonCommands =
-	/^(?:T(?<T>\d+))|(?:(?<G>G0|G1)(?=\s)(?=.*(\sX(?<X>[\d.]+))|)(?=.*(\sY(?<Y>[\d.]+))|)(?=.*(\sZ(?<Z>[\d.]+))|)(?=.*(\sE(?<E>[\d.]+))|)(?=.*(\sF(?<F>[\d.]+))|))/i;
 
 /**
  * Either:
@@ -230,14 +220,14 @@ export const fixOrcaSetAccelaration: Action = [
  * line is not one of the common commands, the subsequence is skipped, and the main sequence continues.
  */
 export const whenCommonCommandDoThenStop: Action = (c, s) => {
-	s._cmd = rxParseCommonCommands.exec(c.line);
+	s._cmd = CommonGCodeCommand.parseOptimisedForOrderXYEZF(c.line);
 	return s._cmd ? ActionResult.Stop : ActionResult.Continue | ActionResult.flagSkipSubSequence;
 };
 
 export const findFirstMoveXY: Action = (c, s) => {
-	if (s._cmd!.groups?.G) {
-		s.firstMoveX ??= s._cmd?.groups?.X;
-		s.firstMoveY ??= s._cmd?.groups?.Y;
+	if (s._cmd!.g) {
+		s.firstMoveX ??= s._cmd?.x;
+		s.firstMoveY ??= s._cmd?.y;
 
 		if (s.firstMoveX && s.firstMoveY) {
 			// We don't need to do this check any more. G0/G1 are extremely frequent, so avoid any excess work.
@@ -251,8 +241,8 @@ export const findFirstMoveXY: Action = (c, s) => {
 };
 
 export const findMinMaxX: Action = (c, s) => {
-	if (s._cmd!.groups?.G) {
-		let x = s._cmd?.groups?.X;
+	if (s._cmd!.g) {
+		let x = s._cmd?.x;
 		if (x) {
 			let n = Number(x);
 			if (n < s.minX) {
@@ -271,7 +261,7 @@ export const findMinMaxX: Action = (c, s) => {
 };
 
 export const processToolchange: Action = (c, s) => {
-	let tool = s._cmd!.groups?.T;
+	let tool = s._cmd!.t;
 	if (tool) {
 		if (++s.toolChangeCount == 1) {
 			// Remove first toolchange
@@ -339,17 +329,15 @@ export const processToolchange: Action = (c, s) => {
 		// XY move after toolchange:
 		let xyMoveAfterToolchange: [x: string, y: string, line: ProcessLineContext] | undefined = undefined;
 		for (let scan of c.scanForward(19)) {
-			const match = rxParseCommonCommands.exec(scan.line);
+			const match = CommonGCodeCommand.parseOptimisedForOrderXYEZF(scan.line);
 			if (match) {
-				const x = match.groups?.X;
-				const y = match.groups?.Y;
-				if (x && y) {
-					if (match.groups?.E) {
+				if (match.x && match.y) {
+					if (match.e) {
 						throw newGCodeError('Unexpected extruding move after toolchange.', scan, s);
 					}
-					xyMoveAfterToolchange = [x, y, scan];
+					xyMoveAfterToolchange = [match.x, match.y, scan];
 					break;
-				} else if (x || y) {
+				} else if (match.x || match.y) {
 					throw newGCodeError('Unexpected X-only or Y-only move after toolchange.', scan, s);
 				}
 			}
@@ -373,11 +361,10 @@ export const processToolchange: Action = (c, s) => {
 				case GCodeFlavour.SuperSlicer:
 				case GCodeFlavour.OrcaSlicer:
 					for (let scan of (xyMoveAfterToolchange?.[2] ?? c).scanForward(2)) {
-						const match = rxParseCommonCommands.exec(scan.line);
+						const match = CommonGCodeCommand.parseOptimisedForOrderXYEZF(scan.line);
 						if (match) {
-							const z = match.groups?.Z;
-							if (z) {
-								zMoveAfterToolchange = [z, scan];
+							if (match.z) {
+								zMoveAfterToolchange = [match.z, scan];
 								break;
 							}
 						}

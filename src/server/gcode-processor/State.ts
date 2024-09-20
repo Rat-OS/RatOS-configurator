@@ -17,6 +17,7 @@
 import { GCodeInfo } from '@/server/gcode-processor/GCodeInfo';
 import { InternalError } from '@/server/gcode-processor/errors';
 import { BookmarkKey } from '@/server/gcode-processor/Bookmark';
+import { CommonGCodeCommand } from '@/server/gcode-processor/CommonGCodeCommand';
 
 export class BookmarkedLine {
 	constructor(
@@ -58,7 +59,7 @@ export class State {
 	public usedTools: string[] = [];
 
 	// Iteration-scope fields (reset at the start of each processLine iteration):
-	public _cmd?: RegExpExecArray | null;
+	public _cmd?: CommonGCodeCommand | null;
 
 	/**
 	 * Resets iteration-scope state.
