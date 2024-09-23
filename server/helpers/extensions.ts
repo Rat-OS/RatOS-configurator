@@ -36,16 +36,16 @@ export const symlinkExtensions = async <T extends Extension>(props: SymlinkExten
 	const gitExcludePath = path.resolve(path.join(props.gitRepoPath, '.git', 'info', 'exclude'));
 	const symlinkResults = await Promise.all(
 		currentExtensions.map(async (ext): Promise<{ result: 'success' | 'error'; message: string }> => {
+			const relativeDestination = path.join(
+				typeof props.relativePath === 'function' ? props.relativePath(ext) : props.relativePath,
+				ext.fileName,
+			);
+			const destination = path.resolve(path.join(props.gitRepoPath, relativeDestination));
+			const symlinkExists = existsSync(destination);
 			if (existsSync(path.resolve(path.join(ext.path, ext.fileName)))) {
 				cleanedUpExtensions.push(ext);
-				const relativeDestination = path.join(
-					typeof props.relativePath === 'function' ? props.relativePath(ext) : props.relativePath,
-					ext.fileName,
-				);
-				const destination = path.resolve(path.join(props.gitRepoPath, relativeDestination));
 				const excludeLine = new RegExp(`^${relativeDestination}$`);
 				const isExcluded = await searchFileByLine(gitExcludePath, excludeLine);
-				const symlinkExists = existsSync(destination);
 				try {
 					if (symlinkExists === false) {
 						await symlink(path.resolve(path.join(ext.path, ext.fileName)), destination);
@@ -71,9 +71,24 @@ export const symlinkExtensions = async <T extends Extension>(props: SymlinkExten
 					};
 				}
 			} else {
+				if (symlinkExists) {
+					const result = await unlinkExtension({
+						extension: ext,
+						gitRepoPath: props.gitRepoPath,
+						relativePath: props.relativePath,
+					});
+					if (result.result === 'error') {
+						// Don't remove extension from the list of registered extensions, we may still have a lingering symlink
+						cleanedUpExtensions.push(ext);
+						return {
+							result: 'error',
+							message: `Failed to remove symlink for non-existent extension file "${ext.fileName}" in "${ext.path}"`,
+						};
+					}
+				}
 				return {
 					result: 'error',
-					message: `Extension file "${ext.fileName}" does not exist in ${ext.path} and has been removed from the list of registered extensions`,
+					message: `Extension file "${ext.fileName}" does not exist in "${ext.path}". It has been unlinked and removed from the list of registered extensions`,
 				};
 			}
 		}),
