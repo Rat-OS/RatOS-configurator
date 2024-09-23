@@ -112,7 +112,7 @@ export const klippyExtensionsRouter = router({
 				getLogger().warn(`Extension with the name "${extensionName}" is not registered, ignoring...`);
 				return {
 					result: 'success' as const,
-					message: `Extension file "${extensionName}" does not exist. Nothing to do.`,
+					message: `Extension "${extensionName}" does not exist. Nothing to do.`,
 				};
 			}
 			const ext = currentExtensions.splice(extensionIndex, 1);
