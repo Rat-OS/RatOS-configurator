@@ -17,13 +17,24 @@
 import { SemVer } from 'semver';
 import { promisify } from 'node:util';
 import { exec } from 'child_process';
+import { getLogger } from '@/server/helpers/logger';
+
+let parsedVersion: null | SemVer = null;
 
 /** Gets the RatOS-configurator git repo version. */
 export async function getConfiguratorVersion(): Promise<SemVer> {
-	const v = (await promisify(exec)('git describe --tags --always', {
-		cwd: process.env.RATOS_SCRIPT_DIR,
-	}).then(({ stdout }) => stdout.trim())) as GitVersion;
-	return new SemVer(v);
+	let v = '__not_set__';
+	try {
+		v = (await promisify(exec)('git describe --tags --always', {
+			cwd: process.env.RATOS_SCRIPT_DIR,
+		}).then(({ stdout }) => stdout.trim())) as GitVersion;
+		parsedVersion = new SemVer(v);
+	} catch (e) {
+		// TODO: Figure out why this doesn't work in CI and fix it
+		getLogger().error('Failed to get RatOS-configurator version', { versionString: v, error: e });
+		return new SemVer('0.0.0');
+	}
+	return parsedVersion;
 }
 
 export function exactlyOneBitSet(integer: number) {
