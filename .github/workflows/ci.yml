@@ -78,7 +78,7 @@ jobs:
         with:
           repository: Rat-OS/RatOS-configuration
           path: "ratos-configuration"
-          ref: ${{ github.ref_name }}
+          ref: development
 
       - name: Checkout Klipper
         uses: actions/checkout@v4
