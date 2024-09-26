@@ -18,8 +18,6 @@ import { describe, test, expect } from 'vitest';
 import { GCodeFlavour, GCodeInfo } from '@/server/gcode-processor/GCodeInfo';
 import semver, { SemVer } from 'semver';
 import path from 'path';
-import { promisify } from 'util';
-import { exec } from 'child_process';
 
 describe('tryParseHeader', async () => {
 	test('PrusaSlicer 2.8.0', () => {
@@ -116,13 +114,8 @@ describe('tryParseHeader', async () => {
 		let parsed = GCodeInfo.tryParseHeader('blah blah blah');
 		expect(parsed).toBeNull();
 	});
-	const followingBranch =
-		(
-			await promisify(exec)('git branch --show-current | wc -l', {
-				cwd: process.env.RATOS_SCRIPT_DIR,
-			})
-		).stdout.trim() === '1';
-	test.skipIf(!followingBranch)('getProcessedByRatosHeader', async () => {
+
+	test('getProcessedByRatosHeader', async () => {
 		const header = await GCodeInfo.getProcessedByRatosHeader();
 		expect(header).toMatch(/^; processed by RatOS (?<VERSION>[^\s]+) on (?<DATE>[^\s]+) at (?<TIME>.*)$/im);
 	});
