@@ -32,7 +32,7 @@ export async function getConfiguratorVersion(): Promise<SemVer> {
 	} catch (e) {
 		// TODO: Figure out why this doesn't work in CI and fix it
 		getLogger().error('Failed to get RatOS-configurator version', { versionString: v, error: e });
-		return new SemVer('0.0.0');
+		return new SemVer('2.0.2'); // Fallback to oldest version of the gcode processor.
 	}
 	return parsedVersion;
 }
