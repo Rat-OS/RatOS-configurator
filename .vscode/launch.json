@@ -45,5 +45,12 @@
 			"cwd": "${workspaceFolder}/src",
 			"command": "pnpm test"
 		},
+		{
+			"name": "Build CLI",
+			"type": "node-terminal",
+			"request": "launch",
+			"cwd": "${workspaceFolder}/src",
+			"command": "pnpm build:cli"
+		},
 	]
 }
