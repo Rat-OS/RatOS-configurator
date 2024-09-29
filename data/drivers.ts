@@ -153,6 +153,15 @@ export const Drivers = z.array(Driver).parse([
 		maxCurrent: 2.1,
 	},
 	{
+		id: 'LDO-2240-UART',
+		title: 'LDO TMC2240 UART',
+		type: 'TMC2240',
+		protocol: 'UART',
+		coolingCurrentThreshold: 1.1,
+		voltages: [24, 36],
+		maxCurrent: 2.1,
+	},
+	{
 		id: 'MELLOW-FLY-HV-TMC5160-PRO-12',
 		title: 'Mellow FLY HV TMC5160 Pro v1.2',
 		type: 'TMC5160',
