@@ -2,8 +2,8 @@
   "/_not-found": "app/_not-found.js",
   "/icon.svg/route": "app/icon.svg/route.js",
   "/page": "app/page.js",
-  "/analysis/macros/[id]/edit/page": "app/analysis/macros/[id]/edit/page.js",
   "/analysis/macros/[id]/page": "app/analysis/macros/[id]/page.js",
+  "/analysis/macros/[id]/edit/page": "app/analysis/macros/[id]/edit/page.js",
   "/analysis/macros/[id]/recordings/[runId]/page": "app/analysis/macros/[id]/recordings/[runId]/page.js",
   "/analysis/macros/[id]/recordings/page": "app/analysis/macros/[id]/recordings/page.js",
   "/calibration/page": "app/calibration/page.js",
@@ -11,6 +11,6 @@
   "/toolhead/page": "app/toolhead/page.js",
   "/wizard/page": "app/wizard/page.js",
   "/analysis/macros/page": "app/analysis/macros/page.js",
-  "/analysis/page": "app/analysis/page.js",
-  "/analysis/macros/new/page": "app/analysis/macros/new/page.js"
+  "/analysis/macros/new/page": "app/analysis/macros/new/page.js",
+  "/analysis/page": "app/analysis/page.js"
 }

@@ -1,0 +1,1 @@
+SUBSYSTEM=="video4linux", ENV{ID_VENDOR_ID}=="1bcf", ENV{ID_MODEL_ID}=="28c6", ENV{ID_USB_MODEL}=="Rat_Rig_VAOC_Camera", ATTR{index}=="0", ACTION=="add", SYMLINK+="RatOS/rr-vaoc-camera"

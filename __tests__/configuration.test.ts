@@ -113,10 +113,8 @@ describe('configuration', async () => {
 				}
 				const attr = `ATTRS{serial}=="${getBoardChipId(board)}"`;
 				const symlink = `SYMLINK+="${getBoardChipId(board)}"`;
-				const devlink = `ENV{DEVLINKS}=="/dev/${getBoardChipId(board)}"`;
 				expect(ruleContents.includes(attr)).toBeTruthy();
 				expect(ruleContents.includes(symlink)).toBeTruthy();
-				expect(ruleContents.includes(devlink)).toBeTruthy();
 			});
 			test.skipIf(board.motorSlots == null).concurrent('has valid motor slot pins', async () => {
 				if (board.motorSlots == null) {

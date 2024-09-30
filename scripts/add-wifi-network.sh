@@ -3,7 +3,7 @@ if [ ! "$EUID" -eq 0 ]; then
 	echo "This script must run as root"
 	exit 1
 fi
-NETWORK=$(sh -c "wpa_passphrase '$1' '$2'")
+NETWORK=$(sh -c "wpa_passphrase '$1' '$2' | sed '/^\s*#psk=\".*\"$/d'")
 if [[ ! $NETWORK =~ ^network ]]; then
 	echo "Invalid wifi credentials"
 	exit 1
