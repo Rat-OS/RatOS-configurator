@@ -38,6 +38,11 @@ jobs:
         with:
           repository: Rat-OS/RatOS-configurator
           path: "ratos-configurator"
+          fetch-tags: true
+      - name: Extract target branch name
+        shell: bash
+        run: echo "branch=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
+        id: extract_branch
 
       - name: Install Node
         uses: actions/setup-node@v4.0.1
@@ -78,7 +83,7 @@ jobs:
         with:
           repository: Rat-OS/RatOS-configuration
           path: "ratos-configuration"
-          ref: ${{ github.ref_name }}
+          ref: ${{ github.base_ref || github.ref_name }}
 
       - name: Checkout Klipper
         uses: actions/checkout@v4
