@@ -112,7 +112,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 						compression: 'DEFLATE',
 						compressionOptions: { level: 1 },
 					})
-					.pipe(res.status(200), { end: true });
+					.pipe(res.status(200), { end: true })
+					.on('finish', () => {
+						res.end();
+					});
 			} catch (e) {
 				getLogger().error(e instanceof Error ? e.message : 'Unknown error while generating debug zip');
 				return res.status(200).json({
