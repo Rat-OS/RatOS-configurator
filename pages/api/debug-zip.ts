@@ -75,7 +75,7 @@ export const getDebugZipFiles = async () => {
 const getConsoleHistory = async () => {
 	let consoleHistory = JSON.stringify({ result: 'error', msg: 'Failed to fetch console history' });
 	try {
-		consoleHistory = await (await fetch('http://localhost:7125/server/gcode_store?count=1000')).json();
+		consoleHistory = await (await fetch('http://localhost:7125/server/gcode_store?count=1000')).text();
 	} catch (e) {
 		getLogger().error(
 			e,
@@ -105,7 +105,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 				res.setHeader('Content-Type', 'application/x-zip');
 				res.setHeader('Content-Disposition', `attachment; filename=ratos-debug.zip`);
 				getLogger().info(`Sending zip to client...`);
-				return zip
+				zip
 					.generateNodeStream({
 						type: 'nodebuffer',
 						streamFiles: true,
@@ -116,6 +116,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 					.on('finish', () => {
 						res.end();
 					});
+				return;
 			} catch (e) {
 				getLogger().error(e instanceof Error ? e.message : 'Unknown error while generating debug zip');
 				return res.status(200).json({
