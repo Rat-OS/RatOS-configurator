@@ -126,7 +126,7 @@ export const BeltTensionComparison: React.FC<BeltTensionComparisonProps> = (prop
 							<CardTitle className="text-sm">Status</CardTitle>
 							<CardDescription className="text-xs">{mechanicalHealth?.label}</CardDescription>
 						</div>
-						<div>
+						<div className="col-span-full">
 							<CardTitle className="text-sm">Unpaired Peaks</CardTitle>
 							<CardDescription className="text-xs">
 								{peakPairingResults.unpairedPeaks1.length} on {sequencePair[0].name}

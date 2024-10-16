@@ -156,11 +156,21 @@ function mechanicalHealthLookupTable(mechanicalHealthIndicator: number): string 
 
 export type MechanicalHealthResult = { mhi: number; label: string };
 
+const padSignal = (signal: number[], targetLength: number): number[] => {
+	if (signal.length >= targetLength) return signal;
+	return [...signal, ...Array(targetLength - signal.length).fill(0)];
+};
+
 export function computeMechanicalHealth(
 	signal1: { unpairedPeaks: Peak[]; pairedPeaks: [Peak, Peak][]; psd: PSD },
 	signal2: { unpairedPeaks: Peak[]; pairedPeaks: [Peak, Peak][]; psd: PSD },
 ): MechanicalHealthResult {
-	const similarityFactor = pearsonCorrelation(signal1.psd.estimates, signal2.psd.estimates) * 100;
+	// Pad the PSDs to the same length
+	const maxLength = Math.max(signal1.psd.estimates.length, signal2.psd.estimates.length);
+
+	const signal1Estimates = padSignal(signal1.psd.estimates, maxLength);
+	const signal2Estimates = padSignal(signal2.psd.estimates, maxLength);
+	const similarityFactor = pearsonCorrelation(signal1Estimates, signal2Estimates) * 100;
 	const numUnpairedPeaks = signal1.unpairedPeaks.length + signal2.unpairedPeaks.length;
 	const numPairedPeaks = signal1.pairedPeaks.length;
 

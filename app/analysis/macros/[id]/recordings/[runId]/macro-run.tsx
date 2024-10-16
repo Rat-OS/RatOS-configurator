@@ -6,9 +6,9 @@ import { ChevronLeft, SkipBack, SkipForward } from 'lucide-react';
 import { useCallback, useState, useMemo, useEffect, useRef } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import * as luxon from 'luxon';
-import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Card } from '@/components/common/card';
-import { shadableTWColors, TWShadeableColorName } from '@/app/_helpers/colors';
+import { TWShadeableColorName } from '@/app/_helpers/colors';
 
 import { useChart } from '@/app/analysis/hooks';
 import { PSDChartNoSeriesDefinition } from '@/app/analysis/charts';
@@ -180,7 +180,7 @@ export const MacroRun = ({ id, runId }: { id: string; runId: string }) => {
 		),
 	);
 	return (
-		<div className="flex flex-1">
+		<div className="relative flex flex-1">
 			<MacroRunChart
 				sequenceSeries={sequenceSeries}
 				chart={chart}

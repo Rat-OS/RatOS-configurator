@@ -38,7 +38,7 @@ export const animateYAxis = (surface: SciChartSurface, sequenceData: SequenceDat
 	const yAxis = surface.yAxes.getById(PSD_CHART_AXIS_AMPLITUDE_ID);
 	if (yAxis) {
 		yAxis.autoRange = EAutoRange.Never;
-		const newMax = Math.max(...sequenceData.map((seq) => seq.psd.total.powerRange.max));
+		const newMax = Math.max(...sequenceData.map((seq) => Math.max(...seq.psd.total.estimates)));
 		if (yAxis.visibleRange.max < newMax || yAxis.visibleRange.max > newMax * 5) {
 			yAxis.animateVisibleRange(
 				new NumberRange(Math.min(...sequenceData.map((seq) => seq.psd.total.powerRange.min)), newMax).growBy(
@@ -52,7 +52,6 @@ export const animateYAxis = (surface: SciChartSurface, sequenceData: SequenceDat
 };
 
 export const setupChart = (surface: SciChartSurface, sequenceData: SequenceData[]) => {
-	animateYAxis(surface, sequenceData);
 	let bandSeries = false;
 	if (sequenceData.length === 2) {
 		bandSeries = true;
@@ -143,4 +142,5 @@ export const setupChart = (surface: SciChartSurface, sequenceData: SequenceData[
 			axisLabelStroke: shadableTWColors.zinc[100],
 		}),
 	);
+	animateYAxis(surface, sequenceData);
 };
