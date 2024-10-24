@@ -149,21 +149,9 @@ export const sumPSDs = (PSDs: TypedArrayPSD[]): TypedArrayPSD => {
 			sum[i] += PSDs[p].estimates[i];
 		}
 	}
-	const { minPower, maxPower } = PSDs.reduce(
-		(acc, psd) => {
-			if (psd.powerRange.min < acc.minPower) {
-				acc.minPower = psd.powerRange.min;
-			}
-			if (psd.powerRange.max > acc.maxPower) {
-				acc.maxPower = psd.powerRange.max;
-			}
-			return acc;
-		},
-		{ minPower: 0, maxPower: 0 },
-	);
 	return {
 		estimates: sum,
 		frequencies: Float64Array.from(PSDs[0].frequencies),
-		powerRange: new NumberRange(minPower, maxPower),
+		powerRange: new NumberRange(Math.min(...sum), Math.max(...sum)),
 	};
 };
