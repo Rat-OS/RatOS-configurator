@@ -13,6 +13,12 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
+"$SCRIPT_DIR"/compile.sh
+if [ $? -ne 0 ]; then
+  echo "ERROR: Compilation failed"
+  exit 1
+fi
+
 "$SCRIPT_DIR"/flash.sh
 if [ $? -ne 0 ]; then
   echo "ERROR: Flashing failed"

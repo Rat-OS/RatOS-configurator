@@ -5,9 +5,9 @@ if [ "$EUID" -ne 0 ]
 fi
 cp -f /home/pi/printer_data/config/RatOS/boards/ldo-nitehawk-36/firmware.config /home/pi/klipper/.config
 pushd /home/pi/klipper || exit
-make olddefconfig
-make clean
-make
+make olddefconfig || exit 1
+make clean || exit 1
+make || exit 1
 
 if [ ! -d "/home/pi/printer_data/config/firmware_binaries" ]
 then
