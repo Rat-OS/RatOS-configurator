@@ -80,9 +80,10 @@ class BeaconMesh:
 		profile = gcmd.get('PROFILE', RATOS_DEFAULT_COMPENSATION_MESH_NAME)
 		if not profile.strip():
 			raise gcmd.error("Value for parameter 'PROFILE' must be specified")
-		if profile not in self.bed_mesh.pmgr.get_profiles():
+		profiles = self.bed_mesh.pmgr.get_profiles()
+		if profile not in profiles:
 			raise self.printer.command_error("Profile " + str(profile) + " not found for Beacon scan compensation")
-		self.offset_mesh = self.bed_mesh.pmgr.load_profile(profile)
+		self.offset_mesh = profiles[profile]
 		if not self.offset_mesh:
 			raise self.printer.command_error("Could not load profile " + str(profile) + " for Beacon scan compensation")
 		self.apply_scan_compensation(profile)
