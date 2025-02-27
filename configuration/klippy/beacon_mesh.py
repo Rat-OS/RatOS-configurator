@@ -149,17 +149,30 @@ class BeaconMesh:
 		
 		offset_mesh_params = self.offset_mesh.get_mesh_params()
 		
+		if "ratos_mesh_version" not in offset_mesh_params:
+			self.ratos.console_echo("Apply scan compensation error", "error", 
+				"Compensation mesh is missing version information.")
+			return
+		
 		if offset_mesh_params["ratos_mesh_version"] != RATOS_MESH_VERSION:
 			self.ratos.console_echo("Apply scan compensation error", "error", 
 				"Compensation mesh is not compatible with this version of RatOS.")
 			return
 
-		if offset_mesh_params["beacon_model_name"] != self.beacon.model.name:
+		if "beacon_model_name" not in offset_mesh_params:
+			self.ratos.console_echo("Apply scan compensation error", "warning", 
+				"Compensation mesh is missing beacon model information._N_"
+				"This may result in inaccurate compensation.")
+		elif offset_mesh_params["beacon_model_name"] != self.beacon.model.name:
 			self.ratos.console_echo("Apply scan compensation error", "warning", 
 				"Compensation mesh is calibrated for a different beacon model than the one currently loaded._N_"
 				"This may result in inaccurate compensation.")
 
-		if offset_mesh_params["beacon_model_temp"] > self.beacon.model.temp + 2.5 or offset_mesh_params["beacon_model_temp"] < self.beacon.model.temp - 2.5:
+		if "beacon_model_temp" not in offset_mesh_params:
+			self.ratos.console_echo("Apply scan compensation error", "warning", 
+				"Compensation mesh is missing temperature calibration information._N_"
+				"This may result in inaccurate compensation.")
+		elif offset_mesh_params["beacon_model_temp"] > self.beacon.model.temp + 2.5 or offset_mesh_params["beacon_model_temp"] < self.beacon.model.temp - 2.5:
 			self.ratos.console_echo("Apply scan compensation error", "warning", 
 				"Compensation mesh is calibrated for a temperature that is %0.2fC different than the one currently loaded._N_"
 				"This may result in inaccurate compensation." % (abs(offset_mesh_params["beacon_model_temp"] - self.beacon.model.temp)))
