@@ -101,7 +101,7 @@ class BeaconMesh:
 	def cmd_SET_ZERO_REFERENCE_POSITION(self, gcmd):
 		if (self.bed_mesh.z_mesh is None):
 			self.ratos.console_echo("Set zero reference position error", "error", 
-				"No bed mesh loaded._N_Either generate a new bed mesh or load it via BED_MESH_PROFILE LOAD=[profile_name]")
+				"No bed mesh loaded._N_Either generate a new bed mesh or load it via BED_MESH_PROFILE LOAD=\"[profile_name]\"")
 			return
 		
 		x_pos = gcmd.get('X', 0.0)
@@ -129,7 +129,7 @@ class BeaconMesh:
 	def apply_scan_compensation(self, profile):
 		if not self.bed_mesh.z_mesh:
 			self.ratos.console_echo("Apply scan compensation error", "error", 
-				"No scan mesh loaded._N_Either generate a new bed mesh or load it via BED_MESH_PROFILE LOAD=[profile_name]")
+				"No scan mesh loaded._N_Either generate a new bed mesh or load it via BED_MESH_PROFILE LOAD=\"[profile_name]\"")
 			return
 		
 		if not self.offset_mesh:
@@ -255,29 +255,51 @@ class BeaconMesh:
 		
 	def load_extra_mesh_params(self):
 		profiles = self.bed_mesh.pmgr.get_profiles()
+		modified_profiles = {}
+		
 		for profile_name in profiles.keys():
 			profile = profiles[profile_name]
-			config = self.config.getsection(self.bed_mesh.pmgr.name + " " + profile_name)
 			profile_params = profile["mesh_params"]
-			if config is None:
-				continue
-			for key, t in RATOS_MESH_PROFILE_OPTIONS.items():
-				if t is int:
-					profile_params[key] = config.getint(key)
-				elif t is float:
-					profile_params[key] = config.getfloat(key)
-				elif t is str:
-					profile_params[key] = config.get(key)
 			
-			ratos_mesh_version = profile.getint('ratos_mesh_version', None)
-			if ratos_mesh_version is not None and ratos_mesh_version != RATOS_MESH_VERSION:
-				logging.info(
-					"beacon_mesh: Profile [%s] is not compatible with this version of RatOS.\n"
-					"Profile Version: %d\nCurrent Version: %d "
-					% (profile_name, ratos_mesh_version, RATOS_MESH_VERSION))
-				self.incompatible_profiles.append(profile_name)
+			# Try to find the config section for this profile
+			# Handle profile names with spaces correctly
+			try:
+				config_section_name = self.bed_mesh.pmgr.name + " " + profile_name
+				config = self.config.getsection(config_section_name)
+			except Exception:
+				# Skip if no config section exists for this profile
 				continue
-		return None
+				
+			# Load the extra parameters from config
+			for key, t in RATOS_MESH_PROFILE_OPTIONS.items():
+				try:
+					if t is int:
+						profile_params[key] = config.getint(key)
+					elif t is float:
+						profile_params[key] = config.getfloat(key)
+					elif t is str:
+						profile_params[key] = config.get(key)
+				except Exception:
+					# Skip parameters that don't exist in the config
+					continue
+			
+			# Check for version compatibility
+			try:
+				ratos_mesh_version = profile_params.get('ratos_mesh_version')
+				if ratos_mesh_version is not None and ratos_mesh_version != RATOS_MESH_VERSION:
+					logging.info(
+						"beacon_mesh: Profile [%s] is not compatible with this version of RatOS.\n"
+						"Profile Version: %d\nCurrent Version: %d "
+						% (profile_name, ratos_mesh_version, RATOS_MESH_VERSION))
+					self.bed_mesh.pmgr.incompatible_profiles.append(profile_name)
+					continue
+			except Exception:
+				# If we can't determine version compatibility, continue anyway
+				pass
+				
+			modified_profiles[profile_name] = profile
+			
+		return modified_profiles
 
 #####
 # Loader
