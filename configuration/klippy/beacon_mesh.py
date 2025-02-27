@@ -281,6 +281,7 @@ class BeaconMesh:
 						profile_params[key] = config.get(key)
 				except Exception:
 					# Skip parameters that don't exist in the config
+					self.bed_mesh.pmgr.incompatible_profiles.append(profile_name)
 					continue
 			
 			# Check for version compatibility
