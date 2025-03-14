@@ -114,10 +114,10 @@ class BeaconMesh:
 				"No bed mesh loaded._N_Either generate a new bed mesh or load it via BED_MESH_PROFILE LOAD=\"[profile_name]\"")
 			return
 		
-		x_pos = gcmd.get('X', 0.0)
-		y_pos = gcmd.get('Y', 0.0)
-		save_profile = gcmd.get('SAVE_PROFILE', False)
-		
+		x_pos = gcmd.get_float('X')
+		y_pos = gcmd.get_float('Y')
+		save_profile = gcmd.get('SAVE_PROFILE', "false")
+		save_profile = save_profile.lower() in ("true", "1", "yes")
 		
 		org_mesh = self.bed_mesh.get_mesh()
 		new_mesh = BedMesh.ZMesh(org_mesh.get_mesh_params(), org_mesh.get_profile_name())
