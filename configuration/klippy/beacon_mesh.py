@@ -121,7 +121,7 @@ class BeaconMesh:
 		
 		org_mesh = self.bed_mesh.get_mesh()
 		new_mesh = BedMesh.ZMesh(org_mesh.get_mesh_params(), org_mesh.get_profile_name())
-		new_mesh.build_mesh(org_mesh.get_mesh_matrix())
+		new_mesh.build_mesh(org_mesh.get_probed_matrix())
 		new_mesh.set_zero_reference(x_pos, y_pos)
 		self.bed_mesh.set_mesh(new_mesh)
 		
