@@ -224,6 +224,9 @@ class BeaconMesh:
 				"Beacon module not loaded._N_Make sure you've configured Beacon as your z probe.")
 			return
 
+		# Go to safe home
+		self.gcode.run_script_from_command("_MOVE_TO_SAFE_Z_HOME Z_HOP=True")
+
 		# Calibrate a fresh model
 		self.gcode.run_script_from_command("BEACON_AUTO_CALIBRATE")
 
