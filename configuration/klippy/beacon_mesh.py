@@ -215,10 +215,6 @@ class BeaconMesh:
 			self.ratos.console_echo("Beacon scan compensation error", "error", str(e))
 
 	def create_compensation_mesh(self, profile, probe_count):
-		if not self.bed_mesh.z_mesh:
-			self.ratos.console_echo("Create compensation mesh error", "error", 
-				"No scan mesh loaded._N_Either generate a new bed mesh or load it via BED_MESH_PROFILE LOAD=[profile_name]")
-			return
 		if not self.beacon:
 			self.ratos.console_echo("Create compensation mesh error", "error", 
 				"Beacon module not loaded._N_Make sure you've configured Beacon as your z probe.")
