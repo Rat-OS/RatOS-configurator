@@ -25,6 +25,7 @@ class RatOS:
 			'TEST_RESONANCES': None,
 			'SHAPER_CALIBRATE': None,
 		}
+		self.bed_mesh = None
 
 		self.old_is_graph_files = []
 		self.load_settings()
@@ -48,6 +49,8 @@ class RatOS:
 		self.rmmu_hub = None
 		if self.config.has_section("rmmu_hub"):
 			self.rmmu_hub = self.printer.lookup_object("rmmu_hub", None)
+		if self.config.has_section("bed_mesh"):
+			self.bed_mesh = self.printer.lookup_object('bed_mesh')
 
 		# Register overrides.
 		self.register_command_overrides()
@@ -75,6 +78,7 @@ class RatOS:
 		self.gcode.register_command('ALLOW_UNKNOWN_GCODE_GENERATOR', self.cmd_ALLOW_UNKNOWN_GCODE_GENERATOR, desc=(self.desc_ALLOW_UNKNOWN_GCODE_GENERATOR))
 		self.gcode.register_command('BYPASS_GCODE_PROCESSING', self.cmd_BYPASS_GCODE_PROCESSING, desc=(self.desc_BYPASS_GCODE_PROCESSING))
 		self.gcode.register_command('_SYNC_GCODE_POSITION', self.cmd_SYNC_GCODE_POSITION, desc=(self.desc_SYNC_GCODE_POSITION))
+		self.gcode.register_command('_CHECK_BED_MESH_PROFILE_EXISTS', self.cmd_CHECK_BED_MESH_PROFILE_EXISTS, desc=(self.desc_CHECK_BED_MESH_PROFILE_EXISTS))
 
 	def register_command_overrides(self):
 		self.register_override('TEST_RESONANCES', self.override_TEST_RESONANCES, desc=(self.desc_TEST_RESONANCES))
@@ -199,6 +203,17 @@ class RatOS:
 		prefix = gcmd.get('PREFIX')
 		msg = gcmd.get('MSG')
 		logging.info(prefix + ": " + msg)
+
+	desc_CHECK_BED_MESH_PROFILE_EXISTS = "Raises an error if [bed_mesh] is configured and the specified profile does not exist"
+	def cmd_CHECK_BED_MESH_PROFILE_EXISTS(self, gcmd):
+		if self.bed_mesh:
+			profile = gcmd.get('PROFILE', '')
+			if not profile.strip():
+				raise gcmd.error("Value for parameter 'PROFILE' must be specified")		
+			msg = gcmd.get('MSG', "Bed mesh profile '%s' not found")
+			profiles = self.bed_mesh.pmgr.get_profiles()
+			if profile not in profiles:
+				raise self.printer.command_error(msg % (profile))
 
 	desc_PROCESS_GCODE_FILE = "G-code post-processor for IDEX and RMMU"
 	def cmd_PROCESS_GCODE_FILE(self, gcmd):
