@@ -74,6 +74,25 @@ class BeaconMesh:
 			self.gcode.register_command('SET_ZERO_REFERENCE_POSITION', 
 							   self.cmd_SET_ZERO_REFERENCE_POSITION, 
 							   desc=(self.desc_SET_ZERO_REFERENCE_POSITION))
+			self.gcode.register_command('_CHECK_ACTIVE_BEACON_MODEL_TEMP', 
+							   self.cmd_CHECK_ACTIVE_BEACON_MODEL_TEMP, 
+							   desc=(self.desc_CHECK_ACTIVE_BEACON_MODEL_TEMP))
+
+	desc_CHECK_ACTIVE_BEACON_MODEL_TEMP = "Warns if the active Beacon model temperature is far from the current Beacon coil temperature."
+	def cmd_CHECK_ACTIVE_BEACON_MODEL_TEMP(self, gcmd):
+		margin = gcmd.get_int('MARGIN', 20, minval=1)
+		title = gcmd.get('TITLE', 'Active Beacon model temperature warning')
+		self.check_active_beacon_model_temp(margin, title)
+
+	def check_active_beacon_model_temp(self, margin=20, title='Active Beacon model temperature warning'):
+		if self.ratos and self.beacon and self.beacon.model:
+			coil_temp = self.beacon.last_temp
+			model_temp = self.beacon.model.temp
+
+			if coil_temp < model_temp - margin or coil_temp > model_temp + margin:
+				self.ratos.console_echo(title, "warning", 
+					"The active Beacon model ('%s') is calibrated for a temperature that is %0.2fC different than the current Beacon coil temperature._N_"
+					"This may result in inaccurate compensation." % (self.beacon.model.name, abs(coil_temp - model_temp)))
 
 	desc_BEACON_APPLY_SCAN_COMPENSATION = "Compensates a beacon scan mesh with a beacon compensation mesh."
 	def cmd_BEACON_APPLY_SCAN_COMPENSATION(self, gcmd):
