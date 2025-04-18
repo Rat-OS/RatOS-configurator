@@ -137,10 +137,8 @@ class BeaconMesh:
 		
 		x_pos = gcmd.get_float('X')
 		y_pos = gcmd.get_float('Y')
-		save_profile = gcmd.get('SAVE_PROFILE', "false")
-		save_profile = save_profile.lower() in ("true", "1", "yes")
 		
-		self.ratos.debug_echo("SET_ZERO_REFERENCE_POSITION", f"X:{x_pos:.2f} Y:{y_pos:.2f} save:{save_profile}")
+		self.ratos.debug_echo("SET_ZERO_REFERENCE_POSITION", f"X:{x_pos:.2f} Y:{y_pos:.2f}")
 
 		org_mesh = self.bed_mesh.get_mesh()
 		new_mesh = BedMesh.ZMesh(org_mesh.get_mesh_params(), org_mesh.get_profile_name())
@@ -148,13 +146,9 @@ class BeaconMesh:
 		new_mesh.set_zero_reference(x_pos, y_pos)
 		self.bed_mesh.set_mesh(new_mesh)
 		
-		if save_profile:
-			self.bed_mesh.pmgr.save_profile(new_mesh.get_profile_name())
-			self.ratos.console_echo("Set zero reference position", "info", 
-				f"Zero reference position saved for profile '{new_mesh.get_profile_name()}'")
-		else:
-			self.ratos.console_echo("Set zero reference position", "info", 
-				f"Zero reference position set temporarily for profile '{new_mesh.get_profile_name()}'._N_Note: the zeroed state will be lost if a different profile is selected.")
+		self.bed_mesh.pmgr.save_profile(new_mesh.get_profile_name())
+		self.ratos.console_echo("Set zero reference position", "info", 
+			f"Zero reference position saved for profile '{new_mesh.get_profile_name()}'")
 
 	#####
 	# Beacon Scan Compensation
