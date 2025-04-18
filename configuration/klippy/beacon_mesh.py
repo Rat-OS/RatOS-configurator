@@ -34,6 +34,7 @@ class BeaconMesh:
 		# These are loaded on klippy:connect.
 		self.beacon = None
 		self.ratos = None
+		self.gm_ratos = None
 		self.bed_mesh = None
 
 		self.offset_mesh = None
@@ -51,6 +52,7 @@ class BeaconMesh:
 	def _connect(self):
 		if self.config.has_section("ratos"):
 			self.ratos = self.printer.lookup_object('ratos')
+			self.gm_ratos = self.printer.lookup_object('gcode_macro RatOS')
 		if self.config.has_section("bed_mesh"):
 			self.bed_mesh = self.printer.lookup_object('bed_mesh')
 			# Load additional RatOS mesh params
@@ -239,11 +241,23 @@ class BeaconMesh:
 				"Beacon module not loaded._N_Make sure you've configured Beacon as your z probe.")
 			return
 
+		beacon_contact_calibrate_model_on_print = str(self.gm_ratos.variables['beacon_contact_calibrate_model_on_print']).lower() == 'true'
+
 		# Go to safe home
 		self.gcode.run_script_from_command("_MOVE_TO_SAFE_Z_HOME Z_HOP=True")
 
-		# Calibrate a fresh model
-		self.gcode.run_script_from_command("BEACON_AUTO_CALIBRATE")
+		if beacon_contact_calibrate_model_on_print:
+			# Calibrate a fresh model
+			self.gcode.run_script_from_command("BEACON_AUTO_CALIBRATE")
+		else:
+			if self.beacon.model is None:
+				self.ratos.console_echo("Create compensation mesh error", "error", 
+					"No active Beacon model is selected._N_Make sure you've performed initial Beacon calibration.")
+				return
+
+			self.check_active_beacon_model_temp(title="Create compensation mesh warning")
+			
+			self.gcode.run_script_from_command("BEACON_AUTO_CALIBRATE SKIP_MODEL_CREATION=1")
 
 		# create contact mesh
 		self.gcode.run_script_from_command(
