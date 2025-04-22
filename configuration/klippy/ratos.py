@@ -14,7 +14,6 @@ class RatOS:
 		self.config = config
 		self.printer = config.get_printer()
 		self.name = config.get_name()
-		self.last_processed_file_result = None
 		self.bypass_post_processing = False
 		self.enable_gcode_transform = False
 		self.allow_unsupported_slicer_versions = False
@@ -26,6 +25,10 @@ class RatOS:
 			'SHAPER_CALIBRATE': None,
 		}
 		self.bed_mesh = None
+
+		# Status fields
+		self.last_processed_file_result = None
+		self.last_check_bed_mesh_profile_exists_result = None
 
 		self.old_is_graph_files = []
 		self.load_settings()
@@ -249,14 +252,14 @@ class RatOS:
 
 	desc_CHECK_BED_MESH_PROFILE_EXISTS = "Sets status last_check_bed_mesh_profile_exists_result to True if [bed_mesh] is configured and the specified profile exists, otherwise False."
 	def cmd_CHECK_BED_MESH_PROFILE_EXISTS(self, gcmd):
+		self.last_check_bed_mesh_profile_exists_result = False
 		if self.bed_mesh:
 			profile = gcmd.get('PROFILE', '')
 			if not profile.strip():
-				raise gcmd.error("Value for parameter 'PROFILE' must be specified")		
-			msg = gcmd.get('MSG', "Bed mesh profile '%s' not found")
+				raise gcmd.error("Value for parameter 'PROFILE' must be specified")
 			profiles = self.bed_mesh.pmgr.get_profiles()
-			if profile not in profiles:
-				raise self.printer.command_error(msg % (profile))
+			if profile in profiles:
+				self.last_check_bed_mesh_profile_exists_result = True
 
 	desc_PROCESS_GCODE_FILE = "G-code post-processor for IDEX and RMMU"
 	def cmd_PROCESS_GCODE_FILE(self, gcmd):
@@ -510,10 +513,10 @@ class RatOS:
 	# Helper
 	#####
 	def ratos_echo(self, prefix, msg):
-		self.gcode.run_script_from_command("RATOS_ECHO PREFIX='" + str(prefix) + "' MSG='" + str(msg) + "'")
+		self.gcode.run_script_from_command("RATOS_ECHO PREFIX='" + str(prefix) + "' MSG='" + str(msg).replace("'", "`").replace("\n", "_N_") + "'")
 
 	def debug_echo(self, prefix, msg):
-		self.gcode.run_script_from_command("DEBUG_ECHO PREFIX='" + str(prefix) + "' MSG='" + str(msg) + "'")
+		self.gcode.run_script_from_command("DEBUG_ECHO PREFIX='" + str(prefix) + "' MSG='" + str(msg).replace("'", "`").replace("\n", "_N_") + "'")
 	
 	def console_echo(self, title, type, msg=''):
 		color = "white"
@@ -573,7 +576,10 @@ class RatOS:
 		return version
 	
 	def get_status(self, eventtime):
-		return {'name': self.name, 'last_processed_file_result': self.last_processed_file_result}
+		return {
+			'name': self.name,
+			'last_processed_file_result': self.last_processed_file_result,
+			'last_check_bed_mesh_profile_exists_result': self.last_check_bed_mesh_profile_exists_result }
 
 #####
 # Loader
