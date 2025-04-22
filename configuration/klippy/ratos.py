@@ -79,6 +79,8 @@ class RatOS:
 		self.gcode.register_command('BYPASS_GCODE_PROCESSING', self.cmd_BYPASS_GCODE_PROCESSING, desc=(self.desc_BYPASS_GCODE_PROCESSING))
 		self.gcode.register_command('_SYNC_GCODE_POSITION', self.cmd_SYNC_GCODE_POSITION, desc=(self.desc_SYNC_GCODE_POSITION))
 		self.gcode.register_command('_CHECK_BED_MESH_PROFILE_EXISTS', self.cmd_CHECK_BED_MESH_PROFILE_EXISTS, desc=(self.desc_CHECK_BED_MESH_PROFILE_EXISTS))
+		self.gcode.register_command('_RAISE_ERROR', self.cmd_RAISE_ERROR, desc=(self.desc_RAISE_ERROR))
+		self.gcode.register_command('_TRY', self.cmd_TRY, desc=(self.desc_TRY))
 
 	def register_command_overrides(self):
 		self.register_override('TEST_RESONANCES', self.override_TEST_RESONANCES, desc=(self.desc_TEST_RESONANCES))
@@ -204,7 +206,48 @@ class RatOS:
 		msg = gcmd.get('MSG')
 		logging.info(prefix + ": " + msg)
 
-	desc_CHECK_BED_MESH_PROFILE_EXISTS = "Raises an error if [bed_mesh] is configured and the specified profile does not exist"
+	desc_RAISE_ERROR = "Raises an error when the macro is executed, unlike {action_raise_error()} which is executed when the macro is evaluated (rendered)"
+	def cmd_RAISE_ERROR(self, gcmd):
+		# This is implemented in python to avoid the unhelpful prefixing of the current macro name to the error message
+		# when {action_raise_error()} is used in a [gcode_macro] template.
+		msg = gcmd.get('MSG')
+		raise self.printer.command_error(msg)
+
+	desc_TRY = "Implements the try/except/finally pattern"
+	def cmd_TRY(self, gcmd):
+		command = gcmd.get("__COMMAND").strip()
+		if not command:
+			raise gcmd.error("Value for parameter '__COMMAND' must be specified")
+		
+		_except = gcmd.get("__EXCEPT", "").strip()
+		_finally = gcmd.get("__FINALLY", "").strip()
+		
+		to_run = f'{command} {gcmd.get_raw_command_parameters()}'
+
+		self.debug_echo("TRY", f"Command: {command}")
+		self.debug_echo("TRY", f"Run: {to_run}")
+		if _except:
+			self.debug_echo("TRY", f"Except: {_except}")
+		if _finally:
+			self.debug_echo("TRY", f"Finally: {_finally}")
+
+		try:
+			self.gcode.run_script_from_command(to_run)
+		except:
+			if _except:
+				try:
+					self.gcode.run_script_from_command(_except)
+				except Exception as ex:
+					self.debug_echo("TRY", f"Except command failed: {str(ex)}")
+			raise
+		finally:
+			if _finally:
+				try:
+					self.gcode.run_script_from_command(_finally)
+				except Exception as ex:
+					self.debug_echo("TRY", f"Finally command failed: {str(ex)}")
+
+	desc_CHECK_BED_MESH_PROFILE_EXISTS = "Sets status last_check_bed_mesh_profile_exists_result to True if [bed_mesh] is configured and the specified profile exists, otherwise False."
 	def cmd_CHECK_BED_MESH_PROFILE_EXISTS(self, gcmd):
 		if self.bed_mesh:
 			profile = gcmd.get('PROFILE', '')
