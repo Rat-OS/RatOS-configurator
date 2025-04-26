@@ -1,4 +1,4 @@
-import os, logging, glob
+import os, logging, glob, traceback, inspect, re
 import json, subprocess, pathlib
 
 #####
@@ -84,6 +84,7 @@ class RatOS:
 		self.gcode.register_command('_CHECK_BED_MESH_PROFILE_EXISTS', self.cmd_CHECK_BED_MESH_PROFILE_EXISTS, desc=(self.desc_CHECK_BED_MESH_PROFILE_EXISTS))
 		self.gcode.register_command('_RAISE_ERROR', self.cmd_RAISE_ERROR, desc=(self.desc_RAISE_ERROR))
 		self.gcode.register_command('_TRY', self.cmd_TRY, desc=(self.desc_TRY))
+		self.gcode.register_command('_DEBUG_ECHO_STACK_TRACE', self.cmd_DEBUG_ECHO_STACK_TRACE, desc=(self.desc_DEBUG_ECHO_STACK_TRACE))
 
 	def register_command_overrides(self):
 		self.register_override('TEST_RESONANCES', self.override_TEST_RESONANCES, desc=(self.desc_TEST_RESONANCES))
@@ -581,6 +582,102 @@ class RatOS:
 			'last_processed_file_result': self.last_processed_file_result,
 			'last_check_bed_mesh_profile_exists_result': self.last_check_bed_mesh_profile_exists_result }
 
+	#####
+	# Stack trace
+	#####
+
+	_rx_stack_crawl_ = re.compile(r";\$(\S+)")
+	desc_DEBUG_ECHO_STACK_TRACE = "Logs a gcode command stack trace when debug is enabled. Add comments to template macros formatted exactly {';$some-short-text-without-whitespace'} to enhance callsite identification."
+	def cmd_DEBUG_ECHO_STACK_TRACE(self, gcmd):
+		macro = self.printer.lookup_object('gcode_macro DEBUG_ECHO')
+		if macro.variables['enabled']:			
+			def callback(frame_info):
+				locals = frame_info.frame.f_locals
+				self_obj = locals.get("self", None)
+				if self_obj:
+					if isinstance(self_obj, type(macro)):
+						f_gcmd = locals.get('gcmd',None)
+						if f_gcmd:
+							return (False,f"    {f_gcmd.get_commandline()}")
+						return (False,f"    {self_obj.alias}")
+					if type(self_obj).__name__ == 'GCodeDispatch':
+						f_commands = locals.get('commands', None)
+						f_origline = locals.get('origline', None)
+						if f_commands and f_origline:
+							def format_with_preceding_crawlmark(index):
+								for index2, line2 in enumerate(f_commands[index::-1]):
+									match = self._rx_stack_crawl_.search(line2)
+									if match:
+										return f"{match.group(1)}+{index2}" if index2 > 0 else match.group(1)
+								return str(index)
+							matches = []
+							for index, line in enumerate(f_commands):
+								if f_origline is line:
+									matches = [format_with_preceding_crawlmark(index)]
+									break
+								if f_origline == line.strip():
+									matches.append(format_with_preceding_crawlmark(index))
+							if matches:
+								return (False,f"      from line {' or '.join(matches)} of:")
+				gcmd_args = self.get_function_arguments_of_type(frame_info, 'GCodeCommand')
+				if len(gcmd_args) == 1:
+					return (True,f"    {gcmd_args[0][1].get_commandline()}")
+				return (False, None)
+			msg = self.get_formatted_extended_stack_trace(callback, 0)
+			self.console_echo("RATOS_STACK_TRACE", "debug", msg)
+			logging.info("RATOS_STACK_TRACE" + "\n" + msg)
+
+	# Helper for get_formatted_extended_stack_trace callbacks.
+	@staticmethod
+	def get_function_arguments_of_type(frame_info, type_name):
+		function_name = frame_info.function  # Get the function name
+		if function_name:
+			locals = frame_info.frame.f_locals
+			function_object = frame_info.frame.f_globals.get(function_name, None)  # Retrieve the function object
+			if function_object:
+				signature = inspect.signature(function_object)  # Get the function signature
+				return [(name, locals.get(name,None)) for name in signature.parameters.keys() if type(locals.get(name, None)).__name__ == type_name]
+		return []
+
+	@staticmethod
+	def get_formatted_extended_stack_trace(callback=None, skip=0):
+		"""
+		Capture the current stack, format it like traceback.format_list,
+		and for each frame allow a callback (if provided) to add extra lines.
+		
+		Parameters:
+		callback (function): A function that takes an inspect.FrameInfo object
+							and returns a string containing extra info (or '' if none).
+		skip (int): Number of frames to skip from the bottom of the stack.
+					For example, skip=1 will omit the current frame.
+		
+		Returns:
+		str: The formatted multi-line string of the stack trace plus any extra info.
+		"""
+		# Get the current stack. Using inspect.stack() returns a list where each
+		# element is an inspect.FrameInfo object.
+		# We skip the first few frames (including this function itself) using skip.
+		stack = inspect.stack()[skip+1:]
+		lines = []
+		
+		for frame_info in stack:
+			# Convert each inspect.FrameInfo to a FrameSummary, which is what
+			# traceback.format_list expects. This lets us format it the usual way.
+			code_line = frame_info.code_context[0].strip() if frame_info.code_context else None
+			frame_summary = traceback.FrameSummary(frame_info.filename, frame_info.lineno, frame_info.function, line=code_line)
+						
+			# If a callback is provided, get extra information from it.
+			should_emit, extra_lines  = callback(frame_info) if callback is not None else (True, None)
+			if should_emit:
+				# Format the frame like traceback.format_list
+				lines.extend(traceback.format_list([frame_summary]))
+
+			if extra_lines:
+				# Append the extra info as extra lines
+				lines.append(extra_lines + "\n")
+		
+		return "".join(lines)
+	
 #####
 # Loader
 #####
