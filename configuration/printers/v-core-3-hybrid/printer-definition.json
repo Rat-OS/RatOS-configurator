@@ -1,13 +1,18 @@
 {
 	"$schema": "../printer-definition.schema.json",
-	"name": "V-Core 3.1 Hybrid",
-	"description": "Rat Rig V-Core 3.1 3d printer with the hybrid upgrade kit",
+	"name": "V-Core 3 Hybrid",
+	"description": "Rat Rig's former flagship CoreXY printer in 4 sizes with hybrid upgrade kit",
 	"manufacturer": "Rat Rig",
 	"releaseDate": "2024-04-26",
 	"documentationLink": "https://docs.ratrig.com/product-details/v-core3-1",
 	"image": "v-core-3-hybrid.png",
 	"driverCountRequired": 8,
 	"sizes": {
+		"200": {
+			"x": 200,
+			"y": 200,
+			"z": 200
+		},
 		"300": {
 			"x": 300,
 			"y": 300,
@@ -23,6 +28,10 @@
 			"y": 500,
 			"z": 500
 		}
+	},
+	"bedMargin": {
+		"x": [-5, 5],
+		"y": [-12, 5]
 	},
 	"speedLimits": {
 		"basic": {
