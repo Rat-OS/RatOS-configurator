@@ -1,5 +1,5 @@
 #!/bin/bash
-MCU=/dev/btt-sb-2209-usb-10
+MCU=/dev/btt-sb-2209-usb-10-rp
 if [ "$EUID" -ne 0 ]
   then echo "ERROR: Please run as root"
   exit
