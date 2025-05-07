@@ -9,7 +9,7 @@
 	"firmwareBinaryName": "firmware-btt-sb-2209-usb-10-rp.uf2",
 	"compileScript": "compile.sh",
 	"flashScript": "flash.sh",
-	"documentationLink": "https://os.ratrig.com/docs/boards/btt/sb2209-usb-10",
+	"documentationLink": "https://os.ratrig.com/docs/boards/btt/sb-2209-usb-10",
 	"fourPinFanConnectorCount": 1,
 	"driverVoltages": [24],
 	"hasMcuTempSensor": true,
