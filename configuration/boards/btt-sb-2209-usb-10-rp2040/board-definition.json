@@ -13,14 +13,9 @@
 	"fourPinFanConnectorCount": 1,
 	"driverVoltages": [24],
 	"hasMcuTempSensor": true,
-	"outputPins": [
-		{
-			"name": "part_fan_power",
-			"pin": "gpio14",
-			"value": 0
-		}
-	],
 	"driverCount": 1,
+	"alternativePT1000Resistor": 2200,
+	"thermistorPullup": 2200,
 	"integratedDrivers": {
 		"extruder": "BTT-TMC2209-13"
 	},
