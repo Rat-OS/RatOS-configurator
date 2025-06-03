@@ -30,7 +30,7 @@ export const getLogger = () => {
 		logger = pino({ ...globalPinoOpts }, prettyStream).child({ source: 'cli' });
 	} else {
 		// Write to file via stream instead of worker (which breaks when using `ratos development branch` to switch between deployment and development branches).
-		logger = pino({ ...globalPinoOpts }, pino.destination({ dest: environment.LOG_FILE, sync: true })).child({
+		logger = pino({ ...globalPinoOpts }, pino.destination({ dest: logFile, sync: true })).child({
 			source: 'cli',
 		});
 	}
