@@ -6,7 +6,8 @@
     "pnpm@latest",
     "bun@latest",
     "nodejs@latest",
-    "caddy@latest"
+    "caddy@latest",
+    "bash@latest"
   ],
   "env": {
     "DEVBOX_NO_PROMPT": "1"
@@ -14,6 +15,8 @@
   "shell": {
     "init_hook": [
       "pnpm install --C src",
+      "bash scripts/generate-devbox-environment.sh",
+      "chmod -R ug+w $DEVBOX_PROJECT_ROOT/devbox.d/klipper",
       "echo 'RatOS development environment initialized'"
     ],
     "scripts": {

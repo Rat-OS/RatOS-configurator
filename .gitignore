@@ -25,3 +25,4 @@ src/public/tfjs*
 
 # Default printer config directory for development
 devbox.d/printer-config/
+devbox.d/klipper/
