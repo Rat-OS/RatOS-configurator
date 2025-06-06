@@ -327,11 +327,11 @@ importers:
         specifier: ^7.8.1
         version: 7.8.1
       scichart:
-        specifier: ^3.5.711
-        version: 3.5.711
+        specifier: '=3.5.762'
+        version: 3.5.762
       scichart-react:
-        specifier: ^0.1.9
-        version: 0.1.9(react@18.2.0)(scichart@3.5.711)
+        specifier: '=0.1.13'
+        version: 0.1.13(react@18.2.0)(scichart@3.5.762)
       screenfull:
         specifier: ^6.0.2
         version: 6.0.2
@@ -4723,14 +4723,14 @@ packages:
   scheduler@0.23.0:
     resolution: {integrity: sha512-CtuThmgHNg7zIZWAXi3AsyIzA3n4xx7aNyjwC2VJldO2LMVDhFK+63xGqq6CsJH4rTAt6/M+N4GhZiDYPx9eUw==}
 
-  scichart-react@0.1.9:
-    resolution: {integrity: sha512-U52sXcjHHQ5ztzI+tVlEKrkDxkYYHvQOHYEIhy2aJ/k8iQcy5Kr8iqq3+JN1eBioMg2UzGmIXpVitJQTZrE0Hw==}
+  scichart-react@0.1.13:
+    resolution: {integrity: sha512-J7gc9I8W1v+iMyXPrDfFr8msHTftNCvdP26IBlGfzjyNZvThn+EpWCm/KZJzLJXNbjamg3kLyZjiz+o1MIU+Mw==}
     peerDependencies:
       react: '>=16.8.0'
-      scichart: '>=3.2.516'
+      scichart: '>=3.2.516-0'
 
-  scichart@3.5.711:
-    resolution: {integrity: sha512-rHo5ITWpZnf6c/rCj1q2zzi/tNZRt5TiXpXuwogL6IFCklSptpqYQ2RdVDM9exWURIEjO07cxI1LgCXeIo6oaw==}
+  scichart@3.5.762:
+    resolution: {integrity: sha512-nvoURjQETdpKHWSVzNlaq9DPSdhqw5nDMpJouxR8QTkivRKvc6q6z2Gsfze59gFlTjUIV5I79B5iy+riyrL86w==}
 
   screenfull@6.0.2:
     resolution: {integrity: sha512-AQdy8s4WhNvUZ6P8F6PB21tSPIYKniic+Ogx0AacBMjKP1GUHN2E9URxQHtCusiwxudnCKkdy4GrHXPPJSkCCw==}
@@ -9995,12 +9995,12 @@ snapshots:
     dependencies:
       loose-envify: 1.4.0
 
-  scichart-react@0.1.9(react@18.2.0)(scichart@3.5.711):
+  scichart-react@0.1.13(react@18.2.0)(scichart@3.5.762):
     dependencies:
       react: 18.2.0
-      scichart: 3.5.711
+      scichart: 3.5.762
 
-  scichart@3.5.711: {}
+  scichart@3.5.762: {}
 
   screenfull@6.0.2: {}
 

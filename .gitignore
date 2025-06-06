@@ -22,3 +22,6 @@ yarn-error.log*
 # SciChart data
 src/public/scichart*
 src/public/tfjs*
+
+# Default printer config directory for development
+devbox.d/printer-config/

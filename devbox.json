@@ -1,0 +1,25 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.14.2/.schema/devbox.schema.json",
+  "packages": [
+    "klipper@latest",
+    "moonraker@latest",
+    "pnpm@latest",
+    "bun@latest",
+    "nodejs@latest",
+    "caddy@latest"
+  ],
+  "env": {
+    "DEVBOX_NO_PROMPT": "1"
+  },
+  "shell": {
+    "init_hook": [
+      "pnpm install --C src",
+      "echo 'RatOS development environment initialized'"
+    ],
+    "scripts": {
+      "run": [
+        "pnpm run --C src dev"
+      ]
+    }
+  }
+}

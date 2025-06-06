@@ -23,7 +23,7 @@ exports.id=1971,exports.ids=[1971],exports.modules={5955:(e,t,n)=>{let r=n(51495
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */let a=(0,r.Z)("Trash",[["path",{d:"M3 6h18",key:"d0wm0j"}],["path",{d:"M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6",key:"4alrt4"}],["path",{d:"M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2",key:"v07s0e"}]])},28544:(e,t,n)=>{"use strict";n.d(t,{Z:()=>a});var r=n(82697);/**
+ */let a=(0,r.Z)("Trash",[["path",{d:"M3 6h18",key:"d0wm0j"}],["path",{d:"M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6",key:"4alrt4"}],["path",{d:"M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2",key:"v07s0e"}]])},51224:(e,t,n)=>{"use strict";n.d(t,{Z:()=>a});var r=n(82697);/**
  * @license lucide-react v0.363.0 - ISC
  *
  * This source code is licensed under the ISC license.
