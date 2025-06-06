@@ -6,7 +6,7 @@
 	"releaseDate": "2024-04-26",
 	"documentationLink": "https://docs.ratrig.com/product-details/v-core3-1",
 	"image": "v-core-3-hybrid.png",
-	"template": "v-core-3-hybrid.template.cfg",
+	"template": "v-core-3-hybrid.ts",
 	"driverCountRequired": 8,
 	"sizes": {
 		"200": {
