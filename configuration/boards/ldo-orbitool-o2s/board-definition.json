@@ -13,7 +13,7 @@
 	"disableAutoFlash": false,
 	"driverVoltages": [24],
 	"hasMcuTempSensor": true,
-	"invertPinLogic": ["PB15"],
+	"invertPinLogic": ["PB0","PB15"],
 	"driverCount": 1,
 	"integratedDrivers": {
 		"extruder": "LDO-2240-UART"
