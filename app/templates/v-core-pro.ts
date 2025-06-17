@@ -15,9 +15,9 @@ ${helper.renderBoards()}
 ### BASE SETUP
 #############################################################################################################
 ${helper.renderBase()}
-[include RatOS/printers/v-core-3/v-core-3.cfg]
-[include RatOS/printers/v-core-3/macros.cfg]
-[include RatOS/printers/v-core-3/${config.size.x}.cfg]
+[include RatOS/printers/v-core-pro/v-core-pro.cfg]
+[include RatOS/printers/v-core-pro/macros.cfg]
+[include RatOS/printers/v-core-pro/${config.size.x}.cfg]
 
 # Extruder
 ${helper.renderExtruder()}
