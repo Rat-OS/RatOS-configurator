@@ -120,9 +120,9 @@ export function validateGenerator(
 				}
 				break;
 			case GCodeFlavour.RatOS:
-				if (semver.neq('0.1', gcodeInfo.generatorVersion)) {
+				if (semver.neq('0.1', gcodeInfo.ratosDialectVersion)) {
 					throw new SlicerNotSupported(
-						`Only version 0.1 of the RatOS G-code dialect is supported. Version ${gcodeInfo.generatorVersion} is not supported.`,
+						`Only version 0.1 of the RatOS G-code dialect is supported. Version ${gcodeInfo.ratosDialectVersion} is not supported.`,
 						{ cause: gcodeInfo },
 					);
 				}
