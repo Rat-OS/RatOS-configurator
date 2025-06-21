@@ -1,0 +1,2 @@
+- Use `pnpx` instead of `npx`
+- Use `pnpm run test:ci` in the `src` folder to run the tests once, without watching for changes.
