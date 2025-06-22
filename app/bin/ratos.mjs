@@ -5078,8 +5078,8 @@ var require_use_sync_external_store_shim_development = __commonJS({
         if (typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ !== "undefined" && typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart === "function") {
           __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(new Error());
         }
-        var React48 = require_react();
-        var ReactSharedInternals = React48.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+        var React49 = require_react();
+        var ReactSharedInternals = React49.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
         function error(format) {
           {
             {
@@ -5109,13 +5109,13 @@ var require_use_sync_external_store_shim_development = __commonJS({
           return x === y && (x !== 0 || 1 / x === 1 / y) || x !== x && y !== y;
         }
         var objectIs = typeof Object.is === "function" ? Object.is : is;
-        var useState14 = React48.useState, useEffect18 = React48.useEffect, useLayoutEffect2 = React48.useLayoutEffect, useDebugValue = React48.useDebugValue;
+        var useState14 = React49.useState, useEffect18 = React49.useEffect, useLayoutEffect2 = React49.useLayoutEffect, useDebugValue = React49.useDebugValue;
         var didWarnOld18Alpha = false;
         var didWarnUncachedGetSnapshot = false;
         function useSyncExternalStore2(subscribe, getSnapshot, getServerSnapshot) {
           {
             if (!didWarnOld18Alpha) {
-              if (React48.startTransition !== void 0) {
+              if (React49.startTransition !== void 0) {
                 didWarnOld18Alpha = true;
                 error("You are using an outdated, pre-release alpha of React 18 that does not support useSyncExternalStore. The use-sync-external-store shim will not work correctly. Upgrade to a newer pre-release.");
               }
@@ -5180,7 +5180,7 @@ var require_use_sync_external_store_shim_development = __commonJS({
         var canUseDOM = !!(typeof window !== "undefined" && typeof window.document !== "undefined" && typeof window.document.createElement !== "undefined");
         var isServerEnvironment = !canUseDOM;
         var shim = isServerEnvironment ? useSyncExternalStore$12 : useSyncExternalStore2;
-        var useSyncExternalStore$2 = React48.useSyncExternalStore !== void 0 ? React48.useSyncExternalStore : shim;
+        var useSyncExternalStore$2 = React49.useSyncExternalStore !== void 0 ? React49.useSyncExternalStore : shim;
         exports.useSyncExternalStore = useSyncExternalStore$2;
         if (typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ !== "undefined" && typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop === "function") {
           __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop(new Error());
@@ -8665,10 +8665,10 @@ var require_react_dom_server_legacy_node_development = __commonJS({
     if (process.env.NODE_ENV !== "production") {
       (function() {
         "use strict";
-        var React48 = require_react();
+        var React49 = require_react();
         var stream = __require("stream");
         var ReactVersion = "18.2.0";
-        var ReactSharedInternals = React48.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+        var ReactSharedInternals = React49.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
         function warn(format) {
           {
             {
@@ -10564,7 +10564,7 @@ var require_react_dom_server_legacy_node_development = __commonJS({
         }
         function flattenOptionChildren(children) {
           var content = "";
-          React48.Children.forEach(children, function(child) {
+          React49.Children.forEach(children, function(child) {
             if (child == null) {
               return;
             }
@@ -14063,10 +14063,10 @@ var require_react_dom_server_node_development = __commonJS({
     if (process.env.NODE_ENV !== "production") {
       (function() {
         "use strict";
-        var React48 = require_react();
+        var React49 = require_react();
         var util4 = __require("util");
         var ReactVersion = "18.2.0";
-        var ReactSharedInternals = React48.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+        var ReactSharedInternals = React49.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
         function warn(format) {
           {
             {
@@ -16059,7 +16059,7 @@ var require_react_dom_server_node_development = __commonJS({
         }
         function flattenOptionChildren(children) {
           var content = "";
-          React48.Children.forEach(children, function(child) {
+          React49.Children.forEach(children, function(child) {
             if (child == null) {
               return;
             }
@@ -25885,9 +25885,9 @@ var require_react_reconciler_development = __commonJS({
       module.exports = function $$$reconciler($$$hostConfig) {
         var exports2 = {};
         "use strict";
-        var React48 = require_react();
+        var React49 = require_react();
         var Scheduler = require_scheduler();
-        var ReactSharedInternals = React48.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+        var ReactSharedInternals = React49.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
         var suppressWarning = false;
         function setSuppressWarning(newSuppressWarning) {
           {
@@ -29685,7 +29685,7 @@ var require_react_reconciler_development = __commonJS({
           }
         }
         var fakeInternalInstance = {};
-        var emptyRefsObject = new React48.Component().refs;
+        var emptyRefsObject = new React49.Component().refs;
         var didWarnAboutStateAssignmentForComponent;
         var didWarnAboutUninitializedState;
         var didWarnAboutGetSnapshotBeforeUpdateWithoutDidUpdate;
@@ -89995,8 +89995,8 @@ var proxyClient = createTRPCProxyClient({
 });
 
 // commands.tsx
-var import_react67 = __toESM(require_react(), 1);
-import { stat as stat3 } from "node:fs/promises";
+var import_react68 = __toESM(require_react(), 1);
+import { stat as stat4 } from "node:fs/promises";
 import path12 from "path";
 
 // ../node_modules/.pnpm/ink@5.0.0_@types+react@18.2.21_react-devtools-core@4.19.1_react@18.2.0/node_modules/ink/build/index.js
@@ -95158,7 +95158,7 @@ async function readPackageUp(options) {
 
 // commands.tsx
 import { $ as $3, echo as echo3, which } from "zx";
-import { existsSync as existsSync9 } from "node:fs";
+import { existsSync as existsSync10 } from "node:fs";
 
 // util.tsx
 init_cjs_shim();
@@ -98990,22 +98990,38 @@ var import_dotenv = __toESM(require_main());
 import { existsSync as existsSync3, readFileSync as readFileSync2 } from "node:fs";
 import path6 from "node:path";
 var alreadyLoaded = false;
+function resetEnvironment() {
+  alreadyLoaded = false;
+}
 function loadEnvironment(filePath) {
   if (alreadyLoaded) {
     return serverSchema.parse(process.env);
   }
-  const envFilePath = filePath ?? (existsSync3("./.env.local") ? ".env.local" : ".env");
+  let envFilePath;
+  if (filePath) {
+    envFilePath = filePath;
+  } else if (process.env.NODE_ENV === "test") {
+    if (existsSync3("./.env.test.local")) {
+      envFilePath = "./.env.test.local";
+    } else if (existsSync3("./.env.test")) {
+      envFilePath = "./.env.test";
+    } else if (existsSync3("./.env.local")) {
+      envFilePath = "./.env.local";
+    } else {
+      envFilePath = "./.env";
+    }
+  } else {
+    envFilePath = existsSync3("./.env.local") ? ".env.local" : ".env";
+  }
   if (!existsSync3(envFilePath)) {
     throw new Error(`Environment file ${path6.resolve(envFilePath)} not found`);
   }
-  const envFile2 = readFileSync2(envFilePath, "utf8");
-  const env3 = serverSchema.parse({ NODE_ENV: "production", ...import_dotenv.default.parse(envFile2) });
+  const envFile = readFileSync2(envFilePath, "utf8");
+  const defaultNodeEnv = process.env.NODE_ENV === "test" ? "test" : "production";
+  const env3 = serverSchema.parse({ NODE_ENV: defaultNodeEnv, ...import_dotenv.default.parse(envFile) });
   import_dotenv.default.populate(process.env, env3, { override: true });
   alreadyLoaded = true;
   return env3;
-}
-function resetEnvironment() {
-  alreadyLoaded = false;
 }
 function reloadEnvironment(filePath) {
   resetEnvironment();
@@ -100341,9 +100357,8 @@ var InstallProgressUI = (props) => {
 // logger.ts
 init_cjs_shim();
 var import_pino2 = __toESM(require_pino(), 1);
-var import_dotenv2 = __toESM(require_main(), 1);
 var import_pino_pretty = __toESM(require_pino_pretty(), 1);
-import { existsSync as existsSync4, readFileSync as readFileSync3 } from "fs";
+import { existsSync as existsSync4 } from "fs";
 import path8 from "path";
 var prettyStream = (0, import_pino_pretty.default)({
   levelFirst: true,
@@ -100351,12 +100366,11 @@ var prettyStream = (0, import_pino_pretty.default)({
   ignore: "hostname,pid"
 });
 var logger2 = null;
-var envFile = existsSync4("./.env.local") ? readFileSync3(".env.local") : readFileSync3(".env");
 var getLogger2 = () => {
   if (logger2 != null) {
     return logger2;
   }
-  const environment = serverSchema.parse({ NODE_ENV: "production", ...import_dotenv2.default.parse(envFile) });
+  const environment = loadEnvironment();
   const logDirExists = existsSync4(path8.dirname(environment.LOG_FILE));
   const logFile = logDirExists ? environment.LOG_FILE : "/var/log/ratos-cli.log";
   if (!logDirExists) {
@@ -100408,7 +100422,7 @@ var findSection = (section, content) => {
 import { readFile, writeFile } from "node:fs/promises";
 import { existsSync as existsSync5 } from "node:fs";
 import { $ as $2 } from "zx";
-var import_dotenv3 = __toESM(require_main(), 1);
+var import_dotenv2 = __toESM(require_main(), 1);
 var import_react63 = __toESM(require_react(), 1);
 var frontend = (program3) => {
   const frontend2 = program3.command("frontend").description("Switch between klipper frontend UIs");
@@ -100428,8 +100442,8 @@ var frontend = (program3) => {
         }
       }
     });
-    const envFile2 = existsSync5("./.env.local") ? await readFile(".env.local") : await readFile(".env");
-    const environment = serverSchema.parse({ NODE_ENV: "production", ...import_dotenv3.default.parse(envFile2) });
+    const envFile = existsSync5("./.env.local") ? await readFile(".env.local") : await readFile(".env");
+    const environment = serverSchema.parse({ NODE_ENV: "production", ...import_dotenv2.default.parse(envFile) });
     const hostname = (await $$`tr -d " \t\n\r" < /etc/hostname`).text();
     const warnings = [];
     const errors = [];
@@ -100794,8 +100808,8 @@ info_tags:
     let warnings = [];
     let errors = [];
     const steps = [];
-    const envFile2 = existsSync5("./.env.local") ? await readFile(".env.local") : await readFile(".env");
-    const environment = serverSchema.parse({ NODE_ENV: "production", ...import_dotenv3.default.parse(envFile2) });
+    const envFile = existsSync5("./.env.local") ? await readFile(".env.local") : await readFile(".env");
+    const environment = serverSchema.parse({ NODE_ENV: "production", ...import_dotenv2.default.parse(envFile) });
     const moonrakerConfig = environment.KLIPPER_CONFIG_PATH + "/moonraker.conf";
     let moonrakerConfigContents = await readFile(moonrakerConfig, "utf-8");
     const mainsailOverrideSection = findSection("update_manager mainsail", moonrakerConfigContents);
@@ -110093,20 +110107,248 @@ Line ${e.lineNumber}: ${e.line}`;
   });
 };
 
+// commands/update-logs.tsx
+init_cjs_shim();
+import { readFile as readFile2 } from "node:fs/promises";
+import { existsSync as existsSync7 } from "node:fs";
+var import_react65 = __toESM(require_react(), 1);
+var LogEntrySchema = z.object({
+  level: z.number(),
+  time: z.number().transform((val) => {
+    return new Date(val).toISOString();
+  }),
+  msg: z.string(),
+  source: z.string().optional(),
+  context: z.string().optional(),
+  errorCode: z.string().optional(),
+  pid: z.number().optional(),
+  hostname: z.string().optional()
+});
+var LOG_LEVELS = {
+  10: { name: "TRACE", color: "gray" },
+  20: { name: "DEBUG", color: "cyan" },
+  30: { name: "INFO", color: "green" },
+  40: { name: "WARN", color: "yellow" },
+  50: { name: "ERROR", color: "red" },
+  60: { name: "FATAL", color: "magenta" }
+};
+async function parseLogFile(logPath) {
+  try {
+    const content = await readFile2(logPath, "utf-8");
+    const lines = content.trim().split("\n").filter((line) => line.trim());
+    const entries = [];
+    for (const line of lines) {
+      try {
+        const parsed = JSON.parse(line);
+        const entry = LogEntrySchema.parse(parsed);
+        if (entry.source === "ratos-update") {
+          entries.push(entry);
+        }
+      } catch (e) {
+        getLogger2().debug(`Skipping invalid log line: ${line}`);
+      }
+    }
+    return entries.sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
+  } catch (error) {
+    throw new Error(`Failed to read log file: ${error instanceof Error ? error.message : "Unknown error"}`);
+  }
+}
+function generateSummary(entries) {
+  const summary = {
+    totalEntries: entries.length,
+    errorCount: 0,
+    warnCount: 0,
+    infoCount: 0,
+    debugCount: 0,
+    traceCount: 0,
+    fatalCount: 0,
+    lastUpdate: null,
+    duration: null,
+    success: true
+  };
+  let startTime = null;
+  let endTime = null;
+  for (const entry of entries) {
+    switch (entry.level) {
+      case 10:
+        summary.traceCount++;
+        break;
+      case 20:
+        summary.debugCount++;
+        break;
+      case 30:
+        summary.infoCount++;
+        break;
+      case 40:
+        summary.warnCount++;
+        break;
+      case 50:
+        summary.errorCount++;
+        summary.success = false;
+        break;
+      case 60:
+        summary.fatalCount++;
+        summary.success = false;
+        break;
+    }
+    const entryTime = new Date(entry.time);
+    if (!startTime || entryTime < startTime) {
+      startTime = entryTime;
+    }
+    if (!endTime || entryTime > endTime) {
+      endTime = entryTime;
+    }
+    if (entry.errorCode === "SCRIPT_SUCCESS" || entry.errorCode === "SCRIPT_ERROR") {
+      summary.lastUpdate = entry.time;
+    }
+  }
+  if (startTime && endTime) {
+    const durationMs = endTime.getTime() - startTime.getTime();
+    const seconds = Math.floor(durationMs / 1e3);
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    if (minutes > 0) {
+      summary.duration = `${minutes}m ${remainingSeconds}s`;
+    } else {
+      summary.duration = `${remainingSeconds}s`;
+    }
+  }
+  return summary;
+}
+function filterBySeverity(entries, minLevel) {
+  return entries.filter((entry) => entry.level >= minLevel);
+}
+function filterByContext(entries, context) {
+  return entries.filter((entry) => entry.context === context);
+}
+function formatLogEntry(entry, showDetails = false) {
+  const level = LOG_LEVELS[entry.level] || { name: "UNKNOWN", color: "white" };
+  const timestamp = new Date(entry.time).toLocaleString();
+  let formatted = `[${timestamp}] ${level.name}: ${entry.msg}`;
+  if (showDetails) {
+    if (entry.context) {
+      formatted += ` (context: ${entry.context})`;
+    }
+    if (entry.errorCode) {
+      formatted += ` (code: ${entry.errorCode})`;
+    }
+    if (entry.pid) {
+      formatted += ` (pid: ${entry.pid})`;
+    }
+  }
+  return formatted;
+}
+var LogSummaryComponent = ({ summary }) => /* @__PURE__ */ import_react65.default.createElement(Container, null, /* @__PURE__ */ import_react65.default.createElement(Box_default, { flexDirection: "column", paddingY: 1 }, /* @__PURE__ */ import_react65.default.createElement(Text, { bold: true, color: "white" }, "RatOS Update Log Summary"), /* @__PURE__ */ import_react65.default.createElement(Text, { color: "gray" }, "\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"), /* @__PURE__ */ import_react65.default.createElement(Box_default, { flexDirection: "row", justifyContent: "space-between", marginY: 1 }, /* @__PURE__ */ import_react65.default.createElement(Box_default, { flexDirection: "column" }, /* @__PURE__ */ import_react65.default.createElement(Text, { color: "white" }, "Status:"), /* @__PURE__ */ import_react65.default.createElement(Text, { color: "white" }, "Total Entries:"), /* @__PURE__ */ import_react65.default.createElement(Text, { color: "white" }, "Duration:"), /* @__PURE__ */ import_react65.default.createElement(Text, { color: "white" }, "Last Update:")), /* @__PURE__ */ import_react65.default.createElement(Box_default, { flexDirection: "column" }, /* @__PURE__ */ import_react65.default.createElement(Text, { color: summary.success ? "green" : "red" }, summary.success ? "\u2713 SUCCESS" : "\u2717 FAILED"), /* @__PURE__ */ import_react65.default.createElement(Text, null, summary.totalEntries), /* @__PURE__ */ import_react65.default.createElement(Text, null, summary.duration || "Unknown"), /* @__PURE__ */ import_react65.default.createElement(Text, null, summary.lastUpdate ? new Date(summary.lastUpdate).toLocaleString() : "Unknown"))), /* @__PURE__ */ import_react65.default.createElement(Text, { color: "gray" }, "Log Level Breakdown:"), /* @__PURE__ */ import_react65.default.createElement(Box_default, { flexDirection: "row", justifyContent: "space-between", marginLeft: 2 }, /* @__PURE__ */ import_react65.default.createElement(Box_default, { flexDirection: "column" }, /* @__PURE__ */ import_react65.default.createElement(Text, { color: "red" }, "Errors:"), /* @__PURE__ */ import_react65.default.createElement(Text, { color: "magenta" }, "Fatal:"), /* @__PURE__ */ import_react65.default.createElement(Text, { color: "yellow" }, "Warnings:"), /* @__PURE__ */ import_react65.default.createElement(Text, { color: "green" }, "Info:"), /* @__PURE__ */ import_react65.default.createElement(Text, { color: "cyan" }, "Debug:"), /* @__PURE__ */ import_react65.default.createElement(Text, { color: "gray" }, "Trace:")), /* @__PURE__ */ import_react65.default.createElement(Box_default, { flexDirection: "column" }, /* @__PURE__ */ import_react65.default.createElement(Text, { color: "red" }, summary.errorCount), /* @__PURE__ */ import_react65.default.createElement(Text, { color: "magenta" }, summary.fatalCount), /* @__PURE__ */ import_react65.default.createElement(Text, { color: "yellow" }, summary.warnCount), /* @__PURE__ */ import_react65.default.createElement(Text, { color: "green" }, summary.infoCount), /* @__PURE__ */ import_react65.default.createElement(Text, { color: "cyan" }, summary.debugCount), /* @__PURE__ */ import_react65.default.createElement(Text, { color: "gray" }, summary.traceCount)))));
+var LogEntriesComponent = ({ entries, showDetails }) => /* @__PURE__ */ import_react65.default.createElement(Container, null, /* @__PURE__ */ import_react65.default.createElement(Box_default, { flexDirection: "column" }, entries.map((entry, index) => {
+  const level = LOG_LEVELS[entry.level] || { name: "UNKNOWN", color: "white" };
+  return /* @__PURE__ */ import_react65.default.createElement(Text, { key: index, color: level.color }, formatLogEntry(entry, showDetails));
+})));
+var updateLogs = (parentCommand) => {
+  const updateLogs2 = parentCommand.command("update-logs").description("View and analyze RatOS update script logs from the main RatOS log");
+  updateLogs2.command("summary").description("Show a summary of the most recent update attempt").action(async () => {
+    try {
+      const env3 = loadEnvironment();
+      const logPath = env3.LOG_FILE;
+      if (!existsSync7(logPath)) {
+        return renderError(`Log file not found: ${logPath}`, { exitCode: 1 });
+      }
+      const entries = await parseLogFile(logPath);
+      if (entries.length === 0) {
+        return renderError("No log entries found", { exitCode: 1 });
+      }
+      const summary = generateSummary(entries);
+      render_default(/* @__PURE__ */ import_react65.default.createElement(LogSummaryComponent, { summary }));
+    } catch (error) {
+      getLogger2().error("Failed to read update logs", {
+        error: error instanceof Error ? error.message : String(error)
+      });
+      return renderError(`Failed to read update logs: ${error instanceof Error ? error.message : "Unknown error"}`, {
+        exitCode: 1
+      });
+    }
+  });
+  updateLogs2.command("show").description("Show detailed update logs").option("-n, --lines <number>", "Number of recent lines to show", "50").option("-l, --level <level>", "Minimum log level (trace, debug, info, warn, error, fatal)", "info").option("-c, --context <context>", "Filter by context").option("-d, --details", "Show detailed information").action(async (options) => {
+    try {
+      const env3 = loadEnvironment();
+      const logPath = env3.LOG_FILE;
+      if (!existsSync7(logPath)) {
+        return renderError(`Log file not found: ${logPath}`, { exitCode: 1 });
+      }
+      let entries = await parseLogFile(logPath);
+      if (entries.length === 0) {
+        return renderError("No log entries found", { exitCode: 1 });
+      }
+      const levelMap = {
+        trace: 10,
+        debug: 20,
+        info: 30,
+        warn: 40,
+        error: 50,
+        fatal: 60
+      };
+      const minLevel = levelMap[options.level.toLowerCase()] || 30;
+      entries = filterBySeverity(entries, minLevel);
+      if (options.context) {
+        entries = filterByContext(entries, options.context);
+      }
+      const maxLines = parseInt(options.lines, 10);
+      if (isNaN(maxLines) || maxLines <= 0) {
+        return renderError("Invalid number of lines specified", { exitCode: 1 });
+      }
+      if (entries.length > maxLines) {
+        entries = entries.slice(-maxLines);
+      }
+      render_default(/* @__PURE__ */ import_react65.default.createElement(LogEntriesComponent, { entries, showDetails: options.details }));
+    } catch (error) {
+      getLogger2().error("Failed to read update logs", {
+        error: error instanceof Error ? error.message : String(error)
+      });
+      return renderError(`Failed to read update logs: ${error instanceof Error ? error.message : "Unknown error"}`, {
+        exitCode: 1
+      });
+    }
+  });
+  updateLogs2.command("errors").description("Show only errors and warnings from the most recent update").option("-d, --details", "Show detailed information").action(async (options) => {
+    try {
+      const env3 = loadEnvironment();
+      const logPath = env3.LOG_FILE;
+      if (!existsSync7(logPath)) {
+        return renderError(`Log file not found: ${logPath}`, { exitCode: 1 });
+      }
+      let entries = await parseLogFile(logPath);
+      if (entries.length === 0) {
+        return renderError("No log entries found", { exitCode: 1 });
+      }
+      entries = filterBySeverity(entries, 40);
+      if (entries.length === 0) {
+        render_default(
+          /* @__PURE__ */ import_react65.default.createElement(Container, null, /* @__PURE__ */ import_react65.default.createElement(Text, { color: "green" }, "\u2713 No errors or warnings found in the update logs!"))
+        );
+        return;
+      }
+      render_default(/* @__PURE__ */ import_react65.default.createElement(LogEntriesComponent, { entries, showDetails: options.details }));
+    } catch (error) {
+      return renderError(`Failed to read update logs: ${error instanceof Error ? error.message : "Unknown error"}`, {
+        exitCode: 1
+      });
+    }
+  });
+};
+
 // commands/development.tsx
 init_cjs_shim();
 import { cd, path as path11, syncProcessCwd } from "zx";
-import { existsSync as existsSync8 } from "node:fs";
-import { readFile as readFile2, writeFile as writeFile2 } from "node:fs/promises";
+import { existsSync as existsSync9 } from "node:fs";
+import { readFile as readFile3, writeFile as writeFile2 } from "node:fs/promises";
 
 // ../server/helpers/file-operations.ts
 init_cjs_shim();
-import { existsSync as existsSync7, createReadStream as createReadStream2, createWriteStream as createWriteStream2 } from "fs";
+import { existsSync as existsSync8, createReadStream as createReadStream2, createWriteStream as createWriteStream2 } from "fs";
 import { copyFile, unlink } from "fs/promises";
 import { EOL } from "os";
 import { createInterface } from "readline";
 var replaceInFileByLine = async (filePath, searchOrReplacer, replace) => {
-  if (!existsSync7(filePath)) {
+  if (!existsSync8(filePath)) {
     throw new Error("File does not exist: " + filePath);
   }
   const fileStream = createReadStream2(filePath, { highWaterMark: 1 * 1024 * 1024 });
@@ -110183,21 +110425,21 @@ var replaceInFileByLine = async (filePath, searchOrReplacer, replace) => {
 
 // components/confirm.tsx
 init_cjs_shim();
-var import_react65 = __toESM(require_react(), 1);
+var import_react66 = __toESM(require_react(), 1);
 var Confirm = ({ prompt, message, default: defaultConfirmation, onConfirm, onCancel }) => {
-  return /* @__PURE__ */ import_react65.default.createElement(Container, null, /* @__PURE__ */ import_react65.default.createElement(Box_default, { gap: 1 }, /* @__PURE__ */ import_react65.default.createElement(Text, { bold: true }, prompt), /* @__PURE__ */ import_react65.default.createElement(
+  return /* @__PURE__ */ import_react66.default.createElement(Container, null, /* @__PURE__ */ import_react66.default.createElement(Box_default, { gap: 1 }, /* @__PURE__ */ import_react66.default.createElement(Text, { bold: true }, prompt), /* @__PURE__ */ import_react66.default.createElement(
     ConfirmInput,
     {
       onConfirm,
       onCancel,
       defaultChoice: defaultConfirmation === false ? "cancel" : "confirm"
     }
-  )), message && /* @__PURE__ */ import_react65.default.createElement(Box_default, { gap: 1 }, /* @__PURE__ */ import_react65.default.createElement(Text, { dimColor: true }, message)));
+  )), message && /* @__PURE__ */ import_react66.default.createElement(Box_default, { gap: 1 }, /* @__PURE__ */ import_react66.default.createElement(Text, { dimColor: true }, message)));
 };
 var confirm = async (prompt, message, defaultConfirmation) => {
   return new Promise((resolve) => {
     render_default(
-      /* @__PURE__ */ import_react65.default.createElement(
+      /* @__PURE__ */ import_react66.default.createElement(
         Confirm,
         {
           prompt,
@@ -110216,16 +110458,16 @@ var confirm = async (prompt, message, defaultConfirmation) => {
 };
 
 // commands/development.tsx
-var import_react66 = __toESM(require_react(), 1);
+var import_react67 = __toESM(require_react(), 1);
 var ensureLocalEnvFile = async () => {
-  if (!existsSync8("./.env.local")) {
+  if (!existsSync9("./.env.local")) {
     getLogger2().info("Creating .env.local file");
-    await writeFile2("./.env.local", await readFile2(".env"));
+    await writeFile2("./.env.local", await readFile3(".env"));
   }
 };
 var tempEnvFile = "/tmp/configurator.env.local";
 var replaceInTempEnvFile = async (searchOrReplacer, replace) => {
-  if (!existsSync8(tempEnvFile)) {
+  if (!existsSync9(tempEnvFile)) {
     throw new Error(`Temporary environment file ${tempEnvFile} not found`);
   }
   await replaceInFileByLine(tempEnvFile, searchOrReplacer, replace);
@@ -110233,7 +110475,7 @@ var replaceInTempEnvFile = async (searchOrReplacer, replace) => {
 var isDeploymentBranch = (branch) => branch.indexOf("-deployment") > -1;
 var renderBranchInfo = async ($4) => {
   render_default(
-    /* @__PURE__ */ import_react66.default.createElement(Container, null, /* @__PURE__ */ import_react66.default.createElement(Text, { bold: true }, "Current branch:"), /* @__PURE__ */ import_react66.default.createElement(Text, { color: "green" }, await $4`git branch --show-current`.text()), /* @__PURE__ */ import_react66.default.createElement(Text, { bold: true }, "Available upstream branches:"), /* @__PURE__ */ import_react66.default.createElement(Text, null, (await $4`git branch -r`).lines().map((line) => line.trim()).join("\n")))
+    /* @__PURE__ */ import_react67.default.createElement(Container, null, /* @__PURE__ */ import_react67.default.createElement(Text, { bold: true }, "Current branch:"), /* @__PURE__ */ import_react67.default.createElement(Text, { color: "green" }, await $4`git branch --show-current`.text()), /* @__PURE__ */ import_react67.default.createElement(Text, { bold: true }, "Available upstream branches:"), /* @__PURE__ */ import_react67.default.createElement(Text, null, (await $4`git branch -r`).lines().map((line) => line.trim()).join("\n")))
   );
 };
 var development = (program3) => {
@@ -110478,7 +110720,7 @@ var development = (program3) => {
       }
     ];
     render_default(
-      /* @__PURE__ */ import_react66.default.createElement(
+      /* @__PURE__ */ import_react67.default.createElement(
         InstallProgress,
         {
           initialStatusText: `Switching branch to ${newBranch}...`,
@@ -110513,7 +110755,7 @@ program2.command("info").description("Print info about this RatOS installation")
     ip: await client.ipAddress.query()
   };
   render_default(
-    /* @__PURE__ */ import_react67.default.createElement(Box_default, { flexDirection: "row", columnGap: 5, padding: 2, paddingTop: 1 }, /* @__PURE__ */ import_react67.default.createElement(Box_default, { flexDirection: "column", rowGap: 1 }, /* @__PURE__ */ import_react67.default.createElement(Text, { color: "white", dimColor: true }, "Machine IP"), /* @__PURE__ */ import_react67.default.createElement(Text, { color: "white", dimColor: true }, "RatOS Version"), /* @__PURE__ */ import_react67.default.createElement(Text, { color: "white", dimColor: true }, "Configurator Version"), /* @__PURE__ */ import_react67.default.createElement(Text, { color: "white", dimColor: true }, "Klipper Version")), /* @__PURE__ */ import_react67.default.createElement(Box_default, { flexDirection: "column", rowGap: 1 }, /* @__PURE__ */ import_react67.default.createElement(Text, null, info.ip), /* @__PURE__ */ import_react67.default.createElement(Text, null, info.osVersion), /* @__PURE__ */ import_react67.default.createElement(Text, null, info.version), /* @__PURE__ */ import_react67.default.createElement(Text, null, info.klipperVersion)))
+    /* @__PURE__ */ import_react68.default.createElement(Box_default, { flexDirection: "row", columnGap: 5, padding: 2, paddingTop: 1 }, /* @__PURE__ */ import_react68.default.createElement(Box_default, { flexDirection: "column", rowGap: 1 }, /* @__PURE__ */ import_react68.default.createElement(Text, { color: "white", dimColor: true }, "Machine IP"), /* @__PURE__ */ import_react68.default.createElement(Text, { color: "white", dimColor: true }, "RatOS Version"), /* @__PURE__ */ import_react68.default.createElement(Text, { color: "white", dimColor: true }, "Configurator Version"), /* @__PURE__ */ import_react68.default.createElement(Text, { color: "white", dimColor: true }, "Klipper Version")), /* @__PURE__ */ import_react68.default.createElement(Box_default, { flexDirection: "column", rowGap: 1 }, /* @__PURE__ */ import_react68.default.createElement(Text, null, info.ip), /* @__PURE__ */ import_react68.default.createElement(Text, null, info.osVersion), /* @__PURE__ */ import_react68.default.createElement(Text, null, info.version), /* @__PURE__ */ import_react68.default.createElement(Text, null, info.klipperVersion)))
   );
 });
 var extensions = program2.command("extensions").description("Register, unregister or symlink extensions managed by the RatOS Configurator");
@@ -110552,7 +110794,7 @@ extensions.command("list").option("-k, --klipper", "Only show Klipper extensions
     return;
   }
   render_default(
-    /* @__PURE__ */ import_react67.default.createElement(Container, null, klippyExtensions.length > 0 && !options.moonraker && /* @__PURE__ */ import_react67.default.createElement(Box_default, { flexDirection: "column", marginBottom: 1 }, /* @__PURE__ */ import_react67.default.createElement(Text, null, klippyExtensions.length, " Registered Klipper ", klippyExtensions.length === 1 ? "Extension" : "Extensions", klippyExtensions.length ? ":" : ""), klippyExtensions.map((ext) => /* @__PURE__ */ import_react67.default.createElement(Box_default, { key: ext.extensionName, flexDirection: "row", columnGap: 2 }, /* @__PURE__ */ import_react67.default.createElement(Text, { color: existsSync9(ext.path + ext.fileName) ? "green" : "red" }, ext.extensionName, " ", "->", " ", ext.path + ext.fileName, " ")))), moonrakerExtensions.length > 0 && !options.klipper && /* @__PURE__ */ import_react67.default.createElement(Box_default, { flexDirection: "column" }, /* @__PURE__ */ import_react67.default.createElement(Text, null, moonrakerExtensions.length, " Registered Moonraker", " ", moonrakerExtensions.length === 1 ? "Extension" : "Extensions", moonrakerExtensions.length ? ":" : ""), moonrakerExtensions.map((ext) => /* @__PURE__ */ import_react67.default.createElement(Box_default, { key: ext.extensionName, flexDirection: "row", columnGap: 2 }, /* @__PURE__ */ import_react67.default.createElement(Text, { color: existsSync9(ext.path + ext.fileName) ? "green" : "red" }, ext.extensionName, " ", "->", " ", ext.path + ext.fileName, " ")))))
+    /* @__PURE__ */ import_react68.default.createElement(Container, null, klippyExtensions.length > 0 && !options.moonraker && /* @__PURE__ */ import_react68.default.createElement(Box_default, { flexDirection: "column", marginBottom: 1 }, /* @__PURE__ */ import_react68.default.createElement(Text, null, klippyExtensions.length, " Registered Klipper ", klippyExtensions.length === 1 ? "Extension" : "Extensions", klippyExtensions.length ? ":" : ""), klippyExtensions.map((ext) => /* @__PURE__ */ import_react68.default.createElement(Box_default, { key: ext.extensionName, flexDirection: "row", columnGap: 2 }, /* @__PURE__ */ import_react68.default.createElement(Text, { color: existsSync10(ext.path + ext.fileName) ? "green" : "red" }, ext.extensionName, " ", "->", " ", ext.path + ext.fileName, " ")))), moonrakerExtensions.length > 0 && !options.klipper && /* @__PURE__ */ import_react68.default.createElement(Box_default, { flexDirection: "column" }, /* @__PURE__ */ import_react68.default.createElement(Text, null, moonrakerExtensions.length, " Registered Moonraker", " ", moonrakerExtensions.length === 1 ? "Extension" : "Extensions", moonrakerExtensions.length ? ":" : ""), moonrakerExtensions.map((ext) => /* @__PURE__ */ import_react68.default.createElement(Box_default, { key: ext.extensionName, flexDirection: "row", columnGap: 2 }, /* @__PURE__ */ import_react68.default.createElement(Text, { color: existsSync10(ext.path + ext.fileName) ? "green" : "red" }, ext.extensionName, " ", "->", " ", ext.path + ext.fileName, " ")))))
   );
 });
 registerExtensions.command("klipper").description("Register a Klipper extension to be managed by the RatOS Configurator").option("-k, --kinematics", "Register as a kinematics extension").option("-e, --error-if-exists", "Throw error if the extension already exists").argument("<name>", "Name of the extension").argument("<file>", "The path to the extension itself").showHelpAfterError().action(async (extName, extFile, options) => {
@@ -110566,7 +110808,7 @@ registerExtensions.command("klipper").description("Register a Klipper extension 
   let realPath = "";
   try {
     realPath = await getRealPath(program2, extFile);
-    if (!(await stat3(realPath)).isFile() || !realPath.endsWith(".py")) {
+    if (!(await stat4(realPath)).isFile() || !realPath.endsWith(".py")) {
       return renderError(`${realPath} is not a python file`, { exitCode: 2 });
     }
   } catch (e) {
@@ -110593,7 +110835,7 @@ registerExtensions.command("klipper").description("Register a Klipper extension 
     return renderError("Failed to register extension", { exitCode: 2 });
   }
   render_default(
-    /* @__PURE__ */ import_react67.default.createElement(Container, null, /* @__PURE__ */ import_react67.default.createElement(
+    /* @__PURE__ */ import_react68.default.createElement(Container, null, /* @__PURE__ */ import_react68.default.createElement(
       Status,
       {
         results: {
@@ -110615,7 +110857,7 @@ registerExtensions.command("moonraker").description("Register a Moonraker extens
   let realPath = "";
   try {
     realPath = await getRealPath(program2, extFile);
-    if (!(await stat3(realPath)).isFile() || !realPath.endsWith(".py")) {
+    if (!(await stat4(realPath)).isFile() || !realPath.endsWith(".py")) {
       return renderError(`${realPath} is not a python file`, { exitCode: 2 });
     }
   } catch (e) {
@@ -110635,7 +110877,7 @@ registerExtensions.command("moonraker").description("Register a Moonraker extens
       }
     });
     render_default(
-      /* @__PURE__ */ import_react67.default.createElement(Container, null, /* @__PURE__ */ import_react67.default.createElement(
+      /* @__PURE__ */ import_react68.default.createElement(Container, null, /* @__PURE__ */ import_react68.default.createElement(
         Status,
         {
           results: {
@@ -110801,6 +111043,7 @@ log.command("rotate").description("force rotate the RatOS configurator log").act
   const log2 = "/etc/logrotate.d/ratos-configurator";
   $3({ verbose: true })`logrotate -f ${log2}`;
 });
+updateLogs(log);
 development_default(program2);
 var doctor = program2.command("doctor").description("Diagnose and fix common issues on a RatOS installation").action(async () => {
   await ensureSudo();
@@ -110816,7 +111059,7 @@ var doctor = program2.command("doctor").description("Diagnose and fix common iss
   });
   const steps = [];
   let { rerender } = render_default(
-    /* @__PURE__ */ import_react67.default.createElement(
+    /* @__PURE__ */ import_react68.default.createElement(
       InstallProgressUI,
       {
         status: "Fixing potential RatOS issues...",
@@ -110830,7 +111073,7 @@ var doctor = program2.command("doctor").description("Diagnose and fix common iss
   await $$`sudo ${loadEnvironment().RATOS_SCRIPT_DIR}/update.sh`;
   steps.push({ name: "Repaired RatOS configurator", status: "success" });
   rerender(
-    /* @__PURE__ */ import_react67.default.createElement(
+    /* @__PURE__ */ import_react68.default.createElement(
       InstallProgressUI,
       {
         status: "Fixing potential RatOS issues...",
@@ -110845,7 +111088,7 @@ var doctor = program2.command("doctor").description("Diagnose and fix common iss
   await $$`sleep 1 && curl -s -o /dev/null --retry 20 --retry-all-errors --retry-delay 1 --retry-max-time 60 "http://localhost:3000/configure" &> /dev/null`;
   steps.push({ name: "Restarted RatOS configurator", status: "success" });
   rerender(
-    /* @__PURE__ */ import_react67.default.createElement(
+    /* @__PURE__ */ import_react68.default.createElement(
       InstallProgressUI,
       {
         status: "Fixing potential RatOS issues...",
@@ -110859,7 +111102,7 @@ var doctor = program2.command("doctor").description("Diagnose and fix common iss
   await $$`sudo ${loadEnvironment().RATOS_CONFIGURATION_PATH}/scripts/ratos-update.sh`;
   steps.push({ name: "Repaired RatOS configuration", status: "success" });
   rerender(
-    /* @__PURE__ */ import_react67.default.createElement(
+    /* @__PURE__ */ import_react68.default.createElement(
       InstallProgressUI,
       {
         status: "Fixing potential RatOS issues...",
@@ -110873,7 +111116,7 @@ var doctor = program2.command("doctor").description("Diagnose and fix common iss
   await $$`sudo systemctl restart klipper`;
   steps.push({ name: "Restarted Klipper", status: "success" });
   rerender(
-    /* @__PURE__ */ import_react67.default.createElement(
+    /* @__PURE__ */ import_react68.default.createElement(
       InstallProgressUI,
       {
         status: "Fixing potential RatOS issues...",
@@ -110887,7 +111130,7 @@ var doctor = program2.command("doctor").description("Diagnose and fix common iss
   await $$`sudo systemctl restart moonraker`;
   steps.push({ name: "Restarted Moonraker", status: "success" });
   rerender(
-    /* @__PURE__ */ import_react67.default.createElement(
+    /* @__PURE__ */ import_react68.default.createElement(
       InstallProgressUI,
       {
         status: "Fixing potential RatOS issues...",

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # NOTE: This script ONLY WORKS if there's no SD card in the board AND the
 # board has already been flashed with klipper via SD card.
 # NEXT SECTION IS ONLY RELEVANT IF USING THE boot0 JUMPER (NOT RECOMMENDED)

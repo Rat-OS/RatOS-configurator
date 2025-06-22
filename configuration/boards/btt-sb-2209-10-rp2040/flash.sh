@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 MCU=/dev/btt-sb2209-10
 if [ "$EUID" -ne 0 ]
   then echo "ERROR: Please run as root"

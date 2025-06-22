@@ -1,2 +1,29 @@
+# General
+
+- When starting a new terminal, run `nix-shell -p pnpm bun nodejs` and wait until you've entered the nix shell.
 - Use `pnpx` instead of `npx`
+- Always run the tests before comitting or pushing.
+
+# Linting
+
+- use `pnpm run lint` in the `src` folder to run the linter once, without watching for changes.\
+- use `pnpm run lint:fix` in the `src` folder to run the linter once, without watching for changes, and output the results in a format that can be consumed by CI tools.
+
+# Testing
+
+- DO NOT EVER mock zod schemas. 
 - Use `pnpm run test` in the `src` folder to run the tests once, without watching for changes.
+- use `pnpm run test:nopp` for general use, **unless** you intentionally want to run the slow post-processor tests.
+
+# Bash
+
+- Always run shellcheck linting before comitting or pushing.
+
+# Typescript
+
+- Always run `pnpm run typecheck` and `pnpm run lint:fix` before comitting or pushing.
+
+# Styling
+
+- Use tailwind classes.
+- IMPORTANT: the design always runs in dark mode, so text colors should be bright, not dark.

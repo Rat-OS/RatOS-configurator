@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # NOTE: This script ONLY WORKS if the board has already been flashed with klipper via SD card.
 
 if [ "$EUID" -ne 0 ]

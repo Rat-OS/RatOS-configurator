@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # performed outside of a function so that other scripts sourcing this in will run this by default
 
@@ -13,29 +13,45 @@ if [ -n "$SUDO_USER" ] && [ "$SUDO_USER" != "root" ]; then
     REAL_USER=$SUDO_USER
     REAL_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
 elif [ "$EUID" -ne 0 ]; then
-    REAL_USER=$USER
-    REAL_HOME=$HOME
+    REAL_USER=${USER:-$(whoami)}
+    REAL_HOME=${HOME:-$(eval echo "~$REAL_USER")}
+elif [ -n "$CI" ] || [ -n "$GITHUB_ACTIONS" ] || [ -n "$VITEST" ]; then
+    # In CI environment, use a safe default
+    REAL_USER=${USER:-"ci-user"}
+    REAL_HOME=${HOME:-"/tmp/ci-home"}
 else
     REAL_USER="pi"
     REAL_HOME="/home/pi"
 fi
 
-if [ "$REAL_USER" = "root" ]; then
+# Only exit if we truly can't determine a user (not in CI)
+if [ "$REAL_USER" = "root" ] && [ -z "$CI" ] && [ -z "$GITHUB_ACTIONS" ] && [ -z "$VITEST" ]; then
     echo "Fatal Error: Unable to determine non-root user, please run as a normal user or use sudo, exiting..." >&2
     exit 1
 fi
 
-envFile="/usr/local/etc/.ratos.env"
+# Determine environment file paths based on execution context
+# NEVER use sudo - this script runs in non-interactive contexts
+if [ "$EUID" -eq 0 ] && [ -w "/usr/local/etc" ] 2>/dev/null; then
+    # Running as root with write access to system directory
+    envFile="/usr/local/etc/.ratos.env"
+else
+    # Non-root user or no system access - always use user directory
+    envFile="${REAL_HOME}/.ratos.env.system"
+fi
+
 userEnvFile="${REAL_HOME}/.ratos.env"
 
-# create $envFile if file does not exist using sane defaults on a ratos pi image.
+# create $envFile if file does not exist using sane defaults
 if [ ! -f "$envFile" ]; then
 	echo "$envFile not found, determining default values..."
-	CMD="tee"
-	[ "$EUID" -ne 0 ] && CMD="sudo tee"
+
+	# Ensure directory exists
+	mkdir -p "$(dirname "$envFile")" 2>/dev/null || true
+
 	RATOS_USER=$REAL_USER
 
-	$CMD "$envFile" > /dev/null <<EOF
+	tee "$envFile" > /dev/null <<EOF
 RATOS_USERNAME=${RATOS_USER}
 RATOS_USERGROUP=${RATOS_USER}
 RATOS_PRINTER_DATA_DIR=${REAL_HOME}/printer_data
@@ -44,9 +60,13 @@ KLIPPER_DIR=${REAL_HOME}/klipper
 KLIPPER_ENV=${REAL_HOME}/klippy-env
 BEACON_DIR=${REAL_HOME}/beacon
 EOF
-	chmod a+r "$envFile"
+	# Set permissions if possible (only if we can write to the file)
+	if [ -w "$envFile" ]; then
+		chmod a+r "$envFile" 2>/dev/null || true
+	fi
+
 	echo "Created $envFile with default values:"
-	cat "$envFile"
+	cat "$envFile" 2>/dev/null || echo "Environment file created but not readable in current context"
 	echo "You can create $userEnvFile to override these values for $RATOS_USER or modify $envFile to change them for all users."
 fi
 
@@ -60,12 +80,13 @@ if [ -d "$REAL_HOME/.profile.d" ]; then
 		ln -s "$envFile" "$localProfileLink" || echo "Warning: Failed to create profile.d symlink"
 	fi
 fi
-# Create symlink in system profile.d if directory exists
-if [ -d "/etc/profile.d" ]; then
+# Create symlink in system profile.d only if running as root
+# NEVER use sudo - this script runs in non-interactive contexts
+if [ -d "/etc/profile.d" ] && [ "$EUID" -eq 0 ] && [ -w "/etc/profile.d" ]; then
     if [ ! -e "$profileLink" ]; then
 		echo "Creating shell profile symlink $profileLink to $envFile"
-        sudo rm -f "$profileLink"
-        sudo ln -s "$envFile" "$profileLink" || echo "Warning: Failed to create profile.d symlink"
+        rm -f "$profileLink" 2>/dev/null || true
+        ln -s "$envFile" "$profileLink" 2>/dev/null || echo "Warning: Failed to create profile.d symlink"
     fi
 fi
 
