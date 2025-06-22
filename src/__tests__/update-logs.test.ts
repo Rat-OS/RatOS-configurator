@@ -9,6 +9,7 @@ import {
 	generateSummary,
 	filterBySeverity,
 	filterByContext,
+	filterBySource,
 	type LogEntry,
 } from '@/server/routers/update-logs';
 
@@ -78,21 +79,25 @@ describe('Update Logs System', () => {
 			expect(parsedEntries[1].errorCode).toBe('SYMLINK_CREATE_FAILED');
 		});
 
-		it('should skip invalid JSON lines and filter by source', async () => {
+		it('should skip invalid JSON lines and include all sources', async () => {
 			const logContent = [
 				`{"level":30,"time":${new Date('2024-01-01T10:00:00.000Z').getTime()},"msg":"Valid entry","source":"ratos-update"}`,
 				'Invalid JSON line',
 				`{"level":50,"time":${new Date('2024-01-01T10:01:00.000Z').getTime()},"msg":"Another valid entry","source":"ratos-update"}`,
 				`{"level":30,"time":${new Date('2024-01-01T10:02:00.000Z').getTime()},"msg":"Different source","source":"other-service"}`,
+				`{"level":30,"time":${new Date('2024-01-01T10:03:00.000Z').getTime()},"msg":"Server entry"}`,
 			].join('\n');
 
 			await writeFile(TEST_LOG_FILE, logContent);
 
 			const parsedEntries = await parseLogFile(TEST_LOG_FILE);
 
-			expect(parsedEntries).toHaveLength(2); // Only ratos-update entries
+			expect(parsedEntries).toHaveLength(4); // All valid entries including different sources
 			expect(parsedEntries[0]?.msg).toBe('Valid entry');
 			expect(parsedEntries[1]?.msg).toBe('Another valid entry');
+			expect(parsedEntries[2]?.msg).toBe('Different source');
+			expect(parsedEntries[3]?.msg).toBe('Server entry');
+			expect(parsedEntries[3]?.source).toBe('server'); // Default source for entries without source
 		});
 
 		it('should sort entries by timestamp', async () => {
@@ -201,6 +206,21 @@ describe('Update Logs System', () => {
 			expect(filtered).toHaveLength(2);
 			expect(filtered[0].msg).toBe('Message 1');
 			expect(filtered[1].msg).toBe('Message 3');
+		});
+
+		it('should filter by source', async () => {
+			const logEntries = [
+				{ level: 30, time: '2024-01-01T10:00:00.000Z', msg: 'Update message', source: 'ratos-update' },
+				{ level: 30, time: '2024-01-01T10:01:00.000Z', msg: 'CLI message', source: 'cli' },
+				{ level: 30, time: '2024-01-01T10:02:00.000Z', msg: 'Server message', source: 'server' },
+				{ level: 30, time: '2024-01-01T10:03:00.000Z', msg: 'Another update message', source: 'ratos-update' },
+			];
+
+			const filtered = filterBySource(logEntries, 'ratos-update');
+
+			expect(filtered).toHaveLength(2);
+			expect(filtered[0].msg).toBe('Update message');
+			expect(filtered[1].msg).toBe('Another update message');
 		});
 	});
 });
@@ -345,32 +365,44 @@ describe('CLI Commands Integration', () => {
 	it('should have proper CLI command structure', async () => {
 		// Test that the CLI functions can be imported and have the expected structure
 		// This tests the CLI integration without actually executing the binary
-		const { parseLogFile, generateSummary } = await import('@/server/routers/update-logs');
+		const { parseLogFile, generateSummary, filterBySource } = await import('@/server/routers/update-logs');
 
-		// Parse the test log file
+		// Parse the test log file - now returns all entries
 		const entries = await parseLogFile(TEST_LOG_FILE);
-		expect(entries).toHaveLength(2); // Only ratos-update entries
+		expect(entries).toHaveLength(3); // All entries including different sources
 
-		// Generate summary
+		// Filter to get only ratos-update entries
+		const updateEntries = filterBySource(entries, 'ratos-update');
+		expect(updateEntries).toHaveLength(2);
+
+		// Generate summary for all entries
 		const summary = generateSummary(entries, 1024, true);
-		expect(summary.totalEntries).toBe(2);
-		expect(summary.infoCount).toBe(1);
+		expect(summary.totalEntries).toBe(3);
+		expect(summary.infoCount).toBe(2);
 		expect(summary.errorCount).toBe(1);
 	});
 
-	it('should filter logs by source correctly', async () => {
-		// Test the core filtering functionality that the CLI uses
+	it('should include all log sources and allow filtering', async () => {
+		// Test the core functionality - now includes all sources
 		const entries = await parseLogFile(TEST_LOG_FILE);
 
-		// Should only include ratos-update entries
-		expect(entries).toHaveLength(2);
-		expect(entries.every((entry) => entry.source === 'ratos-update')).toBe(true);
+		// Should include all entries from all sources
+		expect(entries).toHaveLength(3);
 
-		// Should include both info and error messages
+		// Should include messages from different sources
 		const messages = entries.map((entry) => entry.msg);
 		expect(messages).toContain('Test info message');
 		expect(messages).toContain('Test error message');
-		expect(messages).not.toContain('Different service log');
+		expect(messages).toContain('Different service log');
+
+		// Test filtering by source
+		const updateEntries = filterBySource(entries, 'ratos-update');
+		expect(updateEntries).toHaveLength(2);
+		expect(updateEntries.every((entry) => entry.source === 'ratos-update')).toBe(true);
+
+		const otherEntries = filterBySource(entries, 'other-service');
+		expect(otherEntries).toHaveLength(1);
+		expect(otherEntries[0].msg).toBe('Different service log');
 	});
 
 	it('should handle missing log file gracefully', async () => {

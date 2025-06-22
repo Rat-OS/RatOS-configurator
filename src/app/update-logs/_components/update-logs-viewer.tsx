@@ -95,11 +95,12 @@ const LOG_LEVELS: Record<number, { name: string; color: string; bgColor: string;
 	},
 };
 
-const LogSummaryHeader: React.FC<{ summary: LogSummary; onRefresh: () => void; onClear: () => void }> = ({
-	summary,
-	onRefresh,
-	onClear,
-}) => {
+const LogSummaryHeader: React.FC<{
+	isLoading: boolean;
+	summary: LogSummary;
+	onRefresh: () => void;
+	onClear: () => void;
+}> = ({ isLoading, summary, onRefresh, onClear }) => {
 	const clearMutation = trpc['update-logs'].clear.useMutation({
 		onSuccess: () => {
 			onClear();
@@ -122,25 +123,33 @@ const LogSummaryHeader: React.FC<{ summary: LogSummary; onRefresh: () => void; o
 							<div
 								className={twMerge(
 									'flex-none rounded-full bg-green-400/10 p-1 text-zinc-400',
-									!summary.logFileExists && 'bg-zinc-400/10 text-zinc-400',
-									summary.logFileExists && summary.lastUpdate && !summary.success && 'bg-red-400/10 text-red-400',
-									summary.logFileExists && summary.lastUpdate && summary.success && 'bg-green-400/10 text-green-400',
-									summary.logFileExists && !summary.lastUpdate && 'bg-blue-400/10 text-blue-400',
+									(isLoading || !summary.logFileExists) && 'bg-zinc-400/10 text-zinc-400',
+									!isLoading &&
+										summary.logFileExists &&
+										summary.lastUpdate &&
+										!summary.success &&
+										'bg-red-400/10 text-red-400',
+									!isLoading &&
+										summary.logFileExists &&
+										summary.lastUpdate &&
+										summary.success &&
+										'bg-green-400/10 text-green-400',
+									!isLoading && summary.logFileExists && !summary.lastUpdate && 'bg-blue-400/10 text-blue-400',
 								)}
 							>
-								<FileText className="h-4 w-4" />
+								{isLoading ? <Spinner size="sm" /> : <FileText className="h-4 w-4" />}
 							</div>
 							<h1 className="flex gap-x-3 text-base leading-7">
-								<span className="font-semibold text-white">Update Logs</span>
+								<span className="font-semibold text-white">System Logs</span>
 								<span className="text-zinc-600">/</span>
 								<span className="font-semibold text-white">
 									{!summary.logFileExists
-										? 'No File'
+										? 'No Log File Found'
 										: !summary.lastUpdate
 											? 'Ready'
 											: summary.success
-												? 'Success'
-												: 'Failed'}
+												? 'Last Update Success'
+												: 'Last Update Failed'}
 								</span>
 							</h1>
 						</div>
@@ -180,7 +189,7 @@ const LogSummaryHeader: React.FC<{ summary: LogSummary; onRefresh: () => void; o
 					<div className="mx-auto grid max-w-7xl grid-cols-1 @screen-sm:grid-cols-2 @screen-lg:grid-cols-4">
 						{/* Status */}
 						<div className="border-white/5 px-4 py-6 @screen-sm:px-6 @screen-lg:px-8">
-							<p className="text-sm font-medium leading-6 text-white">Status</p>
+							<p className="text-sm font-medium leading-6 text-white">Update Status</p>
 							<div className="mt-2 flex items-center gap-2">
 								{!summary.lastUpdate ? (
 									<Clock className="h-5 w-5 text-blue-400" />
@@ -321,6 +330,11 @@ const LogEntryComponent: React.FC<{ entry: LogEntry; showDetails: boolean }> = (
 							<Badge color={level.badgeColor as any} size="sm">
 								{level.name}
 							</Badge>
+							{entry.source && (
+								<Badge color="blue" size="sm">
+									{entry.source}
+								</Badge>
+							)}
 							<span className="text-xs text-muted-foreground">{timestamp}</span>
 						</div>
 						{entry.context && showDetails && (
@@ -361,11 +375,14 @@ interface VirtualizedLogListProps {
 	setLogLevel: (level: string) => void;
 	selectedContext: string;
 	setSelectedContext: (context: string) => void;
+	selectedSource: string;
+	setSelectedSource: (source: string) => void;
 	setShowDetails: (show: boolean) => void;
 	setShowOnlyErrors: (show: boolean) => void;
 	sortDirection: 'desc' | 'asc';
 	setSortDirection: (direction: 'desc' | 'asc') => void;
 	contexts: string[];
+	sources: string[];
 }
 
 const VirtualizedLogList: React.FC<VirtualizedLogListProps> = ({
@@ -381,11 +398,14 @@ const VirtualizedLogList: React.FC<VirtualizedLogListProps> = ({
 	setLogLevel,
 	selectedContext,
 	setSelectedContext,
+	selectedSource,
+	setSelectedSource,
 	setShowDetails,
 	setShowOnlyErrors,
 	sortDirection,
 	setSortDirection,
 	contexts,
+	sources,
 }) => {
 	// Create a ref for the container to calculate scroll margins
 	const containerRef = useRef<HTMLDivElement>(null);
@@ -415,7 +435,7 @@ const VirtualizedLogList: React.FC<VirtualizedLogListProps> = ({
 
 	return (
 		<div className="px-4 @screen-sm:px-6 @screen-lg:px-8">
-			<div className="mb-4 grid grid-cols-1 gap-4 rounded-lg border border-border bg-muted/20 p-4 md:grid-cols-2 lg:grid-cols-4">
+			<div className="mb-4 grid grid-cols-1 gap-4 rounded-lg border border-border bg-muted/20 p-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
 				<div className="space-y-2">
 					<Label htmlFor="log-level" className={showOnlyErrors ? 'text-muted-foreground' : ''}>
 						Log Level
@@ -452,6 +472,29 @@ const VirtualizedLogList: React.FC<VirtualizedLogListProps> = ({
 							{contexts.map((context) => (
 								<SelectItem key={context} value={context}>
 									{context}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+				</div>
+
+				<div className="space-y-2">
+					<Label htmlFor="source" className={showOnlyErrors ? 'text-muted-foreground' : ''}>
+						Source Filter
+					</Label>
+					<Select
+						value={selectedSource || 'all'}
+						onValueChange={(value) => setSelectedSource(value === 'all' ? '' : value)}
+						disabled={showOnlyErrors}
+					>
+						<SelectTrigger className={showOnlyErrors ? 'cursor-not-allowed opacity-50' : ''}>
+							<SelectValue placeholder="All sources" />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value="all">All sources</SelectItem>
+							{sources.map((source) => (
+								<SelectItem key={source} value={source}>
+									{source}
 								</SelectItem>
 							))}
 						</SelectContent>
@@ -590,6 +633,7 @@ const useInfiniteLogEntries = (
 	showOnlyErrors: boolean,
 	logLevel: string,
 	selectedContext: string,
+	selectedSource: string,
 	showDetails: boolean,
 	sortDirection: 'desc' | 'asc',
 ) => {
@@ -597,6 +641,7 @@ const useInfiniteLogEntries = (
 		{
 			level: logLevel as any,
 			context: selectedContext || undefined,
+			source: selectedSource || undefined,
 			showDetails,
 			limit: 50,
 			sortBy: 'time',
@@ -605,6 +650,7 @@ const useInfiniteLogEntries = (
 		{
 			enabled: !showOnlyErrors,
 			getNextPageParam: (lastPage) => (lastPage.hasNextPage ? lastPage.nextCursor : undefined),
+			keepPreviousData: true,
 			retry: 3,
 			retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
 			staleTime: 10000, // 10 seconds
@@ -613,6 +659,7 @@ const useInfiniteLogEntries = (
 
 	const errorsQuery = trpc['update-logs'].errorsPaginated.useInfiniteQuery(
 		{
+			source: selectedSource || undefined,
 			showDetails,
 			limit: 50,
 			sortBy: 'time',
@@ -621,6 +668,7 @@ const useInfiniteLogEntries = (
 		{
 			enabled: showOnlyErrors,
 			getNextPageParam: (lastPage) => (lastPage.hasNextPage ? lastPage.nextCursor : undefined),
+			keepPreviousData: true,
 			retry: 3,
 			retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
 			staleTime: 10000, // 10 seconds
@@ -648,18 +696,37 @@ const useInfiniteLogEntries = (
 export const UpdateLogsViewer: React.FC = () => {
 	const [logLevel, setLogLevel] = useState<string>('info');
 	const [selectedContext, setSelectedContext] = useState<string>('');
+	const [selectedSource, setSelectedSource] = useState<string>('');
 	const [showDetails, setShowDetails] = useState<boolean>(false);
 	const [showOnlyErrors, setShowOnlyErrors] = useState<boolean>(false);
 	const [sortDirection, setSortDirection] = useState<'desc' | 'asc'>('desc'); // newest first by default
 
-	const summaryQuery = trpc['update-logs'].summary.useQuery(undefined, {
-		retry: 3,
-		retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-		staleTime: 30000, // 30 seconds
-	});
+	const summaryQuery = trpc['update-logs'].summary.useQuery(
+		{
+			source: selectedSource || undefined,
+		},
+		{
+			retry: 3,
+			retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+			keepPreviousData: true,
+			staleTime: 30000, // 30 seconds
+		},
+	);
 
-	const contextsQuery = trpc['update-logs'].contexts.useQuery(undefined, {
+	const contextsQuery = trpc['update-logs'].contexts.useQuery(
+		{
+			source: selectedSource || undefined,
+		},
+		{
+			retry: 2,
+			keepPreviousData: true,
+			staleTime: 60000, // 1 minute
+		},
+	);
+
+	const sourcesQuery = trpc['update-logs'].sources.useQuery(undefined, {
 		retry: 2,
+		keepPreviousData: true,
 		staleTime: 60000, // 1 minute
 	});
 
@@ -671,42 +738,43 @@ export const UpdateLogsViewer: React.FC = () => {
 		isFetchingNextPage,
 		fetchNextPage,
 		refetch: refetchEntries,
-	} = useInfiniteLogEntries(showOnlyErrors, logLevel, selectedContext, showDetails, sortDirection);
+	} = useInfiniteLogEntries(showOnlyErrors, logLevel, selectedContext, selectedSource, showDetails, sortDirection);
 
 	const handleRefresh = () => {
 		summaryQuery.refetch();
 		refetchEntries();
 		contextsQuery.refetch();
+		sourcesQuery.refetch();
 	};
 
 	const handleClear = () => {
 		handleRefresh();
 	};
 
-	if (summaryQuery.isLoading) {
-		return (
-			<div className="flex items-center justify-center p-8">
-				<Spinner />
-			</div>
-		);
-	}
-
 	if (summaryQuery.error) {
-		return <ErrorMessage title="Failed to load update logs">{summaryQuery.error.message}</ErrorMessage>;
+		return <ErrorMessage title="Failed to load system logs">{summaryQuery.error.message}</ErrorMessage>;
 	}
 
 	const summary = summaryQuery.data;
 	const contexts = contextsQuery.data || [];
+	const sources = sourcesQuery.data || [];
 
 	return (
 		<main className="@container">
-			<LogSummaryHeader summary={summary} onRefresh={handleRefresh} onClear={handleClear} />
+			{summary && (
+				<LogSummaryHeader
+					isLoading={summaryQuery.isLoading}
+					summary={summary}
+					onRefresh={handleRefresh}
+					onClear={handleClear}
+				/>
+			)}
 
-			{summary.logFileExists && (
+			{summary?.logFileExists && (
 				<div className="border-t border-white/10 pt-11">
 					<div className="mx-auto max-w-7xl">
 						<div className="mb-6 px-4 @screen-sm:px-6 @screen-lg:px-8">
-							<h2 className="text-base font-semibold leading-7 text-white">Log Entries</h2>
+							<h2 className="text-base font-semibold leading-7 text-white">System Logs</h2>
 						</div>
 
 						<VirtualizedLogList
@@ -722,11 +790,14 @@ export const UpdateLogsViewer: React.FC = () => {
 							setLogLevel={setLogLevel}
 							selectedContext={selectedContext}
 							setSelectedContext={setSelectedContext}
+							selectedSource={selectedSource}
+							setSelectedSource={setSelectedSource}
 							setShowDetails={setShowDetails}
 							setShowOnlyErrors={setShowOnlyErrors}
 							sortDirection={sortDirection}
 							setSortDirection={setSortDirection}
 							contexts={contexts}
+							sources={sources}
 						/>
 					</div>
 				</div>

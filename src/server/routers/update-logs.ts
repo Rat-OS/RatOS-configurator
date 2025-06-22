@@ -44,6 +44,7 @@ const LogQuerySchema = z.object({
 	lines: z.number().min(1).max(1000).default(50),
 	level: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']).default('info'),
 	context: z.string().optional(),
+	source: z.string().optional(),
 	showDetails: z.boolean().default(false),
 });
 
@@ -52,6 +53,7 @@ const PaginatedLogQuerySchema = z.object({
 	limit: z.number().min(1).max(100).default(50),
 	level: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']).default('info'),
 	context: z.string().optional(),
+	source: z.string().optional(),
 	showDetails: z.boolean().default(false),
 	sortBy: z.enum(['time']).default('time'),
 	sortDirection: z.enum(['asc', 'desc']).default('desc'),
@@ -70,15 +72,18 @@ const LOG_LEVEL_MAP: Record<string, number> = {
 	fatal: 60,
 };
 
-// Parse log file and extract entries, filtering for ratos-update source
+// Parse log file and extract all entries, adding default source for entries without one
 export async function parseLogFile(logPath: string): Promise<LogEntry[]> {
 	try {
 		const result = await readObjects(logPath, LogEntrySchema);
 
-		// Filter entries to only include those from ratos-update source
-		const updateEntries = result.result.filter((entry) => entry.source === 'ratos-update');
+		// Add default source for entries that don't have one (typically server logs)
+		const allEntries = result.result.map((entry) => ({
+			...entry,
+			source: entry.source || 'server',
+		}));
 
-		return updateEntries.sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
+		return allEntries.sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
 	} catch (error) {
 		if (error instanceof Error) {
 			error.message = `Failed to read log file: ${error.message}`;
@@ -174,6 +179,11 @@ export function filterByContext(entries: LogEntry[], context: string): LogEntry[
 	return entries.filter((entry) => entry.context === context);
 }
 
+// Filter entries by source
+export function filterBySource(entries: LogEntry[], source: string): LogEntry[] {
+	return entries.filter((entry) => entry.source === source);
+}
+
 // Get log file path - now uses the main RatOS log file
 function getLogFilePath(): string {
 	const environment = serverSchema.parse(process.env);
@@ -181,26 +191,37 @@ function getLogFilePath(): string {
 }
 
 export const updateLogsRouter = router({
-	summary: publicProcedure.query(async () => {
-		const logPath = getLogFilePath();
+	summary: publicProcedure
+		.input(
+			z.object({
+				source: z.string().optional(),
+			}),
+		)
+		.query(async ({ input }) => {
+			const logPath = getLogFilePath();
 
-		let logFileSize = 0;
-		let logFileExists = false;
-		let entries: LogEntry[] = [];
+			let logFileSize = 0;
+			let logFileExists = false;
+			let entries: LogEntry[] = [];
 
-		try {
-			if (existsSync(logPath)) {
-				logFileExists = true;
-				const stats = await stat(logPath);
-				logFileSize = stats.size;
-				entries = await parseLogFile(logPath);
+			try {
+				if (existsSync(logPath)) {
+					logFileExists = true;
+					const stats = await stat(logPath);
+					logFileSize = stats.size;
+					entries = await parseLogFile(logPath);
+
+					// Filter by source if specified
+					if (input.source) {
+						entries = filterBySource(entries, input.source);
+					}
+				}
+			} catch (error) {
+				getLogger().error(`Failed to read log file: ${error instanceof Error ? error.message : 'Unknown error'}`);
 			}
-		} catch (error) {
-			getLogger().error(`Failed to read update log file: ${error instanceof Error ? error.message : 'Unknown error'}`);
-		}
 
-		return generateSummary(entries, logFileSize, logFileExists);
-	}),
+			return generateSummary(entries, logFileSize, logFileExists);
+		}),
 
 	entries: publicProcedure.input(LogQuerySchema).query(async ({ input }) => {
 		const logPath = getLogFilePath();
@@ -219,6 +240,10 @@ export const updateLogsRouter = router({
 			entries = filterByContext(entries, input.context);
 		}
 
+		if (input.source) {
+			entries = filterBySource(entries, input.source);
+		}
+
 		// Limit number of entries (get most recent)
 		if (entries.length > input.lines) {
 			entries = entries.slice(-input.lines);
@@ -231,26 +256,67 @@ export const updateLogsRouter = router({
 		};
 	}),
 
-	errors: publicProcedure.input(z.object({ showDetails: z.boolean().default(false) })).query(async () => {
-		const logPath = getLogFilePath();
+	errors: publicProcedure
+		.input(
+			z.object({
+				showDetails: z.boolean().default(false),
+				source: z.string().optional(),
+			}),
+		)
+		.query(async ({ input }) => {
+			const logPath = getLogFilePath();
 
-		if (!existsSync(logPath)) {
-			throw new Error(`Log file not found: ${logPath}`);
-		}
+			if (!existsSync(logPath)) {
+				throw new Error(`Log file not found: ${logPath}`);
+			}
 
-		let entries = await parseLogFile(logPath);
+			let entries = await parseLogFile(logPath);
 
-		// Filter to only errors and warnings (level 40 and above)
-		entries = filterBySeverity(entries, 40);
+			// Filter to only errors and warnings (level 40 and above)
+			entries = filterBySeverity(entries, 40);
 
-		return {
-			entries,
-			totalCount: entries.length,
-			hasErrors: entries.length > 0,
-		};
-	}),
+			if (input.source) {
+				entries = filterBySource(entries, input.source);
+			}
 
-	contexts: publicProcedure.query(async () => {
+			return {
+				entries,
+				totalCount: entries.length,
+				hasErrors: entries.length > 0,
+			};
+		}),
+
+	contexts: publicProcedure
+		.input(
+			z.object({
+				source: z.string().optional(),
+			}),
+		)
+		.query(async ({ input }) => {
+			const logPath = getLogFilePath();
+
+			if (!existsSync(logPath)) {
+				return [];
+			}
+
+			let entries = await parseLogFile(logPath);
+
+			if (input.source) {
+				entries = filterBySource(entries, input.source);
+			}
+
+			const contexts = new Set<string>();
+
+			entries.forEach((entry) => {
+				if (entry.context) {
+					contexts.add(entry.context);
+				}
+			});
+
+			return Array.from(contexts).sort();
+		}),
+
+	sources: publicProcedure.query(async () => {
 		const logPath = getLogFilePath();
 
 		if (!existsSync(logPath)) {
@@ -258,15 +324,15 @@ export const updateLogsRouter = router({
 		}
 
 		const entries = await parseLogFile(logPath);
-		const contexts = new Set<string>();
+		const sources = new Set<string>();
 
 		entries.forEach((entry) => {
-			if (entry.context) {
-				contexts.add(entry.context);
+			if (entry.source) {
+				sources.add(entry.source);
 			}
 		});
 
-		return Array.from(contexts).sort();
+		return Array.from(sources).sort();
 	}),
 
 	// Paginated procedures for infinite scrolling
@@ -287,8 +353,11 @@ export const updateLogsRouter = router({
 		// Read all entries to enable proper server-side sorting
 		const result = await readObjects(logPath, LogEntrySchema, undefined, 0, Infinity);
 
-		// Filter entries to only include those from ratos-update source
-		let entries = result.result.filter((entry) => entry.source === 'ratos-update');
+		// Add default source for entries that don't have one
+		let entries = result.result.map((entry) => ({
+			...entry,
+			source: entry.source || 'server',
+		})) as LogEntry[];
 
 		// Apply filters
 		const minLevel = LOG_LEVEL_MAP[input.level];
@@ -296,6 +365,10 @@ export const updateLogsRouter = router({
 
 		if (input.context) {
 			entries = filterByContext(entries, input.context);
+		}
+
+		if (input.source) {
+			entries = filterBySource(entries, input.source);
 		}
 
 		// Apply server-side sorting
@@ -332,6 +405,7 @@ export const updateLogsRouter = router({
 				cursor: z.number().default(0),
 				limit: z.number().min(1).max(100).default(50),
 				showDetails: z.boolean().default(false),
+				source: z.string().optional(),
 				sortBy: z.enum(['time']).default('time'),
 				sortDirection: z.enum(['asc', 'desc']).default('desc'),
 			}),
@@ -352,11 +426,18 @@ export const updateLogsRouter = router({
 			// Read all entries to enable proper server-side sorting
 			const result = await readObjects(logPath, LogEntrySchema, undefined, 0, Infinity);
 
-			// Filter entries to only include those from ratos-update source
-			let entries = result.result.filter((entry) => entry.source === 'ratos-update');
+			// Add default source for entries that don't have one
+			let entries = result.result.map((entry) => ({
+				...entry,
+				source: entry.source || 'server',
+			})) as LogEntry[];
 
 			// Filter to only errors and warnings (level 40 and above)
 			entries = filterBySeverity(entries, 40);
+
+			if (input.source) {
+				entries = filterBySource(entries, input.source);
+			}
 
 			// Apply server-side sorting
 			entries = entries.sort((a, b) => {
