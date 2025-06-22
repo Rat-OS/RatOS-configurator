@@ -43,8 +43,8 @@ const LogSummarySchema = z.object({
 const LogQuerySchema = z.object({
 	lines: z.number().min(1).max(1000).default(50),
 	level: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']).default('info'),
-	context: z.string().optional(),
-	source: z.string().optional(),
+	context: z.union([z.string(), z.array(z.string())]).optional(),
+	source: z.union([z.string(), z.array(z.string())]).optional(),
 	showDetails: z.boolean().default(false),
 });
 
@@ -52,8 +52,8 @@ const PaginatedLogQuerySchema = z.object({
 	cursor: z.number().default(0),
 	limit: z.number().min(1).max(100).default(50),
 	level: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']).default('info'),
-	context: z.string().optional(),
-	source: z.string().optional(),
+	context: z.union([z.string(), z.array(z.string())]).optional(),
+	source: z.union([z.string(), z.array(z.string())]).optional(),
 	showDetails: z.boolean().default(false),
 	sortBy: z.enum(['time']).default('time'),
 	sortDirection: z.enum(['asc', 'desc']).default('desc'),
@@ -174,13 +174,19 @@ export function filterBySeverity(entries: LogEntry[], minLevel: number): LogEntr
 	return entries.filter((entry) => entry.level >= minLevel);
 }
 
-// Filter entries by context
-export function filterByContext(entries: LogEntry[], context: string): LogEntry[] {
+// Filter entries by context (supports single value or array)
+export function filterByContext(entries: LogEntry[], context: string | string[]): LogEntry[] {
+	if (Array.isArray(context)) {
+		return entries.filter((entry) => entry.context && context.includes(entry.context));
+	}
 	return entries.filter((entry) => entry.context === context);
 }
 
-// Filter entries by source
-export function filterBySource(entries: LogEntry[], source: string): LogEntry[] {
+// Filter entries by source (supports single value or array)
+export function filterBySource(entries: LogEntry[], source: string | string[]): LogEntry[] {
+	if (Array.isArray(source)) {
+		return entries.filter((entry) => entry.source && source.includes(entry.source));
+	}
 	return entries.filter((entry) => entry.source === source);
 }
 
@@ -194,7 +200,7 @@ export const updateLogsRouter = router({
 	summary: publicProcedure
 		.input(
 			z.object({
-				source: z.string().optional(),
+				source: z.union([z.string(), z.array(z.string())]).optional(),
 			}),
 		)
 		.query(async ({ input }) => {
@@ -260,7 +266,7 @@ export const updateLogsRouter = router({
 		.input(
 			z.object({
 				showDetails: z.boolean().default(false),
-				source: z.string().optional(),
+				source: z.union([z.string(), z.array(z.string())]).optional(),
 			}),
 		)
 		.query(async ({ input }) => {
@@ -289,7 +295,7 @@ export const updateLogsRouter = router({
 	contexts: publicProcedure
 		.input(
 			z.object({
-				source: z.string().optional(),
+				source: z.union([z.string(), z.array(z.string())]).optional(),
 			}),
 		)
 		.query(async ({ input }) => {
@@ -405,7 +411,7 @@ export const updateLogsRouter = router({
 				cursor: z.number().default(0),
 				limit: z.number().min(1).max(100).default(50),
 				showDetails: z.boolean().default(false),
-				source: z.string().optional(),
+				source: z.union([z.string(), z.array(z.string())]).optional(),
 				sortBy: z.enum(['time']).default('time'),
 				sortDirection: z.enum(['asc', 'desc']).default('desc'),
 			}),

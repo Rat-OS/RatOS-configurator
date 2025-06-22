@@ -9,11 +9,32 @@ import { Spinner } from '@/components/common/spinner';
 import { ErrorMessage } from '@/components/common/error-message';
 import { Badge, badgeBorderColorStyle } from '@/components/common/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
+import {
+	DropdownMenu,
+	DropdownMenuCheckboxItem,
+	DropdownMenuContent,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+	Command,
+	CommandEmpty,
+	CommandGroup,
+	CommandInput,
+	CommandItem,
+	CommandList,
+	CommandSeparator,
+} from '@/components/ui/command';
+import { Separator } from '@/components/ui/separator';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { PlusCircledIcon } from '@radix-ui/react-icons';
 
 import {
 	AlertCircle,
+	AlertTriangle,
 	CheckCircle,
 	Clock,
 	Download,
@@ -25,6 +46,10 @@ import {
 	FileClock,
 	FileCode,
 	FileJson,
+	MoreVertical,
+	Info,
+	Bug,
+	Zap,
 } from 'lucide-react';
 import { formatBytes } from '@/helpers/util';
 import { Modal } from '@/components/common/modal';
@@ -56,42 +81,57 @@ interface LogSummary {
 	logFileExists: boolean;
 }
 
-const LOG_LEVELS: Record<number, { name: string; color: string; bgColor: string; badgeColor: string }> = {
+const LOG_LEVELS: Record<
+	number,
+	{
+		name: string;
+		color: string;
+		bgColor: string;
+		badgeColor: string;
+		icon: React.ComponentType<{ className?: string }>;
+	}
+> = {
 	10: {
 		name: 'TRACE',
 		color: 'text-zinc-600 dark:text-zinc-400',
 		bgColor: 'bg-zinc-50 dark:bg-zinc-400/10',
 		badgeColor: 'gray',
+		icon: Bug,
 	},
 	20: {
 		name: 'DEBUG',
 		color: 'text-cyan-700 dark:text-cyan-400',
 		bgColor: 'bg-cyan-50 dark:bg-cyan-400/10',
 		badgeColor: 'sky',
+		icon: Bug,
 	},
 	30: {
 		name: 'INFO',
 		color: 'text-green-700 dark:text-green-400',
 		bgColor: 'bg-green-50 dark:bg-green-400/10',
 		badgeColor: 'green',
+		icon: Info,
 	},
 	40: {
 		name: 'WARN',
 		color: 'text-yellow-800 dark:text-yellow-500',
 		bgColor: 'bg-yellow-50 dark:bg-yellow-400/10',
 		badgeColor: 'yellow',
+		icon: AlertTriangle,
 	},
 	50: {
 		name: 'ERROR',
 		color: 'text-red-700 dark:text-red-400',
 		bgColor: 'bg-red-50 dark:bg-red-400/10',
 		badgeColor: 'red',
+		icon: AlertCircle,
 	},
 	60: {
 		name: 'FATAL',
 		color: 'text-purple-700 dark:text-purple-400',
 		bgColor: 'bg-purple-50 dark:bg-purple-400/10',
 		badgeColor: 'purple',
+		icon: Zap,
 	},
 };
 
@@ -122,7 +162,7 @@ const LogSummaryHeader: React.FC<{
 						<div className="flex items-center gap-x-3">
 							<div
 								className={twMerge(
-									'flex-none rounded-full bg-green-400/10 p-1 text-zinc-400',
+									'inline flex-none rounded-full bg-green-400/10 p-1 text-zinc-400',
 									(isLoading || !summary.logFileExists) && 'bg-zinc-400/10 text-zinc-400',
 									!isLoading &&
 										summary.logFileExists &&
@@ -133,11 +173,11 @@ const LogSummaryHeader: React.FC<{
 										summary.logFileExists &&
 										summary.lastUpdate &&
 										summary.success &&
-										'bg-green-400/10 text-green-400',
+										'bg-lime-400/10 text-lime-400',
 									!isLoading && summary.logFileExists && !summary.lastUpdate && 'bg-blue-400/10 text-blue-400',
 								)}
 							>
-								{isLoading ? <Spinner size="sm" /> : <FileText className="h-4 w-4" />}
+								{isLoading ? <Spinner className="h-4 w-4" noMargin /> : <FileText className="h-4 w-4" />}
 							</div>
 							<h1 className="flex gap-x-3 text-base leading-7">
 								<span className="font-semibold text-white">System Logs</span>
@@ -361,6 +401,167 @@ const LogEntryComponent: React.FC<{ entry: LogEntry; showDetails: boolean }> = (
 	);
 };
 
+// Custom faceted filter component for log filtering
+interface LogFacetedFilterProps {
+	title: string;
+	options: string[];
+	selectedValues: string[];
+	onSelectionChange: (values: string[]) => void;
+	disabled?: boolean;
+}
+
+const LogFacetedFilter: React.FC<LogFacetedFilterProps> = ({
+	title,
+	options,
+	selectedValues,
+	onSelectionChange,
+	disabled = false,
+}) => {
+	const selectedSet = new Set(selectedValues);
+
+	return (
+		<Popover>
+			<PopoverTrigger asChild>
+				<Button
+					variant="outline"
+					size="sm"
+					className={`h-8 border-dashed ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
+					disabled={disabled}
+				>
+					<PlusCircledIcon className="mr-2 h-4 w-4" />
+					{title}
+					{selectedValues.length > 0 && (
+						<>
+							<Separator orientation="vertical" className="mx-2 h-4" />
+							<Badge color="gray" className="rounded-sm px-1 font-normal lg:hidden">
+								{selectedValues.length}
+							</Badge>
+							<div className="hidden space-x-1 lg:flex">
+								{selectedValues.length > 2 ? (
+									<Badge color="gray" className="rounded-sm px-1 font-normal">
+										{selectedValues.length} selected
+									</Badge>
+								) : (
+									selectedValues.map((value) => (
+										<Badge color="gray" size="sm" key={value} className="rounded-sm px-1 font-normal">
+											{value}
+										</Badge>
+									))
+								)}
+							</div>
+						</>
+					)}
+				</Button>
+			</PopoverTrigger>
+			<PopoverContent className="w-[200px] p-0" align="start">
+				<Command>
+					<CommandInput placeholder={title} />
+					<CommandList>
+						<CommandEmpty>No results found.</CommandEmpty>
+						<CommandGroup>
+							{options.map((option) => {
+								const isSelected = selectedSet.has(option);
+								return (
+									<CommandItem
+										key={option}
+										className="space-x-2"
+										onSelect={() => {
+											const newSelection = isSelected
+												? selectedValues.filter((v) => v !== option)
+												: [...selectedValues, option];
+											onSelectionChange(newSelection);
+										}}
+									>
+										<Checkbox checked={isSelected} />
+										<span>{option}</span>
+									</CommandItem>
+								);
+							})}
+						</CommandGroup>
+						{selectedValues.length > 0 && (
+							<>
+								<CommandSeparator />
+								<CommandGroup>
+									<CommandItem onSelect={() => onSelectionChange([])} className="justify-center text-center">
+										Clear filters
+									</CommandItem>
+								</CommandGroup>
+							</>
+						)}
+					</CommandList>
+				</Command>
+			</PopoverContent>
+		</Popover>
+	);
+};
+
+// Enhanced log level selector with icons and counts
+interface EnhancedLogLevelSelectorProps {
+	logLevel: string;
+	setLogLevel: (level: string) => void;
+	summary?: LogSummary;
+}
+
+const EnhancedLogLevelSelector: React.FC<EnhancedLogLevelSelectorProps> = ({ logLevel, setLogLevel, summary }) => {
+	const logLevelOptions = [
+		{ value: 'trace', label: 'Trace', level: 10 },
+		{ value: 'debug', label: 'Debug', level: 20 },
+		{ value: 'info', label: 'Info', level: 30 },
+		{ value: 'warn', label: 'Warn', level: 40 },
+		{ value: 'error', label: 'Error', level: 50 },
+		{ value: 'fatal', label: 'Fatal', level: 60 },
+	];
+
+	const getCountForLevel = (level: number): number => {
+		if (!summary) return 0;
+		switch (level) {
+			case 10:
+				return summary.traceCount;
+			case 20:
+				return summary.debugCount;
+			case 30:
+				return summary.infoCount;
+			case 40:
+				return summary.warnCount;
+			case 50:
+				return summary.errorCount;
+			case 60:
+				return summary.fatalCount;
+			default:
+				return 0;
+		}
+	};
+
+	return (
+		<Select value={logLevel} onValueChange={setLogLevel}>
+			<SelectTrigger>
+				<SelectValue />
+			</SelectTrigger>
+			<SelectContent>
+				{logLevelOptions.map((option) => {
+					const levelConfig = LOG_LEVELS[option.level];
+					const count = getCountForLevel(option.level);
+					const IconComponent = levelConfig.icon;
+
+					return (
+						<SelectItem key={option.value} value={option.value}>
+							<div className="flex items-center gap-2">
+								<IconComponent className={`h-4 w-4 ${levelConfig.color}`} />
+								<span>{option.label}</span>
+								{count > 0 && (
+									<Badge color={levelConfig.badgeColor as any} size="sm" className="ml-auto">
+										{count}
+									</Badge>
+								)}
+							</div>
+						</SelectItem>
+					);
+				})}
+			</SelectContent>
+		</Select>
+	);
+};
+
 // Virtualized log list component with infinite scrolling
 interface VirtualizedLogListProps {
 	entries: LogEntry[];
@@ -373,16 +574,17 @@ interface VirtualizedLogListProps {
 	showOnlyErrors: boolean;
 	logLevel: string;
 	setLogLevel: (level: string) => void;
-	selectedContext: string;
-	setSelectedContext: (context: string) => void;
-	selectedSource: string;
-	setSelectedSource: (source: string) => void;
+	selectedContexts: string[];
+	setSelectedContexts: (contexts: string[]) => void;
+	selectedSources: string[];
+	setSelectedSources: (sources: string[]) => void;
 	setShowDetails: (show: boolean) => void;
 	setShowOnlyErrors: (show: boolean) => void;
 	sortDirection: 'desc' | 'asc';
 	setSortDirection: (direction: 'desc' | 'asc') => void;
 	contexts: string[];
 	sources: string[];
+	summary?: LogSummary;
 }
 
 const VirtualizedLogList: React.FC<VirtualizedLogListProps> = ({
@@ -396,16 +598,17 @@ const VirtualizedLogList: React.FC<VirtualizedLogListProps> = ({
 	showOnlyErrors,
 	logLevel,
 	setLogLevel,
-	selectedContext,
-	setSelectedContext,
-	selectedSource,
-	setSelectedSource,
+	selectedContexts,
+	setSelectedContexts,
+	selectedSources,
+	setSelectedSources,
 	setShowDetails,
 	setShowOnlyErrors,
 	sortDirection,
 	setSortDirection,
 	contexts,
 	sources,
+	summary,
 }) => {
 	// Create a ref for the container to calculate scroll margins
 	const containerRef = useRef<HTMLDivElement>(null);
@@ -435,93 +638,46 @@ const VirtualizedLogList: React.FC<VirtualizedLogListProps> = ({
 
 	return (
 		<div className="px-4 @screen-sm:px-6 @screen-lg:px-8">
-			<div className="mb-4 grid grid-cols-1 gap-4 rounded-lg border border-border bg-muted/20 p-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+			<div className="mb-4 grid grid-cols-1 gap-4 rounded-lg border border-border bg-muted/20 p-4 md:grid-cols-2 lg:grid-cols-4">
 				<div className="space-y-2">
 					<Label htmlFor="log-level" className={showOnlyErrors ? 'text-muted-foreground' : ''}>
 						Log Level
 					</Label>
-					<Select value={logLevel} onValueChange={setLogLevel} disabled={showOnlyErrors}>
-						<SelectTrigger className={showOnlyErrors ? 'cursor-not-allowed opacity-50' : ''}>
-							<SelectValue />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="trace">Trace</SelectItem>
-							<SelectItem value="debug">Debug</SelectItem>
-							<SelectItem value="info">Info</SelectItem>
-							<SelectItem value="warn">Warning</SelectItem>
-							<SelectItem value="error">Error</SelectItem>
-							<SelectItem value="fatal">Fatal</SelectItem>
-						</SelectContent>
-					</Select>
+					<div className={showOnlyErrors ? 'cursor-not-allowed opacity-50' : ''}>
+						<EnhancedLogLevelSelector logLevel={logLevel} setLogLevel={setLogLevel} summary={summary} />
+					</div>
 				</div>
 
 				<div className="space-y-2">
-					<Label htmlFor="context" className={showOnlyErrors ? 'text-muted-foreground' : ''}>
-						Context Filter
-					</Label>
-					<Select
-						value={selectedContext || 'all'}
-						onValueChange={(value) => setSelectedContext(value === 'all' ? '' : value)}
+					<Label className={showOnlyErrors ? 'text-muted-foreground' : ''}>Context Filter</Label>
+					<LogFacetedFilter
+						title="Context"
+						options={contexts}
+						selectedValues={selectedContexts}
+						onSelectionChange={setSelectedContexts}
 						disabled={showOnlyErrors}
-					>
-						<SelectTrigger className={showOnlyErrors ? 'cursor-not-allowed opacity-50' : ''}>
-							<SelectValue placeholder="All contexts" />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="all">All contexts</SelectItem>
-							{contexts.map((context) => (
-								<SelectItem key={context} value={context}>
-									{context}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
+					/>
 				</div>
 
 				<div className="space-y-2">
-					<Label htmlFor="source" className={showOnlyErrors ? 'text-muted-foreground' : ''}>
-						Source Filter
-					</Label>
-					<Select
-						value={selectedSource || 'all'}
-						onValueChange={(value) => setSelectedSource(value === 'all' ? '' : value)}
+					<Label className={showOnlyErrors ? 'text-muted-foreground' : ''}>Source Filter</Label>
+					<LogFacetedFilter
+						title="Source"
+						options={sources}
+						selectedValues={selectedSources}
+						onSelectionChange={setSelectedSources}
 						disabled={showOnlyErrors}
-					>
-						<SelectTrigger className={showOnlyErrors ? 'cursor-not-allowed opacity-50' : ''}>
-							<SelectValue placeholder="All sources" />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="all">All sources</SelectItem>
-							{sources.map((source) => (
-								<SelectItem key={source} value={source}>
-									{source}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
-				</div>
-
-				<div className="space-y-2">
-					<Label htmlFor="sort-order">Sort Order</Label>
-					<Select value={sortDirection} onValueChange={(value: 'desc' | 'asc') => setSortDirection(value)}>
-						<SelectTrigger>
-							<SelectValue />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="desc">Newest First</SelectItem>
-							<SelectItem value="asc">Oldest First</SelectItem>
-						</SelectContent>
-					</Select>
+					/>
 				</div>
 
 				<div className="space-y-2">
 					<Label>View Options</Label>
-					<div className="space-y-2">
+					<div className="flex gap-2">
 						<Button
 							variant={showOnlyErrors ? 'primary' : 'outline'}
 							size="default"
 							onClick={() => setShowOnlyErrors(!showOnlyErrors)}
-							className="w-full justify-start"
+							className="flex-1 justify-start"
 						>
 							{showOnlyErrors ? (
 								<>
@@ -535,24 +691,34 @@ const VirtualizedLogList: React.FC<VirtualizedLogListProps> = ({
 								</>
 							)}
 						</Button>
-						<Button
-							variant={showDetails ? 'primary' : 'outline'}
-							size="default"
-							onClick={() => setShowDetails(!showDetails)}
-							className="w-full justify-start"
-						>
-							{showDetails ? (
-								<>
-									<EyeOff className="mr-2 h-4 w-4" />
-									Hide Details
-								</>
-							) : (
-								<>
-									<Eye className="mr-2 h-4 w-4" />
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button variant="outline" size="default" className="px-3">
+									<MoreVertical className="h-4 w-4" />
+									<span className="sr-only">View options</span>
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent align="end">
+								<DropdownMenuLabel>Sort Order</DropdownMenuLabel>
+								<DropdownMenuCheckboxItem
+									checked={sortDirection === 'desc'}
+									onCheckedChange={() => setSortDirection('desc')}
+								>
+									Newest First
+								</DropdownMenuCheckboxItem>
+								<DropdownMenuCheckboxItem
+									checked={sortDirection === 'asc'}
+									onCheckedChange={() => setSortDirection('asc')}
+								>
+									Oldest First
+								</DropdownMenuCheckboxItem>
+								<DropdownMenuSeparator />
+								<DropdownMenuLabel>Display Options</DropdownMenuLabel>
+								<DropdownMenuCheckboxItem checked={showDetails} onCheckedChange={setShowDetails}>
 									Show Details
-								</>
-							)}
-						</Button>
+								</DropdownMenuCheckboxItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
 					</div>
 				</div>
 			</div>
@@ -632,16 +798,16 @@ const VirtualizedLogList: React.FC<VirtualizedLogListProps> = ({
 const useInfiniteLogEntries = (
 	showOnlyErrors: boolean,
 	logLevel: string,
-	selectedContext: string,
-	selectedSource: string,
+	selectedContexts: string[],
+	selectedSources: string[],
 	showDetails: boolean,
 	sortDirection: 'desc' | 'asc',
 ) => {
 	const entriesQuery = trpc['update-logs'].entriesPaginated.useInfiniteQuery(
 		{
 			level: logLevel as any,
-			context: selectedContext || undefined,
-			source: selectedSource || undefined,
+			context: selectedContexts.length > 0 ? selectedContexts : undefined,
+			source: selectedSources.length > 0 ? selectedSources : undefined,
 			showDetails,
 			limit: 50,
 			sortBy: 'time',
@@ -659,7 +825,7 @@ const useInfiniteLogEntries = (
 
 	const errorsQuery = trpc['update-logs'].errorsPaginated.useInfiniteQuery(
 		{
-			source: selectedSource || undefined,
+			source: selectedSources.length > 0 ? selectedSources : undefined,
 			showDetails,
 			limit: 50,
 			sortBy: 'time',
@@ -695,15 +861,15 @@ const useInfiniteLogEntries = (
 
 export const UpdateLogsViewer: React.FC = () => {
 	const [logLevel, setLogLevel] = useState<string>('info');
-	const [selectedContext, setSelectedContext] = useState<string>('');
-	const [selectedSource, setSelectedSource] = useState<string>('');
+	const [selectedContexts, setSelectedContexts] = useState<string[]>([]);
+	const [selectedSources, setSelectedSources] = useState<string[]>([]);
 	const [showDetails, setShowDetails] = useState<boolean>(false);
 	const [showOnlyErrors, setShowOnlyErrors] = useState<boolean>(false);
 	const [sortDirection, setSortDirection] = useState<'desc' | 'asc'>('desc'); // newest first by default
 
 	const summaryQuery = trpc['update-logs'].summary.useQuery(
 		{
-			source: selectedSource || undefined,
+			source: selectedSources.length > 0 ? selectedSources : undefined,
 		},
 		{
 			retry: 3,
@@ -715,7 +881,7 @@ export const UpdateLogsViewer: React.FC = () => {
 
 	const contextsQuery = trpc['update-logs'].contexts.useQuery(
 		{
-			source: selectedSource || undefined,
+			source: selectedSources.length > 0 ? selectedSources : undefined,
 		},
 		{
 			retry: 2,
@@ -738,7 +904,7 @@ export const UpdateLogsViewer: React.FC = () => {
 		isFetchingNextPage,
 		fetchNextPage,
 		refetch: refetchEntries,
-	} = useInfiniteLogEntries(showOnlyErrors, logLevel, selectedContext, selectedSource, showDetails, sortDirection);
+	} = useInfiniteLogEntries(showOnlyErrors, logLevel, selectedContexts, selectedSources, showDetails, sortDirection);
 
 	const handleRefresh = () => {
 		summaryQuery.refetch();
@@ -788,16 +954,17 @@ export const UpdateLogsViewer: React.FC = () => {
 							showOnlyErrors={showOnlyErrors}
 							logLevel={logLevel}
 							setLogLevel={setLogLevel}
-							selectedContext={selectedContext}
-							setSelectedContext={setSelectedContext}
-							selectedSource={selectedSource}
-							setSelectedSource={setSelectedSource}
+							selectedContexts={selectedContexts}
+							setSelectedContexts={setSelectedContexts}
+							selectedSources={selectedSources}
+							setSelectedSources={setSelectedSources}
 							setShowDetails={setShowDetails}
 							setShowOnlyErrors={setShowOnlyErrors}
 							sortDirection={sortDirection}
 							setSortDirection={setSortDirection}
 							contexts={contexts}
 							sources={sources}
+							summary={summary}
 						/>
 					</div>
 				</div>
