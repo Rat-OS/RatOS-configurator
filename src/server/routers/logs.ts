@@ -75,7 +75,13 @@ const LOG_LEVEL_MAP: Record<string, number> = {
 	fatal: 60,
 };
 
-// Parse log file and extract all entries, adding default source for entries without one
+/**
+ * Reads and parses a log file, returning all log entries with a default source of "server" assigned to entries missing a source.
+ *
+ * @param logPath - Path to the log file to parse
+ * @returns An array of log entries sorted by ascending timestamp
+ * @throws If the log file cannot be read or parsed
+ */
 export async function parseLogFile(logPath: string): Promise<LogEntry[]> {
 	try {
 		const result = await readObjects(logPath, LogEntrySchema);
@@ -172,12 +178,24 @@ export function generateSummary(entries: LogEntry[], logFileSize: number, logFil
 	return summary;
 }
 
-// Filter entries by severity level
+/**
+ * Returns log entries with a severity level greater than or equal to the specified minimum.
+ *
+ * @param entries - The array of log entries to filter
+ * @param minLevel - The minimum severity level to include
+ * @returns An array of log entries meeting the minimum severity requirement
+ */
 export function filterBySeverity(entries: LogEntry[], minLevel: number): LogEntry[] {
 	return entries.filter((entry) => entry.level >= minLevel);
 }
 
-// Filter entries by context (supports single value or array)
+/**
+ * Filters log entries by context, supporting a single context value or an array of contexts.
+ *
+ * @param entries - The array of log entries to filter
+ * @param context - A context string or array of context strings to match
+ * @returns An array of log entries whose context matches the specified value(s)
+ */
 export function filterByContext(entries: LogEntry[], context: string | string[]): LogEntry[] {
 	if (Array.isArray(context)) {
 		return entries.filter((entry) => entry.context && context.includes(entry.context));
@@ -185,7 +203,13 @@ export function filterByContext(entries: LogEntry[], context: string | string[])
 	return entries.filter((entry) => entry.context === context);
 }
 
-// Filter entries by source (supports single value or array)
+/**
+ * Filters log entries by their source field.
+ *
+ * @param entries - The array of log entries to filter
+ * @param source - A source string or array of source strings to match
+ * @returns An array of log entries whose source matches the specified value(s)
+ */
 export function filterBySource(entries: LogEntry[], source: string | string[]): LogEntry[] {
 	if (Array.isArray(source)) {
 		return entries.filter((entry) => entry.source && source.includes(entry.source));
@@ -193,7 +217,11 @@ export function filterBySource(entries: LogEntry[], source: string | string[]): 
 	return entries.filter((entry) => entry.source === source);
 }
 
-// Get log file path - now uses the main RatOS log file
+/**
+ * Retrieves the main RatOS log file path from environment variables.
+ *
+ * @returns The absolute path to the log file as specified in the environment.
+ */
 function getLogFilePath(): string {
 	const environment = serverSchema.parse(process.env);
 	return environment.LOG_FILE;
