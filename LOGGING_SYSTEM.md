@@ -57,18 +57,18 @@ log_script_complete "my-script.sh" $?
 
 **Note**: When using the unified logging system, log rotation is handled by the main RatOS log configuration, not by individual scripts.
 
-### 2. CLI Log Management (`src/cli/commands/update-logs.tsx`)
+### 2. CLI Log Management (`src/cli/commands/logs.tsx`)
 
-The CLI provides several commands for viewing and analyzing update logs. **Update logs are now a subcommand of the main `logs` command** and automatically filter the main log file to show only entries with `source: "ratos-update"`.
+The CLI provides several commands for viewing and analyzing logs. **Logs are now a subcommand of the main `logs` command** and automatically filter the main log file to show only entries with `source: "ratos-update"`.
 
 #### Commands:
 
-**`ratos logs update-logs summary`**
+**`ratos logs summary`**
 - Shows a summary of the most recent update attempt from the main log
 - Displays success/failure status, error counts, and timing information
 - Automatically filters by `source: "ratos-update"`
 
-**`ratos logs update-logs show`**
+**`ratos logs show`**
 - Shows detailed log entries with filtering options from the main log
 - Options:
   - `-n, --lines <number>`: Number of recent lines to show (default: 50)
@@ -76,33 +76,44 @@ The CLI provides several commands for viewing and analyzing update logs. **Updat
   - `-c, --context <context>`: Filter by context
   - `-d, --details`: Show detailed information
 
-**`ratos logs update-logs errors`**
-- Shows only errors and warnings from the most recent update
+**`ratos logs errors`**
+- Shows only errors and warnings from the logs
 - Options:
   - `-d, --details`: Show detailed information
 
+**`ratos logs tail`**
+- Tail the main log file in real-time
+- Options:
+  - `-f, --follow`: Follow the log
+  - `-n, --lines <lines>`: Number of lines to show
+
+**`ratos logs rotate`**
+- Force log rotation
+
 #### Usage Examples:
 ```bash
-# Show update summary (note the new command structure)
-ratos logs update-logs summary
+# Show update summary
+ratos logs summary
 
 # Show last 100 log entries at debug level
-ratos logs update-logs show -n 100 -l debug
+ratos logs show -n 100 -l debug
 
 # Show only errors with details
-ratos logs update-logs errors -d
+ratos logs errors -d
 
 # Show logs from specific context
-ratos logs update-logs show -c "update_symlinks" -d
+ratos logs show -c "update_symlinks" -d
 
-# Other log commands remain available:
-ratos logs tail    # Tail the main log file
-ratos logs rotate  # Force log rotation
+# Tail the main log file
+ratos logs tail -f
+
+# Force log rotation
+ratos logs rotate
 ```
 
 ### 3. Web UI Integration
 
-The web interface provides a comprehensive log viewer accessible at `/configure/update-logs`.
+The web interface provides a comprehensive log viewer accessible at `/configure/logs`.
 
 #### Features:
 - **Log Summary Dashboard**: Overview of recent update attempts
@@ -120,16 +131,16 @@ The web interface provides a comprehensive log viewer accessible at `/configure/
 
 ### 4. API Endpoints
 
-#### TRPC Endpoints (`src/server/routers/update-logs.ts`):
-- `update-logs.summary`: Get log summary statistics (filtered by `source: "ratos-update"`)
-- `update-logs.entries`: Get filtered log entries (filtered by `source: "ratos-update"`)
-- `update-logs.errors`: Get only errors and warnings (filtered by `source: "ratos-update"`)
-- `update-logs.contexts`: Get available log contexts (filtered by `source: "ratos-update"`)
-- `update-logs.clear`: **Disabled** - Cannot clear main log file (use log rotation instead)
-- `update-logs.download`: Download main log file (contains all sources)
+#### TRPC Endpoints (`src/server/routers/logs.ts`):
+- `logs.summary`: Get log summary statistics (filtered by `source: "ratos-update"`)
+- `logs.entries`: Get filtered log entries (filtered by `source: "ratos-update"`)
+- `logs.errors`: Get only errors and warnings (filtered by `source: "ratos-update"`)
+- `logs.contexts`: Get available log contexts (filtered by `source: "ratos-update"`)
+- `logs.clear`: **Disabled** - Cannot clear main log file (use log rotation instead)
+- `logs.download`: Download main log file (contains all sources)
 
 #### REST Endpoints:
-- `GET /api/update-logs/download`: Download log file as attachment
+- `GET /api/logs/download`: Download log file as attachment
 
 ### 5. Debug Integration
 
@@ -253,7 +264,7 @@ cat /var/log/ratos-configurator.log
 grep '"source":"ratos-update"' /var/log/ratos-configurator.log
 
 # Test log parsing
-ratos logs update-logs summary
+ratos logs summary
 
 # Force log rotation (instead of clearing)
 ratos logs rotate

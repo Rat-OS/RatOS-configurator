@@ -60,6 +60,27 @@ export const badgeBackgroundColorStyle = cva('', {
 	},
 });
 
+export const badgeBackgroundMutedColorStyle = cva('', {
+	variants: {
+		color: {
+			rose: 'bg-rose-50 dark:bg-rose-400/5',
+			red: 'bg-red-50 dark:bg-red-400/5',
+			yellow: 'bg-yellow-50 dark:bg-yellow-400/5',
+			orange: 'bg-orange-50 dark:bg-orange-400/5',
+			green: 'bg-green-50 dark:bg-green-500/5',
+			lime: 'bg-lime-50 dark:bg-lime-500/5',
+			blue: 'bg-blue-50 dark:bg-blue-400/5',
+			sky: 'bg-sky-50 dark:bg-sky-400/5',
+			indigo: 'bg-indigo-50 dark:bg-indigo-400/5',
+			purple: 'bg-purple-50 dark:bg-purple-400/5',
+			pink: 'bg-pink-50 dark:bg-pink-400/5',
+			brand: 'bg-brand-100 dark:bg-brand-400/5',
+			gray: 'bg-zinc-50 dark:bg-zinc-400/5',
+			plain: 'bg-zinc-900/5 dark:bg-zinc-100/5',
+		} satisfies { [key in z.infer<typeof badgeColorOptions>]: string },
+	},
+});
+
 export const badgeBorderColorStyle = cva('', {
 	variants: {
 		color: {

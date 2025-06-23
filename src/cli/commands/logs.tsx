@@ -28,8 +28,8 @@ type LogEntry = z.infer<typeof LogEntrySchema>;
 // Log level mappings
 const LOG_LEVELS: Record<number, { name: string; color: string }> = {
 	10: { name: 'TRACE', color: 'gray' },
-	20: { name: 'DEBUG', color: 'cyan' },
-	30: { name: 'INFO', color: 'green' },
+	20: { name: 'DEBUG', color: 'magenta' },
+	30: { name: 'INFO', color: 'cyan' },
 	40: { name: 'WARN', color: 'yellow' },
 	50: { name: 'ERROR', color: 'red' },
 	60: { name: 'FATAL', color: 'magenta' },
@@ -249,12 +249,8 @@ const LogEntriesComponent: React.FC<{ entries: LogEntry[]; showDetails: boolean 
 	</Container>
 );
 
-export const updateLogs = (parentCommand: Command) => {
-	const updateLogs = parentCommand
-		.command('update-logs')
-		.description('View and analyze RatOS update script logs from the main RatOS log');
-
-	updateLogs
+export const addLogCommands = (logsCommand: Command) => {
+	logsCommand
 		.command('summary')
 		.description('Show a summary of the most recent update attempt')
 		.action(async () => {
@@ -283,9 +279,9 @@ export const updateLogs = (parentCommand: Command) => {
 			}
 		});
 
-	updateLogs
+	logsCommand
 		.command('show')
-		.description('Show detailed update logs')
+		.description('Show detailed logs')
 		.option('-n, --lines <number>', 'Number of recent lines to show', '50')
 		.option('-l, --level <level>', 'Minimum log level (trace, debug, info, warn, error, fatal)', 'info')
 		.option('-c, --context <context>', 'Filter by context')
@@ -342,9 +338,9 @@ export const updateLogs = (parentCommand: Command) => {
 			}
 		});
 
-	updateLogs
+	logsCommand
 		.command('errors')
-		.description('Show only errors and warnings from the most recent update')
+		.description('Show only errors and warnings from the logs')
 		.option('-d, --details', 'Show detailed information')
 		.action(async (options) => {
 			try {

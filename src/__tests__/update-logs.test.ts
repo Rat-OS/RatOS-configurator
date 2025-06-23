@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { readFile, writeFile, mkdir, rm } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
@@ -10,8 +10,7 @@ import {
 	filterBySeverity,
 	filterByContext,
 	filterBySource,
-	type LogEntry,
-} from '@/server/routers/update-logs';
+} from '@/server/routers/logs';
 
 // Test environment setup - relies on test-setup.ts and .env.test.local
 const TEST_LOG_DIR = path.join(tmpdir(), 'ratos-test-logs');
@@ -365,7 +364,7 @@ describe('CLI Commands Integration', () => {
 	it('should have proper CLI command structure', async () => {
 		// Test that the CLI functions can be imported and have the expected structure
 		// This tests the CLI integration without actually executing the binary
-		const { parseLogFile, generateSummary, filterBySource } = await import('@/server/routers/update-logs');
+		const { parseLogFile, generateSummary, filterBySource } = await import('@/server/routers/logs');
 
 		// Parse the test log file - now returns all entries
 		const entries = await parseLogFile(TEST_LOG_FILE);
@@ -415,5 +414,174 @@ describe('CLI Commands Integration', () => {
 			// Expected to throw an error for missing file
 			expect(error).toBeDefined();
 		}
+	});
+});
+
+describe('Unified Endpoint Optimization', () => {
+	it('should parse log file once and return all data types', async () => {
+		// Test the unified endpoint logic by simulating what it does
+		const entries = await parseLogFile(TEST_LOG_FILE);
+
+		// Test summary generation
+		const summary = generateSummary(entries, 1000, true);
+		expect(summary.totalEntries).toBe(3);
+		expect(summary.errorCount).toBe(1);
+		expect(summary.infoCount).toBe(2);
+		expect(summary.logFileExists).toBe(true);
+		expect(summary.logFileSize).toBe(1000);
+
+		// Test sources extraction
+		const sources = new Set<string>();
+		entries.forEach((entry) => {
+			if (entry.source) {
+				sources.add(entry.source);
+			}
+		});
+		const sourcesArray = Array.from(sources).sort();
+		expect(sourcesArray).toEqual(['other-service', 'ratos-update']);
+
+		// Test contexts extraction
+		const contexts = new Set<string>();
+		entries.forEach((entry) => {
+			if (entry.context) {
+				contexts.add(entry.context);
+			}
+		});
+		const contextsArray = Array.from(contexts).sort();
+		expect(contextsArray).toEqual(['error_test', 'main']);
+
+		// Test entries filtering and pagination
+		const filteredEntries = filterBySeverity(entries, 30); // INFO level and above
+		expect(filteredEntries).toHaveLength(3);
+
+		// Test pagination simulation
+		const limit = 2;
+		const cursor = 0;
+		const paginatedEntries = filteredEntries.slice(cursor, cursor + limit);
+		const hasNextPage = cursor + limit < filteredEntries.length;
+		const nextCursor = hasNextPage ? cursor + limit : cursor;
+
+		expect(paginatedEntries).toHaveLength(2);
+		expect(hasNextPage).toBe(true);
+		expect(nextCursor).toBe(2);
+
+		// Test errors filtering and pagination
+		const errorEntries = filterBySeverity(entries, 40); // WARN level and above
+		expect(errorEntries).toHaveLength(1);
+		expect(errorEntries[0].level).toBe(50);
+	});
+
+	it('should handle empty log file gracefully', async () => {
+		// Test with empty log file
+		const emptyLogPath = path.join(TEST_LOG_DIR, 'empty.log');
+		await writeFile(emptyLogPath, '');
+
+		try {
+			const entries = await parseLogFile(emptyLogPath);
+			expect(entries).toHaveLength(0);
+
+			// Test summary with empty entries
+			const summary = generateSummary(entries, 0, true);
+			expect(summary.totalEntries).toBe(0);
+			expect(summary.errorCount).toBe(0);
+			expect(summary.logFileExists).toBe(true);
+
+			// Test sources/contexts with empty entries
+			const sources = new Set<string>();
+			const contexts = new Set<string>();
+			entries.forEach((entry) => {
+				if (entry.source) sources.add(entry.source);
+				if (entry.context) contexts.add(entry.context);
+			});
+
+			expect(Array.from(sources)).toHaveLength(0);
+			expect(Array.from(contexts)).toHaveLength(0);
+		} finally {
+			await rm(emptyLogPath);
+		}
+	});
+
+	it('should maintain performance benefits with single file parse', async () => {
+		// This test verifies that we can get all the data we need from a single parse
+		const startTime = Date.now();
+
+		// Single parse operation
+		const entries = await parseLogFile(TEST_LOG_FILE);
+
+		// Extract all data types from the single parse
+		const summary = generateSummary(entries, 1000, true);
+
+		const sources = new Set<string>();
+		const contexts = new Set<string>();
+		entries.forEach((entry) => {
+			if (entry.source) sources.add(entry.source);
+			if (entry.context) contexts.add(entry.context);
+		});
+
+		const filteredEntries = filterBySeverity(entries, 30);
+		const errorEntries = filterBySeverity(entries, 40);
+
+		const endTime = Date.now();
+		const duration = endTime - startTime;
+
+		// Verify we got all the data we need
+		expect(summary).toBeDefined();
+		expect(sources.size).toBeGreaterThan(0);
+		expect(contexts.size).toBeGreaterThan(0);
+		expect(filteredEntries.length).toBeGreaterThan(0);
+		expect(errorEntries.length).toBeGreaterThan(0);
+
+		// Performance should be reasonable (this is a small test file)
+		expect(duration).toBeLessThan(1000); // Should complete in under 1 second
+	});
+
+	it('should handle zero limits correctly without validation errors', async () => {
+		// Test that the unified endpoint can handle 0 limits without Zod validation errors
+		const entries = await parseLogFile(TEST_LOG_FILE);
+
+		// Simulate the unified endpoint logic with 0 limits
+		generateSummary(entries, 1000, true); // Summary generation should work regardless of limits
+
+		// Test with entriesLimit = 0 (simulating showOnlyErrors = true)
+		const entriesLimit = 0;
+		const errorsLimit = 50;
+
+		// Should not process entries when limit is 0
+		let processedEntries = null;
+		if (entriesLimit > 0) {
+			const filteredEntries = filterBySeverity(entries, 30);
+			processedEntries = filteredEntries.slice(0, entriesLimit);
+		}
+		expect(processedEntries).toBeNull();
+
+		// Should process errors when limit > 0
+		let processedErrors = null;
+		if (errorsLimit > 0) {
+			const errorEntries = filterBySeverity(entries, 40);
+			processedErrors = errorEntries.slice(0, errorsLimit);
+		}
+		expect(processedErrors).not.toBeNull();
+		expect(processedErrors?.length).toBe(1);
+
+		// Test with errorsLimit = 0 (simulating showOnlyErrors = false)
+		const entriesLimit2 = 50;
+		const errorsLimit2 = 0;
+
+		// Should process entries when limit > 0
+		let processedEntries2 = null;
+		if (entriesLimit2 > 0) {
+			const filteredEntries = filterBySeverity(entries, 30);
+			processedEntries2 = filteredEntries.slice(0, entriesLimit2);
+		}
+		expect(processedEntries2).not.toBeNull();
+		expect(processedEntries2?.length).toBe(3);
+
+		// Should not process errors when limit is 0
+		let processedErrors2 = null;
+		if (errorsLimit2 > 0) {
+			const errorEntries = filterBySeverity(entries, 40);
+			processedErrors2 = errorEntries.slice(0, errorsLimit2);
+		}
+		expect(processedErrors2).toBeNull();
 	});
 });

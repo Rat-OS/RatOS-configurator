@@ -8,12 +8,12 @@ import { ErrorMessage } from '@/components/common/error-message';
 import { AlertTriangle, RefreshCw, Download } from 'lucide-react';
 import { getLogger } from '@/app/_helpers/logger';
 
-interface UpdateLogsErrorFallbackProps {
+interface LogsErrorFallbackProps {
 	error: Error;
 	resetErrorBoundary: () => void;
 }
 
-const UpdateLogsErrorFallback: React.FC<UpdateLogsErrorFallbackProps> = ({ error, resetErrorBoundary }) => {
+const LogsErrorFallback: React.FC<LogsErrorFallbackProps> = ({ error, resetErrorBoundary }) => {
 	const handleDownloadDebugInfo = () => {
 		window.location.href = '/configure/api/debug-zip';
 	};
@@ -53,11 +53,11 @@ const UpdateLogsErrorFallback: React.FC<UpdateLogsErrorFallbackProps> = ({ error
 	);
 };
 
-interface UpdateLogsErrorBoundaryProps {
+interface LogsErrorBoundaryProps {
 	children: React.ReactNode;
 }
 
-export const UpdateLogsErrorBoundary: React.FC<UpdateLogsErrorBoundaryProps> = ({ children }) => {
+export const LogsErrorBoundary: React.FC<LogsErrorBoundaryProps> = ({ children }) => {
 	const handleError = (error: Error, errorInfo: { componentStack: string }) => {
 		// Log the error for debugging
 		getLogger().error('System logs error boundary caught an error', {
@@ -69,7 +69,7 @@ export const UpdateLogsErrorBoundary: React.FC<UpdateLogsErrorBoundaryProps> = (
 
 	return (
 		<ErrorBoundary
-			FallbackComponent={UpdateLogsErrorFallback}
+			FallbackComponent={LogsErrorFallback}
 			onError={handleError}
 			onReset={() => {
 				// Optionally clear any error state or refresh data

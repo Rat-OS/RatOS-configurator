@@ -109,8 +109,8 @@ setDisplayName(SelectLabel, SelectPrimitive.Label.displayName);
 
 const SelectItem = React.forwardRef<
 	React.ElementRef<typeof SelectPrimitive.Item>,
-	React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
->(({ className, children, ...props }, ref) => (
+	React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item> & { fullElement?: boolean }
+>(({ className, children, fullElement, ...props }, ref) => (
 	<SelectPrimitive.Item
 		ref={ref}
 		className={cn(
@@ -124,7 +124,11 @@ const SelectItem = React.forwardRef<
 				<CheckIcon className="h-4 w-4" />
 			</SelectPrimitive.ItemIndicator>
 		</span>
-		<SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+		{fullElement ? (
+			<div className="flex-1">{children}</div>
+		) : (
+			<SelectPrimitive.ItemText className="flex-1">{children}</SelectPrimitive.ItemText>
+		)}
 	</SelectPrimitive.Item>
 ));
 setDisplayName(SelectItem, SelectPrimitive.Item.displayName);
