@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { trpc } from '@/utils/trpc';
-import { LogEntry, LogSummary } from './types';
+import { LogEntry, LogSummary } from '@/app/logs/_components/types';
 
 interface UseUnifiedLogDataParams {
 	showOnlyErrors: boolean;

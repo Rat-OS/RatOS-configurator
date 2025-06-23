@@ -19,7 +19,7 @@ import {
 	FileJson,
 } from 'lucide-react';
 import { formatBytes } from '@/helpers/util';
-import { LogSummary } from './types';
+import { LogSummary } from '@/app/logs/_components/types';
 
 interface LogSummaryHeaderProps {
 	isLoading: boolean;

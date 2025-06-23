@@ -1,7 +1,7 @@
 import React from 'react';
 import { Badge } from '@/components/common/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { LogSummary, LOG_LEVELS } from './types';
+import { LogSummary, LOG_LEVELS } from '@/app/logs/_components/types';
 
 interface EnhancedLogLevelSelectorProps {
 	logLevel: string;
