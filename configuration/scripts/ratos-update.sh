@@ -81,9 +81,9 @@ ensure_node_18()
 		log_info "Installing Node 18" "ensure_node_18"
 		echo "Installing Node 18"
 
-		if execute_with_logging "sed -i 's/node_16\.x/node_18\.x/g' /etc/apt/sources.list.d/nodesource.list" "ensure_node_18" "NODE_REPO_UPDATE_FAILED"; then
-			if execute_with_logging "apt-get update" "ensure_node_18" "APT_UPDATE_FAILED"; then
-				if execute_with_logging "apt-get install -y nodejs" "ensure_node_18" "NODE_INSTALL_FAILED"; then
+		if execute_with_logging "ensure_node_18" "NODE_REPO_UPDATE_FAILED" sed -i 's/node_16\.x/node_18\.x/g' /etc/apt/sources.list.d/nodesource.list; then
+			if execute_with_logging "ensure_node_18" "APT_UPDATE_FAILED" apt-get update; then
+				if execute_with_logging "ensure_node_18" "NODE_INSTALL_FAILED" apt-get install -y nodejs; then
 					log_info "Node 18 installed successfully" "ensure_node_18"
 					echo "Node 18 installed!"
 				else
@@ -107,7 +107,7 @@ fix_klippy_env_ownership()
 	report_status "Ensuring klipper environment ownership"
 
 	if [ -n "$(find "${KLIPPER_ENV}" \! -user "${RATOS_USERNAME}" -o \! -group "${RATOS_USERGROUP}" -quit)" ]; then
-		if execute_with_logging "chown -R '${RATOS_USERNAME}:${RATOS_USERGROUP}' '${KLIPPER_ENV}'" "fix_klippy_env_ownership" "OWNERSHIP_CHANGE_FAILED"; then
+		if execute_with_logging "fix_klippy_env_ownership" "OWNERSHIP_CHANGE_FAILED" chown -R "${RATOS_USERNAME}:${RATOS_USERGROUP}" "${KLIPPER_ENV}"; then
 			log_info "Klipper environment ownership has been set to ${RATOS_USERNAME}:${RATOS_USERGROUP}" "fix_klippy_env_ownership"
 			echo "Klipper environment ownership has been set to ${RATOS_USERNAME}:${RATOS_USERGROUP}."
 		else
@@ -125,7 +125,7 @@ symlink_extensions()
 	log_info "Symlinking klippy extensions" "symlink_extensions"
 	report_status "Symlinking klippy extensions"
 
-	if execute_with_logging "ratos extensions symlink" "symlink_extensions" "EXTENSION_SYMLINK_FAILED"; then
+	if execute_with_logging "symlink_extensions" "EXTENSION_SYMLINK_FAILED" ratos extensions symlink; then
 		log_info "Klippy extensions symlinked successfully" "symlink_extensions"
 		echo "Klippy extensions symlinked!"
 	else

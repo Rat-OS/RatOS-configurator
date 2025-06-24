@@ -15,7 +15,7 @@ fi
 
 # Default log configuration
 # Convert RATOS_LOG_LEVEL to lowercase for case-insensitive matching
-RATOS_LOG_LEVEL=${RATOS_LOG_LEVEL:-"info"}
+RATOS_LOG_LEVEL=${RATOS_LOG_LEVEL:-"debug"}
 RATOS_LOG_LEVEL=${RATOS_LOG_LEVEL,,}  # Convert to lowercase
 # Use the main RatOS log file instead of a separate update log
 RATOS_LOG_FILE=${RATOS_LOG_FILE:-"${LOG_FILE:-/var/log/ratos-configurator.log}"}
@@ -27,7 +27,7 @@ RATOS_LOG_BACKUP_COUNT=${RATOS_LOG_BACKUP_COUNT:-0}
 mkdir -p "$(dirname "$RATOS_LOG_FILE")"
 
 # Log levels (matching pino levels)
-declare -A LOG_LEVELS=(
+declare -gA LOG_LEVELS=(
     ["trace"]=10
     ["debug"]=20
     ["info"]=30
@@ -37,7 +37,7 @@ declare -A LOG_LEVELS=(
 )
 
 # Validate log level and default to "info" if invalid
-if [[ -z "${LOG_LEVELS[$RATOS_LOG_LEVEL]}" ]]; then
+if [[ -z "${LOG_LEVELS[$RATOS_LOG_LEVEL]:-}" ]]; then
     echo "Warning: Invalid log level '$RATOS_LOG_LEVEL', defaulting to 'info'" >&2
     RATOS_LOG_LEVEL="info"
 fi
@@ -91,6 +91,20 @@ rotate_log_if_needed() {
     fi
 }
 
+check_log_file_exists() {
+    if [[ ! -f "$RATOS_LOG_FILE" ]]; then
+		echo "DEBUG: Log file $RATOS_LOG_FILE does not exist, creating it..."
+        if ! touch "$RATOS_LOG_FILE"; then
+            echo "Error: Failed to create log file $RATOS_LOG_FILE" >&2
+            exit 1
+        fi
+        if ! chmod 664 "$RATOS_LOG_FILE"; then
+            echo "Error: Failed to set permissions on log file $RATOS_LOG_FILE" >&2
+            exit 1
+        fi
+    fi
+}
+
 # Core logging function
 log_message() {
     local level="$1"
@@ -106,6 +120,7 @@ log_message() {
     
     # Rotate log if needed
     rotate_log_if_needed
+	check_log_file_exists
     
     # Build JSON log entry
     local timestamp
@@ -140,10 +155,13 @@ log_message() {
     
     # Write to log file
     echo "$log_entry" >> "$RATOS_LOG_FILE"
-    
+
     # Also output to console for immediate feedback
     case $level in
-        "error"|"fatal")
+		"fatal")
+			echo -e "\033[31m[$(date '+%H:%M:%S')] FATAL ERROR: $message\033[0m" >&2
+			;;
+        "error")
             echo -e "\033[31m[$(date '+%H:%M:%S')] ERROR: $message\033[0m" >&2
             ;;
         "warn")
@@ -183,12 +201,24 @@ execute_with_logging() {
     local cmd_str="$*"
     log_debug "Executing command: $cmd_str" "$context"
 
-    # Execute command and capture output and exit code
-    local output
+    # Create temporary file for capturing output while still displaying it
+    local temp_output
+    temp_output=$(mktemp)
     local exit_code
 
-    output=$("$@" 2>&1)
-    exit_code=$?
+    # Execute command with tee to both display and capture output
+    # Use process substitution to capture both stdout and stderr
+    {
+        "$@" 2>&1 | tee "$temp_output"
+        echo "${PIPESTATUS[0]}" > "${temp_output}.exit"
+    }
+
+    # Get the actual exit code from the command (not tee)
+    exit_code=$(cat "${temp_output}.exit")
+
+    # Read the captured output
+    local output
+    output=$(cat "$temp_output")
 
     if [[ $exit_code -eq 0 ]]; then
         log_info "Command completed successfully: $cmd_str" "$context"
@@ -202,39 +232,13 @@ execute_with_logging() {
         fi
     fi
 
-    return "$exit_code"
-}
-
-# Legacy wrapper for backward compatibility
-# Usage: execute_with_logging_legacy "command string" "context" "error_code"
-execute_with_logging_legacy() {
-    local cmd="$1"
-    local context="$2"
-    local error_code="$3"
-
-    log_debug "Executing command (legacy): $cmd" "$context"
-
-    # Execute command and capture output and exit code
-    local output
-    local exit_code
-
-    output=$(bash -c "$cmd" 2>&1)
-    exit_code=$?
-
-    if [[ $exit_code -eq 0 ]]; then
-        log_info "Command completed successfully: $cmd" "$context"
-        if [[ -n "$output" ]]; then
-            log_debug "Command output: $output" "$context"
-        fi
-    else
-        log_error "Command failed with exit code $exit_code: $cmd" "$context" "${error_code:-CMD_FAILED}"
-        if [[ -n "$output" ]]; then
-            log_error "Command error output: $output" "$context" "${error_code:-CMD_FAILED}"
-        fi
-    fi
+    # Clean up temporary files
+    rm -f "$temp_output" "${temp_output}.exit"
 
     return "$exit_code"
 }
+
+
 
 # Function to set up error trapping
 setup_error_trap() {
@@ -316,5 +320,5 @@ create_log_summary() {
 
 # Export functions for use in other scripts
 export -f log_trace log_debug log_info log_warn log_error log_fatal
-export -f escape_json execute_with_logging execute_with_logging_legacy setup_error_trap handle_error
+export -f escape_json execute_with_logging setup_error_trap handle_error
 export -f log_script_start log_script_complete create_log_summary

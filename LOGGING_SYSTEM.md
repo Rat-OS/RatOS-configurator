@@ -43,7 +43,7 @@ log_warn "This is a warning" "main" "WARN_CODE"
 log_error "This is an error" "main" "ERROR_CODE"
 
 # Execute commands with logging
-execute_with_logging "apt-get update" "package_update" "APT_UPDATE_FAILED"
+execute_with_logging "package_update" "APT_UPDATE_FAILED" apt-get update
 
 # Log script completion
 log_script_complete "my-script.sh" $?

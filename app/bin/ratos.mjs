@@ -110498,7 +110498,7 @@ var development = (program3) => {
     } catch (e) {
       renderError(`Remote "${remote}" not found`);
     }
-    if ((await $4`git branch -r`).lines().map((line) => line.trim()).filter((line) => line.startsWith(`${remote}/${newBranch}`)).length === 0) {
+    if ((await $4`git fetch ${remote} --depth=1 && git branch -r`).lines().map((line) => line.trim()).filter((line) => line.startsWith(`${remote}/${newBranch}`)).length === 0) {
       renderError(`Branch "${newBranch}" not found on remote "${remote}"`);
     }
     await ensureSudo();

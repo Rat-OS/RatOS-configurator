@@ -9,13 +9,13 @@
 
 # Get the real user (not root) when script is run with sudo
 
-if [ -n "$SUDO_USER" ] && [ "$SUDO_USER" != "root" ]; then
+if [ -n "${SUDO_USER:-}" ] && [ "${SUDO_USER:-}" != "root" ]; then
     REAL_USER=$SUDO_USER
     REAL_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
 elif [ "$EUID" -ne 0 ]; then
     REAL_USER=${USER:-$(whoami)}
-    REAL_HOME=${HOME:-$(eval echo "~$REAL_USER")}
-elif [ -n "$CI" ] || [ -n "$GITHUB_ACTIONS" ] || [ -n "$VITEST" ]; then
+    REAL_HOME=${HOME:-$(eval echo "/home/$REAL_USER")}
+elif [ -n "${CI:-}" ] || [ -n "${GITHUB_ACTIONS:-}" ] || [ -n "${VITEST:-}" ]; then
     # In CI environment, use a safe default
     REAL_USER=${USER:-"ci-user"}
     REAL_HOME=${HOME:-"/tmp/ci-home"}
@@ -25,7 +25,7 @@ else
 fi
 
 # Only exit if we truly can't determine a user (not in CI)
-if [ "$REAL_USER" = "root" ] && [ -z "$CI" ] && [ -z "$GITHUB_ACTIONS" ] && [ -z "$VITEST" ]; then
+if [ "$REAL_USER" = "root" ] && [ -z "${CI:-}" ] && [ -z "${GITHUB_ACTIONS:-}" ] && [ -z "${VITEST:-}" ]; then
     echo "Fatal Error: Unable to determine non-root user, please run as a normal user or use sudo, exiting..." >&2
     exit 1
 fi
@@ -100,7 +100,8 @@ load_env() {
             [[ -z "$key" ]] && continue
             
             # Only set if not already defined
-            if [ -z "${!key}" ]; then
+            # Use eval to safely check if variable is set and non-empty
+            if ! eval "[ -n \"\${${key}:-}\" ]"; then
                 export "$key=$value"
             fi
         done < "$file"
