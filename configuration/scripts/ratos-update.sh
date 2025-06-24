@@ -45,8 +45,8 @@ update_symlinks()
 
     # Check if symlink exists and points to correct source
     if [ ! -L "$target" ] || [ ! "$(readlink "$target")" = "$source" ]; then
-      if execute_with_logging "rm -f '$target'" "update_symlinks" "SYMLINK_REMOVE_FAILED"; then
-        if execute_with_logging "ln -s '$source' '$target'" "update_symlinks" "SYMLINK_CREATE_FAILED"; then
+      if execute_with_logging "update_symlinks" "SYMLINK_REMOVE_FAILED" rm -f "$target"; then
+        if execute_with_logging "update_symlinks" "SYMLINK_CREATE_FAILED" ln -s "$source" "$target"; then
           log_info "Updated symlink for ${filename}" "update_symlinks"
           echo "Updated symlink for ${filename}"
           ((updated_count++))
