@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Standalone script to generate mock update log entries for testing.
+ * Standalone script to generate mock log entries for testing.
  * Can be run directly with: node src/scripts/generate-mock-logs.js
  */
 

@@ -2,7 +2,7 @@
 /* eslint-disable no-console */
 
 /**
- * Script to generate mock update log entries for testing the Update Logs Viewer component.
+ * Script to generate mock log entries for testing the Logs Viewer component.
  * This creates realistic test data with various log levels, contexts, and scenarios.
  */
 

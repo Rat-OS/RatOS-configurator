@@ -15,7 +15,7 @@ import { z } from 'zod';
 import { getLogger } from '@/server/helpers/logger';
 import { PinoLogEvent } from '@/zods/util';
 import { analysisRouter } from '@/server/routers/analysis';
-import { updateLogsRouter } from '@/server/routers/update-logs';
+import { logsRouter } from '@/server/routers/logs';
 import { getDebugZipFiles } from '@/pages/api/debug-zip';
 
 export const appRouter = router({
@@ -97,7 +97,7 @@ export const appRouter = router({
 	'klippy-extensions': klippyExtensionsRouter,
 	'moonraker-extensions': moonrakerExtensionsRouter,
 	analysis: analysisRouter,
-	'update-logs': updateLogsRouter,
+	logs: logsRouter,
 });
 
 // export type definition of API

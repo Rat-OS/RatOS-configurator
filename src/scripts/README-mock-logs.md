@@ -1,13 +1,13 @@
-# Mock Update Logs Generator
+# Mock Logs Generator
 
-This directory contains scripts to generate realistic mock update log entries for testing the Update Logs Viewer component.
+This directory contains scripts to generate realistic mock log entries for testing the Logs Viewer component.
 
 ## Quick Start
 
 ### Method 1: Using the Web Interface (Development Only)
 
 1. Start the development server
-2. Navigate to `/update-logs` in your browser
+2. Navigate to `/logs` in your browser
 3. Click the "Generate Test Data" button (only visible in development mode)
 4. The page will automatically refresh with the new mock data
 

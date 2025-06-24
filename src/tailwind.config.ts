@@ -107,6 +107,7 @@ export default {
 				s: '0.8125rem',
 			},
 			containers: {
+				'3xs': '280px',
 				'2xs': '340px',
 				'screen-sm': '640px',
 				'screen-md': '768px',
