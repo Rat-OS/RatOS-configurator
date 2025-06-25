@@ -31,6 +31,23 @@ export const Steppers = z.array(Stepper).parse([
 		id: 'BONDTECH-42H025H-0704-002',
 		title: 'Bondtech LGX Stepper',
 		maxPeakCurrent: 0.7,
+		presets: [
+			{
+				run_current: 0.54,
+				voltage: 24,
+				driver: 'TMC2130',
+				sense_resistor: 0.22,
+				driver_IHOLDDELAY: 8,
+				driver_TPOWERDOWN: 0,
+				driver_TBL: 2,
+				driver_TOFF: 3,
+				driver_HEND: 1,
+				driver_HSTRT: 5,
+				driver_PWM_FREQ: 2,
+				driver_PWM_GRAD: 4,
+				driver_PWM_AMPL: 240,
+				driver_PWM_AUTOSCALE: true,
+			},
 	},
 	{
 		id: 'LDO-42STH48-2504AC',

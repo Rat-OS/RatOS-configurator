@@ -116,6 +116,14 @@ variable_filament_load_speed: 5
 #encoder_pins: ^PJ1,^PJ2
 #click_pin: ^!PH6
 
+#[output_pin LCD_backlight_pin]
+#pin: PE3
+#pwm: True
+#hardware_pwm: True
+#value: 0.01
+#shutdown_value: 1
+#cycle_time: 0.001
+
 #[output_pin BEEPER_pin]
 #pin: PH2
 #pwm: True
