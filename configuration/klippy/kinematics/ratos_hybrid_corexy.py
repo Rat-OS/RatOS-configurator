@@ -3,6 +3,7 @@
 # Copyright (C) 2021  Fabrice Gallet <tircown@gmail.com>
 # Modified 2023 by Helge Magnus Keck <helgekeck@hotmail.com>
 # Modified 2024 by Mikkel Schmidt <mikkel.schmidt@gmail.com>
+# Modified 2025 by Github user 'dbstf'
 #
 # This file may be distributed under the terms of the GNU GPLv3 license.
 import logging
@@ -42,7 +43,7 @@ class RatOSHybridCoreXYKinematics:
         self.dc_module = None
         if config.has_section('dual_carriage'):
             dc_config = config.getsection('dual_carriage')
-            # dummy for cartesian config users
+            # dummy for Cartesian config users
             dc_config.getchoice('axis', {'x': 'x'}, default='x')
             # setup second dual carriage rail
             self.rails.append(stepper.LookupMultiRail(dc_config))
@@ -60,15 +61,13 @@ class RatOSHybridCoreXYKinematics:
                     self.rails[3].steppers[1].setup_itersolve('corexy_stepper_alloc', b'+')
                 if len(self.rails[3].steppers)>2:
                     raise self.error("Unexpected stepper configuration")
-            dc_rail_0 = idex_modes.DualCarriagesRail(
-                    self.rails[0], axis=0, active=True)
-            dc_rail_1 = idex_modes.DualCarriagesRail(
-                    self.rails[3], axis=0, active=False)
             self.dc_module = idex_modes.DualCarriages(
-                    dc_config, dc_rail_0, dc_rail_1, axis=0)
+                    self.printer, [self.rails[0]], [self.rails[3]], axes=[0],
+                    safe_dist=dc_config.getfloat(
+                        'safe_distance', None, minval=0.))
         for s in self.get_steppers():
             s.set_trapq(toolhead.get_trapq())
-            toolhead.register_step_generator(s.generate_steps)
+
         self.printer.register_event_handler("stepper_enable:motor_off",
                                                     self._motor_off)
         # Setup boundary checks
@@ -103,11 +102,15 @@ class RatOSHybridCoreXYKinematics:
         for i, rail in enumerate(self.rails):
             rail.set_position(newpos)
             for axis in homing_axes:
-                if self.dc_module and axis == self.dc_module.axis:
-                    rail = self.dc_module.get_primary_rail().get_rail()
+                if self.dc_module and axis == 0:
+                    rail = self.dc_module.get_primary_rail(axis)
                 else:
                     rail = self.rails[axis]
                 self.limits[axis] = rail.get_range()
+    def clear_homing_state(self, clear_axes):
+        for axis, axis_name in enumerate("xyz"):
+            if axis_name in clear_axes:
+                self.limits[axis] = (1.0, -1.0)
     def note_z_not_homed(self):
         # Helper for Safe Z Home
         self.limits[2] = (1.0, -1.0)
@@ -126,7 +129,7 @@ class RatOSHybridCoreXYKinematics:
     def home(self, homing_state):
         for axis in homing_state.get_axes():
             if self.dc_module is not None and axis == 0:
-                self.dc_module.home(homing_state)
+                self.dc_module.home(homing_state, axis)
             else:
                 self.home_axis(homing_state, axis, self.rails[axis])
     def _motor_off(self, print_time):
