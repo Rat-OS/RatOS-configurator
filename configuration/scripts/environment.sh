@@ -112,8 +112,10 @@ if [ ! -f "$envFile" ] && [ ! -f "$userEnvFile" ] ; then
 	exit 1
 fi
 if [ -f "$envFile" ]; then
+	echo "Loading environment from $envFile"
     load_env "$envFile"
 fi
 if [ "$EUID" -ne 0 ] && [ -f "$userEnvFile" ]; then
+	echo "Loading environment from $userEnvFile"
     load_env "$userEnvFile"
 fi

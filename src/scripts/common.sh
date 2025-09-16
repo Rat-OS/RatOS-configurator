@@ -6,65 +6,198 @@ GIT_DIR=$BASE_DIR/.git
 
 source "$BASE_DIR/configuration/scripts/environment.sh"
 
+# Source the logging library (only if not already sourced)
+if ! declare -f log_info >/dev/null 2>&1; then
+    # shellcheck source=../../configuration/scripts/ratos-logging.sh
+    source "$BASE_DIR/configuration/scripts/ratos-logging.sh"
+fi
+
 report_status()
 {
     echo -e "\n\n###### $1"
+    # Only log if logging is available
+    if declare -f log_info >/dev/null 2>&1; then
+        log_info "$1" "status_report"
+    fi
 }
 
 update_package_managers()
 {
+    if declare -f log_info >/dev/null 2>&1; then
+        log_info "Starting package manager update" "update_package_managers"
+    fi
     report_status "Updating npm and pnpm..."
-    npm update -g npm pnpm
+    if declare -f execute_with_logging >/dev/null 2>&1; then
+        if execute_with_logging "update_package_managers" "NPM_UPDATE_FAILED" npm update -g npm pnpm; then
+            log_info "Package managers updated successfully" "update_package_managers"
+        else
+            log_error "Failed to update package managers" "update_package_managers" "NPM_UPDATE_FAILED"
+            return 1
+        fi
+    else
+        npm update -g npm pnpm
+    fi
 }
 
 install_or_update_service_file()
 {
+	if declare -f log_info >/dev/null 2>&1; then
+		log_info "Starting service file installation/update" "install_or_update_service_file"
+	fi
 	report_status "Updating service file..."
 
-    sudo groupadd -f ratos-configurator
+    if declare -f execute_with_logging >/dev/null 2>&1; then
+        if execute_with_logging "install_or_update_service_file" "GROUP_ADD_FAILED" sudo groupadd -f ratos-configurator; then
+            log_info "ratos-configurator group ensured" "install_or_update_service_file"
+        else
+            log_error "Failed to ensure ratos-configurator group" "install_or_update_service_file" "GROUP_ADD_FAILED"
+            return 1
+        fi
+    else
+        sudo groupadd -f ratos-configurator
+    fi
 
 	SERVICE_FILE="/etc/systemd/system/ratos-configurator.service"
 	SERVICE_FILE_TEMPLATE="${SCRIPT_DIR}/service-template.service"
 
-	cp "${SERVICE_FILE_TEMPLATE}" /tmp/ratos-configurator.service
-	
-	sed -i "s|__SRC_DIR__|${SRC_DIR}|g" /tmp/ratos-configurator.service
-	sed -i "s|__RATOS_USERNAME__|${RATOS_USERNAME}|g" /tmp/ratos-configurator.service
-	
+	if declare -f execute_with_logging >/dev/null 2>&1; then
+		if execute_with_logging "install_or_update_service_file" "SERVICE_TEMPLATE_COPY_FAILED" cp "${SERVICE_FILE_TEMPLATE}" /tmp/ratos-configurator.service; then
+			if execute_with_logging "install_or_update_service_file" "SERVICE_SED_FAILED" sed -i "s|__SRC_DIR__|${SRC_DIR}|g" /tmp/ratos-configurator.service; then
+				if execute_with_logging "install_or_update_service_file" "SERVICE_SED_FAILED" sed -i "s|__RATOS_USERNAME__|${RATOS_USERNAME}|g" /tmp/ratos-configurator.service; then
+					log_info "Service file template processed successfully" "install_or_update_service_file"
+				else
+					log_error "Failed to substitute username in service file" "install_or_update_service_file" "SERVICE_SED_FAILED"
+					return 1
+				fi
+			else
+				log_error "Failed to substitute source directory in service file" "install_or_update_service_file" "SERVICE_SED_FAILED"
+				return 1
+			fi
+		else
+			log_error "Failed to copy service file template" "install_or_update_service_file" "SERVICE_TEMPLATE_COPY_FAILED"
+			return 1
+		fi
+	else
+		cp "${SERVICE_FILE_TEMPLATE}" /tmp/ratos-configurator.service
+		sed -i "s|__SRC_DIR__|${SRC_DIR}|g" /tmp/ratos-configurator.service
+		sed -i "s|__RATOS_USERNAME__|${RATOS_USERNAME}|g" /tmp/ratos-configurator.service
+	fi
+
 	if [ -f "${SERVICE_FILE}" ]; then
 		if [ "$(md5sum "${SERVICE_FILE_TEMPLATE}")" != "$(md5sum "${SERVICE_FILE}")" ]; then
-			sudo mv /tmp/ratos-configurator.service "${SERVICE_FILE}"
-			sudo systemctl daemon-reload
-			echo "Service file updated!"
+			if declare -f execute_with_logging >/dev/null 2>&1; then
+				if execute_with_logging "install_or_update_service_file" "SERVICE_UPDATE_FAILED" sudo mv /tmp/ratos-configurator.service "${SERVICE_FILE}"; then
+					if execute_with_logging "install_or_update_service_file" "SYSTEMCTL_RELOAD_FAILED" sudo systemctl daemon-reload; then
+						echo "Service file updated!"
+						log_info "Service file updated successfully" "install_or_update_service_file"
+					else
+						log_error "Failed to reload systemctl daemon" "install_or_update_service_file" "SYSTEMCTL_RELOAD_FAILED"
+						return 1
+					fi
+				else
+					log_error "Failed to update service file" "install_or_update_service_file" "SERVICE_UPDATE_FAILED"
+					return 1
+				fi
+			else
+				sudo mv /tmp/ratos-configurator.service "${SERVICE_FILE}"
+				sudo systemctl daemon-reload
+				echo "Service file updated!"
+			fi
 		else
 			echo "Service file is already up to date!"
+			if declare -f log_info >/dev/null 2>&1; then
+				log_info "Service file already up to date" "install_or_update_service_file"
+			fi
 		fi
 	else
 		echo "Service file does not exist, installing..."
-		sudo mv /tmp/ratos-configurator.service "${SERVICE_FILE}"
-		sudo systemctl enable ratos-configurator.service
-		sudo systemctl daemon-reload
-		echo "Service file installed!"
+		if declare -f execute_with_logging >/dev/null 2>&1; then
+			if execute_with_logging "install_or_update_service_file" "SERVICE_INSTALL_FAILED" sudo mv /tmp/ratos-configurator.service "${SERVICE_FILE}"; then
+				if execute_with_logging "install_or_update_service_file" "SERVICE_ENABLE_FAILED" sudo systemctl enable ratos-configurator.service; then
+					if execute_with_logging "install_or_update_service_file" "SYSTEMCTL_RELOAD_FAILED" sudo systemctl daemon-reload; then
+						echo "Service file installed!"
+						log_info "Service file installed successfully" "install_or_update_service_file"
+					else
+						log_error "Failed to reload systemctl daemon" "install_or_update_service_file" "SYSTEMCTL_RELOAD_FAILED"
+						return 1
+					fi
+				else
+					log_error "Failed to enable service" "install_or_update_service_file" "SERVICE_ENABLE_FAILED"
+					return 1
+				fi
+			else
+				log_error "Failed to install service file" "install_or_update_service_file" "SERVICE_INSTALL_FAILED"
+				return 1
+			fi
+		else
+			sudo mv /tmp/ratos-configurator.service "${SERVICE_FILE}"
+			sudo systemctl enable ratos-configurator.service
+			sudo systemctl daemon-reload
+			echo "Service file installed!"
+		fi
 	fi
 }
 
 pnpm_install() {
+	if declare -f log_info >/dev/null 2>&1; then
+		log_info "Starting pnpm dependency installation" "pnpm_install"
+	fi
 	report_status "Installing pnpm dependencies..."
     pushd "$SRC_DIR" || exit 1
 	if [ -d "$BASE_DIR/node_modules" ]; then
 		report_status "Moving node_modules from git directory to src directory"
-		mv "$BASE_DIR/node_modules" "$SRC_DIR"
+		if declare -f execute_with_logging >/dev/null 2>&1; then
+			if execute_with_logging "pnpm_install" "NODE_MODULES_MOVE_FAILED" mv "$BASE_DIR/node_modules" "$SRC_DIR"; then
+				log_info "node_modules moved successfully" "pnpm_install"
+			else
+				log_error "Failed to move node_modules" "pnpm_install" "NODE_MODULES_MOVE_FAILED"
+				popd || exit 1
+				return 1
+			fi
+		else
+			mv "$BASE_DIR/node_modules" "$SRC_DIR"
+		fi
 	fi
 	if [ "$EUID" -eq 0 ]; then
 		# Check if node_modules is owned by root and delete
 		# Fixes old 2.0 installations
 		if [ -d "$SRC_DIR/node_modules" ] && [ "$(stat -c %U "$SRC_DIR/node_modules")" == "root" ]; then
 			report_status "Deleting root owned node_modules"
-			rm -rf "$SRC_DIR/node_modules"
+			if declare -f execute_with_logging >/dev/null 2>&1; then
+				if execute_with_logging "pnpm_install" "NODE_MODULES_REMOVE_FAILED" rm -rf "$SRC_DIR/node_modules"; then
+					log_info "Root-owned node_modules removed successfully" "pnpm_install"
+				else
+					log_error "Failed to remove root-owned node_modules" "pnpm_install" "NODE_MODULES_REMOVE_FAILED"
+					popd || exit 1
+					return 1
+				fi
+			else
+				rm -rf "$SRC_DIR/node_modules"
+			fi
 		fi
-        sudo -u "${RATOS_USERNAME}" pnpm install --frozen-lockfile --aggregate-output --no-color --config.confirmModulesPurge=false
+        if declare -f execute_with_logging >/dev/null 2>&1; then
+			if execute_with_logging "pnpm_install" "PNPM_INSTALL_FAILED" sudo -u "${RATOS_USERNAME}" pnpm install --frozen-lockfile --aggregate-output --no-color --config.confirmModulesPurge=false; then
+				log_info "pnpm dependencies installed successfully (as ${RATOS_USERNAME})" "pnpm_install"
+			else
+				log_error "Failed to install pnpm dependencies" "pnpm_install" "PNPM_INSTALL_FAILED"
+				popd || exit 1
+				return 1
+			fi
+		else
+			sudo -u "${RATOS_USERNAME}" pnpm install --frozen-lockfile --aggregate-output --no-color --config.confirmModulesPurge=false
+		fi
     else
-		pnpm install --frozen-lockfile --aggregate-output --no-color --config.confirmModulesPurge=false
+		if declare -f execute_with_logging >/dev/null 2>&1; then
+			if execute_with_logging "pnpm_install" "PNPM_INSTALL_FAILED" pnpm install --frozen-lockfile --aggregate-output --no-color --config.confirmModulesPurge=false; then
+				log_info "pnpm dependencies installed successfully" "pnpm_install"
+			else
+				log_error "Failed to install pnpm dependencies" "pnpm_install" "PNPM_INSTALL_FAILED"
+				popd || exit 1
+				return 1
+			fi
+		else
+			pnpm install --frozen-lockfile --aggregate-output --no-color --config.confirmModulesPurge=false
+		fi
 	fi
     popd || exit 1
 }

@@ -41,5 +41,13 @@
 	"shellcheck.useWorkspaceRootAsCwd": true,
 	"prettier.useTabs": true,
 	"editor.detectIndentation": false,
-	"python.REPL.enableREPLSmartSend": false
+	"python.REPL.enableREPLSmartSend": false,
+	"augment.completions.enableAutomaticCompletions": false,
+	"augment.completions.enableQuickSuggestions": false,
+	"augment.enableEmptyFileHint": false,
+	"augment.nextEdit.enableAutoApply": false,
+	"terminal.integrated.cwd": "src",
+	"[json]": {
+		"editor.defaultFormatter": "vscode.json-language-features"
+	}
 }
