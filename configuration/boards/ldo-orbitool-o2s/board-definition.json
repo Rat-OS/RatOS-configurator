@@ -58,10 +58,7 @@
 			"parameters": {
 				"max_power": 1,
 				"enable_pin": "PB14",
-				"shutdown_speed": 0,
-				"tachometer_pin": "PA14",
-				"tachometer_ppr": 2,
-				"tachometer_poll_interval": 0.00005
+				"shutdown_speed": 0
 			}
 		},
 		"heater_fan": {
@@ -69,10 +66,7 @@
 			"parameters": {
 				"max_power": 1,
 				"cycle_time": 0.0001,
-				"shutdown_speed": 0,
-				"tachometer_pin": "PB12",
-				"tachometer_ppr": 2,
-				"tachometer_poll_interval": 0.00005
+				"shutdown_speed": 0
 			}
 		},
 		"output_pin": {
