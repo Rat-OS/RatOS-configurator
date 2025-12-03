@@ -132,7 +132,7 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 									</dd>
 								</div>
 								{toolhead.getToolboard() != null && !toolboardDetected.data && (
-									<div className="sm:col-span-2">
+									<div className="col-span-full">
 										<WarningMessage>
 											<div className="space-y-2">
 												<div>
@@ -162,7 +162,7 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 									</dd>
 								</div>
 								{toolhead.getToolboard()?.alternativePT1000Resistor && toolhead.getThermistor() === 'PT1000' && (
-									<div className="col-span-2">
+									<div className="col-span-full">
 										<WarningMessage title="RatOS uses your toolboards alternate pullup resistor setting">
 											Your toolboard has an option to use a separate pullup resistor for PT1000 sensors. This is usually
 											done by inserting a jumper. Make sure you read the documentation for your board on how to enable
@@ -203,7 +203,7 @@ export const ConfirmToolhead: React.FC<ConfirmToolheadProps> = (props) => {
 								{toolhead.getConfig().toolboard != null &&
 									toolhead.getConfig().xEndstop?.id === 'endstop' &&
 									!ignoreEndstopWarning && (
-										<div className="sm:col-span-2">
+										<div className="col-span-full">
 											<WarningMessage>
 												The current configuration assumes the X endstop is connected to your controlboard, do you want
 												to use an endstop connected to the toolboard instead?
@@ -364,7 +364,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 						(rail.axis.startsWith('y') &&
 							parsedPrinterConfiguration.data.toolheads.some((t) => t.yEndstop?.id === 'sensorless'));
 					return !hasDiagPin && isSensorless ? (
-						<ErrorMessage key={rail.axis} className="col-span-2" title="Driver Slot Allocation Invalid">
+						<ErrorMessage key={rail.axis} className="col-span-full" title="Driver Slot Allocation Invalid">
 							<div className="space-y-2">
 								<div>
 									<span className="capitalize">{rail.axis}</span> is configured to use sensorless homing, but the{' '}
@@ -425,7 +425,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 												</div>
 											</Disclosure.Button>
 											<Disclosure.Panel as="dl" className="grid grid-cols-1 gap-x-4 gap-y-4 py-4 sm:grid-cols-2">
-												<div className="sm:col-span-2">
+												<div className="col-span-full">
 													<dt className="text-sm font-medium leading-6 text-zinc-900 dark:text-zinc-100">Printer</dt>
 													<dd className="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400 sm:mt-2">
 														{parsedPrinterConfiguration.data.printer != null
@@ -462,7 +462,7 @@ export const ConfirmConfig: React.FC<StepScreenProps> = (props) => {
 													</dd>
 												</div>
 												{parsedPrinterConfiguration.data.controlboard != null && !controlboardDetected.data && (
-													<div className="sm:col-span-2">
+													<div className="col-span-full">
 														<WarningMessage>
 															<div className="space-y-2">
 																<div>

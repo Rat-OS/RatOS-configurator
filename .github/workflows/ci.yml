@@ -14,6 +14,7 @@ on:
       - "development"
       - "v2.1.x"
       - "monorepo"
+      - "**/devpub/**"
   pull_request:
     branches:
       - "**"
@@ -32,9 +33,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          repository: Rat-OS/RatOS-configurator
+          repository: ${{ github.repository }}
           path: "ratos-configurator"
           fetch-tags: true
+
+      - name: Write environment variables to .env.local
+        run: |
+          echo "RATOS_CONFIGURATION_PATH=${{ env.RATOS_CONFIGURATION_PATH }}" > ratos-configurator/src/.env.local
+          echo "KLIPPER_CONFIG_PATH=${{ env.KLIPPER_CONFIG_PATH }}" >> ratos-configurator/src/.env.local
+          echo "RATOS_SCRIPT_DIR=${{ env.RATOS_SCRIPT_DIR }}" >> ratos-configurator/src/.env.local
+          echo "KLIPPER_DIR=${{ env.KLIPPER_DIR }}" >> ratos-configurator/src/.env.local
+          echo "KLIPPER_ENV=${{ env.KLIPPER_ENV }}" >> ratos-configurator/src/.env.local
+          echo "MOONRAKER_DIR=${{ env.MOONRAKER_DIR }}" >> ratos-configurator/src/.env.local
+          echo "LOG_FILE=${{ env.LOG_FILE }}" >> ratos-configurator/src/.env.local
+          echo "RATOS_DATA_DIR=${{ env.RATOS_DATA_DIR }}" >> ratos-configurator/src/.env.local
+
       - name: Extract target branch name
         shell: bash
         run: echo "branch=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
@@ -58,7 +71,7 @@ jobs:
         shell: bash
         run: |
           echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
-  
+
       - uses: actions/cache@v3
         name: Setup pnpm cache
         with:
@@ -70,14 +83,6 @@ jobs:
       - name: Dependencies
         working-directory: ratos-configurator/src
         run: pnpm install --frozen-lockfile
-
-      - name: Checkout RatOS Configuration
-        uses: actions/checkout@v4
-        if: github.ref_name != 'monorepo'
-        with:
-          repository: Rat-OS/RatOS-configuration
-          path: "ratos-configuration"
-          ref: ${{ github.base_ref || github.ref_name }}
 
       - name: Checkout Klipper
         uses: actions/checkout@v4
@@ -91,6 +96,11 @@ jobs:
           repository: Arksine/moonraker
           path: "moonraker"
 
+      - name: Test RatOS Logging
+        working-directory: ratos-configurator
+        run: |
+          ./scripts/test-ratos-logging.sh
+
       - name: Lint
         working-directory: ratos-configurator/src
         run: pnpm run lint:ci
@@ -100,7 +110,7 @@ jobs:
         if: success() || failure() # run this step even if previous step failed
         with:
           project: ratos-configurator/src/tsconfig.json
-          
+
       - name: Run test suite
         working-directory: ratos-configurator/src
         if: success() || failure() # run this step even if previous step failed

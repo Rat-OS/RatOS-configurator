@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 pushd /home/pi/klipper || exit
 systemctl stop klipper

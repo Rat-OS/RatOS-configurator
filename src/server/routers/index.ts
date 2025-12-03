@@ -15,6 +15,7 @@ import { z } from 'zod';
 import { getLogger } from '@/server/helpers/logger';
 import { PinoLogEvent } from '@/zods/util';
 import { analysisRouter } from '@/server/routers/analysis';
+import { updateLogsRouter } from '@/server/routers/update-logs';
 import { getDebugZipFiles } from '@/pages/api/debug-zip';
 
 export const appRouter = router({
@@ -56,11 +57,19 @@ export const appRouter = router({
 	ipAddress: publicProcedure.query(async () => {
 		const wirelessInterface = await getWirelessInterface();
 		const iface = wirelessInterface == null || wirelessInterface.trim() === '' ? 'eth0' : wirelessInterface.trim();
-		return (
-			(await promisify(exec)(`ip address | grep "${iface}"`).then(
-				({ stdout }) => stdout.match(/inet\s(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/)?.[1],
-			)) ?? 'Unknown IP'
-		);
+		try {
+			return (
+				(await promisify(exec)(`ip address | grep "${iface}"`).then(
+					({ stdout }) => stdout.match(/inet\s(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/)?.[1],
+				)) ?? 'Unknown IP'
+			);
+		} catch (e) {
+			return (
+				await promisify(exec)(
+					'ip address | grep "inet" | grep -v "inet6" | grep -v "127.0.0.1" | awk \'{print $2}\' | cut -d "/" -f 1 | head -n 1',
+				)
+			).stdout.trim();
+		}
 	}),
 	resetCache: publicProcedure.mutation(async () => {
 		ServerCache.flushAll();
@@ -88,6 +97,7 @@ export const appRouter = router({
 	'klippy-extensions': klippyExtensionsRouter,
 	'moonraker-extensions': moonrakerExtensionsRouter,
 	analysis: analysisRouter,
+	'update-logs': updateLogsRouter,
 });
 
 // export type definition of API

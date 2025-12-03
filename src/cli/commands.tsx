@@ -17,6 +17,7 @@ import { createSignal } from '@/app/_helpers/signal';
 import { getLogger } from '@/cli/logger';
 import { frontend } from '@/cli/commands/frontend';
 import { postprocessor } from '@/cli/commands/postprocessor';
+import { updateLogs } from '@/cli/commands/update-logs';
 import development from '@/cli/commands/development';
 
 export const program = new commander.Command()
@@ -485,6 +486,9 @@ log
 		const log = '/etc/logrotate.d/ratos-configurator';
 		$({ verbose: true })`logrotate -f ${log}`;
 	});
+
+// Add update-logs as a subcommand of the log command
+updateLogs(log);
 
 development(program);
 

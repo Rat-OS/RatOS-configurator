@@ -3,7 +3,8 @@ name: Publish to dev-deployment
 on:
   workflow_run:
     workflows: ["CI"] # runs after CI workflow
-    branches: ["development"]
+    branches:
+      - "development"
     types:
       - completed
 
@@ -27,27 +28,32 @@ jobs:
           echo "target-branch=dev-deployment" >> "$GITHUB_OUTPUT"
           echo "src-branch=development" >> "$GITHUB_OUTPUT"
 
+      - name: Show variables
+        run: |
+          echo "Source branch: ${{ steps.variables.outputs.src-branch }}"
+          echo "Target branch: ${{ steps.variables.outputs.target-branch }}"
+
       - uses: actions/checkout@v3
         with:
           ref: ${{ steps.variables.outputs.src-branch }}
-    
+
       - name: Unshallow repository
         run: git fetch --unshallow origin ${{ steps.variables.outputs.src-branch }}
 
       - name: Get last successful commit
         id: last-successful-commit
-        uses: tylermilner/last-successful-commit-hash-action@v1
+        uses: nickderobertis/last-successful-commit-action@v1
         with:
           workflow-id: publish-development.yml
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          branch: development # This has to be the main branch of repository since all workflows are run from there
+          branch: ${{ steps.variables.outputs.src-branch }}
 
       - name: Get commit count
         id: commit-count
         shell: bash
         run: |
-          echo "Deploying $(git rev-list --count ${{ steps.last-successful-commit.outputs.commit-hash }}..${{ github.sha }})) commits!"
-          echo "commit-count=$(git rev-list --count ${{ steps.last-successful-commit.outputs.commit-hash }}..${{ github.sha }})" >> "$GITHUB_OUTPUT"
+          echo "Deploying $(git rev-list --count ${{ steps.last-successful-commit.outputs.commit-sha }}..${{ github.sha }}) commits!"
+          echo "commit-count=$(git rev-list --count ${{ steps.last-successful-commit.outputs.commit-sha }}..${{ github.sha }})" >> "$GITHUB_OUTPUT"
 
       - uses: actions/setup-node@v3
         with:
@@ -75,7 +81,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - uses: actions/cache/restore@v4
-        name: Setup Next.js cache
+        name: Restore Next.js cache
         id: cache-nextjs-restore
         with:
           path: |
@@ -92,13 +98,13 @@ jobs:
       - name: Build
         working-directory: ./src
         run: pnpm build
-      
+
       - name: Build cli
         working-directory: ./src
         run: pnpm build:cli
 
       - uses: actions/cache/save@v4
-        name: Setup Next.js cache
+        name: Save Next.js cache
         id: cache-nextjs-save
         with:
           path: |
@@ -113,14 +119,49 @@ jobs:
         working-directory: ./
         run: mv src app
 
+      - name: Modify .env file to fix paths pointing to src/
+        working-directory: ./app
+        run: |
+          sed -i 's|/src/scripts|/app/scripts|g' .env
+
+      - name: Set Git Config for Deployment
+        id: git-config-for-deployment
+        run: |
+          if [[ "${{ github.repository_owner }}" == "Rat-OS" ]]; then
+            echo "git-config-name=Mikkel Schmidt" >> $GITHUB_OUTPUT
+            echo "git-config-email=mikkel.schmidt@gmail.com" >> $GITHUB_OUTPUT
+          else
+            echo "git-config-name=${{ github.actor }}" >> $GITHUB_OUTPUT
+            echo "git-config-email=${{ github.actor }}@users.noreply.github.com" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate Commit Message
+        id: generate-commit-message
+        if: false
+        shell: bash
+        run: |
+            # Check if the starting commit is the first commit in the repository
+            if [[ "$(git rev-list --max-parents=0 HEAD)" == "${{ steps.last-successful-commit.outputs.commit-sha }}" ]]; then
+              echo "commit-message=First deployment!" >> $GITHUB_OUTPUT
+            else
+              # Get the first line of up to 50 commit messages in the range, excluding merge commits as these typically don't contain useful information
+              commit_messages=$(git log -n 50 --no-merges --format="- %s" ${{ steps.last-successful-commit.outputs.commit-sha }}..${{ github.sha }})
+              # Escape multi-line output
+              echo "commit-message<<EOF" >> $GITHUB_OUTPUT
+              echo "$commit_messages" >> $GITHUB_OUTPUT
+              echo "EOF" >> $GITHUB_OUTPUT
+            fi
+
       - name: Publish to ${{ steps.variables.outputs.target-branch }}
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: .
+          force: false
           commit-message: |
             Deployed ${{ steps.commit-count.outputs.commit-count }} commit${{ steps.commit-count.outputs.commit-count > 1 && 's' || '' }}.
-            
-            https://github.com/Rat-OS/RatOS-configurator/compare/${{ steps.last-successful-commit.outputs.commit-hash }}...${{ github.sha }}
-          git-config-name: Mikkel Schmidt
-          git-config-email: mikkel.schmidt@gmail.com
+            See the complete list of changes here:
+            https://github.com/${{ github.repository }}/compare/${{ steps.last-successful-commit.outputs.commit-sha }}...${{ github.sha }}
+          git-config-name: ${{ steps.git-config-for-deployment.outputs.git-config-name }}
+          git-config-email: ${{ steps.git-config-for-deployment.outputs.git-config-email }}
+
           branch: ${{ steps.variables.outputs.target-branch }} # The branch name where you want to push the assets

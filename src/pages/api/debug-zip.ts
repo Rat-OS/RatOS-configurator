@@ -25,6 +25,7 @@ export const getDebugZipFiles = async () => {
 		`${environment.KLIPPER_CONFIG_PATH}/../logs/*.${extensions}`,
 		`${environment.LOG_FILE}`,
 		'/var/log/kern.+(log|log.1)',
+		`${environment.RATOS_DATA_DIR}/logs/ratos-update.log*`,
 	]);
 	logs = logs.filter((file, index) => logs.indexOf(file) === index);
 

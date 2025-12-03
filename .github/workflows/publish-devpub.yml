@@ -1,0 +1,181 @@
+# .github/workflows/publish.yml
+name: Publish devpub branches
+on:
+  workflow_run:
+    workflows: ["CI"] # runs after CI workflow
+    branches:
+      - "**/devpub/**"
+    types:
+      - completed
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build and Push
+    steps:
+      - if: github.event.workflow_run.conclusion != 'success'
+        run: |
+          echo "CI step didn't pass, exiting"
+          exit 1
+      - name: Set variables
+        id: variables
+        shell: bash
+        run: |
+          echo "target-branch=${{ github.event.workflow_run.head_branch }}-deployment" >> "$GITHUB_OUTPUT"
+          echo "src-branch=${{ github.event.workflow_run.head_branch }}" >> "$GITHUB_OUTPUT"
+
+      - name: Show variables
+        run: |
+          echo "Source branch: ${{ steps.variables.outputs.src-branch }}"
+          echo "Target branch: ${{ steps.variables.outputs.target-branch }}"
+
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ steps.variables.outputs.src-branch }}
+
+      - name: Unshallow repository
+        run: git fetch --unshallow origin ${{ steps.variables.outputs.src-branch }}
+
+      - name: Read .commit file from target branch
+        id: read-commit-file
+        shell: bash
+        run: |
+          # Fetch the target branch
+          git fetch origin ${{ steps.variables.outputs.target-branch }} || echo "Branch not found"
+
+          # Check if the branch exists
+          if git rev-parse --verify origin/${{ steps.variables.outputs.target-branch }} >/dev/null 2>&1; then
+            commit_sha=$(git show origin/${{ steps.variables.outputs.target-branch }}:.commit 2>/dev/null || echo "!NOTFOUND!")
+            if [[ "$commit_sha" == "!NOTFOUND!" ]]; then
+              commit_sha="${{ github.event.workflow_run.head_sha }}"
+              echo "Could not find .commit file, using current commit SHA: $commit_sha"
+            else
+              echo "Read commit SHA from .commit file: $commit_sha"
+            fi
+          else
+            commit_sha="${{ github.event.workflow_run.head_sha }}"
+            echo "Branch ${{ steps.variables.outputs.target-branch }} does not exist, using current commit SHA: $commit_sha"
+          fi
+
+          # Output the result
+          echo "commit-sha=$commit_sha" >> $GITHUB_OUTPUT
+
+      - name: Get commit count
+        id: commit-count
+        shell: bash
+        run: |
+          echo "Deploying $(git rev-list --count ${{ steps.read-commit-file.outputs.commit-sha }}..${{ github.event.workflow_run.head_sha }}) commits!"
+          echo "commit-count=$(git rev-list --count ${{ steps.read-commit-file.outputs.commit-sha }}..${{ github.event.workflow_run.head_sha }})" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        id: pnpm-install
+        with:
+          version: 9.1
+          run_install: false
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "store_path=$(pnpm store path)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v3
+        name: Setup pnpm cache
+        with:
+          path: ${{ steps.pnpm-cache.outputs.store_path }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - uses: actions/cache/restore@v4
+        name: Restore Next.js cache
+        id: cache-nextjs-restore
+        with:
+          path: |
+            ${{ github.workspace }}/src/build/cache
+          # Generate a new cache whenever packages or source files change.
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('src/**/*.js', 'src/**/*.jsx', 'src/**/*.ts', 'src/**/*.tsx') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-
+
+      - name: Install all dependencies
+        working-directory: ./src
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        working-directory: ./src
+        run: pnpm build
+
+      - name: Build cli
+        working-directory: ./src
+        run: pnpm build:cli
+
+      - uses: actions/cache/save@v4
+        name: Save Next.js cache
+        id: cache-nextjs-save
+        with:
+          path: |
+            ${{ github.workspace }}/src/build/cache
+          key: ${{ steps.cache-nextjs-restore.outputs.cache-primary-key }}
+
+      - name: Delete files not needed in deployment
+        working-directory: ./src
+        run: rm -rf __tests__ app pages components coverage data helpers hooks moonraker env recoil server utils zods test-setup.ts vitest.config.mts tsconfig.vitest.json copy-files-from-to.json components.json postcss.config.js prettier.config.mjs tailwind.config.ts
+
+      - name: Rename src/ to app/
+        working-directory: ./
+        run: mv src app
+
+      - name: Modify .env file to fix paths pointing to src/
+        working-directory: ./app
+        run: |
+          sed -i 's|/src/scripts|/app/scripts|g' .env
+
+      - name: Write Commit SHA to .commit
+        run: echo "${{ github.event.workflow_run.head_sha }}" > .commit
+
+      - name: Set Git Config for Deployment
+        id: git-config-for-deployment
+        run: |
+          if [[ "${{ github.repository_owner }}" == "Rat-OS" ]]; then
+            echo "git-config-name=Mikkel Schmidt" >> $GITHUB_OUTPUT
+            echo "git-config-email=mikkel.schmidt@gmail.com" >> $GITHUB_OUTPUT
+          else
+            echo "git-config-name=${{ github.actor }}" >> $GITHUB_OUTPUT
+            echo "git-config-email=${{ github.actor }}@users.noreply.github.com" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate Commit Message
+        id: generate-commit-message
+        if: false
+        shell: bash
+        run: |
+            # Check if the starting commit is the first commit in the repository
+            if [[ "$(git rev-list --max-parents=0 HEAD)" == "${{ steps.read-commit-file.outputs.commit-sha }}" ]]; then
+              echo "commit-message=First deployment!" >> $GITHUB_OUTPUT
+            else
+              # Get the first line of up to 50 commit messages in the range, excluding merge commits as these typically don't contain useful information
+              commit_messages=$(git log -n 50 --no-merges --format="- %s" ${{ steps.read-commit-file.outputs.commit-sha }}..${{ github.event.workflow_run.head_sha }} | sed ':a;N;$!ba;s/\n/\\n/g' | sed 's/"/\\"/g')
+              echo "commit-message=$commit_messages" >> $GITHUB_OUTPUT
+            fi
+
+      - name: Publish to ${{ steps.variables.outputs.target-branch }}
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: .
+          commit-message: |
+            Deployed ${{ steps.commit-count.outputs.commit-count }} commit${{ steps.commit-count.outputs.commit-count > 1 && 's' || '' }}.
+            See the complete list of changes here:
+            https://github.com/${{ github.repository }}/compare/${{ steps.read-commit-file.outputs.commit-sha }}...${{ github.event.workflow_run.head_sha }}
+          git-config-name: ${{ steps.git-config-for-deployment.outputs.git-config-name }}
+          git-config-email: ${{ steps.git-config-for-deployment.outputs.git-config-email }}
+          branch: ${{ steps.variables.outputs.target-branch }} # The branch name where you want to push the assets

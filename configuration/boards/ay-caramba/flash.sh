@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 MCU=/dev/ay-caramba
 if [ "$EUID" -ne 0 ]
   then echo "ERROR: Please run as root"

@@ -79,7 +79,7 @@ async function processedGCodeFilesAreEquivalent(expectedPath: string, actualPath
 	let fhExpected: FileHandle | undefined = undefined;
 	let fhActual: FileHandle | undefined = undefined;
 	try {
-		console.log(`Comparing expected file ${expectedPath} to actual file ${actualPath}`);
+		// console.log(`Comparing expected file ${expectedPath} to actual file ${actualPath}`);
 
 		fhExpected = await fs.open(expectedPath);
 		fhActual = await fs.open(actualPath);
@@ -129,7 +129,7 @@ async function processedGCodeFilesAreEquivalent(expectedPath: string, actualPath
 			expect(actual.value.trimEnd()).to.equal(expected.value.trimEnd(), `at line ${lineNumber}`);
 		}
 
-		console.log(`  ${lineNumber} lines compared ok.`);
+		// console.log(`  ${lineNumber} lines compared ok.`);
 	} finally {
 		fhExpected?.close();
 		fhActual?.close();
@@ -171,7 +171,7 @@ describe('output equivalence', { timeout: 60000 }, async () => {
 			const outputDir = path.dirname(outputPath);
 			await fs.mkdir(outputDir, { recursive: true });
 
-			console.log(`   input: ${fixtureFile}\n  output: ${outputPath}`);
+			// console.log(`   input: ${fixtureFile}\n  output: ${outputPath}`);
 
 			let gotWarnings = false;
 			const gcfOptions: TransformOptions = {

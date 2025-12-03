@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 MCU=/dev/btt-octopus-max-ez
 if [ "$EUID" -ne 0 ]
   then echo "ERROR: Please run as root"

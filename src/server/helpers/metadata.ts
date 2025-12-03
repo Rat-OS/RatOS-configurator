@@ -24,7 +24,7 @@ export const parseMetadata = async <T extends ZodType>(cfgFile: string, zod: T):
 	const hashmarkPrefixedJson = await promisify(exec)(
 		`sed -n -e '/^# {/{:a' -e 'N' -e '/\\n# }/!ba' -e 'p' -e '}' ${cfgFile}`,
 		{
-			shell: '/bin/bash',
+			shell: 'bash',
 		},
 	);
 	const jsonArray = hashmarkPrefixedJson.stdout

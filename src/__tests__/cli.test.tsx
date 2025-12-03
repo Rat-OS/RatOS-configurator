@@ -71,6 +71,9 @@ describe('RatOS CLI', async () => {
 	};
 
 	beforeEach(() => {
+		// Set NODE_ENV to test for consistent environment
+		(process.env as any).NODE_ENV = 'test';
+
 		vi.clearAllMocks();
 		(createTRPCProxyClient as Mock).mockReturnValue(mockTrpcClient);
 		(

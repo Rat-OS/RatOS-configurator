@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # NOTE: UNTESTED
 
 if [ "$EUID" -ne 0 ]

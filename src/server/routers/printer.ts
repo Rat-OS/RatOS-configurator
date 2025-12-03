@@ -522,7 +522,7 @@ export const compareSettings = async (newSettings: SerializedPrinterConfiguratio
 				await writeFile(`/tmp/ratos-added-new-${timehash}.cfg`, f.content);
 				const diff = await new Promise<string | null>((resolve, reject) => {
 					exec(
-						`git diff --minimal --no-index /dev/null /tmp/ratos-added-new-${timehash}.cfg`,
+						`git diff --minimal --no-ext-diff --no-index /dev/null /tmp/ratos-added-new-${timehash}.cfg`,
 						(err, stdout, stderr) => {
 							if (stdout.trim() == '') {
 								reject(stderr);
@@ -550,7 +550,7 @@ export const compareSettings = async (newSettings: SerializedPrinterConfiguratio
 				await writeFile(`/tmp/ratos-removed-old-${timehash}.cfg`, f.content);
 				const diff = await new Promise<string | null>((resolve, reject) => {
 					exec(
-						`git diff --minimal --no-index /tmp/ratos-removed-old-${timehash}.cfg /dev/null`,
+						`git diff --minimal --no-ext-diff --no-index /tmp/ratos-removed-old-${timehash}.cfg /dev/null`,
 						(err, stdout, stderr) => {
 							if (stdout.trim() == '') {
 								reject(stderr);
@@ -595,7 +595,7 @@ export const compareSettings = async (newSettings: SerializedPrinterConfiguratio
 				await writeFile(`/tmp/ratos-changed-new-${timehash}.cfg`, f.content);
 				const diff = await new Promise<string | null>((resolve, reject) => {
 					exec(
-						`git diff --minimal --no-index ${oldPath} /tmp/ratos-changed-new-${timehash}.cfg`,
+						`git diff --minimal --no-ext-diff --no-index ${oldPath} /tmp/ratos-changed-new-${timehash}.cfg`,
 						(err, stdout, stderr) => {
 							if (stdout.trim() == '') {
 								reject(stderr);
@@ -646,7 +646,7 @@ export const compareSettings = async (newSettings: SerializedPrinterConfiguratio
 					await writeFile(`/tmp/ratos-changed-new-${timehash}.cfg`, f.content);
 					diff = await new Promise<string | null>((resolve, reject) => {
 						exec(
-							`git diff --minimal --no-index ${oldPath} /tmp/ratos-changed-new-${timehash}.cfg`,
+							`git diff --minimal --no-ext-diff --no-index ${oldPath} /tmp/ratos-changed-new-${timehash}.cfg`,
 							(err, stdout, stderr) => {
 								if (stdout.trim() == '') {
 									reject(stderr);

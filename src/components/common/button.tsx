@@ -54,9 +54,9 @@ export const buttonVariants = cva(
 				true: 'opacity-60 cursor-not-allowed',
 			},
 			size: {
-				sm: 'px-2 py-1 text-xs gap-2',
-				lg: 'px-6 py-3 text-lg gap-4',
-				default: 'px-3 py-2 text-sm gap-2',
+				sm: 'px-2 py-1 text-xs gap-1',
+				lg: 'px-6 py-3 text-lg gap-2',
+				default: 'px-3 py-2 text-sm gap-1',
 				icon: 'h-9 w-9',
 				'icon-sm': 'h-6 w-6',
 				'icon-xs': 'h-4 w-4',
