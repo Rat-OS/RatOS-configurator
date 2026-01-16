@@ -25,7 +25,6 @@ import {
 
 SciChartSurface.configure({
 	wasmUrl: '/configure/scichart2d.wasm',
-	dataUrl: '/configure/scichart2d.data',
 });
 
 interface MacroRunChartProps {

@@ -41,7 +41,6 @@ const historyCount = 200;
 
 SciChartSurface.configure({
 	wasmUrl: '/configure/scichart2d.wasm',
-	dataUrl: '/configure/scichart2d.data',
 });
 SciChartSurface.UseCommunityLicense();
 const theme = new ChartTheme();

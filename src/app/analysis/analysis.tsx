@@ -48,7 +48,6 @@ import { getHost } from '@/helpers/util';
 
 SciChartSurface.configure({
 	wasmUrl: '/configure/scichart2d.wasm',
-	dataUrl: '/configure/scichart2d.data',
 });
 
 const TARGET_OSC_TIME = 500;

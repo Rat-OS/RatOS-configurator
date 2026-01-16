@@ -36,7 +36,6 @@ import { LiveGcodeResponse } from '@/components/common/live-gcode-response';
 
 SciChartSurface.configure({
 	wasmUrl: '/configure/scichart2d.wasm',
-	dataUrl: '/configure/scichart2d.data',
 });
 
 export const useRealtimeAnalysisChart = (
