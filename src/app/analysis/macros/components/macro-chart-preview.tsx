@@ -28,7 +28,6 @@ import deepEqual from 'deep-equal';
 
 SciChartSurface.configure({
 	wasmUrl: '/configure/scichart2d.wasm',
-	dataUrl: '/configure/scichart2d.data',
 });
 
 interface MacroChartPreviewProps {
