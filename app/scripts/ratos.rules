@@ -1,0 +1,5 @@
+# Map all klipper boards
+SUBSYSTEMS=="usb", ENV{ID_USB_SERIAL_SHORT}=="", GOTO="ratos_end"
+SUBSYSTEMS=="usb", ENV{ID_VENDOR}=="Klipper", ACTION=="add", SYMLINK+="RatOS/$env{ID_USB_SERIAL_SHORT}"
+
+LABEL="ratos_end"

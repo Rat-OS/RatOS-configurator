@@ -1,0 +1,8 @@
+{
+	"$schema": "../toolhead-alignment-system-definition-schema.json",
+	"type": "toolhead-alignment-system",
+	"title": "Rat Rig VAOC",
+	"description": "Rat Rig VAOC toolhead alignment system",
+	"manufacturer": "Rat Rig",
+	"template": "rat-rig-vaoc.ts"
+}

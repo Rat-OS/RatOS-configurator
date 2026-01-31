@@ -1,0 +1,1 @@
+"use strict";exports.id=1866,exports.ids=[1866],exports.modules={41866:(r,s,e)=>{e.d(s,{P0:()=>sumArray});let sumArray=r=>r.reduce((r,s)=>r+s,0)}};

@@ -1,0 +1,2 @@
+# Orbitool O2s
+SUBSYSTEMS=="usb", ATTRS{idProduct}=="614e",  ATTRS{idVendor}=="1d50", ATTRS{serial}=="ldo-orbitool-o2s", ACTION=="add", SYMLINK+="ldo-orbitool-o2s", RUN+="/home/pi/printer_data/config/RatOS/scripts/klipper-mcu-added.sh"

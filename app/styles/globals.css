@@ -1,0 +1,320 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+	:root {
+		--background: 0 0% 100%;
+		--foreground: 240 10% 3.9%;
+
+		--card: 0 0% 100%;
+		--card-foreground: 240 10% 3.9%;
+
+		--popover: 0 0% 100%;
+		--popover-foreground: 240 10% 3.9%;
+
+		--primary: 240 5.9% 10%;
+		--primary-foreground: 0 0% 98%;
+
+		--secondary: 240 4.8% 95.9%;
+		--secondary-foreground: 240 5.9% 10%;
+
+		--muted: 240 4.8% 95.9%;
+		--muted-foreground: 240 3.8% 46.1%;
+
+		--accent: 240 4.8% 95.9%;
+		--accent-foreground: 240 5.9% 10%;
+
+		--destructive: 0 84.2% 60.2%;
+		--destructive-foreground: 0 0% 98%;
+
+		--border: 240 5.9% 90%;
+		--input: 240 5.9% 90%;
+		--ring: 240 10% 3.9%;
+
+		--radius: 0.5rem;
+	}
+
+	.dark {
+		--background: 240 6% 7%;
+		--foreground: 0 0% 98%;
+
+		--card: 240 10% 3.9%;
+		--card-foreground: 0 0% 98%;
+
+		--popover: 240 10% 3.9%;
+		--popover-foreground: 0 0% 98%;
+
+		--primary: 0 0% 98%;
+		--primary-foreground: 240 5.9% 10%;
+
+		--secondary: 240 3.7% 15.9%;
+		--secondary-foreground: 0 0% 98%;
+
+		--muted: 240 3.7% 15.9%;
+		--muted-foreground: 240 5% 64.9%;
+
+		--accent: 240 3.7% 15.9%;
+		--accent-foreground: 0 0% 98%;
+
+		--destructive: 0 62.8% 30.6%;
+		--destructive-foreground: 0 0% 98%;
+
+		--border: 240 3.7% 15.9%;
+		--input: 240 3.7% 15.9%;
+		--ring: 240 4.9% 83.9%;
+	}
+}
+
+@layer base {
+	* {
+		@apply border-border;
+	}
+
+	body {
+		@apply bg-background text-foreground;
+	}
+
+	html body[data-scroll-locked] {
+		margin-right: 0 !important;
+		overflow: initial !important;
+	}
+}
+
+
+@layer utilities {
+
+	input[type='number']::-webkit-inner-spin-button,
+	input[type='number']::-webkit-outer-spin-button {
+		@apply appearance-none;
+		margin: 0;
+	}
+}
+
+@layer components {
+	.dark .git-diff {
+		--diff-background-color: hsl(var(--background));
+		--diff-text-color: theme(colors.zinc.300);
+		--diff-font-family: theme(fontFamily.mono);
+		--diff-selection-background-color: theme(colors.sky.400 / 20%);
+		--diff-selection-text-color: var(--diff-text-color);
+		--diff-gutter-insert-background-color: theme(colors.brand.400 / 20%);
+		--diff-gutter-insert-text-color: theme(colors.brand.200);
+		--diff-gutter-delete-background-color: theme(colors.rose.400 / 20%);
+		--diff-gutter-delete-text-color: theme(colors.rose.200);
+		--diff-gutter-selected-background-color: theme(colors.yellow.400 / 10%);
+		--diff-gutter-selected-text-color: var(--diff-text-color);
+		--diff-code-insert-background-color: theme(colors.brand.400 / 10%);
+		--diff-code-insert-text-color: theme(colors.brand.600);
+		--diff-code-delete-background-color: theme(colors.rose.400 / 10%);
+		--diff-code-delete-text-color: theme(colors.rose.500);
+		--diff-code-insert-edit-background-color: theme(colors.brand.400 / 25%);
+		--diff-code-insert-edit-text-color: theme(colors.brand.400);
+		--diff-code-delete-edit-background-color: theme(colors.rose.400 / 20%);
+		--diff-code-delete-edit-text-color: theme(colors.rose.400);
+		--diff-code-selected-background-color: theme(colors.amber.500 / 10%);
+		--diff-code-selected-text-color: var(--diff-text-color);
+		--diff-omit-gutter-line-color: theme(colors.rose.400 / 20%);
+
+		.diff-code+.diff-gutter {
+			border-left: 1px solid hsl(var(--border));
+		}
+	}
+
+	.git-diff {
+		--diff-background-color: hsl(var(--background));
+		--diff-text-color: theme(colors.zinc.800);
+		--diff-font-family: theme(fontFamily.mono);
+		--diff-selection-background-color: theme(colors.sky.400 / 20%);
+		--diff-selection-text-color: var(--diff-text-color);
+		--diff-gutter-insert-background-color: theme(colors.brand.400 / 20%);
+		--diff-gutter-insert-text-color: theme(colors.brand.900);
+		--diff-gutter-delete-background-color: theme(colors.rose.400 / 20%);
+		--diff-gutter-delete-text-color: theme(colors.rose.900);
+		--diff-gutter-selected-background-color: theme(colors.yellow.400 / 10%);
+		--diff-gutter-selected-text-color: var(--diff-text-color);
+		--diff-code-insert-background-color: theme(colors.brand.400 / 10%);
+		--diff-code-insert-text-color: theme(colors.brand.800);
+		--diff-code-delete-background-color: theme(colors.rose.400 / 10%);
+		--diff-code-delete-text-color: theme(colors.rose.700);
+		--diff-code-insert-edit-background-color: theme(colors.brand.400 / 40%);
+		--diff-code-insert-edit-text-color: theme(colors.brand.900);
+		--diff-code-delete-edit-background-color: theme(colors.rose.400 / 30%);
+		--diff-code-delete-edit-text-color: theme(colors.rose.900);
+		--diff-code-selected-background-color: theme(colors.amber.500 / 10%);
+		--diff-code-selected-text-color: var(--diff-text-color);
+		--diff-omit-gutter-line-color: theme(colors.rose.400 / 20%);
+
+		.diff-gutter {
+			@apply cursor-default;
+		}
+
+		/**
+		* atom-dark theme for `prism.js`
+		* Based on Atom's `atom-dark` theme: https://github.com/atom/atom-dark-syntax
+		* @author Joe Gibson (@gibsjose)
+		*/
+
+		code[class*="language-"],
+		pre[class*="language-"] {
+			color: #c5c8c6;
+			direction: ltr;
+			text-align: left;
+			white-space: pre;
+			word-spacing: normal;
+			word-break: normal;
+			line-height: 1.5;
+
+			-moz-tab-size: 4;
+			-o-tab-size: 4;
+			tab-size: 4;
+
+			-webkit-hyphens: none;
+			-moz-hyphens: none;
+			-ms-hyphens: none;
+			hyphens: none;
+		}
+
+		/* Code blocks */
+		pre[class*="language-"] {
+			padding: 1em;
+			margin: .5em 0;
+			overflow: auto;
+			border-radius: 0.3em;
+		}
+
+		:not(pre)>code[class*="language-"],
+		pre[class*="language-"] {
+			background: #1d1f21;
+		}
+
+		/* Inline code */
+		:not(pre)>code[class*="language-"] {
+			padding: .1em;
+			border-radius: .3em;
+		}
+
+		.token.comment,
+		.token.prolog,
+		.token.doctype,
+		.token.cdata {
+			color: #7C7C7C;
+		}
+
+		.token.punctuation {
+			color: #c5c8c6;
+		}
+
+		.namespace {
+			opacity: .7;
+		}
+
+		.token.property,
+		.token.keyword,
+		.token.tag {
+			color: #96CBFE;
+		}
+
+		.token.class-name {
+			color: #FFFFB6;
+			text-decoration: underline;
+		}
+
+		.token.boolean,
+		.token.constant {
+			color: #99CC99;
+		}
+
+		.token.symbol,
+		.token.deleted {
+			color: #f92672;
+		}
+
+		.token.number {
+			color: #FF73FD;
+		}
+
+		.token.selector,
+		.token.attr-name,
+		.token.string,
+		.token.char,
+		.token.builtin,
+		.token.inserted {
+			color: #A8FF60;
+		}
+
+		.token.variable {
+			color: #C6C5FE;
+		}
+
+		.token.operator {
+			color: #EDEDED;
+		}
+
+		.token.entity {
+			color: #FFFFB6;
+			cursor: help;
+		}
+
+		.token.url {
+			color: #96CBFE;
+		}
+
+		.language-css .token.string,
+		.style .token.string {
+			color: #87C38A;
+		}
+
+		.token.atrule,
+		.token.attr-value {
+			color: #F9EE98;
+		}
+
+		.token.function {
+			color: #DAD085;
+		}
+
+		.token.regex {
+			color: #E9C062;
+		}
+
+		.token.important {
+			color: #fd971f;
+		}
+
+		.token.important,
+		.token.bold {
+			font-weight: bold;
+		}
+
+		.token.italic {
+			font-style: italic;
+		}
+	}
+
+	.scrollable {
+		@apply scroll-smooth scrollbar-thin scrollbar-track-zinc-800/15 scrollbar-thumb-rounded-md scrollbar-thumb-muted-foreground;
+	}
+}
+
+sub,
+sup,
+.sub,
+.sup {
+	font-size: 75%;
+	line-height: 0;
+	position: relative;
+	vertical-align: baseline;
+}
+
+sup,
+.sup {
+	top: -0.3em;
+	vertical-align: super;
+}
+
+sub,
+.sub {
+	bottom: -0.25em;
+	vertical-align: sub;
+}

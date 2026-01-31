@@ -1,0 +1,39 @@
+{
+	"plugins": ["@typescript-eslint", "unused-imports", "prettier",
+    "@limegrass/import-alias"],
+	"extends": ["next/core-web-vitals", "plugin:react-hooks/recommended"],
+	"parser": "@typescript-eslint/parser", 
+	"overrides": [
+		{
+			"files": ["*.tsx", "*.ts"],
+			"excludedFiles": "cli/*",
+			"rules": {
+				"react/no-unescaped-entities": "off",
+				"jsx-quotes": 1,
+				// "sort-imports": 1,
+				"no-duplicate-imports": 1,
+				"@limegrass/import-alias/import-alias": ["error", { "aliasConfigPath": "./src/tsconfig.json"}],
+				// "unused-imports/no-unused-imports": "error",
+				"prettier/prettier": ["warn", { "endOfLine": "auto" }],
+				"react/display-name": "off",
+				"no-console": "error",
+				"camelcase": ["warn", {
+					"allow": [
+						"driver_.+",
+						"run_current",
+						"sense_resistor",
+						"(z|travel|square_corner)_(velocity|accel)",
+						"print_stats",
+						"^.+_pin$",
+						"dual_carriage",
+						"stepper_*",
+						"uart_address",
+						"spi_bus",
+						"response_template" // used in klipper jsonRPC.
+					]
+				}]
+			}
+		}
+	],
+	"root": true
+}

@@ -1,0 +1,10 @@
+{
+    "recommendations": [
+        "dbaeumer.vscode-eslint",
+        "bradlc.vscode-tailwindcss",
+        "dannymcgee.klipper",
+        "timonwong.shellcheck",
+        "hediet.vscode-drawio",
+        "jock.svg"
+    ]
+}

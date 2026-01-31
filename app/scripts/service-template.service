@@ -1,0 +1,25 @@
+#### RatOS-configurator - Systemd service file
+####
+#### Written by Mikkel Schmidt <mikkel.schmidt@gmail.com>
+#### Copyright 2022
+#### https://github.com/Rat-OS/RatOS-Configurator
+
+[Unit]
+Description=RatOS Configurator service
+Requires=network-online.target
+After=network-online.target
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Type=simple
+User=__RATOS_USERNAME__
+SupplementaryGroups=ratos-configurator
+RemainAfterExit=yes
+WorkingDirectory=__SRC_DIR__
+ExecStart=pnpm start
+Restart=always
+RestartSec=10
+StandardOutput=append:/var/log/ratos-configurator.log
+StandardError=append:/var/log/ratos-configurator.log

@@ -1,0 +1,21 @@
+# See https://caddyserver.com/docs/caddyfile for more details
+{
+	admin 0.0.0.0:2020
+	auto_https disable_certs
+	http_port 80
+	https_port 4443
+}
+
+:80 {
+	log {
+		output file {$CADDY_LOG_DIR}/caddy.log
+	}
+	
+	handle /websocket* {
+		reverse_proxy localhost:7125
+	}
+
+	handle /* {
+		reverse_proxy localhost:3000
+	}
+}

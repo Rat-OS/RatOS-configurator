@@ -1,0 +1,40 @@
+{
+	"$schema": "../board-definition.schema.json",
+	"boardImageFileName": "board.webp",
+	"manualFileName": "manual.pdf",
+	"wireDiagramFileName": "wiring.drawio.svg",
+	"isToolboard": true,
+	"name": "EBB42 Gen2 v1.0",
+	"manufacturer": "BIGTREETECH",
+	"id": "btt-ebb42-gen2-10",
+	"firmwareBinaryName": "firmware-btt-ebb42-gen2-10.bin",
+	"compileScript": "compile.sh",
+	"flashScript": "flash.sh",
+	"documentationLink": "https://os.ratrig.com/docs/boards/btt/ebb42-12",
+	"driverCount": 1,
+	"integratedDrivers": {
+		"extruder": "BTT-TMC2209-13"
+	},
+	"alternativePT1000Resistor": 2200,
+	"dfu": {
+		"flashDevice": "0483:df11",
+		"dfuBootImage": "dfubooting.png",
+		"instructions": [
+			"Connect the board via USB to the Raspberry Pi",
+			"Make sure the board is powered using the 24V power line",
+			"Press and hold the BOOT button on the board.",
+			"Press and release the RESET button on the board.",
+			"Release the BOOT button.",
+			"After flashing, insert the fan voltage jumpers marked in green and remove all of the others, if present."
+		],
+		"hasBoot0Jumper": false
+	},
+	"LIS2DW": {
+		"cs_pin": "PB1",
+		"software": {
+			"sclk": "PB10",
+			"mosi": "PB11",
+			"miso": "PB2"
+		}
+	}
+}

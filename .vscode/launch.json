@@ -1,0 +1,56 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "Next.js: debug server-side",
+			"type": "node-terminal",
+			"request": "launch",
+			"cwd": "${workspaceFolder}/src",
+			"command": "pnpm dev"
+		},
+		{
+			"name": "Next.js: debug client-side",
+			"type": "msedge",
+			"request": "launch",
+			"sourceMaps": true,
+			"disableNetworkCache": true,
+			"cwd": "${workspaceFolder}/src",
+			"webRoot": "${workspaceRoot}/src",
+			"url": "http://localhost:3000/configure"
+		},
+		{
+			"name": "Next.js: debug full stack",
+			"type": "node",
+			"cwd": "${workspaceFolder}/src",
+			"request": "launch",
+			"program": "${workspaceFolder}/node_modules/.bin/next",
+			"runtimeArgs": [
+				"--inspect"
+			],
+			"skipFiles": [
+				"<node_internals>/**"
+			],
+			"serverReadyAction": {
+				"action": "debugWithEdge",
+				"killOnServerStop": true,
+				"pattern": "- Local:.+(https?://.+)",
+				"uriFormat": "%s",
+				"webRoot": "${workspaceFolder}"
+			}
+		},
+		{
+			"name": "Vitest Debug",
+			"type": "node-terminal",
+			"request": "launch",
+			"cwd": "${workspaceFolder}/src",
+			"command": "pnpm test"
+		},
+		{
+			"name": "Build CLI",
+			"type": "node-terminal",
+			"request": "launch",
+			"cwd": "${workspaceFolder}/src",
+			"command": "pnpm build:cli"
+		},
+	]
+}

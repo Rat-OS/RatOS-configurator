@@ -1,0 +1,39 @@
+{
+	"$schema": "../board-definition.schema.json",
+	"boardImageFileName": "board.webp",
+	"manualFileName": "manual.pdf",
+	"wireDiagramFileName": "wiring.drawio.svg",
+	"isToolboard": true,
+	"name": "EBB42 v1.2",
+	"manufacturer": "BIGTREETECH",
+	"id": "btt-ebb42-12",
+	"firmwareBinaryName": "firmware-btt-ebb42-12.bin",
+	"compileScript": "compile.sh",
+	"flashScript": "flash.sh",
+	"documentationLink": "https://os.ratrig.com/docs/boards/btt/ebb42-12",
+	"driverCount": 1,
+	"integratedDrivers": {
+		"extruder": "BTT-TMC2209-13"
+	},
+	"alternativePT1000Resistor": 2200,
+	"dfu": {
+		"flashDevice": "0483:df11",
+		"dfuBootImage": "dfubooting.png",
+		"instructions": [
+			"Connect the board via USB to the Raspberry Pi",
+			"Make sure the board is powered (you can use usb power by placing a jumper on the VBUS pins)",
+			"Press and hold the BOOT button on the board.",
+			"Press and release the RESET button on the board.",
+			"Release the BOOT button."
+		],
+		"hasBoot0Jumper": false
+	},
+	"ADXL345SPI": {
+		"cs_pin": "PB12",
+		"software": {
+			"sclk": "PB10",
+			"mosi": "PB11",
+			"miso": "PB2"
+		}
+	}
+}

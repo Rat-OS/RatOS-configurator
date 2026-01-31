@@ -1,0 +1,8 @@
+{
+	"$schema": "../chamber-air-filter-definition-schema.json",
+	"type": "chamber-air-filter",
+	"title": "Rat Rig Rat Pack",
+	"description": "The Rat Pack chamber air filter",
+	"manufacturer": "Rat Rig",
+	"template": "generic.ts"
+}

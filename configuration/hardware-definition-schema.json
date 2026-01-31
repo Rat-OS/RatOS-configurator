@@ -1,0 +1,47 @@
+{
+	"$schema": "https://json-schema.org/draft-07/schema",
+	"$id": "https://os.ratrig.com/hardware-definition.schema.json",
+	"title": "Template API Hardware Definition Schema",
+	"description": "Defines an item of RatOS-supported hardware using the Template API",
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"$schema": {
+			"description": "The schema used for this file",
+			"type": "string"
+		},
+		"type": {
+			"description": "One of the hardware types supported by the Template API",
+			"type": "string",
+			"enum": ["filament-sensor", "chamber-air-filter", "toolhead-alignment-system", "chamber-lighting"]
+		},
+		"title": {
+			"description": "The title of the hardware item for UI use",
+			"type": "string"
+		},
+		"description": {
+			"description": "A description of the hardware item",
+			"type": "string"
+		},
+		"manufacturer": {
+			"description": "The manufacturer of this hardware item",
+			"type": "string"
+		},
+		"template": {
+			"description": "TypeScript template for this hardware item (path relative to /src/templates/)",
+			"type": "string"
+		},
+		"templateOptions": {
+			"description": "Custom template options for this hardware item. These options can be consumed by the template, enabling template reuse for similar hardware items.",
+			"type": "object",
+			"additionalProperties": true
+		}
+	},
+	"required": [
+		"type",
+		"title",
+		"description",
+		"manufacturer",
+		"template"
+	]
+}

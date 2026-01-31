@@ -1,0 +1,11 @@
+{
+	"$schema": "../filament-sensor-definition-schema.json",
+	"type": "filament-sensor",
+	"title": "Generic Filament Sensor (inverted)",
+	"description": "Generic filament sensor with inverted sense pin",
+	"manufacturer": "Generic",
+	"template": "generic.ts",
+	"templateOptions": {
+		"invertRunoutPin": true
+	}
+}

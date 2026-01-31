@@ -1,0 +1,29 @@
+# next.js
+/src/.next/
+/src/out/
+/src/build/
+
+# Bin build
+/src/bin/*.js
+/src/bin/*.mjs
+/src/bin/*.wasm
+
+# misc
+.DS_Store
+*.pem
+.DS_Store
+*:Zone.Identifier
+
+# logs
+*.log
+
+# SciChart data
+src/public/scichart*
+src/public/tfjs*
+
+# Default printer config directory for development
+devbox.d/printer-config/
+devbox.d/klipper/
+
+# artifacts for local deployment tests
+/artifacts

@@ -1,0 +1,409 @@
+{
+	"$schema": "https://json-schema.org/draft-07/schema",
+	"$id": "https://os.ratrig.com/printer-definition.schema.json",
+	"title": "Printer",
+	"description": "A RatOS supported 3d printer",
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"$schema": {
+			"description": "The schema used for this file",
+			"type": "string"
+		},
+		"name": {
+			"description": "The name of the printer",
+			"type": "string"
+		},
+		"description": {
+			"description": "A description of the printer",
+			"type": "string"
+		},
+		"manufacturer": {
+			"description": "The name of the manufacturer of this printer",
+			"type": "string"
+		},
+		"releaseDate": {
+			"description": "The release date of this printer in ISO 8601/RFC3339 eg. 2023-12-31",
+			"type": "string",
+			"format": "date"
+		},
+		"documentationLink": {
+			"description": "Link to the RatOS documentation for this printer",
+			"type": "string"
+		},
+		"image": {
+			"description": "Link to an image of the printer",
+			"type": "string"
+		},
+		"driverCountRequired": {
+			"description": "Amount of drivers required for this printer",
+			"type": "number"
+		},
+		"kinematics": {
+			"description": "Kinematics for this printer",
+			"type": "string",
+			"enum": ["hybrid-corexy", "hybrid-corexy-idex", "corexy", "cartesian"]
+		},
+		"bedMargin": {
+			"description": "Margin around the bed in mm that is reachable by the toolhead, but not printable",
+			"type": "object",
+			"properties": {
+				"x": {
+					"description": "X margin in mm eg [0, 55], for 0 at the left and 55 at the right",
+					"type": "array"
+				},
+				"y": {
+					"description": "Y margin in mm eg [0, 55], for 0 at the front and 55 at the back",
+					"type": "array",
+					"items": {
+						"type": "number"
+					}
+				}
+			},
+			"required": ["x", "y"],
+			"additionalProperties": false
+		},
+		"sizes": {
+			"description": "Size options for this printer",
+			"type": "object",
+			"patternProperties": {
+				"^\\S+$": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"x": {
+							"type": "number"
+						},
+						"y": {
+							"type": "number"
+						},
+						"z": {
+							"type": "number"
+						}
+					},
+					"required": ["x", "y", "z"]
+				}
+			}
+		},
+		"template": {
+			"description": "Printer.cfg template for this printer",
+			"type": "string"
+		},
+		"rails": {
+			"description": "Rails (steppers/drivers) needed for this printer, can be 'x', 'x1', 'dual_carriage', 'y', 'y1', 'z', 'z1', 'z2', 'z3', 'extruder', 'extruder1'.",
+			"type": "array",
+			"items": {
+				"type": "string"
+			}
+		},
+		"speedLimits": {
+			"type": "object",
+			"additionalProperties": false,
+			"description": "Speed limits for this printer",
+			"properties": {
+				"basic": {
+					"type": "object",
+					"additionalProperties": false,
+					"description": "Standard speed limits",
+					"properties": {
+						"velocity": {
+							"type": "number"
+						},
+						"accel": {
+							"type": "number"
+						},
+						"z_velocity": {
+							"type": "number"
+						},
+						"z_accel": {
+							"type": "number"
+						},
+						"square_corner_velocity": {
+							"type": "number"
+						},
+						"travel_velocity": {
+							"type": "number"
+						},
+						"travel_accel": {
+							"type": "number"
+						}
+					},
+					"required": ["velocity", "accel", "z_velocity", "z_accel"]
+				},
+				"performance": {
+					"type": "object",
+					"additionalProperties": false,
+					"description": "Performance speed limits",
+					"properties": {
+						"velocity": {
+							"type": "number"
+						},
+						"accel": {
+							"type": "number"
+						},
+						"z_velocity": {
+							"type": "number"
+						},
+						"z_accel": {
+							"type": "number"
+						},
+						"square_corner_velocity": {
+							"type": "number"
+						},
+						"travel_velocity": {
+							"type": "number"
+						},
+						"travel_accel": {
+							"type": "number"
+						}
+					},
+					"required": ["velocity", "accel", "z_velocity", "z_accel"]
+				}
+			},
+			"required": ["basic"]
+		},
+		"defaults": {
+			"description": "Default hardware for this printer",
+			"type": "object",
+			"additionalProperties": false,
+			"properties": {
+				"toolheads": {
+					"type": "array",
+					"description": "Default toolheads for this printer",
+					"items": {
+						"type": "object",
+						"additionalProperties": false,
+						"properties": {
+							"axis": {
+								"description": "Motion axis for this toolhead.",
+								"type": "string",
+								"enum": ["x", "dual_carriage"]
+							},
+							"description": {
+								"description": "Description of the toolhead such as where it's located on the printer",
+								"type": "string"
+							},
+							"hotend": {
+								"description": "Default hotend for this toolhead. Should be the name of the config without the file extension.",
+								"type": "string"
+							},
+							"probe": {
+								"description": "Default probe for this toolhead. Should be the name of the config without the file extension.",
+								"type": "string"
+							},
+							"partFan": {
+								"description": "Default part fan for this toolhead.",
+								"type": "string",
+								"enum": [
+									"2pin",
+									"4pin",
+									"4pin-dedicated",
+									"2pin-toolboard",
+									"4pin-toolboard",
+									"4pin-dedicated-toolboard"
+								]
+							},
+							"hotendFan": {
+								"description": "Default hotend fan for this toolhead.",
+								"type": "string",
+								"enum": [
+									"2pin",
+									"4pin",
+									"4pin-dedicated",
+									"2pin-toolboard",
+									"4pin-toolboard",
+									"4pin-dedicated-toolboard"
+								]
+							},
+							"xEndstop": {
+								"description": "Default x endstop for this toolhead",
+								"type": "string",
+								"enum": ["sensorless", "endstop", "endstop-toolboard"]
+							},
+							"yEndstop": {
+								"description": "Default y endstop for this toolhead",
+								"type": "string",
+								"enum": ["sensorless", "endstop"]
+							},
+							"extruder": {
+								"description": "Default extruder for this toolhead. Should be the name of the config without the file extension.",
+								"type": "string"
+							},
+							"toolboard": {
+								"description": "Default board for this toolhead. Should be the name of the board directory.",
+								"type": "string"
+							},
+							"filamentSensor": {
+								"description": "Default filament sensor for this toolhead. Should be the name of the /configuration/filament-sensors/* subdir.",
+								"type": "object",
+								"properties": {
+									"id": {
+										"description": "ID of the filament sensor hardware",
+										"type": "string"
+									},
+									"connectedTo": {
+										"description": "Where the filament sensor is connected to",
+										"type": "string",
+										"enum": ["toolboard", "controlboard"]
+									}
+								},
+								"required": ["id", "connectedTo"]
+							}
+						},
+						"required": ["extruder", "hotend", "xEndstop", "yEndstop", "axis", "partFan", "hotendFan"]
+					},
+					"minItems": 1
+				},
+				"board": {
+					"description": "Default board for this printer. Should be the name of the board directory.",
+					"type": "string"
+				},
+				"chamberLighting": {
+					"description": "Default chamber lighting option for this printer.",
+					"type": "object",
+					"properties": {
+						"id": {
+							"description": "ID of the chamber lighting hardware",
+							"type": "string"
+						},
+						"connectedTo": {
+							"description": "Where the chamber lighting is connected to",
+							"type": "string",
+							"enum": ["toolboard", "controlboard"]
+						}
+					},
+					"required": ["id", "connectedTo"]
+				},
+				"toolheadAlignmentSystem": {
+					"description": "Default toolhead alignment system for this printer.",
+					"type": "object",
+					"properties": {
+						"id": {
+							"description": "ID of the toolhead alignment system hardware",
+							"type": "string"
+						},
+						"connectedTo": {
+							"description": "Where the toolhead alignment system is connected to",
+							"type": "string",
+							"enum": ["toolboard", "controlboard"]
+						}
+					},
+					"required": ["id", "connectedTo"]
+				},
+				"chamberAirFilter": {
+					"description": "Default chamber air filter for this printer.",
+					"type": "object",
+					"properties": {
+						"id": {
+							"description": "ID of the chamber air filter hardware",
+							"type": "string"
+						},
+						"connectedTo": {
+							"description": "Where the chamber air filter is connected to",
+							"type": "string",
+							"enum": ["toolboard", "controlboard"]
+						}
+					},
+					"required": ["id", "connectedTo"]
+				},
+				"controllerFan": {
+					"description": "Default controller fan for this printer.",
+					"type": "string",
+					"enum": [
+						"2pin",
+						"4pin",
+						"4pin-dedicated",
+						"2pin-toolboard",
+						"4pin-toolboard",
+						"4pin-dedicated-toolboard",
+						"none"
+					]
+				},
+				"rails": {
+					"description": "Default rails for this printer.",
+					"type": "array",
+					"items": {
+						"type": "object",
+						"additionalProperties": false,
+						"properties": {
+							"axis": {
+								"description": "Axis for this rail.",
+								"type": "string",
+								"enum": ["x", "x1", "dual_carriage", "y", "y1", "y2", "z", "z1", "z2", "z3", "extruder", "extruder1"]
+							},
+							"axisDescription": {
+								"description": "Description of the axis for this rail such as where it's located on the printer",
+								"type": "string"
+							},
+							"driver": {
+								"description": "Default driver for this rail",
+								"type": "string"
+							},
+							"voltage": {
+								"description": "Default voltage for this rail. 24, 36, 48, 56 and 60 is supported. Default is 24.",
+								"type": "number"
+							},
+							"stepper": {
+								"description": "Default stepper for this rail",
+								"type": "string"
+							},
+							"current": {
+								"description": "Default current for this rail",
+								"type": "number"
+							},
+							"performanceMode": {
+								"description": "Defaults when in performance mode",
+								"type": "object",
+								"additionalProperties": false,
+								"properties": {
+									"voltage": {
+										"description": "Default voltage for this rail. 24, 36, 48, 56 and 60 is supported. Default is 24.",
+										"type": "number"
+									},
+									"current": {
+										"description": "Default current for this rail in performance mode",
+										"type": "number"
+									},
+									"homingSpeed": {
+										"description": "Default homing speed for this rail in performance mode",
+										"type": "number"
+									}
+								},
+								"required": ["current"]
+							},
+							"rotationDistance": {
+								"description": "Default rotation distance for this rail. Note: extruder axis rotation_distance should be 0, will be overridden by the extruder include.",
+								"type": "number"
+							},
+							"gearRatio": {
+								"description": "Optional gear ratio for this rail.",
+								"type": "string"
+							},
+							"homingSpeed": {
+								"description": "Default homing speed for this rail.",
+								"type": "number"
+							},
+							"microstepping": {
+								"description": "Default microstepping for this rail. Default is 64.",
+								"type": "number"
+							}
+						},
+						"required": ["axis", "axisDescription", "driver", "stepper", "current", "rotationDistance"]
+					}
+				}
+			},
+			"required": ["board", "rails", "toolheads"]
+		}
+	},
+	"required": [
+		"name",
+		"description",
+		"manufacturer",
+		"documentationLink",
+		"driverCountRequired",
+		"image",
+		"template",
+		"defaults",
+		"speedLimits"
+	]
+}

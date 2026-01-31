@@ -1,0 +1,48 @@
+# General
+
+- When starting a new terminal, run `nix-shell -p pnpm bun nodejs` and wait until you've entered the nix shell.
+- Use `pnpx` instead of `npx`
+- Always run the tests before comitting or pushing.
+
+## Task list handling procedure
+
+When you're working through task lists, make sure to follow the following steps and guidelines:
+
+1. **Complete the implementation** - Make all necessary code changes to fully address the task requirements
+2. **Create a focused commit** - Before marking any task as complete, create a single atomic commit that contains only the changes for that specific task, using conventional commit format (e.g., "fix(klipper): implement temp branch cleanup in checkout function")
+3. **Mark task complete** - Only after the commit is created, update the task status to COMPLETE
+4. **Move to next task** - Proceed to the next task in the list
+
+**Specific requirements:**
+- Each commit should be atomic and focused on one logical change
+- Use conventional commit format: `type(scope): description`
+- Include detailed commit messages with bullet points explaining the specific changes made
+- Ensure all code changes are tested and functional before committing
+- Follow the existing code style and patterns in the repository
+- Handle any merge conflicts or issues that arise during the process
+
+Work through each task completely before moving to the next one, ensuring proper version control practices with meaningful commits for each completed task.
+
+# Linting
+
+- use `pnpm run lint` in the `src` folder to run the linter once, without watching for changes.\
+- use `pnpm run lint:fix` in the `src` folder to run the linter once, without watching for changes, and output the results in a format that can be consumed by CI tools.
+
+# Testing
+
+- DO NOT EVER mock zod schemas. 
+- Use `pnpm run test` in the `src` folder to run the tests once, without watching for changes.
+- use `pnpm run test:nopp` for general use, **unless** you intentionally want to run the slow post-processor tests.
+
+# Bash
+
+- Always run shellcheck linting before comitting or pushing.
+
+# Typescript
+
+- Always run `pnpm run typecheck` and `pnpm run lint:fix` before comitting or pushing.
+
+# Styling
+
+- Use tailwind classes.
+- IMPORTANT: the design always runs in dark mode, so text colors should be bright, not dark.

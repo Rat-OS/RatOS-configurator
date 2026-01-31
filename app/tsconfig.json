@@ -1,0 +1,58 @@
+{
+  "compilerOptions": {
+    "target": "es2018",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "*"
+      ],
+      "ink": [
+        "node_modules/ink/build/index.d.ts"
+      ],
+      "@inkjs/ui": [
+        "node_modules/@inkjs/ui/build/index.d.ts"
+      ],
+	  "ink-spinner": [
+        "node_modules/ink-spinner/build/index.d.ts"
+      ],
+	  "ink-testing-library": [
+        "node_modules/ink-testing-library/build/index.d.ts"
+      ]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "build/types/**/*.ts",
+    "**/*.d.ts",
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "ts-node": {
+    "require": ["tsconfig-paths/register"]
+  },
+  "exclude": [
+    "node_modules"
+  ]
+}

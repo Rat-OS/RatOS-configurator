@@ -1,0 +1,8 @@
+{
+	"$schema": "../chamber-lighting-definition-schema.json",
+	"type": "chamber-lighting",
+	"title": "Rat Rig Dayspring",
+	"description": "Rat Rig Dayspring LED strips by Vector3D",
+	"manufacturer": "Vector3D",
+	"template": "generic.ts"
+}

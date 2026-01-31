@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+SCRIPT_DIR=$( cd -- "$( dirname -- "$(realpath -- "${BASH_SOURCE[0]}")" )" &> /dev/null && pwd )
+RATOS_BIN_CWD=$(pwd)
+export RATOS_BIN_CWD
+npm run --silent -C "$SCRIPT_DIR"/.. cli -- "$@"
+
+if [ $? -eq 1 ] && [[ "$(npm run --silent -C "$SCRIPT_DIR"/.. cli -- "$@" 2>&1)" == *"Cannot find package 'zx'"* ]]; then
+	echo "RatOS package issues detected! Don't worry, we'll try to fix them for you..."
+	echo "Installing dependencies..."
+	pushd "$SCRIPT_DIR"/.. || exit 1
+    pnpm install --silent --frozen-lockfile --config.confirmModulesPurge=false
+    popd || exit 1
+	echo "Dependencies installed, running command again..."
+    npm run --silent -C "$SCRIPT_DIR"/.. cli -- "$@"
+fi
+
+exit $?

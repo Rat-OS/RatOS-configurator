@@ -1,0 +1,53 @@
+{
+	"typescript.tsdk": "src/node_modules/typescript/lib",
+	"typescript.enablePromptUseWorkspaceTsdk": true,
+    "tailwindCSS.experimental.classRegex": [
+        ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
+        ["cx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"],
+        ["cn\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"],
+        ["twMerge\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"],
+        ["twJoin\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+    ],
+    "prettier.requireConfig": true,
+	"tailwindCSS.classAttributes": [
+		"class",
+		"className",
+		"ngClass",
+		"enterFrom",
+		"enterTo",
+		"enter",
+		"leaveFrom",
+		"leaveTo",
+		"leave"
+	],
+	"editor.defaultFormatter": "dbaeumer.vscode-eslint",
+	"[typescript]": {
+		"editor.defaultFormatter": "dbaeumer.vscode-eslint",
+	},
+	"eslint.format.enable": true,
+	"[typescriptreact]": {
+		"editor.defaultFormatter": "dbaeumer.vscode-eslint"
+	},
+	"emmet.showExpandedAbbreviation": "never",
+	"emmet.showAbbreviationSuggestions": false,
+	"editor.insertSpaces": false,
+	"tailwindCSS.experimental.configFile": null,
+	"[svg]": {
+		"editor.defaultFormatter": "jock.svg"
+	},
+	"[github-actions-workflow]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"shellcheck.useWorkspaceRootAsCwd": true,
+	"prettier.useTabs": true,
+	"editor.detectIndentation": false,
+	"python.REPL.enableREPLSmartSend": false,
+	"augment.completions.enableAutomaticCompletions": false,
+	"augment.completions.enableQuickSuggestions": false,
+	"augment.enableEmptyFileHint": false,
+	"augment.nextEdit.enableAutoApply": false,
+	"terminal.integrated.cwd": "src",
+	"[json]": {
+		"editor.defaultFormatter": "vscode.json-language-features"
+	}
+}

@@ -1,0 +1,8 @@
+{
+	"$schema": "../filament-sensor-definition-schema.json",
+	"type": "filament-sensor",
+	"title": "Orbiter Filament Sensor",
+	"description": "Filament sensor for Orbiter extruders with unload button",
+	"manufacturer": "LDO",
+	"template": "orbiter-sensor.ts"
+}

@@ -1,0 +1,72 @@
+{
+	"$schema": "../board-definition.schema.json",
+	"boardImageFileName": "board.webp",
+	"manualFileName": "manual.pdf",
+	"wireDiagramFileName": "wiring.drawio.svg",
+	"name": "SKR Mini E3 V3.0",
+	"manufacturer": "BIGTREETECH",
+	"id": "btt-skr-mini-e3-30",
+	"firmwareBinaryName": "firmware-btt-skr-mini-e3-30.bin",
+	"compileScript": "compile.sh",
+	"flashScript": "flash.sh",
+	"driverCount": 4,
+	"driverVoltages": [24],
+	"hasQuirksFiles": true,
+	"integratedDrivers": {
+		"x": "BTT-TMC2209-13",
+		"y": "BTT-TMC2209-13",
+		"z": "BTT-TMC2209-13",
+		"extruder": "BTT-TMC2209-13"
+	},
+	"documentationLink": "https://os.ratrig.com/docs/boards/btt/skr-mini-e3-30",
+	"ADXL345SPI": {
+		"cs_pin": "PD0",
+		"software": {
+			"sclk": "PD2",
+			"mosi": "PD3",
+			"miso": "PD4"
+		}
+	},
+	"motorSlots": {
+		"X": {
+			"title": "X",
+			"enable_pin": "PB14",
+			"step_pin": "PB13",
+			"dir_pin": "PB12",
+			"uart_pin": "PC11",
+			"tx_pin": "PC10",
+			"diag_pin": "PC0",
+			"endstop_pin": "PC0"
+		},
+		"Y": {
+			"title": "Y",
+			"enable_pin": "PB11",
+			"step_pin": "PB10",
+			"dir_pin": "PB2",
+			"uart_pin": "PC11",
+			"tx_pin": "PC10",
+			"diag_pin": "PC1",
+			"endstop_pin": "PC1"
+		},
+		"Z": {
+			"title": "Z",
+			"enable_pin": "PB1",
+			"step_pin": "PB0",
+			"dir_pin": "PC5",
+			"uart_pin": "PC11",
+			"tx_pin": "PC10",
+			"diag_pin": "PC2",
+			"endstop_pin": "PC2"
+		},
+		"E0": {
+			"title": "E0",
+			"enable_pin": "PD1",
+			"step_pin": "PB3",
+			"dir_pin": "PB4",
+			"uart_pin": "PC11",
+			"tx_pin": "PC10",
+			"diag_pin": "PC15",
+			"endstop_pin": "PC15"
+		}
+	}
+}
