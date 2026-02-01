@@ -1034,13 +1034,15 @@ class RatOS:
 		self._beacon_probing_regions = bpr
 		return bpr
 
-	def get_printable_max_dimensions(self):
+	def get_printable_max_dimensions(self, none_if_not_valid=False):
 		# If CALCULATE_PRINTABLE_AREA has not completed yet, shutdown as it indicates
 		# a critical RatOS initialization order failure. We cannot continue safely.
 		# We don't just call CALCULATE_PRINTABLE_AREA here as this should never
 		# happen during normal operation, and the cause should be investigated.
 		cpa_done = bool(self.gm_calculate_printable_area.variables['calculated'])
 		if not cpa_done:
+			if none_if_not_valid:
+				return (None, None)
 			if not self.printer.is_shutdown():
 				self.printer.invoke_shutdown(f"{self.name}: RatOS initialization has not completed in time (CALCULATE_PRINTABLE_AREA).")
 
@@ -1048,8 +1050,10 @@ class RatOS:
 		printable_y_max = float(self.gm_ratos.variables['printable_y_max'])
 		return (printable_x_max, printable_y_max)
 	
-	def get_safe_home_position(self):
-		printable_x_max, printable_y_max = self.get_printable_max_dimensions()
+	def get_safe_home_position(self, none_if_not_valid=False):
+		printable_x_max, printable_y_max = self.get_printable_max_dimensions(none_if_not_valid)
+		if printable_x_max is None or printable_y_max is None:
+			return (None, None)
 		raw_safe_home_x = safe_home_x = self.gm_ratos.variables.get('safe_home_x', None)
 		raw_safe_home_y = safe_home_y = self.gm_ratos.variables.get('safe_home_y', None)
 		safe_home_x = printable_x_max / 2 if safe_home_x is None or str(safe_home_x).lower() == 'middle' else float(safe_home_x)
@@ -1062,6 +1066,8 @@ class RatOS:
 			safe_min_y = max(bpr.mesh_proximity_min_coil_pos[1], bpr.mesh_contact_min[1])
 			safe_max_y = min(bpr.mesh_proximity_max_coil_pos[1], bpr.mesh_contact_max[1])
 			if safe_home_x < safe_min_x or safe_home_x > safe_max_x or safe_home_y < safe_min_y or safe_home_y > safe_max_y:
+				if none_if_not_valid:
+					return (None, None)
 				if not self.printer.is_shutdown():
 					logging.info(f"{self.name}: (safe_home_x, safe_home_y) is not within beacon-probable region: printable_x_max={printable_x_max}, printable_y_max={printable_y_max}, safe_home_x={safe_home_x}, safe_home_y={safe_home_y}, raw_safe_home_x={raw_safe_home_x}, raw_safe_home_y={raw_safe_home_y}, beacon probing region: ({safe_min_x}, {safe_min_y}) - ({safe_max_x}, {safe_max_y})")
 					self.printer.invoke_shutdown(f"{self.name}: (safe_home_x, safe_home_y) must be within the region that Beacon can probe: ({safe_min_x}, {safe_min_y}) - ({safe_max_x}, {safe_max_y}). The configured location ({safe_home_x:.2f}, {safe_home_y:.2f}) is outside this region.")			
@@ -1118,7 +1124,7 @@ class RatOS:
 			'last_processed_file_result': self.last_processed_file_result,
 			'last_check_bed_mesh_profile_exists_result': self.last_check_bed_mesh_profile_exists_result,
 			# The configured safe home position
-			'safe_home_position': self.get_safe_home_position(),
+			'safe_home_position': self.get_safe_home_position(none_if_not_valid=True),
 			# The last position moved to by _MOVE_TO_SAFE_Z_HOME, which may differ from safe_home_position
 			# if FUZZY_RADIUS was used.
 			'last_move_to_safe_z_home_position': self.last_move_to_safe_z_home_position }
