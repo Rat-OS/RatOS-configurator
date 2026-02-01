@@ -119,6 +119,7 @@ class RatOS:
 		self.rmmu_hub = None
 		self.bed_mesh = None
 		self.gm_ratos = None
+		self.gm_calculate_printable_area = None
 		self.toolhead = None
 		self.beacon = None
 		self.display_status = None
@@ -158,6 +159,7 @@ class RatOS:
 		self.v_sd = self.printer.lookup_object('virtual_sdcard', None)
 		self.sdcard_dirname = self.v_sd.sdcard_dirname
 		self.gm_ratos = self.printer.lookup_object('gcode_macro RatOS')
+		self.gm_calculate_printable_area = self.printer.lookup_object('gcode_macro CALCULATE_PRINTABLE_AREA')
 		self.toolhead = self.printer.lookup_object("toolhead")
 		self.display_status = self.printer.lookup_object("display_status")
 
@@ -355,7 +357,7 @@ class RatOS:
 
 	desc_RATOS_LOG = "G-code logging command "
 	def cmd_RATOS_LOG(self, gcmd):
-		prefix = gcmd.get('PREFIX')
+		prefix = gcmd.get('PREFIX', 'RatOS')
 		msg = gcmd.get('MSG')
 		logging.info(prefix + ": " + msg)
 
@@ -1000,8 +1002,7 @@ class RatOS:
 
 		# printable_x_max and printable_y_max are calculated by delayed a gcode macro, so might possibly change during runtime.
 		# We only need to update the cached probing regions if these values change.		
-		printable_x_max = float(self.gm_ratos.variables['printable_x_max'])
-		printable_y_max = float(self.gm_ratos.variables['printable_y_max'])
+		printable_x_max, printable_y_max = self.get_printable_max_dimensions()
 
 		if self._beacon_probing_regions is not None:
 			if self._beacon_probing_regions.printable_x_max == printable_x_max and self._beacon_probing_regions.printable_y_max == printable_y_max:
@@ -1033,9 +1034,22 @@ class RatOS:
 		self._beacon_probing_regions = bpr
 		return bpr
 
-	def get_safe_home_position(self):
+	def get_printable_max_dimensions(self):
+		# If CALCULATE_PRINTABLE_AREA has not completed yet, shutdown as it indicates
+		# a critical RatOS initialization order failure. We cannot continue safely.
+		# We don't just call CALCULATE_PRINTABLE_AREA here as this should never
+		# happen during normal operation, and the cause should be investigated.
+		cpa_done = bool(self.gm_calculate_printable_area.variables['calculated'])
+		if not cpa_done:
+			if not self.printer.is_shutdown():
+				self.printer.invoke_shutdown(f"{self.name}: RatOS initialization has not completed in time (CALCULATE_PRINTABLE_AREA).")
+
 		printable_x_max = float(self.gm_ratos.variables['printable_x_max'])
 		printable_y_max = float(self.gm_ratos.variables['printable_y_max'])
+		return (printable_x_max, printable_y_max)
+	
+	def get_safe_home_position(self):
+		printable_x_max, printable_y_max = self.get_printable_max_dimensions()
 		raw_safe_home_x = safe_home_x = self.gm_ratos.variables.get('safe_home_x', None)
 		raw_safe_home_y = safe_home_y = self.gm_ratos.variables.get('safe_home_y', None)
 		safe_home_x = printable_x_max / 2 if safe_home_x is None or str(safe_home_x).lower() == 'middle' else float(safe_home_x)
@@ -1082,8 +1096,7 @@ class RatOS:
 				constrained_y = max(safe_min_y, min(y, safe_max_y))
 			else:
 				# Limit to printable area if no beacon probing region is defined
-				printable_x_max = float(self.gm_ratos.variables['printable_x_max'])
-				printable_y_max = float(self.gm_ratos.variables['printable_y_max'])
+				printable_x_max, printable_y_max = self.get_printable_max_dimensions()
 				constrained_x = max(0, min(x, printable_x_max))
 				constrained_y = max(0, min(y, printable_y_max))
 
@@ -1350,8 +1363,7 @@ class RatOS:
 		if x < bpr.mesh_contact_min[0] or x > bpr.mesh_contact_max[0] or y < bpr.mesh_contact_min[1] or y > bpr.mesh_contact_max[1]:
 			raise gcmd.error(f"X and Y must be within the beacon contact probing region: ({bpr.mesh_contact_min[0]}, {bpr.mesh_contact_min[1]}) - ({bpr.mesh_contact_max[0]}, {bpr.mesh_contact_max[1]})")
 
-		printable_x_max = float(self.gm_ratos.variables['printable_x_max'])
-		printable_y_max = float(self.gm_ratos.variables['printable_y_max'])
+		printable_x_max, printable_y_max = self.get_printable_max_dimensions()
 
 		# Ensure that the full movement circle is within the printable area
 		if (x - distance) < 0 or (x + distance) > printable_x_max or (y - distance) < 0 or (y + distance) > printable_y_max:
