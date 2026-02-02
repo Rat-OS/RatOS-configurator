@@ -101949,17 +101949,17 @@ function validateGenerator(gcodeInfo, allowUnsupportedSlicerVersions, onWarning)
           { cause: gcodeInfo }
         );
       case 1 /* PrusaSlicer */:
-        if (!import_semver2.default.satisfies(gcodeInfo.generatorVersion, "2.8.0 || 2.8.1 || 2.9.0 || 2.9.1 || 2.9.2")) {
+        if (!import_semver2.default.satisfies(gcodeInfo.generatorVersion, "2.8.0 || 2.8.1 || 2.9.0 || 2.9.1 || 2.9.2 || 2.9.3 || 2.9.4")) {
           throw new SlicerNotSupported(
-            `Only release versions 2.8.0, 2.8.1 and 2.9.0 - 2.9.2 of PrusaSlicer are supported. Version ${gcodeInfo.generatorVersion} is not supported.`,
+            `Only release versions 2.8.0, 2.8.1 and 2.9.0 - 2.9.4 of PrusaSlicer are supported. Version ${gcodeInfo.generatorVersion} is not supported.`,
             { cause: gcodeInfo }
           );
         }
         break;
       case 2 /* OrcaSlicer */:
-        if (!import_semver2.default.satisfies(gcodeInfo.generatorVersion, "2.1.1 || 2.2.0")) {
+        if (!import_semver2.default.satisfies(gcodeInfo.generatorVersion, "2.1.1 || 2.2.0 || 2.3.0 || 2.3.1")) {
           throw new SlicerNotSupported(
-            `Only versions 2.1.1 and 2.2.0 of OrcasSlicer are supported. Version ${gcodeInfo.generatorVersion} is not supported.`,
+            `Only versions 2.1.1, 2.2.0, 2.3.0 and 2.3.1 of OrcasSlicer are supported. Version ${gcodeInfo.generatorVersion} is not supported.`,
             { cause: gcodeInfo }
           );
         }
