@@ -4,7 +4,7 @@
 #
 # This file may be distributed under the terms of the GNU GPLv3 license.
 
-import time, logging, os, multiprocessing, traceback, pygam
+import time, logging, os, multiprocessing, traceback, pygame
 import numpy as np
 from .ratos import BackgroundDisplayStatusProgressHandler
 
