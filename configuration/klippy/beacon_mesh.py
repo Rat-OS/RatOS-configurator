@@ -179,9 +179,6 @@ class BeaconMesh:
 			self.gcode.register_command('_BEACON_CREATE_SCAN_COMPENSATION_MESH_CORE',
 							   self.cmd_BEACON_CREATE_SCAN_COMPENSATION_MESH_CORE,
 							   desc=self.desc_BEACON_CREATE_SCAN_COMPENSATION_MESH_CORE)
-			self.gcode.register_command('SET_ZERO_REFERENCE_POSITION',
-							   self.cmd_SET_ZERO_REFERENCE_POSITION,
-							   desc=self.desc_SET_ZERO_REFERENCE_POSITION)
 			self.gcode.register_command('_CHECK_ACTIVE_BEACON_MODEL_TEMP',
 							   self.cmd_CHECK_ACTIVE_BEACON_MODEL_TEMP,
 							   desc=self.desc_CHECK_ACTIVE_BEACON_MODEL_TEMP)
@@ -503,28 +500,6 @@ class BeaconMesh:
 			self.gcode.run_script_from_command("BEACON_AUTO_CALIBRATE SKIP_MULTIPOINT_PROBING=1 SKIP_MODEL_CREATION=1")
 
 		self.create_compensation_mesh(gcmd, profile, desired_spacing, minimum_spacing, chamber_temp, keep_temp_meshes)
-
-	desc_SET_ZERO_REFERENCE_POSITION = "Sets the zero reference position for the currently loaded bed mesh."
-	def cmd_SET_ZERO_REFERENCE_POSITION(self, gcmd):
-		if (self.bed_mesh.z_mesh is None):
-			self.ratos.console_echo("Set zero reference position error", "error",
-				"No bed mesh loaded._N_Either generate a new bed mesh or load it via BED_MESH_PROFILE LOAD=\"[profile_name]\"")
-			return
-
-		x_pos = gcmd.get_float('X')
-		y_pos = gcmd.get_float('Y')
-
-		self.ratos.debug_echo("SET_ZERO_REFERENCE_POSITION", f"X:{x_pos:.2f} Y:{y_pos:.2f}")
-
-		org_mesh = self.bed_mesh.get_mesh()
-		new_mesh = BedMesh.ZMesh(org_mesh.get_mesh_params(), org_mesh.get_profile_name(), self.reactor)
-		new_mesh.build_mesh(org_mesh.get_probed_matrix())
-		new_mesh.set_zero_reference(x_pos, y_pos)
-		self.bed_mesh.set_mesh(new_mesh)
-
-		self.bed_mesh.pmgr.save_profile(new_mesh.get_profile_name())
-		self.ratos.console_echo("Set zero reference position", "info",
-			f"Zero reference position saved for profile '{new_mesh.get_profile_name()}'")
 
 	def _create_zmesh_from_profile(self, profile, subject=None, purpose=None):
 		if not profile:
