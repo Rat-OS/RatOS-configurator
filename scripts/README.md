@@ -2,8 +2,6 @@
 
 This directory contains standalone utility scripts for the RatOS-configurator project.
 
-## Available Scripts
-
 ## `validate-bash-syntax.sh`
 
 A comprehensive bash script syntax validation tool with parallel processing for optimal performance.
