@@ -10,7 +10,7 @@
 	"firmwareBinaryName": "firmware-btt-ebb42-gen2-10.bin",
 	"compileScript": "compile.sh",
 	"flashScript": "flash.sh",
-	"documentationLink": "https://os.ratrig.com/docs/boards/btt/ebb42-12",
+	"documentationLink": "https://os.ratrig.com/docs/toolboards/documentation-pending",
 	"driverCount": 1,
 	"integratedDrivers": {
 		"extruder": "BTT-TMC2209-13"

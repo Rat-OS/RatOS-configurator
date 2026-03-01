@@ -7,7 +7,7 @@
 	"firmwareBinaryName": "firmware-caramba.bin",
 	"compileScript": "compile.sh",
 	"flashScript": "flash.sh",
-	"documentationLink": "https://os.ratrig.com/docs/boards/btt/ebb42-12",
+	"documentationLink": "https://os.ratrig.com/docs/toolboards/documentation-pending",
 	"fourPinFanConnectorCount": 1,
 	"disableAutoFlash": true,
 	"driverVoltages": [24],

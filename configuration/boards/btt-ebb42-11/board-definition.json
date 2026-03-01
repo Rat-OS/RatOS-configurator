@@ -10,7 +10,7 @@
 	"firmwareBinaryName": "firmware-btt-ebb42-11.bin",
 	"compileScript": "compile.sh",
 	"flashScript": "flash.sh",
-	"documentationLink": "https://os.ratrig.com/docs/boards/btt/ebb42-11",
+	"documentationLink": "https://os.ratrig.com/docs/toolboards/btt/ebb-42-11",
 	"disableAutoFlash": true,
 	"driverCount": 1,
 	"integratedDrivers": {
