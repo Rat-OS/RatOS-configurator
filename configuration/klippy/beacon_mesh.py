@@ -341,7 +341,7 @@ class BeaconMesh:
 
 		link_url = "https://os.ratrig.com/docs/configuration/beacon"
 		link_text = "Beacon Contact Compensation Mesh"
-		link_line = f'Lean more about <a href="{link_url}" target="_blank">{link_text}</a>'
+		link_line = f'Learn more about <a href="{link_url}" target="_blank">{link_text}</a>'
 
 		profiles = self.get_profiles(RATOS_MESH_KIND_COMPENSATION)
 
