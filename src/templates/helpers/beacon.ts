@@ -4,6 +4,7 @@ type BeaconOverrides = {
 	proximityMargins?: { left: number; right: number; top: number; bottom: number };
 	contactMargins?: { left: number; right: number; top: number; bottom: number };
 	offset?: { x: number; y: number };
+	enableAdaptiveHeatsoak?: boolean;
 };
 
 export const maybeRenderBeaconOverrides = (config: PrinterConfiguration, options: BeaconOverrides): string => {
@@ -38,6 +39,12 @@ export const maybeRenderBeaconOverrides = (config: PrinterConfiguration, options
 		results.push('[beacon]');
 		results.push(`x_offset: ${options.offset.x}`);
 		results.push(`y_offset: ${options.offset.y}`);
+	}
+	if (options.enableAdaptiveHeatsoak === true) {
+		results.push('');
+		results.push('# Enable adaptive heatsoak by default');
+		results.push('[gcode_macro RatOS]');
+		results.push('variable_beacon_adaptive_heat_soak: True');
 	}
 	return results.join('\n');
 };
