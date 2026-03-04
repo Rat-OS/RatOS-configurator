@@ -58,6 +58,7 @@ ${maybeRenderBeaconOverrides(config, {
 	proximityMargins: { left: 20, right: 20, top: 20, bottom: 20 },
 	contactMargins: { left: 20, right: 20, top: 20, bottom: 20 },
 	offset: { x: 0, y: 19.5 },
+	enableAdaptiveHeatsoak: true,
 })}
 ${helper.renderEndstopSection()}
 

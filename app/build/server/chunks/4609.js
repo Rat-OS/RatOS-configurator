@@ -42,7 +42,7 @@ speed: ${r.getMacroTravelSpeed()}
 ### HOMING
 #############################################################################################################
 ${r.renderProbeIncludes()}
-${(0,o.maybeRenderBeaconOverrides)(e,{proximityMargins:{left:20,right:20,top:20,bottom:20},contactMargins:{left:20,right:20,top:20,bottom:20},offset:{x:0,y:19.5}})}
+${(0,o.maybeRenderBeaconOverrides)(e,{proximityMargins:{left:20,right:20,top:20,bottom:20},contactMargins:{left:20,right:20,top:20,bottom:20},offset:{x:0,y:19.5},enableAdaptiveHeatsoak:!0})}
 ${r.renderEndstopSection()}
 
 #############################################################################################################

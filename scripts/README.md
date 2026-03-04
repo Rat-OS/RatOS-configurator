@@ -2,9 +2,7 @@
 
 This directory contains standalone utility scripts for the RatOS-configurator project.
 
-## Available Scripts
-
-### `validate-bash-syntax.sh`
+## `validate-bash-syntax.sh`
 
 A comprehensive bash script syntax validation tool with parallel processing for optimal performance.
 
@@ -153,3 +151,8 @@ When adding new utility scripts to this directory:
 # Test specific script
 bash -n ./scripts/your-script.sh
 ```
+
+## `check-urls.py`
+A Python script that scans the repository for HTTP/HTTPS URLs and verifies their reachability, with support for exclusions and parallel processing. This is useful for ensuring that all external links in documentation, code comments, and configuration files remain valid and accessible.
+
+Best run from a vscode terminal, as you can then click on the detected URLs and file references in the output.

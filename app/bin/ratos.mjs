@@ -110581,7 +110581,7 @@ var development = (program3) => {
             await $4`git checkout ${currentBranch}`;
             return { newName: "Aborted", stepStatus: "error" };
           }
-          if (newBranch.endsWith("-deployment")) {
+          if (isDeploymentBranch(newBranch)) {
             getLogger2().info(`Switched to deployment branch "${newBranch}"`);
             helpers.insertStep({
               name: `Adjusting environment for deployment branch ${newBranch}`,

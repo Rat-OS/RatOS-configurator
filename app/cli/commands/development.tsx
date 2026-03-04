@@ -37,6 +37,8 @@ const replaceInTempEnvFile = async (
 	await replaceInFileByLine(tempEnvFile, searchOrReplacer, replace);
 };
 
+// Conventionally, deployment branches have a "-deployment" suffix. The test here is a bit more permissive,
+// and allows for example "-deployment-2" suffixes, to allow for multiple deployment branches if needed.
 const isDeploymentBranch = (branch: string) => branch.indexOf('-deployment') > -1;
 
 const renderBranchInfo = async ($: Shell) => {
@@ -185,8 +187,7 @@ const development = (program: Command) => {
 							await $`git checkout ${currentBranch}`;
 							return { newName: 'Aborted', stepStatus: 'error' };
 						}
-						// Conventionally, deployment branches have a "-deployment" suffix
-						if (newBranch.endsWith('-deployment')) {
+						if (isDeploymentBranch(newBranch)) {
 							getLogger().info(`Switched to deployment branch "${newBranch}"`);
 							helpers.insertStep({
 								name: `Adjusting environment for deployment branch ${newBranch}`,
