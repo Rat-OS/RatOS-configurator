@@ -57,12 +57,12 @@ BeaconProbingRegions = namedtuple('BeaconProbingRegions',
 	- logical_contact_min: Tuple of (min_x, min_y) for contact probing calculated from the printable area and beacon offsets (toolhead position)
 	- logical_contact_max: Tuple of (max_x, max_y) for contact probing calculated from the printable area and beacon offsets (toolhead position)
   Notes:
-    - COIL POSITION VS TOOLHEAD POSITION FOR PROXIMITY VALUES
+	- COIL POSITION VS TOOLHEAD POSITION FOR PROXIMITY VALUES
 	  
 	  - The values suffixed "_coil_pos" represent the position of the beacon coil itself.
 
 	  - The values suffixes "_toolhead_pos" represent the position of the toolhead (aka, nozzle), taking account of
-	    the beacon offsets. This is where the toolhead must be positioned to ensure that the beacon coil is over the
+		the beacon offsets. This is where the toolhead must be positioned to ensure that the beacon coil is over the
 		corresponding "_coil_pos" position.
 
 	- TOOLHEAD POSITION FOR CONTACT VALUES
@@ -238,42 +238,52 @@ class RatOS:
 		self.gcode.register_command('_TRY', self.cmd_TRY, desc=self.desc_TRY)
 		self.gcode.register_command('_DEBUG_ECHO_STACK_TRACE', self.cmd_DEBUG_ECHO_STACK_TRACE, desc=self.desc_DEBUG_ECHO_STACK_TRACE)
 		self.gcode.register_command('_MOVE_TO_SAFE_Z_HOME', self.cmd_MOVE_TO_SAFE_Z_HOME, desc=self.desc_MOVE_TO_SAFE_Z_HOME)
-		self.gcode.register_command('CONFIGURE_DC_ENDSTOP', self.cmd_CONFIGURE_DC_ENDSTOP, desc=self.desc_CONFIGURE_DC_ENDSTOP)
-		self.gcode.register_command('RESET_DC_ENDSTOP_CONFIGURATION', self.cmd_RESET_DC_ENDSTOP_CONFIGURATION, desc=self.desc_RESET_DC_ENDSTOP_CONFIGURATION)
-		self.gcode.register_command('INCREASE_Y_MAX', self.cmd_INCREASE_Y_MAX, desc=self.desc_INCREASE_Y_MAX)
-		self.gcode.register_command('RESET_Y_MAX_ADJUSTMENT', self.cmd_RESET_Y_MAX_ADJUSTMENT, desc=self.desc_RESET_Y_MAX_ADJUSTMENT)
 		self.gcode.register_command('_BEACON_CHECK_DIRECTIONAL_REPEATABILITY', self.cmd_BEACON_CHECK_DIRECTIONAL_REPEATABILITY, desc=self.desc_BEACON_CHECK_DIRECTIONAL_REPEATABILITY)
 		self.gcode.register_command('_CAMERA_SNAPSHOT', self.cmd_CAMERA_SNAPSHOT, desc=self.desc_CAMERA_SNAPSHOT)
 		self.gcode.register_command('BEACON_PROBE_CLEAN', self.cmd_BEACON_PROBE_CLEAN, desc=self.desc_BEACON_PROBE_CLEAN)
 		self.gcode.register_command('SET_ZERO_REFERENCE_POSITION', self.cmd_SET_ZERO_REFERENCE_POSITION, desc=self.desc_SET_ZERO_REFERENCE_POSITION)
 
 	def register_command_overrides(self):
-		self.register_override('TEST_RESONANCES', self.override_TEST_RESONANCES, desc=self.desc_TEST_RESONANCES)
-		self.register_override('SHAPER_CALIBRATE', self.override_SHAPER_CALIBRATE, desc=self.desc_SHAPER_CALIBRATE)
+		if self.config.has_section('resonance_tester'):
+			self.register_override('TEST_RESONANCES', self.override_TEST_RESONANCES, desc=self.desc_TEST_RESONANCES)
+			self.register_override('SHAPER_CALIBRATE', self.override_SHAPER_CALIBRATE, desc=self.desc_SHAPER_CALIBRATE)
 
-	def register_override(self, command, func, desc):
+	def register_override(self, command, func, desc=None, desc_suffix=None, skip_if_not_registered=False):
 		if self.overridden_commands[command] is not None:
 			if self.overridden_commands[command] != func:
 				raise self.printer.config_error("Command '%s' is already overridden with a different function" % (command,))
 			return
+		
+		if desc is None:
+			desc = self.gcode.get_command_help().get(command, None)
 
+		if desc_suffix is not None:
+			if desc is None:
+				desc = desc_suffix
+			else:
+				if not desc.endswith('.'):
+					desc = desc + '.'
+				desc = desc + ' ' + desc_suffix
+		
 		prev_cmd = self.gcode.register_command(command, None)
+		
 		if prev_cmd is None:
-			if (command == 'TEST_RESONANCES' or command == 'SHAPER_CALIBRATE') and not self.config.has_section('resonance_tester'):
-				# No [resonance_tester] section found, don't throw an error, skip overriding.
-				logging.info("No [resonance_tester] section found, skipping override of command '%s'" % (command,))
+			if skip_if_not_registered:
+				logging.info(f"{self.name}: existing command '{command}' not found, skipping override registration")
 				return
 			else:
-				raise self.printer.config_error("Existing command '%s' not found in RatOS override" % (command,))
+				raise self.printer.config_error(f"{self.name}: expected existing command '{command}' not found, cannot register override")
+		
 		if command not in self.overridden_commands:
-			raise self.printer.config_error("Command '%s' not found in RatOS override list" % (command,))
+			raise self.printer.config_error(f"{self.name}: command '{command}' not found in override list")
 
-		self.overridden_commands[command] = prev_cmd;
-		self.gcode.register_command(command, func, desc=(desc))
+		self.overridden_commands[command] = prev_cmd
+		self.gcode.register_command(command, func, desc=desc)
 
 	def get_prev_cmd(self, command):
 		if command not in self.overridden_commands or self.overridden_commands[command] is None:
-			raise self.printer.config_error("Previous function for command '%s' not found in RatOS override list" % (command,))
+			raise self.printer.config_error(f"{self.name}: previous function for command '{command}' not found in RatOS override list")
+		
 		return self.overridden_commands[command]
 
 	desc_TEST_RESONANCES = ("Runs the resonance test for a specifed axis, positioning errors caused by sweeping are corrected by a RatOS override of this command.")
@@ -467,230 +477,6 @@ class RatOS:
 			self.v_sd.cmd_SDCARD_PRINT_FILE(gcmd)
 		else:
 			self.console_echo('Print aborted', 'error')
-
-	desc_RESET_Y_MAX_ADJUSTMENT = "Resets the adjustment of the maximum Y position. The adjustment is used only on IDEX machines when it's not possible to position the nozzle over the VAOC camera. Run INCREASE_Y_MAX to increase the maximum Y position by one millimeter each time it is run."
-	def cmd_RESET_Y_MAX_ADJUSTMENT(self, gcmd):
-		if not self.config.has_section("dual_carriage"):
-			self.console_echo('Invalid machine type', 'error', 'This macro is only available on IDEX machines.')
-			return
-		main_config_path = self.printer.get_start_args()['config_file']
-		if not main_config_path:
-			raise self.printer.command_error("Could not determine the config path to update adjust-y-max.cfg")
-		config_dir = os.path.dirname(main_config_path)		
-		config_path = os.path.join(config_dir, 'ratos_generated', 'adjust-y-max.cfg')
-		content = \
-			'# WARNING. THIS FILE IS GENERATED BY RATOS AND\n' + \
-			'# WILL BE UPDATED BY THE INCREASE_Y_MAX MACRO.\n' + \
-			'# DO NOT DELETE OR MODIFY THIS FILE.\n'		
-		try:
-			os.makedirs(os.path.dirname(config_path), exist_ok=True)
-			with open(config_path, 'w') as f:
-				f.write(content)
-		except Exception as e:
-			self.console_echo('Failed to reset adjustment of maximum Y position', 'error', f'Could not write to {config_path}: {str(e)}')
-			return		
-		self.console_echo('Adjustment of maximum Y position reset', 'info', f'Successfully reset {config_path}_N_You must restart klipper for the changes to take effect, then run INCREASE_Y_MAX to perform the configuration.')
-	
-	desc_INCREASE_Y_MAX = "Increases the maximum Y position by one millimeter. Used only on IDEX machines when it's not possible to position the nozzle over the VAOC camera."
-	def cmd_INCREASE_Y_MAX(self, gcmd):
-		if not self.config.has_section("dual_carriage"):
-			self.console_echo('Invalid machine type', 'error', 'This macro is only available on IDEX machines.')
-			return
-		self.gm_ratos = self.printer.lookup_object('gcode_macro RatOS')
-		bed_margin_y = self.gm_ratos.variables.get('bed_margin_y')
-		# bed_margin_y is expected to be [number, number]
-		if bed_margin_y is None or not isinstance(bed_margin_y, list) or len(bed_margin_y) != 2 or not all(isinstance(v, (int, float)) for v in bed_margin_y):
-			self.console_echo('Missing or invalid RatOS variable', 'error', 'The required [gcode_macro RatOS] variable_bed_margin_y is missing or invalid.')
-			return
-		if not self.config.has_section("stepper_y"):
-			self.console_echo('Missing [stepper_y] section', 'error', 'The required [stepper_y] configuration section is missing.')
-			return
-		y = self.config.getsection("stepper_y")
-		stepper_y_position_max = y.getfloat("position_max", default=None)
-		stepper_y_position_endstop = y.getfloat("position_endstop", default=None)
-		if stepper_y_position_max is None:
-			self.console_echo('Missing configuration value', 'error', 'The required [stepper_y] position_max setting is missing from the configuration.')
-			return
-		if stepper_y_position_endstop is None:
-			self.console_echo('Missing configuration value', 'error', 'The required [stepper_y] position_endstop setting is missing from the configuration.')
-			return
-		new_max_y = stepper_y_position_max + 1.0
-		content = \
-			'# WARNING. THIS FILE WAS GENERATED BY THE RATOS INCREASE_Y_MAX MACRO.\n' + \
-			'# DO NOT DELETE OR MODIFY THIS FILE.\n' + \
-			'#\n' + \
-			'# To reset the adjustment, so that the default unadjusted value is used,\n' + \
-			'# run the RESET_Y_MAX_ADJUSTMENT macro.\n' + \
-			'\n' + \
-			'[stepper_y]\n' + \
-			f'position_max: {new_max_y:.3f}\n' + \
-			'\n' + \
-			'[gcode_macro RatOS]\n' + \
-			f'variable_bed_margin_y: [{abs(stepper_y_position_endstop):.3f}, {bed_margin_y[1] + 1:.3f}]\n'				
-		main_config_path = self.printer.get_start_args()['config_file']
-		if not main_config_path:
-			raise self.printer.command_error("Could not determine the config path to update adjust-y-max.cfg")		
-		config_dir = os.path.dirname(main_config_path)		
-		config_path = os.path.join(config_dir, 'ratos_generated', 'adjust-y-max.cfg')
-		try:
-			os.makedirs(os.path.dirname(config_path), exist_ok=True)
-			with open(config_path, 'w') as f:
-				f.write(content)
-		except Exception as e:
-			self.console_echo('Failed to update maximum Y position adjustment', 'error', f'Could not write to {config_path}: {str(e)}')
-			return
-		if str(gcmd.get('RESTART', '0')).strip().lower() in ('1', 'true', 'yes'):
-			self.console_echo('Maximum Y position adjustment updated', 'info', f'Updated {config_path}_N_New maximum Y position is {new_max_y:.3f}._N_Restarting klipper to allow the changes to take effect...')
-			# Request a restart
-			gcode = self.printer.lookup_object('gcode')
-			gcode.request_restart('restart')
-		else:
-			self.console_echo('Maximum Y position adjustment updated', 'info', f'Updated {config_path}_N_New maximum Y position is {new_max_y:.3f}._N_You must RESTART klipper for the changes to take effect.')
-
-	desc_RESET_DC_ENDSTOP_CONFIGURATION = "Resets the dc-endstop.cfg configuration file, allowing reconfiguration of dual carriage endstop settings using the CONFIGURE_DC_ENDSTOP macro."
-	def cmd_RESET_DC_ENDSTOP_CONFIGURATION(self, gcmd):
-		if not self.config.has_section("dual_carriage"):
-			self.console_echo('Invalid machine type', 'error', 'This macro is only available on IDEX machines.')
-			return
-		main_config_path = self.printer.get_start_args()['config_file']
-		if not main_config_path:
-			raise self.printer.command_error("Could not determine the config path to update dc-endstop.cfg")
-		config_dir = os.path.dirname(main_config_path)		
-		config_path = os.path.join(config_dir, 'ratos_generated', 'dc-endstop.cfg')
-		content = \
-			'# WARNING. THIS FILE IS GENERATED BY RATOS AND\n' + \
-			'# WILL BE UPDATED BY THE CONFIGURE_DC_ENDSTOP MACRO.\n' + \
-			'# DO NOT DELETE OR MODIFY THIS FILE.\n'		
-		try:
-			os.makedirs(os.path.dirname(config_path), exist_ok=True)
-			with open(config_path, 'w') as f:
-				f.write(content)
-		except Exception as e:
-			self.console_echo('Failed to reset DC endstop configuration', 'error', f'Could not write to {config_path}: {str(e)}')
-			return		
-		self.console_echo('DC endstop configuration reset', 'info', f'Successfully reset {config_path}_N_You must restart klipper for the changes to take effect, then run CONFIGURE_DC_ENDSTOP to perform the configuration.')
-
-	desc_CONFIGURE_DC_ENDSTOP = "Updates the dc-endstop.cfg configuration file, configuring dual carriage endstop settings taking account of the last measured IDEX toolhead offsets (for example, from VAOC)."
-	def cmd_CONFIGURE_DC_ENDSTOP(self, gcmd):		
-		if not self.config.has_section("dual_carriage"):
-			self.console_echo('Invalid machine type', 'error', 'This macro is only available on IDEX machines.')
-			return
-
-		self.gm_ratos = self.printer.lookup_object('gcode_macro RatOS')
-		isConfigured = self.gm_ratos.variables.get('dc_endstop_is_configured', False) == True
-		if isConfigured:
-			self.console_echo(
-				'DC endstop already configured', 'warning', 
-				'The dual carriage endstop has already been configured. If you want to reconfigure it,_N_' + \
-				'you must run the RESET_DC_ENDSTOP_CONFIGURATION macro first, then RESTART klipper, then run CONFIGURE_DC_ENDSTOP again.')
-			return
-		if not self.config.has_section("stepper_x"):
-			self.console_echo('Missing [stepper_x] section', 'error', 'The required [stepper_x] configuration section is missing.')
-			return		
-		if not self.config.has_section("save_variables"):
-			self.console_echo('Missing [save_variables] section', 'error', 'The required [save_variables] configuration section is missing.')
-			return		
-		dc = self.config.getsection("dual_carriage")
-		x = self.config.getsection("stepper_x")
-
-		stepper_x_position_max = x.getfloat("position_max", default=None)
-		stepper_x_position_endstop = x.getfloat("position_endstop", default=None)
-		dual_carriage_position_max = dc.getfloat("position_max", default=None)
-		dual_carriage_position_endstop = dc.getfloat("position_endstop", default=None)
-
-		if stepper_x_position_max is None:
-			self.console_echo('Missing configuration value', 'error', 'The required [stepper_x] position_max setting is missing from the configuration.')
-			return
-		if stepper_x_position_endstop is None:
-			self.console_echo('Missing configuration value', 'error', 'The required [stepper_x] position_endstop setting is missing from the configuration.')
-			return
-		if dual_carriage_position_max is None:
-			self.console_echo('Missing configuration value', 'error', 'The required [dual_carriage] position_max setting is missing from the configuration.')
-			return
-		if dual_carriage_position_endstop is None:
-			self.console_echo('Missing configuration value', 'error', 'The required [dual_carriage] position_endstop setting is missing from the configuration.')
-			return
-
-		svv = self.printer.lookup_object("save_variables", None)
-		if svv is None:
-			self.console_echo('save_variables object not found', 'error', 'The save_variables object was not found.')
-			return
-		svv = self.printer.lookup_object("save_variables").allVariables
-		missingKeys = []
-		for key in ('idex_xoffset', 'idex_xcontrolpoint', 'idex_ycontrolpoint'):
-			if not key in svv:
-				missingKeys.append(key)
-		if len(missingKeys) > 0:
-			self.console_echo('Missing saved variable(s)', 'error', 'The following required saved variable(s) are missing: ' + ', '.join(missingKeys) + '. Please run the VAOC calibration first.')
-			return
-		idex_xoffset = float(svv['idex_xoffset'])
-		idex_xcontrolpoint = float(svv['idex_xcontrolpoint'])
-		idex_ycontrolpoint = float(svv['idex_ycontrolpoint'])
-
-		content = \
-			'# WARNING. THIS FILE WAS GENERATED BY THE RATOS CONFIGURE_DC_ENDSTOP MACRO.\n' + \
-			'# DO NOT DELETE OR MODIFY THIS FILE.\n' + \
-			'#\n' + \
-			'# To reconfigure:\n' + \
-			'# 1. Run the RESET_DC_ENDSTOP_CONFIGURATION macro which will reset this file.\n' + \
-			'# 2. RESTART klipper, so the reset changes take effect.\n' + \
-			'# 3. Run the CONFIGURE_DC_ENDSTOP macro to perform the configuration.\n' + \
-			'# 4. RESTART klipper again to apply the new configuration\n' + \
-			'\n' + \
-			'[dual_carriage]\n' + \
-			f'position_max: {dual_carriage_position_max + idex_xoffset:.3f}\n' + \
-			f'position_endstop: {dual_carriage_position_endstop + idex_xoffset:.3f}\n' + \
-			'\n' + \
-			'[gcode_macro RatOS]\n' + \
-			'variable_dc_endstop_is_configured: True\n' + \
-			f'variable_bed_margin_x: [{abs(stepper_x_position_endstop):.3f}, {dual_carriage_position_max - stepper_x_position_max + idex_xoffset:.3f}]\n' + \
-			'\n' + \
-			'[gcode_macro _VAOC]\n' + \
-			f'variable_expected_camera_x_position: {idex_xcontrolpoint:.3f}\n' + \
-			f'variable_expected_camera_y_position: {idex_ycontrolpoint:.3f}\n' + \
-			'\n' + \
-			'[gcode_macro T0]\n' + \
-			f'variable_parking_position: {stepper_x_position_endstop + 2:.3f}\n' + \
-			'\n' + \
-			'[gcode_macro T1]\n' + \
-			f'variable_parking_position: {dual_carriage_position_endstop + idex_xoffset - 2:.3f}\n'
-
-		main_config_path = self.printer.get_start_args()['config_file']
-		if not main_config_path:
-			raise self.printer.command_error("Could not determine the config path to update dc-endstop.cfg")
-		config_dir = os.path.dirname(main_config_path)		
-		config_path = os.path.join(config_dir, 'ratos_generated', 'dc-endstop.cfg')
-		existing_content = None
-		
-		if os.path.exists(config_path):
-			try:
-				with open(config_path, 'r') as f:
-					existing_content = f.read()
-			except Exception:
-				pass
-		
-		if existing_content == content:
-			self.console_echo('DC endstop configuration is up to date', 'info', f'No changes were made to dc-endstop.cfg at {config_path}.')
-			return
-		
-		try:
-			os.makedirs(os.path.dirname(config_path), exist_ok=True)
-			with open(config_path, 'w') as f:
-				f.write(content)
-		except Exception as e:
-			self.console_echo('Failed to update DC endstop configuration', 'error', f'Could not write to {config_path}: {str(e)}')
-			return
-
-		# Reset idex_xoffset to zero since it's now been implicitly applied via DC endstop configuration
-		self.gcode.run_script_from_command("SAVE_VARIABLE VARIABLE=idex_xoffset VALUE=0")
-
-		if str(gcmd.get('RESTART', '0')).strip().lower() in ('1', 'true', 'yes'):
-			self.console_echo('DC endstop configuration updated', 'info', f'Updated {config_path}_N_Restarting klipper to allow the changes to take effect...')
-			# Request a restart
-			gcode = self.printer.lookup_object('gcode')
-			gcode.request_restart('restart')
-		else:
-			self.console_echo('DC endstop configuration updated', 'info', f'Updated {config_path}_N_You must RESTART klipper for the changes to take effect.')
 
 	#####
 	# Gcode Post Processor
@@ -1673,6 +1459,7 @@ class RatOS:
 		
 		gcmd.respond_info(f"Snapshot saved to {image_path}")
 	
+		
 class BackgroundDisplayStatusProgressHandler:
 	def __init__(
 			self, 
