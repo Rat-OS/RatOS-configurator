@@ -23,13 +23,6 @@
 			"bus": "spi"
 		}
 	},
-	"stepperSPI": {
-		"software": {
-			"sclk": "PB1",
-			"mosi": "PB2",
-			"miso": "PB3"
-		}
-	},
 	"motorSlots": {
 		"X": {
 			"title": "X",
@@ -37,11 +30,9 @@
 			"step_pin": "PC0",
 			"dir_pin": "PL0",
 			"cs_pin": "PG0",
+			"uart_pin": "PG0",
 			"endstop_pin": "PK2",
-			"diag_pin": "PK2",
-			"spi_software_mosi_pin": "PB2",
-			"spi_software_miso_pin": "PB3",
-			"spi_software_sclk_pin": "PB1"
+			"diag_pin": "PK2"
 		},
 		"Y": {
 			"title": "Y",
@@ -49,11 +40,9 @@
 			"step_pin": "PC1",
 			"dir_pin": "PL1",
 			"cs_pin": "PG2",
+			"uart_pin": "PG2",
 			"endstop_pin": "PK7",
-			"diag_pin": "PK7",
-			"spi_software_mosi_pin": "PB2",
-			"spi_software_miso_pin": "PB3",
-			"spi_software_sclk_pin": "PB1"
+			"diag_pin": "PK7"
 		},
 		"Z": {
 			"title": "Z",
@@ -61,11 +50,9 @@
 			"step_pin": "PC2",
 			"dir_pin": "PL2",
 			"cs_pin": "PK5",
+			"uart_pin": "PK5",
 			"endstop_pin": "PK6",
-			"diag_pin": "PK6",
-			"spi_software_mosi_pin": "PB2",
-			"spi_software_miso_pin": "PB3",
-			"spi_software_sclk_pin": "PB1"
+			"diag_pin": "PK6"
 		},
 		"E0": {
 			"title": "E0",
@@ -73,10 +60,8 @@
 			"step_pin": "PC3",
 			"dir_pin": "PL6",
 			"cs_pin": "PK4",
-			"diag_pin": "PK3",
-			"spi_software_mosi_pin": "PB2",
-			"spi_software_miso_pin": "PB3",
-			"spi_software_sclk_pin": "PB1"
+			"uart_pin": "PK4",
+			"diag_pin": "PK3"
 		}
 	}
 }
