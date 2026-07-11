@@ -1,3 +1,5 @@
+import type { PermittedServices } from '@/server/helpers/klipper';
+
 export const register = async () => {
 	if (process.env.NEXT_RUNTIME === 'nodejs') {
 		const { getLogger } = await import('./server/helpers/logger');
@@ -44,7 +46,12 @@ export const register = async () => {
 				});
 				logger.info('Configuration changed, restarting klipper..');
 				try {
-					const restarted = await klipperRestart();
+					const servicesToRestart: PermittedServices[] | undefined = res.some(
+						(r) => r.fileName === 'crowsnest.conf' && (r.action === 'created' || r.action === 'overwritten'),
+					)
+						? ['crowsnest']
+						: undefined;
+					const restarted = await klipperRestart({ servicesToRestart });
 					if (restarted) {
 						logger.info('Klipper restarted!');
 					} else {
