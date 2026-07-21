@@ -330,11 +330,11 @@ importers:
         specifier: ^7.8.1
         version: 7.8.1
       scichart:
-        specifier: ~4.0.933
-        version: 4.0.933
+        specifier: ~4.0.944
+        version: 4.0.944
       scichart-react:
         specifier: ~1.0.0
-        version: 1.0.0(react@18.2.0)(scichart@4.0.933)
+        version: 1.0.0(react@18.2.0)(scichart@4.0.944)
       screenfull:
         specifier: ^6.0.2
         version: 6.0.2
@@ -4740,8 +4740,8 @@ packages:
       react: '>=16.8.0'
       scichart: '>=4.0.828'
 
-  scichart@4.0.933:
-    resolution: {integrity: sha512-GrJjOMUtiJNjbF0BIloVOIOi8Y3h7uAoSeIJ9HmQnicFhlzH7QzD+EkDv5XXFgSMAbxtIQQqpw3r4Dxoo0uLsg==}
+  scichart@4.0.944:
+    resolution: {integrity: sha512-5YtzDJ/DkxTDZkEnJ/rX/rSJg5Y8Qa2c+8Py5E14BAGUMeWcGZKmGBRaPqd6/Ij9eifNs8X7WFhB99dqSzoFjg==}
 
   screenfull@6.0.2:
     resolution: {integrity: sha512-AQdy8s4WhNvUZ6P8F6PB21tSPIYKniic+Ogx0AacBMjKP1GUHN2E9URxQHtCusiwxudnCKkdy4GrHXPPJSkCCw==}
@@ -10014,12 +10014,12 @@ snapshots:
     dependencies:
       loose-envify: 1.4.0
 
-  scichart-react@1.0.0(react@18.2.0)(scichart@4.0.933):
+  scichart-react@1.0.0(react@18.2.0)(scichart@4.0.944):
     dependencies:
       react: 18.2.0
-      scichart: 4.0.933
+      scichart: 4.0.944
 
-  scichart@4.0.933: {}
+  scichart@4.0.944: {}
 
   screenfull@6.0.2: {}
 
