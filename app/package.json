@@ -134,7 +134,7 @@
 		"refractor": "3.6.0",
 		"ring-buffer-ts": "^1.2.0",
 		"rxjs": "^7.8.1",
-		"scichart": "~4.0.933",
+		"scichart": "~4.0.944",
 		"scichart-react": "~1.0.0",
 		"screenfull": "^6.0.2",
 		"semver": "^7.6.3",
