@@ -30,7 +30,8 @@
 			"step_pin": "PC0",
 			"dir_pin": "PL0",
 			"cs_pin": "PG0",
-			"endstop_pin": "PB6",
+			"uart_pin": "PG0",
+			"endstop_pin": "PK2",
 			"diag_pin": "PK2"
 		},
 		"Y": {
@@ -39,7 +40,8 @@
 			"step_pin": "PC1",
 			"dir_pin": "PL1",
 			"cs_pin": "PG2",
-			"endstop_pin": "PB5",
+			"uart_pin": "PG2",
+			"endstop_pin": "PK7",
 			"diag_pin": "PK7"
 		},
 		"Z": {
@@ -48,7 +50,8 @@
 			"step_pin": "PC2",
 			"dir_pin": "PL2",
 			"cs_pin": "PK5",
-			"endstop_pin": "PB4",
+			"uart_pin": "PK5",
+			"endstop_pin": "PK6",
 			"diag_pin": "PK6"
 		},
 		"E0": {
@@ -57,6 +60,7 @@
 			"step_pin": "PC3",
 			"dir_pin": "PL6",
 			"cs_pin": "PK4",
+			"uart_pin": "PK4",
 			"diag_pin": "PK3"
 		}
 	}
