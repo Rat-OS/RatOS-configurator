@@ -29,25 +29,25 @@ declare namespace __next_route_internal_types__ {
     S extends `${string}${SearchOrHash}` ? never : S
 
   type StaticRoutes = 
-    | `/api/dfu-image`
     | `/api/download-firmware`
+    | `/api/dfu-image`
     | `/api/mcu-image`
     | `/api/printer-image`
     | `/api/update-logs/download`
     | `/api/update-logs/generate-test-data`
     | `/`
-    | `/calibration`
     | `/motion`
-    | `/wizard`
+    | `/calibration`
     | `/toolhead`
+    | `/update-logs`
+    | `/wizard`
+    | `/analysis/macros`
     | `/analysis`
     | `/analysis/macros/new`
-    | `/analysis/macros`
-    | `/update-logs`
   type DynamicRoutes<T extends string = string> = 
     | `/api/trpc/${SafeSlug<T>}`
-    | `/analysis/macros/${SafeSlug<T>}`
     | `/analysis/macros/${SafeSlug<T>}/edit`
+    | `/analysis/macros/${SafeSlug<T>}`
     | `/analysis/macros/${SafeSlug<T>}/recordings/${SafeSlug<T>}`
     | `/analysis/macros/${SafeSlug<T>}/recordings`
 
