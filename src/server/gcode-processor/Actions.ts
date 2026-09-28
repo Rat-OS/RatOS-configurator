@@ -106,9 +106,14 @@ export function validateGenerator(
 				}
 				break;
 			case GCodeFlavour.OrcaSlicer:
-				if (!semver.satisfies(gcodeInfo.generatorVersion, '2.1.1 || 2.2.0 || 2.3.0 || 2.3.1')) {
+				if (
+					!semver.satisfies(
+						gcodeInfo.generatorVersion,
+						'2.1.1 || 2.2.0 || 2.3.0 || 2.3.1 || 2.3.2 || 2.4.0 || 2.4.1 || 2.4.2',
+					)
+				) {
 					throw new SlicerNotSupported(
-						`Only versions 2.1.1, 2.2.0, 2.3.0 and 2.3.1 of OrcasSlicer are supported. Version ${gcodeInfo.generatorVersion} is not supported.`,
+						`Only versions 2.1.1, 2.2.0, 2.3.0 - 2.3.2 and 2.4.0 - 2.4.2 of OrcaSlicer are supported. Version ${gcodeInfo.generatorVersion} is not supported.`,
 						{ cause: gcodeInfo },
 					);
 				}
